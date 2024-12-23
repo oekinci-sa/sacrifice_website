@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import Header from "./common_components/Header";
+import Footer from "./common_components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,8 +10,8 @@ const inter = Inter({
 });
 
 const instrumentSans = Instrument_Sans({
-  subsets: ['latin'],
-  variable: '--font-instrument-sans',
+  subsets: ["latin"],
+  variable: "--font-instrument-sans",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${instrumentSans.variable}`}>
+        <Header></Header>
         {children}
+        <Footer></Footer>
       </body>
     </html>
   );

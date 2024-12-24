@@ -7,6 +7,7 @@ import RightPart from "../Footer/RightPart";
 
 const Footer = () => {
   return (
+    
     <div className="flex justify-between bg-black pt-12 pb-6">
       <LeftPart></LeftPart>
       <RightPart></RightPart>

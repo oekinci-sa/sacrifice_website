@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${instrumentSans.variable}`}>
+      <body className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}>
         <Header></Header>
         {children}
         <Footer></Footer>

@@ -26,7 +26,7 @@ export default function DetailsPage() {
       const { data, error } = await supabase
         .from("sacrifice_animals")
         .select("*")
-        .eq("id", id)
+        .eq("sacrifice_no", id)
         .single();
       if (error) {
         console.error(error);
@@ -35,6 +35,9 @@ export default function DetailsPage() {
         setFormData(data); // Initialize form data
       }
       setLoading(false);
+
+      console.log(data);
+
     };
     fetchData();
   }, [id]);
@@ -50,7 +53,7 @@ export default function DetailsPage() {
     const { error } = await supabase
       .from("sacrifice_animals")
       .update(formData)
-      .eq("id", id);
+      .eq("sacrifice_no", id);
     if (error) {
       console.error("Error updating data:", error);
     } else {
@@ -62,36 +65,31 @@ export default function DetailsPage() {
     return <p>Loading...</p>;
   }
 
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Details for ID: {id}</h1>
+
+      {/* Control data */}
       {data ? (
         <div className="space-y-4">
-          {/* Example fields to edit */}
+
           <div>
-            <label className="block mb-1 text-sm font-medium">Name</label>
+            <label className="block mb-1 text-sm font-medium">Hissedar 1</label>
             <Input
-              name="name"
-              value={formData.name || ""}
+              name="shareholder_1"
+              value={formData.shareholder_1 || ""}
               onChange={handleInputChange}
             />
           </div>
-          <div>
-            <label className="block mb-1 text-sm font-medium">Email</label>
-            <Input
-              name="email"
-              value={formData.email || ""}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div>
+          {/* <div>
             <label className="block mb-1 text-sm font-medium">Phone</label>
             <Input
               name="phone"
               value={formData.phone || ""}
               onChange={handleInputChange}
             />
-          </div>
+          </div> */}
           {/* Save Button */}
           <Button onClick={handleSave} className="mt-4">
             Save Changes

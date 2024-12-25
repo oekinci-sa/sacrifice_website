@@ -2,7 +2,7 @@ import React from 'react'
 
 import Logo from './Logo';
 import Navigation from './Navigation';
-import LeftPart from './LeftPart';
+import RightPart from './RightPart';
 
 
 const Header = () => {
@@ -10,7 +10,7 @@ const Header = () => {
     <div className="flex justify-between items-center m-8">
       <Logo></Logo>
       <Navigation></Navigation>
-      <LeftPart></LeftPart>
+      <RightPart></RightPart>
     </div>
   );
 }

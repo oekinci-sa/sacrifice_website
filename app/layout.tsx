@@ -26,9 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}>
-        <Header></Header>
-        {children}
+      <body
+        className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}
+      >
+        <div className="container mx-auto ">
+          <Header></Header>
+          {children}
+        </div>
         <Footer></Footer>
       </body>
     </html>

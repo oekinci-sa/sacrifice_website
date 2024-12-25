@@ -6,7 +6,7 @@ import Stats from "@/components/main/Stats";
 
 export default function Home() {
   return (
-    <div>
+    <div className="py-24">
       <Ayah></Ayah>
       <Banner></Banner>
       <Stats></Stats>

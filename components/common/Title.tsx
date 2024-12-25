@@ -2,7 +2,7 @@ import React from 'react'
 
 const Title = () => {
   return (
-    <div>Title</div>
+    <div className='my-8'>Title</div>
   )
 }
 

@@ -1,0 +1,105 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { Input } from "@/components/ui/input"; // ShadCN Input component
+import { Button } from "@/components/ui/button"; // ShadCN Button component
+import { useParams } from "next/navigation";
+
+// Supabase client setup
+const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncnR3YnZ1ZGt6dmdhdnFza2R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwNDY2MzcsImV4cCI6MjA1MDYyMjYzN30.rDTI_p4UStwOQZSnWqTbAGqCDTpqmDIMdbqFEL3GuOM"; // Public anon anahtarınızı buraya koyun
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export default function DetailsPage() {
+  const { id } = useParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({}); // Store updated data
+
+  // Fetch data when page loads
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("sacrifice_animals")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) {
+        console.error(error);
+      } else {
+        setData(data);
+        setFormData(data); // Initialize form data
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [id]);
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle save button click
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from("sacrifice_animals")
+      .update(formData)
+      .eq("id", id);
+    if (error) {
+      console.error("Error updating data:", error);
+    } else {
+      alert("Data updated successfully!");
+    }
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Details for ID: {id}</h1>
+      {data ? (
+        <div className="space-y-4">
+          {/* Example fields to edit */}
+          <div>
+            <label className="block mb-1 text-sm font-medium">Name</label>
+            <Input
+              name="name"
+              value={formData.name || ""}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-sm font-medium">Email</label>
+            <Input
+              name="email"
+              value={formData.email || ""}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-sm font-medium">Phone</label>
+            <Input
+              name="phone"
+              value={formData.phone || ""}
+              onChange={handleInputChange}
+            />
+          </div>
+          {/* Save Button */}
+          <Button onClick={handleSave} className="mt-4">
+            Save Changes
+          </Button>
+        </div>
+      ) : (
+        <p>No data found for this ID.</p>
+      )}
+    </div>
+  );
+}

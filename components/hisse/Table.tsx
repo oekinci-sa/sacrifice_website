@@ -132,7 +132,15 @@ export default function DemoTable() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const [data, setData] = useState<never[]>([]);
+  interface SacrificeAnimal {
+    sacrifice_no: string;
+    sacrifice_time: string;
+    share_price: number;
+    empty_share: number;
+    // Add other fields as necessary
+  }
+  
+  const [data, setData] = useState<SacrificeAnimal[]>([]);
 
   // const router = useRouter();
 

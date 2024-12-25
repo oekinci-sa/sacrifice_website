@@ -13,7 +13,7 @@ const LeftPart = () => {
       </Link>
       <div className="text-sm text-white/50">
         <p>
-          İnsan ve Medeniyet Hareketi Ankara'nın
+          İnsan ve Medeniyet Hareketi Ankara&apos;nın
           <br />
           katkılarıyla düzenlenmektedir.
         </p>

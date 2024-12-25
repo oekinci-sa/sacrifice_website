@@ -1,7 +1,7 @@
-import Link from 'next/link';
+// import Link from 'next/link';
 import React from 'react'
-import LeftPart from '../Footer/LeftPart';
-import RightPart from "../Footer/RightPart";
+// import LeftPart from '../Footer/LeftPart';
+// import RightPart from "../Footer/RightPart";
 // import websiteLogoWhite from "/public/website-logo-white.svg";
 // import { mediaLinks } from "/constants/";
 
@@ -13,7 +13,7 @@ const Footer = () => {
         <div>
           <h2 className="text-xl font-bold mb-2">ANKARA KURBAN</h2>
           <p className="text-gray-400 mb-4">
-            İnsan ve Medeniyet Hareketi Ankara'nın katkılarıyla
+            İnsan ve Medeniyet Hareketi Ankara&apos;nın katkılarıyla
             düzenlenmektedir.
           </p>
           <div className="flex space-x-4">

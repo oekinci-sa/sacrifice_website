@@ -4,8 +4,8 @@ const Ayah = () => {
   return (
     <div>
       <p className='text-center'>
-        Şüphesiz kurbanlarınızın, ne etleri ne de kanları Allah'a ulaşır. Fakat
-        O'na sizin takvanız ulaşır.
+        Şüphesiz kurbanlarınızın, ne etleri ne de kanları Allah&apos;a ulaşır. Fakat
+        O&apos;na sizin takvanız ulaşır.
       </p>
     </div>
   );

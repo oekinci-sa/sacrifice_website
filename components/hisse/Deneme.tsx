@@ -13,13 +13,17 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -32,143 +36,145 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Supabase
-import { createClient } from "@supabase/supabase-js";
-import Link from "next/link";
-import { useState } from "react";
-const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncnR3YnZ1ZGt6dmdhdnFza2R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwNDY2MzcsImV4cCI6MjA1MDYyMjYzN30.rDTI_p4UStwOQZSnWqTbAGqCDTpqmDIMdbqFEL3GuOM"; // Public anon anahtarınızı buraya koyun
-const supabase = createClient(supabaseUrl, supabaseKey);
+const data: Payment[] = [
+  {
+    id: "m5gr84i9",
+    amount: 316,
+    status: "success",
+    email: "ken99@yahoo.com",
+  },
+  {
+    id: "3u1reuv4",
+    amount: 242,
+    status: "success",
+    email: "Abe45@gmail.com",
+  },
+  {
+    id: "derv1ws0",
+    amount: 837,
+    status: "processing",
+    email: "Monserrat44@gmail.com",
+  },
+  {
+    id: "5kma53ae",
+    amount: 874,
+    status: "success",
+    email: "Silas22@gmail.com",
+  },
+  {
+    id: "bhqecj4p",
+    amount: 721,
+    status: "failed",
+    email: "carmella@hotmail.com",
+  },
+];
 
-
-export type Sacrifice = {
-  sacrifice_no: number;
-  sacrifice_time: number;
-  share_holder_1: string;
-  share_holder_2: string;
-  share_holder_3: string;
-  share_holder_4: string;
-  share_holder_5: string;
-  share_holder_6: string;
-  share_holder_7: string;
-  share_price: number;
-  empty_share: number;
+export type Payment = {
+  id: string;
+  amount: number;
+  status: "pending" | "processing" | "success" | "failed";
+  email: string;
 };
 
-export const columns: ColumnDef<Sacrifice>[] = [
-  // sacrifice_no
+export const columns: ColumnDef<Payment>[] = [
   {
-    accessorKey: "sacrifice_no",
-    header: () => <p className="text-center">Kesim Sırası</p>,
-    cell: ( {row} ) => (
-      <div className="lowercase text-center">
-        {row.getValue("sacrifice_no")}
-      </div>
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("status")}</div>
     ),
   },
-
-  // sacrifice_time
   {
-    accessorKey: "sacrifice_time",
-    header: () => <p className="text-center">Kesim Saati</p>,
-    cell: ( {row} ) => (
-      <div className="lowercase text-center">
-        {row.getValue("sacrifice_time")}
-      </div>
-    ),
-  },
-
-  // share_price
-  {
-    accessorKey: "share_price",
+    accessorKey: "email",
     header: ({ column }) => {
       return (
         <Button
-          className="text-center"
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Kesim Fiyatı
+          Email
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ( {row} ) => (
-      <div className="text-center">{row.getValue("share_price")}</div>
-    ),
+    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
-
-  // empty_share
   {
-    accessorKey: "empty_share",
-    header: ({ column }) => {
-      return (
-        <Button
-          className="text-center"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Kesim Fiyatı
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ( {row} ) => (
-      <div className="text-center">{row.getValue("empty_share")}</div>
-    ),
-  },
+    accessorKey: "amount",
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"));
 
-  // Action
+      // Format the amount as a dollar amount
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(amount);
+
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
   {
     id: "actions",
     enableHiding: false,
-    cell: ( {row} ) => {
-      const sacrificeInfo = row.original;
+    cell: ({ row }) => {
+      const payment = row.original;
 
       return (
-        <div className="container mx-auto">
-          <div className="flex justify-center">
-            <Link href={`/details/${sacrificeInfo.sacrifice_no}`}>
-              <Button>Hisse Al</Button>
-            </Link>
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(payment.id)}
+            >
+              Copy payment ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>View customer</DropdownMenuItem>
+            <DropdownMenuItem>View payment details</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
 ];
 
-export default function DemoTable() {
-  const [sorting, setSorting] = useState<SortingState>([]);
+export function DataTableDemo() {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
-
-  const [data, setData] = useState<Sacrifice[] | null>([]);
-
-  // const router = useRouter();
-
-  // const handleDetailsClick = (sacrifice_no) => {
-  //   router.push(`/details/${sacrifice_no}`);
-  // };
-
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const { data, error } = (await supabase
-        .from("sacrifice_animals")
-        .select("*"))
-      if (error) {
-        console.error("Error fetching data:", error);
-      } else {
-        setData(data);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -191,15 +197,12 @@ export default function DemoTable() {
 
   return (
     <div className="w-full">
-      {/* Search Bar and  */}
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filtreleme"
-          value={
-            (table.getColumn("sacrifice_no")?.getFilterValue() as number) ?? ""
-          }
+          placeholder="Filter emails..."
+          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("sacrifice_no")?.setFilterValue(event.target.value)
+            table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -230,11 +233,8 @@ export default function DemoTable() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
-          {/* Table Header */}
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -253,8 +253,6 @@ export default function DemoTable() {
               </TableRow>
             ))}
           </TableHeader>
-
-          {/* Table Content */}
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -266,7 +264,7 @@ export default function DemoTable() {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}
@@ -285,8 +283,6 @@ export default function DemoTable() {
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination and row selection*/}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}

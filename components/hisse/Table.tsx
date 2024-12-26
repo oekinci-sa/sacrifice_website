@@ -147,7 +147,7 @@ export default function DemoTable() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const [data, setData] = useState<Sacrifice[] | null>([]);
+  const [data, setData] = useState<Sacrifice[]>([]);
 
   // const router = useRouter();
 

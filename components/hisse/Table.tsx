@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  ColumnDef,
   ColumnFiltersState,
   SortingState,
   flexRender,
@@ -40,13 +41,26 @@ const supabaseKey =
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-// Reference
-export const columns = [
+export type Sacrifice = {
+  sacrifice_no: number;
+  sacrifice_time: number;
+  share_holder_1: string;
+  share_holder_2: string;
+  share_holder_3: string;
+  share_holder_4: string;
+  share_holder_5: string;
+  share_holder_6: string;
+  share_holder_7: string;
+  share_price: number;
+  empty_share: number;
+};
+
+export const columns: ColumnDef<Sacrifice>[] = [
   // sacrifice_no
   {
     accessorKey: "sacrifice_no",
     header: () => <p className="text-center">Kesim Sırası</p>,
-    cell: ({ row }) => (
+    cell: ( {row} ) => (
       <div className="lowercase text-center">
         {row.getValue("sacrifice_no")}
       </div>
@@ -57,7 +71,7 @@ export const columns = [
   {
     accessorKey: "sacrifice_time",
     header: () => <p className="text-center">Kesim Saati</p>,
-    cell: ({ row }) => (
+    cell: ( {row} ) => (
       <div className="lowercase text-center">
         {row.getValue("sacrifice_time")}
       </div>
@@ -79,7 +93,7 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
+    cell: ( {row} ) => (
       <div className="text-center">{row.getValue("share_price")}</div>
     ),
   },
@@ -99,7 +113,7 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
+    cell: ( {row} ) => (
       <div className="text-center">{row.getValue("empty_share")}</div>
     ),
   },
@@ -108,7 +122,7 @@ export const columns = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }: { row: any }) => {
+    cell: ( {row} ) => {
       const sacrificeInfo = row.original;
 
       return (
@@ -132,15 +146,7 @@ export default function DemoTable() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
 
-  interface SacrificeAnimal {
-    sacrifice_no: string;
-    sacrifice_time: string;
-    share_price: number;
-    empty_share: number;
-    // Add other fields as necessary
-  }
-  
-  const [data, setData] = useState<SacrificeAnimal[]>([]);
+  const [data, setData] = useState([]);
 
   // const router = useRouter();
 
@@ -150,7 +156,9 @@ export default function DemoTable() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from("sacrifice_animals").select("*");
+      const { data, error } = (await supabase
+        .from("sacrifice_animals")
+        .select("*")) as { data: Sacrifice[] | null; error: unknown };;
       if (error) {
         console.error("Error fetching data:", error);
       } else {

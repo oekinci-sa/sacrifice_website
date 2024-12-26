@@ -16,7 +16,18 @@ export default function DetailsPage() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({}); // Store updated data
+  interface FormData {
+    shareholder_1?: string;
+    shareholder_2?: string;
+    shareholder_3?: string;
+    shareholder_4?: string;
+    shareholder_5?: string;
+    shareholder_6?: string;
+    shareholder_7?: string;
+    // Add other fields as needed
+  }
+
+  const [formData, setFormData] = useState<FormData>({}); // Store updated data
 
   // Fetch data when page loads
   useEffect(() => {
@@ -43,9 +54,9 @@ export default function DetailsPage() {
   }, [id]);
 
   // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handle save button click

@@ -1,7 +1,7 @@
-import Ayah from "@/components/public/main/Ayah";
-import Banner from "@/components/public/main/Banner";
-import Prices from "@/components/public/main/Prices";
-import Stats from "@/components/public/main/Stats";
+import Ayah from "@/app/(public)/(anasayfa)/components/Ayah";
+import Banner from "@/app/(public)/(anasayfa)/components/Banner";
+import Prices from "@/app/(public)/(anasayfa)/components/Prices";
+import Stats from "@/app/(public)/(anasayfa)/components/Stats";
 
 export default function Home() {
   return (

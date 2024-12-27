@@ -1,5 +1,5 @@
-import NumberChanger from "@/components/takip/number-changer";
-import QueueCard from "@/components/takip/queue-card";
+import NumberChanger from "@/components/public/takip/number-changer";
+import QueueCard from "@/components/public/takip/queue-card";
 import React from "react";
 
 const page = () => {

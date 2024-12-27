@@ -1,12 +1,12 @@
-import Title from '@/components/common/Title'
-import React from 'react'
+import Title from "@/components/public/common/title";
+import React from "react";
 
 const page = () => {
   return (
     <>
       <Title></Title>
     </>
-  )
-}
+  );
+};
 
-export default page
+export default page;

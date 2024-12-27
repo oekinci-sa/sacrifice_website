@@ -1,7 +1,7 @@
-import Title from '@/components/common/Title'
-import Form from '@/components/iletisim/Form'
-import Card from '@/components/iletisim/Card'
-import React from 'react'
+import Title from "@/components/public/common/title";
+import Form from "@/components/public/iletisim/Form";
+import Card from "@/components/public/iletisim/Card";
+import React from "react";
 
 const page = () => {
   return (
@@ -10,7 +10,7 @@ const page = () => {
       <Form></Form>
       <Card></Card>
     </>
-  )
-}
+  );
+};
 
-export default page
+export default page;

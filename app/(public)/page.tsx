@@ -1,8 +1,8 @@
-import Contact from "@/components/common/Contact";
-import Ayah from "@/components/main/Ayah";
-import Banner from "@/components/main/Banner";
-import Prices from "@/components/main/Prices";
-import Stats from "@/components/main/Stats";
+import Contact from "@/components/public/common/contact";
+import Ayah from "@/components/public/main/Ayah";
+import Banner from "@/components/public/main/Banner";
+import Prices from "@/components/public/main/Prices";
+import Stats from "@/components/public/main/Stats";
 
 export default function Home() {
   return (

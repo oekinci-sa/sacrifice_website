@@ -15,19 +15,29 @@ import {
 } from "@/components/ui/sidebar";
 
 // This is sample data.
-const data = {
+interface NavItem {
+  title: string;
+  url: string;
+  items: NavItem[];
+  isActive?: boolean;
+}
+
+const data: { navMain: NavItem[] } = {
   navMain: [
     {
       title: "Özet",
       url: "/kurban-admin",
+      items: [],
     },
     {
       title: "Kurbanlıklar",
       url: "/kurban-admin/kurbanliklar",
+      items: [],
     },
     {
       title: "Hissedarlar",
       url: "/kurban-admin/hissedarlar",
+      items: [],
     },
   ],
 };

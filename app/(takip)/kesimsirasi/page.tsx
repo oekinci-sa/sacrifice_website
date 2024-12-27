@@ -1,6 +1,6 @@
-import NumberChanger from '@/components/takip/NumberChanger'
-import QueueCard from '@/components/takip/QueueCard'
-import React from 'react'
+import NumberChanger from "@/components/takip/number-changer";
+import QueueCard from "@/components/takip/queue-card";
+import React from "react";
 
 const page = () => {
   return (
@@ -9,6 +9,6 @@ const page = () => {
       <NumberChanger></NumberChanger>
     </>
   );
-}
+};
 
-export default page
+export default page;

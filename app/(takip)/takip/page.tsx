@@ -1,7 +1,7 @@
-import Title from '@/components/common/Title'
-import Message from '@/components/takip/Message';
-import QueueCard from '@/components/takip/QueueCard'
-import React from 'react'
+import Title from "@/components/common/Title";
+import Message from "@/components/takip/message";
+import QueueCard from "@/components/takip/queue-card";
+import React from "react";
 
 const page = () => {
   return (
@@ -13,6 +13,6 @@ const page = () => {
       <Message></Message>
     </div>
   );
-}
+};
 
-export default page
+export default page;

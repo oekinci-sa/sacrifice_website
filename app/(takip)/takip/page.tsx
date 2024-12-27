@@ -1,6 +1,6 @@
-import Title from "@/components/public/common/title";
-import Message from "@/components/public/takip/message";
-import QueueCard from "@/components/public/takip/queue-card";
+import Title from "@/components/common/title";
+import Message from "@/app/(takip)/components/message";
+import QueueCard from "@/app/(takip)/components/queue-card";
 import React from "react";
 
 const page = () => {

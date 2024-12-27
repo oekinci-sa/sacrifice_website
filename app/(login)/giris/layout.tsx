@@ -1,5 +1,5 @@
 import { Inter, Instrument_Sans } from "next/font/google";
-import "/app/globals.css";
+import "@/app/globals.css";
 
 const inter = Inter({
   subsets: ["latin"],

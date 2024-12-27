@@ -1,5 +1,5 @@
-import Title from "@/components/public/common/title";
-import Table from "@/components/public/hisse/Table";
+import Title from "@/components/common/title";
+import Table from "@/app/(public)/(hisse)/hisseal/components/Table";
 import React from "react";
 
 const page = () => {

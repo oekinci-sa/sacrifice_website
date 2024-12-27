@@ -1,7 +1,7 @@
 import { Inter, Instrument_Sans } from "next/font/google";
 import "/app/globals.css";
 
-import { AppSidebar } from "@/components/kurban-admin/common/app-sidebar";
+import { AppSidebar } from "@/app/(admin)/kurban-admin/components/layout/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,

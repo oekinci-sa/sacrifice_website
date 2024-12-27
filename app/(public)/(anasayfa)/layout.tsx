@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Sans } from "next/font/google";
-import "../globals.css";
-import Header from "../../components/public/common/Header/Header";
-import Footer from "../../components/public/common/Footer/Footer";
+import "@/app/globals.css";
+import Header from "../components/layout/Header/Header";
+import Footer from "../components/layout/Footer/Footer";
 
 const inter = Inter({
   subsets: ["latin"],

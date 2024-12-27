@@ -1,7 +1,7 @@
 import { Inter, Instrument_Sans } from "next/font/google";
 import "/app/globals.css";
 
-import { AppSidebar } from "@/app/(admin)/kurban-admin/components/layout/app-sidebar";
+import { AppSidebar } from "@/app/(kurban-admin)/components/layout/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,7 +29,7 @@ const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
 });
 
-export default function AdminLayout({
+export default function KurbanAdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -65,9 +65,7 @@ export default function AdminLayout({
                 </BreadcrumbList>
               </Breadcrumb>
             </header>
-            <div className="p-4 pt-0">
-              {children}
-            </div>
+            <div className="p-4 pt-0">{children}</div>
           </SidebarInset>
         </SidebarProvider>
       </body>

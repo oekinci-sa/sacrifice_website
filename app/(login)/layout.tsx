@@ -1,5 +1,6 @@
 import { Inter, Instrument_Sans } from "next/font/google";
 import "@/app/globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,7 +12,7 @@ const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
 });
 
-export default function RootLayout({
+export default function LoginLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -21,7 +22,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}
       >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
+        </ThemeProvider>
       </body>
     </html>
   );

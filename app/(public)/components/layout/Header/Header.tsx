@@ -1,9 +1,8 @@
-import React from 'react'
+import React from "react";
 
-import Logo from './Logo';
-import Navigation from './Navigation';
-import RightPart from './RightPart';
-
+import Navigation from "./navigation";
+import RightPart from "./rightpart";
+import Logo from "./Logo";
 
 const Header = () => {
   return (
@@ -13,8 +12,6 @@ const Header = () => {
       <RightPart></RightPart>
     </div>
   );
-}
+};
 
-export default Header
-
-
+export default Header;

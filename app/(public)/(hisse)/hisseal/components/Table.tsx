@@ -129,7 +129,7 @@ export const columns: ColumnDef<Sacrifice>[] = [
       return (
         <div className="container mx-auto">
           <div className="flex justify-center">
-            <Link href={`/details/${sacrificeInfo.sacrifice_no}`}>
+            <Link href={`/kurban-admin/details/${sacrificeInfo.sacrifice_no}`}>
               <Button>Hisse Al</Button>
             </Link>
           </div>

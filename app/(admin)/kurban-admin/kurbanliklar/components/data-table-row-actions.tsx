@@ -1,9 +1,9 @@
 import React from 'react'
 
-const datam = () => {
+const datame = () => {
   return (
-    <div>datam</div>
+    <div>datame</div>
   )
 }
 
-export default datam
+export default datame

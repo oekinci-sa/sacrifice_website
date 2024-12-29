@@ -1,0 +1,24 @@
+import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
+
+export async function middleware(req) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareSupabaseClient({ req, res });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Oturum yoksa hakkimizda sayfasına yönlendir
+  if (!session) {
+    const redirectUrl = new URL("/hakkimizda", req.url);
+    redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // Eğer oturum varsa kullanıcıyı /kurban-admin sayfasına yönlendir
+  return res;
+}
+
+export const config = {
+  matcher: ["/kurban-admin/:path*"], // Yalnızca belirli yollar için middleware'i etkinleştir
+};

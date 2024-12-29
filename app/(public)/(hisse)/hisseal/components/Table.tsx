@@ -33,13 +33,13 @@ import {
 } from "@/components/ui/table";
 
 // Supabase
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useState } from "react";
-const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncnR3YnZ1ZGt6dmdhdnFza2R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwNDY2MzcsImV4cCI6MjA1MDYyMjYzN30.rDTI_p4UStwOQZSnWqTbAGqCDTpqmDIMdbqFEL3GuOM"; // Public anon anahtarınızı buraya koyun
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { fetchTableData } from "@/helpers/supabase";
+// const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
+// const supabaseKey =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncnR3YnZ1ZGt6dmdhdnFza2R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwNDY2MzcsImV4cCI6MjA1MDYyMjYzN30.rDTI_p4UStwOQZSnWqTbAGqCDTpqmDIMdbqFEL3GuOM"; // Public anon anahtarınızı buraya koyun
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 export type Sacrifice = {
@@ -157,16 +157,38 @@ export default function DemoTable() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = (await supabase
-        .from("sacrifice_animals")
-        .select("*"))
-      if (error) {
-        console.error("Error fetching data:", error);
-      } else {
-        setData(data);
-      }
-    };
+        // Verileri çek ve real-time aboneliği başlat
+        const { data: initialData, subscription } = await fetchTableData(
+          "sacrifice_animals",
+          (payload: { eventType: string; new: Sacrifice; old: Sacrifice }) => {
+            console.log("Realtime data:", payload);
 
+            // Gelen real-time olay türüne göre state'i güncelle
+            if (payload.eventType === "INSERT") {
+              setData((prevData) => [...prevData, payload.new]);
+            } else if (payload.eventType === "UPDATE") {
+              setData((prevData) =>
+                prevData.map((item) =>
+                  item.sacrifice_no === payload.new.sacrifice_no ? payload.new : item
+                )
+              );
+            } else if (payload.eventType === "DELETE") {
+              setData((prevData) =>
+                prevData.filter((item) => item.sacrifice_no !== payload.old.sacrifice_no)
+              );
+            }
+          }
+        );
+
+        // İlk çekilen veriyi state'e ekle
+        setData(initialData);
+
+        // Cleanup: Aboneliği kaldır
+        return () => {
+          subscription.unsubscribe();
+        };
+
+    };
     fetchData();
   }, []);
 

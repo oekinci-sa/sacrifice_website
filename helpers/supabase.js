@@ -1,11 +1,27 @@
 import { supabase } from "../utils/supabaseClient";
 
-export const fetchTableData = async (tableName) => {
-  const { data, error } = await supabase.from(tableName).select("*");
+export const fetchTableData = async (tableName, callback) => {
+  const { data, error } = await supabase
+    .from(tableName)
+    .select("*")
+    .order("sacrifice_no", { ascending: true });
   if (error) {
     throw new Error(error.message);
   }
-  return data;
+
+  // Set up real-time subscription (supabase-js v2)
+  const subscription = supabase
+    .channel(`realtime:${tableName}`)
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: tableName },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return { data, subscription };
 };
 
 export const insertData = async (tableName, payload) => {

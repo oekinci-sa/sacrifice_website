@@ -1,7 +1,7 @@
 import React from "react";
 
-import Navigation from "./navigation";
-import RightPart from "./rightpart";
+import Navigation from "./Navigation";
+import RightPart from "./Rightpart";
 import Logo from "@/app/(public)/components/layout/Header/Logo";
 
 const Header = () => {

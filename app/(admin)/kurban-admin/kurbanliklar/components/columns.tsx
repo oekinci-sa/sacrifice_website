@@ -2,9 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
-import { labels, empty_shares, share_prices } from "../data/data";
+import { empty_shares, share_prices } from "../data/data";
 import { Task } from "../data/schema";
 import { DataTableColumnHeader } from "./data-table-column-header";
+// import { DataTableRowActions } from "./data-table-row-actions";
 
 export const columns: ColumnDef<Task>[] = [
   {
@@ -57,7 +58,8 @@ export const columns: ColumnDef<Task>[] = [
     },
     // Filtreleme işlevi.
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
+      return value.includes(cellValue); // String karşılaştırma yap
     },
   },
   {
@@ -68,7 +70,7 @@ export const columns: ColumnDef<Task>[] = [
     ),
     cell: ({ row }) => {
       const empty_share = empty_shares.find(
-        (empty_share) => empty_share.value === row.getValue("empty_share")
+        (empty_share) => empty_share.value == row.getValue("empty_share")
       );
 
       if (!empty_share) {
@@ -82,7 +84,8 @@ export const columns: ColumnDef<Task>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
+      return value.includes(cellValue); // String karşılaştırma yap
     },
   },
   // {

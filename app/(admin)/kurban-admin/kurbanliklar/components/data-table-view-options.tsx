@@ -35,6 +35,7 @@ export function DataTableViewOptions<TData>({
       <DropdownMenuContent align="end" className="w-[150px]">
         <DropdownMenuLabel>Göster / Gizle</DropdownMenuLabel>
         <DropdownMenuSeparator />
+
         {table
           .getAllColumns()
           .filter(
@@ -42,6 +43,17 @@ export function DataTableViewOptions<TData>({
               typeof column.accessorFn !== "undefined" && column.getCanHide()
           )
           .map((column) => {
+            // Veritabanı sütun adlarına göre özel başlıklar
+            const columnHeaderMapping: Record<string, string> = {
+              sacrifice_no: "Kurban No",
+              sacrifice_time: "Kurban Zamanı",
+              share_price: "Hisse Bedeli",
+              empty_share: "Boş Hisse",
+            };
+
+            // Varsayılan başlık: Eğer eşleşme yoksa `column.id` kullanılır
+            const headerTitle = columnHeaderMapping[column.id] || column.id;
+
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
@@ -49,7 +61,7 @@ export function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {headerTitle}
               </DropdownMenuCheckboxItem>
             );
           })}

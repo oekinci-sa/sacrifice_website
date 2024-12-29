@@ -1,14 +1,3 @@
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  CheckCircle,
-  Circle,
-  CircleOff,
-  HelpCircle,
-  Timer,
-} from "lucide-react";
-
 export const labels = [
   {
     value: "bug",
@@ -53,18 +42,35 @@ export const share_prices = [
 
 export const empty_shares = [
   {
-    label: "Low",
-    value: "low",
-    icon: ArrowDown,
+    label: "0",
+    value: "0",
   },
   {
-    label: "Medium",
-    value: "medium",
-    icon: ArrowRight,
+    label: "1",
+    value: "1",
   },
   {
-    label: "High",
-    value: "high",
-    icon: ArrowUp,
+    label: "2",
+    value: "2",
+  },
+  {
+    label: "3",
+    value: "3",
+  },
+  {
+    label: "4",
+    value: "4",
+  },
+  {
+    label: "5",
+    value: "5",
+  },
+  {
+    label: "6",
+    value: "6",
+  },
+  {
+    label: "7",
+    value: "7",
   },
 ];

@@ -25,9 +25,9 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
   options: {
-    label: string;
-    value: string;
-    icon?: React.ComponentType<{ className?: string }>;
+    label: string | number;
+    value: string | number;
+    // icon?: React.ComponentType<{ className?: string }>;
   }[];
 }
 
@@ -42,7 +42,9 @@ export function DataTableFacetedFilter<TData, TValue>({
   const facets = column?.getFacetedUniqueValues();
 
   // Seçili değerleri alır. Kullanıcı seçimleri bir Set nesnesi ile yönetilir. Bu, seçili olan değerlerin hızlıca kontrol edilmesini sağlar.
-  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const selectedValues: Set<string | number> = new Set(
+    column?.getFilterValue() as string[]
+  );
 
   return (
     <Popover>
@@ -66,11 +68,11 @@ export function DataTableFacetedFilter<TData, TValue>({
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedValues.size} selected
+                    {selectedValues.size} filtre
                   </Badge>
                 ) : (
                   options
-                    .filter((option) => selectedValues.has(option.value))
+                    .filter((option) => selectedValues.has(String(option.value)))
                     .map((option) => (
                       <Badge
                         variant="secondary"
@@ -120,13 +122,10 @@ export function DataTableFacetedFilter<TData, TValue>({
                     >
                       <Check />
                     </div>
-                    {option.icon && (
-                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-                        {facets.get(option.value)}
+                        {/* {facets.get(option.value)} */}
                       </span>
                     )}
                   </CommandItem>
@@ -141,7 +140,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     onSelect={() => column?.setFilterValue(undefined)}
                     className="justify-center text-center"
                   >
-                    Clear filters
+                    Filtreleri temizle
                   </CommandItem>
                 </CommandGroup>
               </>

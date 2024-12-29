@@ -41,14 +41,14 @@ export function DataTableToolbar<TData>({
             options={share_prices}
           />
         )}
-        {/* {table.getColumn("priority") && (
+        {table.getColumn("empty_share") && (
           // durum ve öncelik filtreleme yapılır.
           <DataTableFacetedFilter
-            column={table.getColumn("priority")}
-            title="Hisse Bedeli"
+            column={table.getColumn("empty_share")}
+            title="Boş Hisse"
             options={empty_shares}
           />
-        )} */}
+        )}
         {/* // Reset Button */}
         {isFiltered && (
           <Button

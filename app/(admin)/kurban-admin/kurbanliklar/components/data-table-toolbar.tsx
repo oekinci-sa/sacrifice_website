@@ -22,6 +22,7 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
+        {/* Tablo başlığı için filtreleme alanı. */}
         <Input
           placeholder="Filter tasks..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -30,6 +31,7 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+        {/* durum ve öncelik filtreleme yapılır. */}
         {table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -38,12 +40,14 @@ export function DataTableToolbar<TData>({
           />
         )}
         {table.getColumn("priority") && (
+          // durum ve öncelik filtreleme yapılır.
           <DataTableFacetedFilter
             column={table.getColumn("priority")}
             title="Priority"
             options={priorities}
           />
         )}
+        {/* // Reset Button */}
         {isFiltered && (
           <Button
             variant="ghost"
@@ -55,6 +59,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
+      {/* Sağ üstteki gözüken dropdown */}
       <DataTableViewOptions table={table} />
     </div>
   );

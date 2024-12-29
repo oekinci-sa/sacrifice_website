@@ -12,6 +12,7 @@ import { DataTableRowActions } from "./data-table-row-actions"
 
 export const columns: ColumnDef<Task>[] = [
   {
+    // Seçim kolonu.
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -19,6 +20,7 @@ export const columns: ColumnDef<Task>[] = [
           table.getIsAllPageRowsSelected() ||
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
+        // Tüm sayfadaki satırları seçer.
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
         className="translate-y-[2px]"
@@ -36,6 +38,7 @@ export const columns: ColumnDef<Task>[] = [
     enableHiding: false,
   },
   {
+    // Görev kimliği.
     accessorKey: "id",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Task" />
@@ -45,6 +48,7 @@ export const columns: ColumnDef<Task>[] = [
     enableHiding: false,
   },
   {
+    // Görev başlığı.
     accessorKey: "title",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
@@ -63,6 +67,7 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
   {
+    // Görev durumu. Filtreleme var.
     accessorKey: "status",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
@@ -85,11 +90,13 @@ export const columns: ColumnDef<Task>[] = [
         </div>
       )
     },
+    // Filtreleme işlevi.
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
   },
   {
+    // Görev önceliği.
     accessorKey: "priority",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Priority" />

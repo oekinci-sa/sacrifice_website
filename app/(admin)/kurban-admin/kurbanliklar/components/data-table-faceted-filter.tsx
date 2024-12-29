@@ -31,12 +31,17 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
 }
 
+// Tablodaki veriler üzerinde çoklu seçim (multi-select) tabanlı filtreleme yapılmasını sağlar.
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
+  // Filtreleme seçeneklerini alır. Bu seçenekler, label ve value gibi yapılar içerir.
   options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
+  // Kolonun benzersiz değerlerini alır.
   const facets = column?.getFacetedUniqueValues();
+
+  // Seçili değerleri alır. Kullanıcı seçimleri bir Set nesnesi ile yönetilir. Bu, seçili olan değerlerin hızlıca kontrol edilmesini sağlar.
   const selectedValues = new Set(column?.getFilterValue() as string[]);
 
   return (
@@ -48,6 +53,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           {selectedValues?.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
+              {/* Seçim bilgileri, küçük bir Badge ile kullanıcıya gösterilir. */}
               <Badge
                 variant="secondary"
                 className="rounded-sm px-1 font-normal lg:hidden"
@@ -98,6 +104,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                         selectedValues.add(option.value);
                       }
                       const filterValues = Array.from(selectedValues);
+                      // Seçimler yapılırsa column.setFilterValue çağrılarak tablo verileri filtrelenir.
                       column?.setFilterValue(
                         filterValues.length ? filterValues : undefined
                       );

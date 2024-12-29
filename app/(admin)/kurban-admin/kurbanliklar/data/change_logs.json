@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "table_name": "shareholders",
+    "row_id": 1429,
+    "description": "3 nolu hissenin teslim türü Adrese Teslim olarak alındı.",
+    "operation": "INSERT",
+    "changed_at": "28/12/2024 23:27:20.015896"
+  },
+  {
+    "id": 2,
+    "table_name": "shareholders",
+    "row_id": 100,
+    "description": "Shawna Mattam hissesinde deposit_payment sütunu  değerinden 500 değerine değiştirildi.",
+    "operation": "UPDATE",
+    "changed_at": "28/12/2024 23:31:23.807696"
+  },
+  {
+    "id": 4,
+    "table_name": "sacrifice_animals",
+    "row_id": 9,
+    "description": "Kesim sırası 9 olan hayvanın Hisse bedeli 34000 değerinden 34001 değerine değişti.",
+    "operation": "UPDATE",
+    "changed_at": "29/12/2024 14:36:31.976732"
+  },
+  {
+    "id": 5,
+    "table_name": "sacrifice_animals",
+    "row_id": 10,
+    "description": "Kesim sırası 10 olan hayvanın Hisse bedeli 36000 değerinden 36004 değerine değişti.",
+    "operation": "UPDATE",
+    "changed_at": "29/12/2024 14:36:39.254755"
+  },
+  {
+    "id": 6,
+    "table_name": "sacrifice_animals",
+    "row_id": 206,
+    "description": "Kesim sırası 206 olan kurbanlık, kesim zamanı 14:38:41 ve hisse bedeli 50000 olarak eklendi.",
+    "operation": "INSERT",
+    "changed_at": "29/12/2024 14:38:44.732648"
+  },
+  {
+    "id": 7,
+    "table_name": "sacrifice_animals",
+    "row_id": 206,
+    "description": "Kesim sırası 206 ve hisse bedeli 50000 olan kurbanlık silindi.",
+    "operation": "DELETE",
+    "changed_at": "29/12/2024 14:44:45.019127"
+  }
+]

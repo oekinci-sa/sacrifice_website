@@ -28,6 +28,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
+  // kullanılarak satır verisi belirli bir yapıya uygun hale getiriliyor.
   const task = taskSchema.parse(row.original);
 
   return (
@@ -47,6 +48,7 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem>Favorite</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
+          {/* Labels alt menüsü, dışarıdan gelen labels verisiyle dinamik olarak oluşturuluyor. */}
           <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup value={task.label}>

@@ -1,702 +1,1802 @@
 [
   {
-    "id": "TASK-8782",
-    "title": "You can't compress the program without quantifying the open-source SSD pixel!",
-    "status": "in progress",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-7878",
-    "title": "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-7839",
-    "title": "We need to bypass the neural TCP card!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-5562",
-    "title": "The SAS interface is down, bypass the open-source pixel so we can back up the PNG bandwidth!",
-    "status": "backlog",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-8686",
-    "title": "I'll parse the wireless SSL protocol, that should driver the API panel!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-1280",
-    "title": "Use the digital TLS panel, then you can transmit the haptic system!",
-    "status": "done",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-7262",
-    "title": "The UTF8 application is down, parse the neural bandwidth so we can back up the PNG firewall!",
-    "status": "done",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1138",
-    "title": "Generating the driver won't do anything, we need to quantify the 1080p SMTP bandwidth!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-7184",
-    "title": "We need to program the back-end THX pixel!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-5160",
-    "title": "Calculating the bus won't do anything, we need to navigate the back-end JSON protocol!",
-    "status": "in progress",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-5618",
-    "title": "Generating the driver won't do anything, we need to index the online SSL application!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-6699",
-    "title": "I'll transmit the wireless JBOD capacitor, that should hard drive the SSD feed!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-2858",
-    "title": "We need to override the online UDP bus!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9864",
-    "title": "I'll reboot the 1080p FTP panel, that should matrix the HEX hard drive!",
-    "status": "done",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-8404",
-    "title": "We need to generate the virtual HEX alarm!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-5365",
-    "title": "Backing up the pixel won't do anything, we need to transmit the primary IB array!",
-    "status": "in progress",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-1780",
-    "title": "The CSS feed is down, index the bluetooth transmitter so we can compress the CLI protocol!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-6938",
-    "title": "Use the redundant SCSI application, then you can hack the optical alarm!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-9885",
-    "title": "We need to compress the auxiliary VGA driver!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-3216",
-    "title": "Transmitting the transmitter won't do anything, we need to compress the virtual HDD sensor!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9285",
-    "title": "The IP monitor is down, copy the haptic alarm so we can generate the HTTP transmitter!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1024",
-    "title": "Overriding the microchip won't do anything, we need to transmit the digital OCR transmitter!",
-    "status": "in progress",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7068",
-    "title": "You can't generate the capacitor without indexing the wireless HEX pixel!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6502",
-    "title": "Navigating the microchip won't do anything, we need to bypass the back-end SQL bus!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-5326",
-    "title": "We need to hack the redundant UTF8 transmitter!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6274",
-    "title": "Use the virtual PCI circuit, then you can parse the bluetooth alarm!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-1571",
-    "title": "I'll input the neural DRAM circuit, that should protocol the SMTP interface!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9518",
-    "title": "Compressing the interface won't do anything, we need to compress the online SDD matrix!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-5581",
-    "title": "I'll synthesize the digital COM pixel, that should transmitter the UTF8 protocol!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-2197",
-    "title": "Parsing the feed won't do anything, we need to copy the bluetooth DRAM bus!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-8484",
-    "title": "We need to parse the solid state UDP firewall!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-9892",
-    "title": "If we back up the application, we can get to the UDP application through the multi-byte THX capacitor!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-9616",
-    "title": "We need to synthesize the cross-platform ASCII pixel!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9744",
-    "title": "Use the back-end IP card, then you can input the solid state hard drive!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-1376",
-    "title": "Generating the alarm won't do anything, we need to generate the mobile IP capacitor!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7382",
-    "title": "If we back up the firewall, we can get to the RAM alarm through the primary UTF8 pixel!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-2290",
-    "title": "I'll compress the virtual JSON panel, that should application the UTF8 bus!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1533",
-    "title": "You can't input the firewall without overriding the wireless TCP firewall!",
-    "status": "done",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-4920",
-    "title": "Bypassing the hard drive won't do anything, we need to input the bluetooth JSON program!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-5168",
-    "title": "If we synthesize the bus, we can get to the IP panel through the virtual TLS array!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7103",
-    "title": "We need to parse the multi-byte EXE bandwidth!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-4314",
-    "title": "If we compress the program, we can get to the XML alarm through the multi-byte COM matrix!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-3415",
-    "title": "Use the cross-platform XML application, then you can quantify the solid state feed!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-8339",
-    "title": "Try to calculate the DNS interface, maybe it will input the bluetooth capacitor!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6995",
-    "title": "Try to hack the XSS bandwidth, maybe it will override the bluetooth matrix!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-8053",
-    "title": "If we connect the program, we can get to the UTF8 matrix through the digital UDP protocol!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-4336",
-    "title": "If we synthesize the microchip, we can get to the SAS sensor through the optical UDP program!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-8790",
-    "title": "I'll back up the optical COM alarm, that should alarm the RSS capacitor!",
-    "status": "done",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-8980",
-    "title": "Try to navigate the SQL transmitter, maybe it will back up the virtual firewall!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7342",
-    "title": "Use the neural CLI card, then you can parse the online port!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-5608",
-    "title": "I'll hack the haptic SSL program, that should bus the UDP transmitter!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-1606",
-    "title": "I'll generate the bluetooth PNG firewall, that should pixel the SSL driver!",
-    "status": "done",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-7872",
-    "title": "Transmitting the circuit won't do anything, we need to reboot the 1080p RSS monitor!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-4167",
-    "title": "Use the cross-platform SMS circuit, then you can synthesize the optical feed!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9581",
-    "title": "You can't index the port without hacking the cross-platform XSS monitor!",
-    "status": "backlog",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-8806",
-    "title": "We need to bypass the back-end SSL panel!",
-    "status": "done",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-6542",
-    "title": "Try to quantify the RSS firewall, maybe it will quantify the open-source system!",
-    "status": "done",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6806",
-    "title": "The VGA protocol is down, reboot the back-end matrix so we can parse the CSS panel!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-9549",
-    "title": "You can't bypass the bus without connecting the neural JBOD bus!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1075",
-    "title": "Backing up the driver won't do anything, we need to parse the redundant RAM pixel!",
-    "status": "done",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-1427",
-    "title": "Use the auxiliary PCI circuit, then you can calculate the cross-platform interface!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1907",
-    "title": "Hacking the circuit won't do anything, we need to back up the online DRAM system!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-4309",
-    "title": "If we generate the system, we can get to the TCP sensor through the optical GB pixel!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3973",
-    "title": "I'll parse the back-end ADP array, that should bandwidth the RSS bandwidth!",
-    "status": "todo",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-7962",
-    "title": "Use the wireless RAM program, then you can hack the cross-platform feed!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-3360",
-    "title": "You can't quantify the program without synthesizing the neural OCR interface!",
-    "status": "done",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-9887",
-    "title": "Use the auxiliary ASCII sensor, then you can connect the solid state port!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3649",
-    "title": "I'll input the virtual USB system, that should circuit the DNS monitor!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3586",
-    "title": "If we quantify the circuit, we can get to the CLI feed through the mobile SMS hard drive!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-5150",
-    "title": "I'll hack the wireless XSS port, that should transmitter the IP interface!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3652",
-    "title": "The SQL interface is down, override the optical bus so we can program the ASCII interface!",
-    "status": "backlog",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6884",
-    "title": "Use the digital PCI circuit, then you can synthesize the multi-byte microchip!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1591",
-    "title": "We need to connect the mobile XSS driver!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-3802",
-    "title": "Try to override the ASCII protocol, maybe it will parse the virtual matrix!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7253",
-    "title": "Programming the capacitor won't do anything, we need to bypass the neural IB hard drive!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-9739",
-    "title": "We need to hack the multi-byte HDD bus!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-4424",
-    "title": "Try to hack the HEX alarm, maybe it will connect the optical pixel!",
-    "status": "in progress",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3922",
-    "title": "You can't back up the capacitor without generating the wireless PCI program!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-4921",
-    "title": "I'll index the open-source IP feed, that should system the GB application!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-5814",
-    "title": "We need to calculate the 1080p AGP feed!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-2645",
-    "title": "Synthesizing the system won't do anything, we need to navigate the multi-byte HDD firewall!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-4535",
-    "title": "Try to copy the JSON circuit, maybe it will connect the wireless feed!",
-    "status": "in progress",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-4463",
-    "title": "We need to copy the solid state AGP monitor!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-9745",
-    "title": "If we connect the protocol, we can get to the GB system through the bluetooth PCI microchip!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-2080",
-    "title": "If we input the bus, we can get to the RAM matrix through the auxiliary RAM card!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3838",
-    "title": "I'll bypass the online TCP application, that should panel the AGP system!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-1340",
-    "title": "We need to navigate the virtual PNG circuit!",
-    "status": "todo",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-6665",
-    "title": "If we parse the monitor, we can get to the SSD hard drive through the cross-platform AGP alarm!",
-    "status": "canceled",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-7585",
-    "title": "If we calculate the hard drive, we can get to the SSL program through the multi-byte CSS microchip!",
-    "status": "backlog",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-6319",
-    "title": "We need to copy the multi-byte SCSI program!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-4369",
-    "title": "Try to input the SCSI bus, maybe it will generate the 1080p pixel!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-9035",
-    "title": "We need to override the solid state PNG array!",
-    "status": "canceled",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-3970",
-    "title": "You can't index the transmitter without quantifying the haptic ASCII card!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-4473",
-    "title": "You can't bypass the protocol without overriding the neural RSS program!",
-    "status": "todo",
-    "label": "documentation",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-4136",
-    "title": "You can't hack the hard drive without hacking the primary JSON program!",
-    "status": "canceled",
-    "label": "bug",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-3939",
-    "title": "Use the back-end SQL firewall, then you can connect the neural hard drive!",
-    "status": "done",
-    "label": "feature",
-    "priority": "low"
-  },
-  {
-    "id": "TASK-2007",
-    "title": "I'll input the back-end USB protocol, that should bandwidth the PCI system!",
-    "status": "backlog",
-    "label": "bug",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-7516",
-    "title": "Use the primary SQL program, then you can generate the auxiliary transmitter!",
-    "status": "done",
-    "label": "documentation",
-    "priority": "medium"
-  },
-  {
-    "id": "TASK-6906",
-    "title": "Try to back up the DRAM system, maybe it will reboot the online transmitter!",
-    "status": "done",
-    "label": "feature",
-    "priority": "high"
-  },
-  {
-    "id": "TASK-5207",
-    "title": "The SMS interface is down, copy the bluetooth bus so we can quantify the VGA card!",
-    "status": "in progress",
-    "label": "bug",
-    "priority": "low"
+    "sacrifice_no": 11,
+    "sacrifice_time": "09:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 3,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 12,
+    "sacrifice_time": "09:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 4,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 13,
+    "sacrifice_time": "10:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 5,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 14,
+    "sacrifice_time": "10:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 6,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 105,
+    "sacrifice_time": "09:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 7,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 2,
+    "sacrifice_time": "07:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 8,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 3,
+    "sacrifice_time": "07:30:00",
+    "share_price": 34006,
+    "empty_share": 2,
+    "notes": null,
+    "sacrifice_id": 9,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 6,
+    "sacrifice_time": "08:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 10,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 15,
+    "sacrifice_time": "10:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 11,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 16,
+    "sacrifice_time": "10:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 12,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 17,
+    "sacrifice_time": "11:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 13,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 18,
+    "sacrifice_time": "11:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 14,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 19,
+    "sacrifice_time": "11:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 15,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 20,
+    "sacrifice_time": "11:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 16,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 21,
+    "sacrifice_time": "12:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 17,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 22,
+    "sacrifice_time": "12:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 18,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 23,
+    "sacrifice_time": "12:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 19,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 24,
+    "sacrifice_time": "12:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 20,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 25,
+    "sacrifice_time": "13:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 21,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 26,
+    "sacrifice_time": "13:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 22,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 27,
+    "sacrifice_time": "13:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 23,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 28,
+    "sacrifice_time": "13:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 24,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 29,
+    "sacrifice_time": "14:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 25,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 30,
+    "sacrifice_time": "14:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 26,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 31,
+    "sacrifice_time": "14:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 27,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 32,
+    "sacrifice_time": "14:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 28,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 33,
+    "sacrifice_time": "15:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 29,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 34,
+    "sacrifice_time": "15:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 30,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 36,
+    "sacrifice_time": "15:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 31,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 37,
+    "sacrifice_time": "16:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 32,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 38,
+    "sacrifice_time": "16:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 33,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 39,
+    "sacrifice_time": "16:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 34,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 40,
+    "sacrifice_time": "16:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 35,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 41,
+    "sacrifice_time": "17:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 36,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 42,
+    "sacrifice_time": "17:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 37,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 43,
+    "sacrifice_time": "17:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 38,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 44,
+    "sacrifice_time": "17:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 39,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 45,
+    "sacrifice_time": "18:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 40,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 46,
+    "sacrifice_time": "18:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 41,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 47,
+    "sacrifice_time": "18:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 42,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 48,
+    "sacrifice_time": "18:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 43,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 49,
+    "sacrifice_time": "19:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 44,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 50,
+    "sacrifice_time": "19:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 45,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 51,
+    "sacrifice_time": "19:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 46,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 52,
+    "sacrifice_time": "19:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 47,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 7,
+    "sacrifice_time": "08:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 48,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 53,
+    "sacrifice_time": "20:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 49,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 54,
+    "sacrifice_time": "20:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 50,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 55,
+    "sacrifice_time": "20:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 51,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 4,
+    "sacrifice_time": "07:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 52,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 56,
+    "sacrifice_time": "20:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 53,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 57,
+    "sacrifice_time": "21:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 54,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 58,
+    "sacrifice_time": "21:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 55,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 59,
+    "sacrifice_time": "21:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 56,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 60,
+    "sacrifice_time": "21:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 57,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 61,
+    "sacrifice_time": "22:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 58,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 62,
+    "sacrifice_time": "22:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 59,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 63,
+    "sacrifice_time": "22:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 60,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 64,
+    "sacrifice_time": "22:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 61,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 65,
+    "sacrifice_time": "23:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 62,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 66,
+    "sacrifice_time": "23:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 63,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 67,
+    "sacrifice_time": "23:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 64,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 68,
+    "sacrifice_time": "23:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 65,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 69,
+    "sacrifice_time": "00:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 66,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 70,
+    "sacrifice_time": "00:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 67,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 71,
+    "sacrifice_time": "00:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 68,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 72,
+    "sacrifice_time": "00:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 69,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 73,
+    "sacrifice_time": "01:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 70,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 74,
+    "sacrifice_time": "01:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 71,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 75,
+    "sacrifice_time": "01:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 72,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 76,
+    "sacrifice_time": "01:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 73,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 77,
+    "sacrifice_time": "02:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 74,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 78,
+    "sacrifice_time": "02:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 75,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 79,
+    "sacrifice_time": "02:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 76,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 80,
+    "sacrifice_time": "02:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 77,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 8,
+    "sacrifice_time": "08:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 78,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 5,
+    "sacrifice_time": "08:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 79,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 1,
+    "sacrifice_time": "07:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": "Sacrifice_no changed from 07:00:00 to 07:15:00. Sacrifice_no changed from 07:15:00 to 07:00:00. ",
+    "sacrifice_id": 80,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 81,
+    "sacrifice_time": "03:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 81,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 82,
+    "sacrifice_time": "03:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 82,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 83,
+    "sacrifice_time": "03:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 83,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 84,
+    "sacrifice_time": "03:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 84,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 85,
+    "sacrifice_time": "04:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 85,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 86,
+    "sacrifice_time": "04:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 86,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 87,
+    "sacrifice_time": "04:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 87,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 88,
+    "sacrifice_time": "04:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 88,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 89,
+    "sacrifice_time": "05:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 89,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 90,
+    "sacrifice_time": "05:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 90,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 91,
+    "sacrifice_time": "05:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 91,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 92,
+    "sacrifice_time": "05:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 92,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 93,
+    "sacrifice_time": "06:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 93,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 94,
+    "sacrifice_time": "06:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 94,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 95,
+    "sacrifice_time": "06:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 95,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 96,
+    "sacrifice_time": "06:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 96,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 97,
+    "sacrifice_time": "07:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 97,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 98,
+    "sacrifice_time": "07:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 98,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 99,
+    "sacrifice_time": "07:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 99,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 100,
+    "sacrifice_time": "07:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 100,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 101,
+    "sacrifice_time": "08:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 101,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 102,
+    "sacrifice_time": "08:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 102,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 103,
+    "sacrifice_time": "08:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 103,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 104,
+    "sacrifice_time": "08:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 104,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 106,
+    "sacrifice_time": "09:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 105,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 107,
+    "sacrifice_time": "09:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 106,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 108,
+    "sacrifice_time": "09:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 107,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 109,
+    "sacrifice_time": "10:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 108,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 110,
+    "sacrifice_time": "10:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 109,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 111,
+    "sacrifice_time": "10:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 110,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 112,
+    "sacrifice_time": "10:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 111,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 113,
+    "sacrifice_time": "11:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 112,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 114,
+    "sacrifice_time": "11:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 113,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 115,
+    "sacrifice_time": "11:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 114,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 116,
+    "sacrifice_time": "11:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 115,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 117,
+    "sacrifice_time": "12:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 116,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 118,
+    "sacrifice_time": "12:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 117,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 119,
+    "sacrifice_time": "12:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 118,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 120,
+    "sacrifice_time": "12:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 119,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 121,
+    "sacrifice_time": "13:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 120,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 122,
+    "sacrifice_time": "13:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 121,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 123,
+    "sacrifice_time": "13:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 122,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 124,
+    "sacrifice_time": "13:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 123,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 125,
+    "sacrifice_time": "14:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 124,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 126,
+    "sacrifice_time": "14:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 125,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 127,
+    "sacrifice_time": "14:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 126,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 128,
+    "sacrifice_time": "14:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 127,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 129,
+    "sacrifice_time": "15:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 128,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 130,
+    "sacrifice_time": "15:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 129,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 131,
+    "sacrifice_time": "15:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 130,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 132,
+    "sacrifice_time": "15:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 131,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 133,
+    "sacrifice_time": "16:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 132,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 134,
+    "sacrifice_time": "16:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 133,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 135,
+    "sacrifice_time": "16:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 134,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 10,
+    "sacrifice_time": "09:15:00",
+    "share_price": 36004,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 2,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 136,
+    "sacrifice_time": "16:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 135,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 137,
+    "sacrifice_time": "17:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 136,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 138,
+    "sacrifice_time": "17:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 137,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 139,
+    "sacrifice_time": "17:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 138,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 140,
+    "sacrifice_time": "17:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 139,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 141,
+    "sacrifice_time": "18:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 140,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 142,
+    "sacrifice_time": "18:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 141,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 143,
+    "sacrifice_time": "18:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 142,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 144,
+    "sacrifice_time": "18:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 143,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 145,
+    "sacrifice_time": "19:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 144,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 146,
+    "sacrifice_time": "19:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 145,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 147,
+    "sacrifice_time": "19:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 146,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 148,
+    "sacrifice_time": "19:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 147,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 149,
+    "sacrifice_time": "20:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 148,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 150,
+    "sacrifice_time": "20:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 149,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 151,
+    "sacrifice_time": "20:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 150,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 152,
+    "sacrifice_time": "20:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 151,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 153,
+    "sacrifice_time": "21:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 152,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 154,
+    "sacrifice_time": "21:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 153,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 155,
+    "sacrifice_time": "21:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 154,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 156,
+    "sacrifice_time": "21:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 155,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 157,
+    "sacrifice_time": "22:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 156,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 158,
+    "sacrifice_time": "22:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 157,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 159,
+    "sacrifice_time": "22:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 158,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 160,
+    "sacrifice_time": "22:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 159,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 161,
+    "sacrifice_time": "23:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 160,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 162,
+    "sacrifice_time": "23:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 161,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 163,
+    "sacrifice_time": "23:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 162,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 164,
+    "sacrifice_time": "23:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 163,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 165,
+    "sacrifice_time": "00:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 164,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 166,
+    "sacrifice_time": "00:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 165,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 167,
+    "sacrifice_time": "00:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 166,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 168,
+    "sacrifice_time": "00:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 167,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 169,
+    "sacrifice_time": "01:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 168,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 170,
+    "sacrifice_time": "01:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 169,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 171,
+    "sacrifice_time": "01:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 170,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 172,
+    "sacrifice_time": "01:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 171,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 173,
+    "sacrifice_time": "02:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 172,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 174,
+    "sacrifice_time": "02:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 173,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 175,
+    "sacrifice_time": "02:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 174,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 176,
+    "sacrifice_time": "02:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 175,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 177,
+    "sacrifice_time": "03:00:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 176,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 178,
+    "sacrifice_time": "03:15:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 177,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 179,
+    "sacrifice_time": "03:30:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 178,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 180,
+    "sacrifice_time": "03:45:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 179,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 181,
+    "sacrifice_time": "04:00:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 180,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 182,
+    "sacrifice_time": "04:15:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 181,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 183,
+    "sacrifice_time": "04:30:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 182,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 184,
+    "sacrifice_time": "04:45:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 183,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 185,
+    "sacrifice_time": "05:00:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 184,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 186,
+    "sacrifice_time": "05:15:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 185,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 187,
+    "sacrifice_time": "05:30:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 186,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 188,
+    "sacrifice_time": "05:45:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 187,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 189,
+    "sacrifice_time": "06:00:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 188,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 190,
+    "sacrifice_time": "06:15:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 189,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 191,
+    "sacrifice_time": "06:30:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 190,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 192,
+    "sacrifice_time": "06:45:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 191,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 193,
+    "sacrifice_time": "07:00:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 192,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 194,
+    "sacrifice_time": "07:15:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 193,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 195,
+    "sacrifice_time": "07:30:00",
+    "share_price": 32000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 194,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 196,
+    "sacrifice_time": "07:45:00",
+    "share_price": 34000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 195,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 197,
+    "sacrifice_time": "08:00:00",
+    "share_price": 36000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 196,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 198,
+    "sacrifice_time": "08:15:00",
+    "share_price": 38000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 197,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 199,
+    "sacrifice_time": "08:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 198,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 200,
+    "sacrifice_time": "08:45:00",
+    "share_price": 30000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 199,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 35,
+    "sacrifice_time": "15:30:00",
+    "share_price": 40000,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 200,
+    "added_at": "29/12/2024 14:05:20.154073"
+  },
+  {
+    "sacrifice_no": 9,
+    "sacrifice_time": "09:00:00",
+    "share_price": 34001,
+    "empty_share": 0,
+    "notes": null,
+    "sacrifice_id": 1,
+    "added_at": "29/12/2024 14:05:20.154073"
   }
 ]

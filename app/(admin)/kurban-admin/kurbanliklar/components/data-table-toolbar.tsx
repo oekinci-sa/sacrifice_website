@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "./data-table-view-options";
 
-import { priorities, statuses } from "../data/data";
+import { empty_shares, share_prices } from "../data/data";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 
 interface DataTableToolbarProps<TData> {
@@ -24,29 +24,31 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         {/* Tablo başlığı için filtreleme alanı. */}
         <Input
-          placeholder="Filter tasks..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          placeholder="Kurbanlık numarasıyla ara..."
+          value={
+            (table.getColumn("sacrifice_no")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
+            table.getColumn("sacrifice_no")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
         {/* durum ve öncelik filtreleme yapılır. */}
-        {table.getColumn("status") && (
+        {table.getColumn("share_price") && (
           <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
+            column={table.getColumn("share_price")}
+            title="Hisse Bedeli"
+            options={share_prices}
           />
         )}
-        {table.getColumn("priority") && (
+        {/* {table.getColumn("priority") && (
           // durum ve öncelik filtreleme yapılır.
           <DataTableFacetedFilter
             column={table.getColumn("priority")}
-            title="Priority"
-            options={priorities}
+            title="Hisse Bedeli"
+            options={empty_shares}
           />
-        )}
+        )} */}
         {/* // Reset Button */}
         {isFiltered && (
           <Button
@@ -54,7 +56,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            Sıfırla
             <X />
           </Button>
         )}

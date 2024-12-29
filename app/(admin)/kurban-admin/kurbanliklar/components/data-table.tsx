@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+// Tanstack Table kütüphanesinden gerekli bileşenler alınır.
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,6 +17,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+// Shadcn table bileşenleri alınır.
 import {
   Table,
   TableBody,

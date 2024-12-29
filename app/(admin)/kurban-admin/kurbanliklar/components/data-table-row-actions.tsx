@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { labels } from "../data/data";
-import { taskSchema } from "../data/schema";
+import { sacrificeSchema } from "../data/schema";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -29,7 +29,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   // kullanılarak satır verisi belirli bir yapıya uygun hale getiriliyor.
-  const task = taskSchema.parse(row.original);
+  const task = sacrificeSchema.parse(row.original);
 
   return (
     <DropdownMenu>

@@ -7,12 +7,16 @@ import { mediaLinks } from "@/constants";
 
 const Footer = () => {
   return (
-    <div className="bg-sac-black pt-12 pb-6">
+    <div className="bg-foreground dark:bg-background pt-12 pb-6">
       <div className="container flex justify-between text-white mb-8">
         {/* Left Side */}
         <div className="flex flex-col space-y-6">
           <Link href="/">
-            <Image src={websiteLogoWhite} width={200} alt="Website Logo"></Image>
+            <Image
+              src={websiteLogoWhite}
+              width={200}
+              alt="Website Logo"
+            ></Image>
           </Link>
           <div className="text-sm text-white/50">
             <p>

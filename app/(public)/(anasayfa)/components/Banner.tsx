@@ -8,13 +8,7 @@ import Ayah from './Ayah';
 const Banner = () => {
   return (
     <>
-      <div className="relative h-screen dark:hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 -z-10 h-full w-full bg-white [&>div]:absolute [&>div]:bottom-auto [&>div]:left-auto [&>div]:right-0 [&>div]:top-0 [&>div]:h-[500px] [&>div]:w-[500px] [&>div]:-translate-x-[30%] [&>div]:translate-y-[20%] [&>div]:rounded-full [&>div]:bg-[rgba(109,244,173,0.5)] [&>div]:opacity-50 [&>div]:blur-[80px]">
-            <div></div>
-          </div>
-        </div>
-
+      <div className="relative h-screen">
         <div className="w-full">
           <div className="container mx-auto">
             <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
@@ -43,7 +37,7 @@ const Banner = () => {
       </div>
 
       {/* Dark */}
-      <div className="relative h-screen hidden dark:block">
+      {/* <div className="relative h-screen hidden dark:block">
         <div className="absolute inset-0">
           <div className="relative h-full w-full bg-slate-950 [&>div]:absolute [&>div]:inset-0 [&>div]:bg-[radial-gradient(circle_500px_at_50%_200px,#3e3e3e,transparent)]">
             <div></div>
@@ -71,7 +65,7 @@ const Banner = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 }

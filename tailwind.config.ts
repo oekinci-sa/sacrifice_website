@@ -14,19 +14,6 @@ const config: Config = {
         heading: ["var(--font-instrument-sans)"],
       },
       colors: {
-        "sac-primary": "#09b850",
-        "sac-primary-dark": "#089c44",
-        // Dark Mode
-        "sac-dark-mode": "#161618",
-        // Heading, button-black
-        "sac-black": "#202124",
-        "sac-black-hover": "#3F3F3F",
-        // Paragraphs
-        "sac-gray": "#606261",
-        "sac-dark-white": "#F8F8F8",
-        "sac-dark-white-hover": "#DCE0E5",
-        // Warning
-        "sac-red": "#F8F8F8",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -39,6 +26,7 @@ const config: Config = {
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          dark: "hsl(var(--primary-dark))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {

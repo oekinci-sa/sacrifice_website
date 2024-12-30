@@ -20,6 +20,7 @@ import {
 
 import { labels } from "../data/data";
 import { sacrificeSchema } from "../data/schema";
+import Link from "next/link";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -43,28 +44,10 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem>Make a copy</DropdownMenuItem>
-        <DropdownMenuItem>Favorite</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          {/* Labels alt menüsü, dışarıdan gelen labels verisiyle dinamik olarak oluşturuluyor. */}
-          <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={data.label}>
-              {labels.map((label) => (
-                <DropdownMenuRadioItem key={label.value} value={label.value}>
-                  {label.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          Delete
-          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-        </DropdownMenuItem>
+        <Link href="/" passHref>
+          <DropdownMenuItem as="a">Düzenle</DropdownMenuItem>
+        </Link>
+        <DropdownMenuItem>Sil</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

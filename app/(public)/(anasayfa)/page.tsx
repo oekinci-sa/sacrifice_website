@@ -32,13 +32,13 @@ export default function Home() {
     <div className="py-24">
       <Ayah></Ayah>
       <Banner></Banner>
-      <Image
+      {/* <Image
         src="/home-page-cow.jpg"
         alt="cow"
         className="container mx-auto m-16 rounded-md"
         width={800}
         height={300}
-      ></Image>
+      ></Image> */}
 
       <Stats></Stats>
       <Prices></Prices>

@@ -19,7 +19,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "../(public)/components/layout/Header/dark-mode-button";
+import { ModeToggle } from "../(public)/(anasayfa)/components/Header/ModeToggle";
+import Logo from "../(public)/(anasayfa)/components/Header/Logo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,7 +40,7 @@ export default function KurbanAdminLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}
+        className={`${inter.variable} ${instrumentSans.variable} flex flex-col`}
       >
         <ThemeProvider
           attribute="class"
@@ -47,36 +48,38 @@ export default function KurbanAdminLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider
+          {/* <SidebarProvider
             style={
               {
                 "--sidebar-width": "19rem",
               } as React.CSSProperties
             }
-          >
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Building Your Application
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-                <ModeToggle></ModeToggle>
-              </header>
-              <div className="p-4 pt-0">{children}</div>
-            </SidebarInset>
-          </SidebarProvider>
+          > */}
+          {/* <AppSidebar /> */}
+          <div className="flex m-8 mt-4 gap-4 items-center">
+            <Logo></Logo>
+            {/* <SidebarInset> */}
+            <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+              {/* <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" /> */}
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#">Yönetim Paneli</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Kurbanlıklar</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <ModeToggle></ModeToggle>
+            </header>
+          </div>
+
+          <div className="p-4 pt-0">{children}</div>
+          {/* </SidebarInset>
+          </SidebarProvider> */}
         </ThemeProvider>
       </body>
     </html>

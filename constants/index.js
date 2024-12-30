@@ -1,12 +1,38 @@
-export const navLinks = [
-  { href: "/", label: "Anasayfa" },
-  { href: "/hakkimizda", label: "Hakkımızda" },
-  { href: "/galeri", label: "Galeri" },
-  { href: "/surec", label: "Süreç" },
-  // { href: "/hisseal", label: "Hisse İşlemleri" },
-  // { href: "/yazilar", label: "Yazılar" },
-  // { href: "/hissesorgula", label: "Hisse Sorgulama" },
-  // { href: "/sss", label: "Sıkça Sorulan Sorular" },
+export const navigationItems = [
+  {
+    title: "Anasayfa",
+    href: "/",
+    description: "",
+  },
+  {
+    title: "Hakkımızda",
+    href: "/hakkimizda",
+    description: "",
+  },
+  {
+    title: "Hisse İşlemleri",
+    items: [
+      {
+        title: "Hisse Al",
+        href: "/hisseal",
+      },
+      {
+        title: "Hisse Sorgula",
+        href: "/hissesorgula",
+      },
+    ],
+  },
+  {
+    title: "Yazılar",
+    href: "/yazilar",
+    description: "",
+  },
+
+  {
+    title: "İletişim",
+    href: "/iletisim",
+    description: "",
+  },
 ];
 
 export const mediaLinks = [

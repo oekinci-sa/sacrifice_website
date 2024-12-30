@@ -125,37 +125,40 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+            <TableBody>
             {/* Satırları oluşturur. */}
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {/* Görünür satırları döndürür. */}
+                {row.getVisibleCells().map((cell) => (
+                <TableCell
+                  key={cell.id}
+                  style={{ width: cell.column.columnDef.size }}
                 >
-                  {/* Görünür satırları döndürür. */}
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {/* Hücre içeriklerini oluşturur. */}
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                  {/* Hücre içeriklerini oluşturur. */}
+                  {flexRender(
+                  cell.column.columnDef.cell,
+                  cell.getContext()
+                  )}
+                </TableCell>
+                ))}
+              </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center"
+              >
+                No results.
+              </TableCell>
               </TableRow>
             )}
-          </TableBody>
+            </TableBody>
         </Table>
       </div>
       <DataTablePagination table={table} />

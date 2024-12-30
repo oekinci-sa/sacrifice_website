@@ -12,7 +12,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import Logo from "@/app/(public)/components/layout/Header/Logo";
+import Logo from "@/app/(public)/(anasayfa)/components/Header/Logo";
 
 // This is sample data.
 interface NavItem {

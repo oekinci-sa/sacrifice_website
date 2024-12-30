@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { empty_shares, share_prices } from "../data/data";
 import { Task } from "../data/schema";
 import { DataTableColumnHeader } from "./data-table-column-header";
+import { DataTableRowActions } from "./data-table-row-actions";
 // import { DataTableRowActions } from "./data-table-row-actions";
 
 export const columns: ColumnDef<Task>[] = [
@@ -17,6 +18,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => (
       <div className="w-[80px]">{row.getValue("sacrifice_no")}</div>
     ),
+    size: "80px",
   },
   {
     // Görev başlığı.
@@ -25,7 +27,6 @@ export const columns: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Kurban Zamanı" />
     ),
     cell: ({ row }) => {
-
       return (
         <div className="flex space-x-2">
           <span className="max-w-[500px] truncate font-medium">
@@ -34,6 +35,7 @@ export const columns: ColumnDef<Task>[] = [
         </div>
       );
     },
+    size: "80px",
   },
   {
     // Görev durumu. Filtreleme var.
@@ -56,6 +58,8 @@ export const columns: ColumnDef<Task>[] = [
         </div>
       );
     },
+    size: 80,
+
     // Filtreleme işlevi.
     filterFn: (row, id, value) => {
       const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
@@ -87,9 +91,20 @@ export const columns: ColumnDef<Task>[] = [
       const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
       return value.includes(cellValue); // String karşılaştırma yap
     },
+    size: 80,
   },
-  // {
-  //   id: "actions",
-  //   cell: ({ row }) => <DataTableRowActions row={row} />,
-  // },
+  {
+    // Görev kimliği.
+    accessorKey: "notes",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Notlar" />
+    ),
+    cell: ({ row }) => (
+      <div className="w-[80px] overflow-hidden">{row.getValue("notes")}</div>
+    ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },
 ];

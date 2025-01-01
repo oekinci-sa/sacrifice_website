@@ -91,7 +91,7 @@ export const columns: ColumnDef<Task>[] = [
       const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
       return value.includes(cellValue); // String karşılaştırma yap
     },
-    size: 80
+    size: 80,
   },
   {
     // Görev kimliği.

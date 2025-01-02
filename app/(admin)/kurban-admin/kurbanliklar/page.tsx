@@ -1,33 +1,102 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { Metadata } from "next";
-import { z } from "zod";
+"use client";
+import { useEffect, useState } from "react";
+
+// import { Metadata } from "next";
+
+// Supabase
+import { fetchTableData } from "@/helpers/supabase";
 
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
-import { sacrificeSchema } from "./data/schema";
 
-export const metadata: Metadata = {
-  title: "Tasks",
-  description: "A task and issue tracker build using Tanstack Table.",
-};
+// export const sacrificeSchema = z.object({
+//   sacrifice_no: z.number(),
+//   sacrifice_time: z.string(),
+//   share_price: z.number(),
+//   empty_share: z.number(),
+//   notes: z.string().nullable(),
+//   sacrifice_id: z.number(),
+//   added_at: z.string(),
+// });
 
 // Simulate a database read for tasks.
-async function getTasks() {
-  const data = await fs.readFile(
-    path.join(
-      process.cwd(),
-      "app/(admin)/kurban-admin/kurbanliklar/data/tasks.json"
-    )
-  );
+// async function getTasks() {
+//   const data = await fs.readFile(
+//     path.join(
+//       process.cwd(),
+//       "app/(admin)/kurban-admin/kurbanliklar/data/tasks.json"
+//     )
+//   );
 
-  const tasks = JSON.parse(data.toString());
+//   const tasks = JSON.parse(data.toString());
 
-  return z.array(sacrificeSchema).parse(tasks);
-}
+//   return z.array(sacrificeSchema).parse(tasks);
+// }
 
-const page = async () => {
-  const tasks = await getTasks();
+// export const metadata: Metadata = {
+//   title: "Tasks",
+//   description: "A task and issue tracker build using Tanstack Table.",
+// };
+
+export type sacrificeSchema = {
+  sacrifice_id: number;
+  sacrifice_no: number;
+  sacrifice_time: string;
+  share_price: number;
+  empty_share: number;
+  notes: string;
+  added_at: string;
+};
+
+
+const Page = () => {
+  // const tasks = await getTasks();
+
+  const [data, setData] = useState<sacrificeSchema[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Verileri çek ve real-time aboneliği başlat
+      const { data: initialData, subscription } = await fetchTableData(
+        "sacrifice_animals",
+        (payload: {
+          eventType: string;
+          new: sacrificeSchema;
+          old: sacrificeSchema;
+        }) => {
+          console.log("Realtime data:", payload);
+
+          // Gelen real-time olay türüne göre state'i güncelle
+          if (payload.eventType === "INSERT") {
+            setData((prevData) => [...prevData, payload.new]);
+          } else if (payload.eventType === "UPDATE") {
+            setData((prevData) =>
+              prevData.map((item) =>
+                item.sacrifice_no === payload.new.sacrifice_no
+                  ? payload.new
+                  : item
+              )
+            );
+          } else if (payload.eventType === "DELETE") {
+            setData((prevData) =>
+              prevData.filter(
+                (item) => item.sacrifice_no !== payload.old.sacrifice_no
+              )
+            );
+          }
+        }
+      );
+
+      // İlk çekilen veriyi state'e ekle
+      setData(initialData);
+
+      // Cleanup: Aboneliği kaldır
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -45,10 +114,10 @@ const page = async () => {
             </p>
           </div> */}
         </div>
-        <DataTable data={tasks} columns={columns} />
+        <DataTable data={data} columns={columns} />
       </div>
     </>
   );
 };
 
-export default page;
+export default Page;

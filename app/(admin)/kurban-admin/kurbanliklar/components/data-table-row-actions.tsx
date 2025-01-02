@@ -8,29 +8,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { labels } from "../data/data";
-import { sacrificeSchema } from "../data/schema";
 import Link from "next/link";
 
-interface DataTableRowActionsProps<TData> {
+interface DataTableRowActionsProps<TData extends { sacrifice_no: string }> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions<TData>({
+export function DataTableRowActions<TData extends { sacrifice_no: string }>({
   row,
 }: DataTableRowActionsProps<TData>) {
   // kullanılarak satır verisi belirli bir yapıya uygun hale getiriliyor.
-  const data = sacrificeSchema.parse(row.original);
+  const data = row.original;
+  console.log(data);
 
   return (
     <DropdownMenu>

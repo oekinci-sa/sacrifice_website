@@ -31,9 +31,11 @@ const page = async () => {
 
   return (
     <>
-      <div className="h-full flex-1 flex-col space-y-8 p-8 md:flex">
-        <div className="flex items-center justify-between space-y-2">
-          <div>
+      <div className="flex flex-col space-y-8 p-8 md:flex">
+        <div className="flex items-center justify-between">
+          
+          {/* Header */}
+          {/* <div>
             <h2 className="text-2xl font-bold tracking-tight">
               Kurbanlıklar Tablosu
             </h2>
@@ -41,7 +43,7 @@ const page = async () => {
               Aşağıda tüm kurbanlıklara dair bilgileri görebilir,
               düzenleyebilir, silebilir veya ekleyebilirsiniz.
             </p>
-          </div>
+          </div> */}
         </div>
         <DataTable data={tasks} columns={columns} />
       </div>

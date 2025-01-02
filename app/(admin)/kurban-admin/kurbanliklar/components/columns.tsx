@@ -18,7 +18,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => (
       <div className="w-[80px]">{row.getValue("sacrifice_no")}</div>
     ),
-    size: "80px",
+    size: 80,
   },
   {
     // Görev başlığı.
@@ -35,7 +35,7 @@ export const columns: ColumnDef<Task>[] = [
         </div>
       );
     },
-    size: "80px",
+    size: 80,
   },
   {
     // Görev durumu. Filtreleme var.

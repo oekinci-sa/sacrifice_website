@@ -44,8 +44,8 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <Link href="/" passHref>
-          <DropdownMenuItem as="a">Düzenle</DropdownMenuItem>
+        <Link href={`/kurban-admin/kurbanliklar/ayrintilar/${data.sacrifice_no}`}>
+          <Button>Hisse Al</Button>
         </Link>
         <DropdownMenuItem>Sil</DropdownMenuItem>
       </DropdownMenuContent>

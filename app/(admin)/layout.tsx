@@ -2,8 +2,8 @@ import { Inter, Instrument_Sans } from "next/font/google";
 import "/app/globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "../(public)/(anasayfa)/components/Header/ModeToggle";
-import Logo from "../(public)/(anasayfa)/components/Header/Logo";
+import { ModeToggle } from "../(public)/components/Header/ModeToggle";
+import Logo from "../(public)/components/Header/Logo";
 import AdminNavbar from "./kurban-admin/components/admin-navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 

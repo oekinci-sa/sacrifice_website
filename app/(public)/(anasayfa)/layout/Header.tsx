@@ -27,9 +27,9 @@ import { Menu, MoveRight, X } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
-import Logo from "../components/Header/Logo";
-import Navigation from "../components/Header/Navigation";
-import RightPart from "../components/Header/RightPart";
+import Logo from "../../components/Header/Logo";
+import Navigation from "../../components/Header/Navigation";
+import RightPart from "../../components/Header/RightPart";
 
 const Header = () => {
   const [isOpen, setOpen] = useState(false);

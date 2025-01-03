@@ -8,7 +8,9 @@ const RightPart = () => {
     <div className="flex justify-end w-full gap-4">
       {/* <i className="bi bi-brightness-high"></i> */}
       <ModeToggle></ModeToggle>
-      <Button variant="default">Hemen al</Button>
+      <Button size="sm" className="bg-green-500 text-white hover:bg-green-600">
+        Hemen al
+      </Button>
     </div>
   );
 }

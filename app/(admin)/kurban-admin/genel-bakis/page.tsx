@@ -44,7 +44,7 @@ const page = () => {
         </div>
         {/* Kalan Hisseler */}
         <div className="flex flex-col flex-1 items-center">
-          <p>Alınan Kurbanlıklar</p>
+          <p>Hissedar Sayısı</p>
           <p>January - June 2024</p>
           <ChartContainer
             config={chartConfig}

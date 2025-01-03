@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
@@ -8,6 +9,17 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: {
+      center: true, // İçeriği otomatik olarak ortalar
+      padding: "1rem", // Varsayılan padding
+      screens: {
+        sm: "600px",
+        md: "728px",
+        lg: "984px",
+        xl: "1240px",
+        "2xl": "1400px", // 2xl için daha geniş ekran tanımladık
+      },
+    },
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)"],
@@ -72,7 +84,8 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
     },
+    // plugins: [require("tailwindcss-animate")],
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 export default config;

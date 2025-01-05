@@ -1,6 +1,6 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react'
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
 
 const Prices = () => {
   return (
@@ -17,7 +17,7 @@ const Prices = () => {
             className="rounded-md"
           />
           <Image
-            src="/icons/landing_page/birds.svg"
+            src="/icons/birds.svg"
             alt="Placeholder"
             width={96}
             height={96}
@@ -70,7 +70,7 @@ const Prices = () => {
           </p>
           <div className="flex space-x-4">
             <Image
-              src="/icons/landing_page/location.svg"
+              src="/icons/location.svg"
               alt="Example SVG"
               width={24}
               height={24} // Genişlik ve yükseklik değerlerini ayarlayın
@@ -90,6 +90,6 @@ const Prices = () => {
       </div>
     </div>
   );
-}
+};
 
-export default Prices
+export default Prices;

@@ -9,7 +9,7 @@ const Features = () => {
       {features.map((item) => (
         <div key={item.src} className="flex flex-col w-80">
           <Image
-            src={`/icons/landing_page/${item.src}`}
+            src={`/icons/${item.src}`}
             alt="Example SVG"
             width={24}
             height={24} // Genişlik ve yükseklik değerlerini ayarlayın

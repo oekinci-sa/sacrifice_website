@@ -39,19 +39,27 @@ export const mediaLinks = [
   {
     href: "https://www.facebook.com/imhankara06",
     iconName: "bi bi-facebook",
+    color: "text-blue-600",
   },
-  { href: "https://twitter.com/imhankara", iconName: "bi bi-twitter-x" },
+  {
+    href: "https://twitter.com/imhankara",
+    iconName: "bi bi-twitter-x",
+    color: "text-black",
+  },
   {
     href: "https://www.instagram.com/imhankara06/",
     iconName: "bi bi-instagram",
+    color: "text-pink-600",
   },
   {
     href: "https://www.youtube.com/@insanvemedeniyethareketiankara",
     iconName: "bi bi-youtube",
+    color: "text-red-600",
   },
   {
     href: "http://www.imhankara.org.tr/",
     iconName: "bi bi-globe",
+    color: "text-sky-500",
   },
 ];
 
@@ -173,23 +181,20 @@ export const faq_items = [
   },
 ];
 
-export const tripleContent = [
+export const contact_infos = [
   {
-    icon: "bi bi-geo-alt text-sac-primary text-2xl",
-    header: "Gelin, görüşelim.",
-    description: "İnsan ve Medeniyet Hareketi Ankara Merkezi",
+    icon: "location.svg",
+    header: "İMH Ankara Merkez",
     info: "Hacıbayram Mah. Adliye Sok. No:1 Ulus/Ankara",
   },
   {
-    icon: "bi bi-envelope text-sac-primary text-2xl",
-    header: "Bize mail atın.",
-    description: "E-maillerinize 24 saat içerisinde dönüş sağlıyoruz.",
+    icon: "mail.svg",
+    header: "E-maillerinize 24 saat içerisinde dönüş sağlıyoruz.",
     info: "imhankara06@hotmail.com",
   },
   {
-    icon: "bi bi-telephone text-sac-primary text-2xl",
+    icon: "phone.svg",
     header: "Bizi arayın.",
-    description: "09.00 - 18.00 arasında bize telefonla ulaşabilirsiniz.",
     info: "0312 312 44 64 - 0552 652 90 00",
   },
 ];

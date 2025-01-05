@@ -14,7 +14,7 @@ const CustomLink = ({ href, children, className = "", target="", ...props }: Cus
 
   return (
     <Link
-      className={`font-medium text-navlinkColor hover:text-primary transition-all duration-300 ${className}`} href={href} target={target}
+      className={`font-medium hover:text-primary transition-all duration-300 ${className}`} href={href} target={target}
       {...props}>
         {children}
     </Link>

@@ -1,9 +1,15 @@
 import React from 'react'
 
-const Title = () => {
-  return (
-    <div className='my-8'>Title</div>
-  )
+interface TitleProps {
+  children: React.ReactNode;
 }
+
+const Title = ({
+  children,
+}: TitleProps) => {
+  return (
+    <div className="container font-heading font-bold text-4xl w-1/2">{children}</div>
+  );
+};
 
 export default Title

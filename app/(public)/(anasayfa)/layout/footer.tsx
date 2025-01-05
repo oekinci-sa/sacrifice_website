@@ -19,31 +19,31 @@ const Footer = () => {
             ></Image>
           </CustomLink>
 
-          <div className="text-sm text-white/90">
+          <div className="text-sm text-white/75">
             <p>
-              İnsan ve Medeniyet Hareketi Ankara'nın
+              İnsan ve Medeniyet Hareketi Ankara&apos;nın
               <br />
               katkılarıyla düzenlenmektedir.
             </p>
           </div>
 
           {/* Social Media */}
-          <ul className="flex gap-6">
+          <div className="flex gap-6">
             {mediaLinks.map((item) => (
-              <li
+              <div
                 key={item.href}
                 className="flex items-center justify-center text rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
               >
                 <CustomLink
-                  className="text-white/90"
+                  className="text-white/75"
                   href={item.href}
                   target="_blank"
                 >
                   <i className={item.iconName}></i>
                 </CustomLink>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Right Side */}
@@ -53,7 +53,7 @@ const Footer = () => {
             <p className="font-heading text-xl font-semibold mb-4">
               Hızlı Linkler
             </p>
-            <div className="font-normal text-white flex gap-8">
+            <div className="font-normal text-white/75 flex gap-8">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
@@ -78,7 +78,7 @@ const Footer = () => {
           {/* İletişim */}
           <div>
             <p className="font-heading text-xl font-semibold mb-4">İletişim</p>
-            <div className="flex flex-col gap-3 text-white/50">
+            <div className="flex flex-col gap-3 text-white/75">
               {/* Location */}
               <div className="flex gap-3">
                 <i className="bi bi-geo-alt text-primary"></i>

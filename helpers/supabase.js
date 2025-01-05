@@ -4,7 +4,7 @@ export const fetchTableData = async (tableName, callback) => {
   const { data, error } = await supabase
     .from(tableName)
     .select("*")
-    .order("", { ascending: true });
+    .order("sacrifice_no", { ascending: true });
   if (error) {
     throw new Error(error.message);
   }

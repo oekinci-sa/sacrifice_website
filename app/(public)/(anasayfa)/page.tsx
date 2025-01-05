@@ -1,9 +1,10 @@
 "use client";
-import Ayah from "@/app/(public)/(anasayfa)/components/Ayah";
-import Banner from "@/app/(public)/(anasayfa)/components/Banner";
-import Prices from "@/app/(public)/(anasayfa)/components/Prices";
-import Stats from "@/app/(public)/(anasayfa)/components/Stats";
+import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
+import Banner from "@/app/(public)/(anasayfa)/components/banner";
+import Prices from "@/app/(public)/(anasayfa)/components/prices";
+import Stats from "@/app/(public)/(anasayfa)/components/stats";
 import Image from "next/image";
+import Features from "./components/features";
 // import { useRouter } from "next/navigation";
 // import { supabase } from "@/utils/supabaseClient";
 // import { Button } from "@/components/ui/button";
@@ -29,17 +30,10 @@ import Image from "next/image";
 export default function Home() {
 
   return (
-    <div className="py-24">
+    <div className="">
       <Ayah></Ayah>
       <Banner></Banner>
-      {/* <Image
-        src="/home-page-cow.jpg"
-        alt="cow"
-        className="container mx-auto m-16 rounded-md"
-        width={800}
-        height={300}
-      ></Image> */}
-
+      <Features></Features>
       <Stats></Stats>
       <Prices></Prices>
     </div>

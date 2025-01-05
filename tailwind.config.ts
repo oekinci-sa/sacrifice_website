@@ -24,6 +24,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)"],
         heading: ["var(--font-instrument-sans)"],
+        serif: ["var(--font-playfair-display)"],
       },
       colors: {
         background: "hsl(var(--background))",
@@ -77,6 +78,7 @@ const config: Config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        navlinkColor: "hsl(var(--navlink-color))",
       },
       borderRadius: {
         lg: "var(--radius)",

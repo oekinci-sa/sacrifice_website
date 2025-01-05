@@ -6,13 +6,17 @@
 
 @layer base {
   :root {
+    
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
+
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
+
+    --primary: 144.34, 90.67%, 37.84%;
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -31,14 +35,22 @@
     --chart-4: 137 55% 15%;
     --chart-5: 141 40% 9%;
     --radius: 0.5rem;
+
+    /* My Colors */
+    /* Navlink default */
+    --navlink-color: 150 1.03% 38.04%;
   }
   .dark {
-    --background: 0 0% 3.9%;
+    /* Changed for dark mode background */
+    --background: 240 4.35% 9.02%;
     --foreground: 0 0% 98%;
+
     --card: 0 0% 3.9%;
     --card-foreground: 0 0% 98%;
+
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
+    
     --primary: 0 0% 98%;
     --primary-foreground: 0 0% 9%;
     --secondary: 0 0% 14.9%;
@@ -57,6 +69,7 @@
     --chart-3: 140 74% 24%;
     --chart-4: 137 55% 15%;
     --chart-5: 141 40% 9%;
+    --navlinkColor: 142 88% 28%;
   }
 }
 
@@ -65,7 +78,7 @@
     @apply font-sans border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-y-scroll;
   }
 }
 

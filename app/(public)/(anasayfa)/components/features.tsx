@@ -4,7 +4,7 @@ const Features = () => {
   return (
     <div>
       {/* Features */}
-      <ul className="flex flex-wrap justify-between gap-8">
+      {/* <ul className="flex flex-wrap justify-between gap-8">
         {features.map((item) => (
           <li key={item.icon} className="flex gap-4 w-80">
             <i className={item.icon}></i>
@@ -14,7 +14,7 @@ const Features = () => {
             </div>
           </li>
         ))}
-      </ul>
+      </ul> */}
     </div>
   );
 }

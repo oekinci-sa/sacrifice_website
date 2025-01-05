@@ -7,7 +7,7 @@ const page = () => {
   return (
     <div className="container flex space-x-32 items-end">
       <div className="flex flex-col space-y-12">
-        <ContactTitle>Daha fazla bilgi için iletişime geçiniz.</ContactTitle>
+        <ContactTitle></ContactTitle>
         <FollowUs></FollowUs>
         <Info></Info>
       </div>

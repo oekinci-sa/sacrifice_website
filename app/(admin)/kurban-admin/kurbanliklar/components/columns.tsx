@@ -3,12 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { empty_shares, share_prices } from "../data/data";
-import { Task } from "../data/schema";
+import { sacrificeSchema } from "../data/schema";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
-// import { DataTableRowActions } from "./data-table-row-actions";
 
-export const columns: ColumnDef<Task>[] = [
+export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     // Görev kimliği.
     accessorKey: "sacrifice_no",

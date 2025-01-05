@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
 
-interface DataTableRowActionsProps<TData extends { sacrifice_no: string }> {
+interface DataTableRowActionsProps<TData extends { sacrifice_no: number }> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions<TData extends { sacrifice_no: string }>({
+export function DataTableRowActions<TData extends { sacrifice_no: number }>({
   row,
 }: DataTableRowActionsProps<TData>) {
   // kullanılarak satır verisi belirli bir yapıya uygun hale getiriliyor.

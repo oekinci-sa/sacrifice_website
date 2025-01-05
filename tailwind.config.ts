@@ -79,6 +79,10 @@ const config: Config = {
           ring: "hsl(var(--sidebar-ring))",
         },
         navlinkColor: "hsl(var(--navlink-color))",
+        buttonBlack: {
+          DEFAULT: "hsl(var(--button-black))",
+          light: "hsl(var(--button-black-light))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

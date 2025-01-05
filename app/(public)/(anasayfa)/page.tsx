@@ -1,10 +1,10 @@
 "use client";
-import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
-import Banner from "@/app/(public)/(anasayfa)/components/banner";
-import Prices from "@/app/(public)/(anasayfa)/components/prices";
-import Stats from "@/app/(public)/(anasayfa)/components/stats";
-import Image from "next/image";
+import Ayah from "./components/ayah";
+import Banner from "./components/banner";
 import Features from "./components/features";
+import Prices from "./components/prices";
+import Stats from "./components/stats";
+import Works from "./components/works";
 // import { useRouter } from "next/navigation";
 // import { supabase } from "@/utils/supabaseClient";
 // import { Button } from "@/components/ui/button";
@@ -30,12 +30,12 @@ import Features from "./components/features";
 export default function Home() {
 
   return (
-    <div className="">
+    <div className="flex flex-col space-y-16">
       <Ayah></Ayah>
       <Banner></Banner>
       <Features></Features>
-      <Stats></Stats>
       <Prices></Prices>
+      <Works></Works>
     </div>
   );
 }

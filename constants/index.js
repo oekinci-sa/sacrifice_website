@@ -57,41 +57,32 @@ export const mediaLinks = [
 
 export const features = [
   {
-    icon: "text-4xl text-sac-primary bi bi-clock-fill",
+    src: "calendar.svg",
     header: "Vaktinde Teslim",
     description: "Bayramın ilk günü teslim",
   },
   {
-    icon: "text-4xl text-sac-primary bi bi-moon-fill",
+    src: "cleanness.svg",
     header: "İçiniz Rahat Olsun",
     description: "İslami usullere uygun ve hijyenik",
   },
   {
-    icon: "text-3xl text-sac-primary fa-solid fa-truck",
-    header: "Teslimat Seçeneği",
-    description: "Dileyen hissedarların evine teslim (Ücret karşılığı)",
-  },
-  {
-    icon: "text-4xl text-sac-primary bi bi-camera-video-fill",
+    src: "camera.svg",
     header: "Video Kayıt Sistemi",
     description: "Dileyen hissedarlara kesim kaydı gönderimi",
   },
+  {
+    src: "truck.svg",
+    header: "Teslimat Seçeneği",
+    description: "Dileyen hissedarların evine teslim (Ücret karşılığı)",
+  },
 ];
 
-export const upToNowInfo = [
+export const steps = [
   {
-    count: "5 Yıl",
-    content: "Tecrübe",
-  },
-  {
-    count: "600",
-    content: "Kurbanlık",
-  },
-  {
-    count: "5000",
-    content: "Hissedar",
-  },
-];
+
+  }
+]
 
 export const priceInfo = [
   {

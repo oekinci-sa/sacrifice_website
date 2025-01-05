@@ -41,9 +41,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header></Header>
-          {children}
-          <Footer></Footer>
+          <div className="flex flex-col space-y-8">
+            <Header></Header>
+            {children}
+            <Footer></Footer>
+          </div>
         </ThemeProvider>
       </body>
     </html>

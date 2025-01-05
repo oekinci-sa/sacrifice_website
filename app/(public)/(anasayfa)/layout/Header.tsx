@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const Header = () => {
   return (
-    <header className="container min-h-24 flex items-center justify-between">
+    <header className="container my-12 flex items-center justify-between">
       <Logo></Logo>
       <Navigation></Navigation>
       <div className="flex justify-end gap-4">

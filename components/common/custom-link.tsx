@@ -7,13 +7,14 @@ interface CustomLinkProps {
   href: string;
   children: ReactNode;
   className?: string;
+  target?: string;
 }
 
-const CustomLink = ({ href, children, className = "", ...props }: CustomLinkProps) => {
+const CustomLink = ({ href, children, className = "", target="", ...props }: CustomLinkProps) => {
 
   return (
     <Link
-      className={`font-medium text-navlinkColor hover:text-primary ${className}`} href={href}
+      className={`font-medium text-navlinkColor hover:text-primary transition-all duration-300 ${className}`} href={href} target={target}
       {...props}>
         {children}
     </Link>

@@ -18,7 +18,7 @@ const Banner = () => {
         </div>
 
         {/* Açıklama */}
-        <p className="text-navlinkColor text-2xl tracking-tight leading-relaxed">
+        <p className="text-navlinkColor text-xl tracking-tight leading-relaxed">
           Yılları aşkın tecrübemizle binlerce hissedarı <br />
           bu sene de bir araya getiriyoruz.
         </p>

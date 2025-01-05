@@ -78,12 +78,6 @@ export const features = [
   },
 ];
 
-export const steps = [
-  {
-
-  }
-]
-
 export const priceInfo = [
   {
     kg: "23 kg ±3",
@@ -119,42 +113,63 @@ export const priceInfo = [
   },
 ];
 
-export const process = [
+export const processes = [
   {
     number: "01",
     header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanın.",
+    description:
+      "Hisse tablosunda size uygun hisseyi bulmak için filtreleri kullanın ve seçiminizi yapın",
   },
   {
     number: "02",
-    header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanınkullanın kullanın kullanın kullanın.",
+    header: "Hisse Onay",
+    description:
+      "Seçtiğiniz kurbanlık için hisse bilgilerini girdikten sonra telefonunuza gelen onay kodunu girerek seçiminizi kesinleştirin.",
   },
   {
     number: "03",
-    header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanın.",
+    header: "Hisse Sorgulama",
+    description:
+      "Onayınız akabinde hisse sorgulama ekranına gidip bilgilerinizi doğrulayın.",
   },
   {
     number: "04",
-    header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanın.",
+    header: "Ödeme",
+    description:
+      "Hisselerin kesinleşmesi için 7 gün içinde kaporanızı, 7 Haziran Cuma gününe kadar da tüm ödemelerinizi yapmalısınız.",
   },
   {
     number: "05",
-    header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanın.",
+    header: "Sıranızı Takip Edin",
+    description:
+      "Kurban bayramı 1. gününde sitemizin anasayfasında çıkacak olan bağlantıya tıklayarak sıranızı takip edebilirsiniz.",
+  },
+];
+
+export const faq_items = [
+  {
+    id: "1",
+    title: "What makes Origin UI different?",
+    content:
+      "Origin UI focuses on developer experience and performance. Built with TypeScript, it offers excellent type safety, follows accessibility standards, and provides comprehensive documentation with regular updates.",
   },
   {
-    number: "06",
-    header: "Hisse Seçim",
-    explanation:
-      "Tüm hisseleri görmek yerine, size uygun hisseyi bulmak için filtreleri kullanın.",
+    id: "2",
+    title: "How can I customize the components?",
+    content:
+      "Use our CSS variables for global styling, or className and style props for component-specific changes. We support CSS modules, Tailwind, and dark mode out of the box.",
+  },
+  {
+    id: "3",
+    title: "Is Origin UI optimized for performance?",
+    content:
+      "Yes, with tree-shaking, code splitting, and minimal runtime overhead. Most components are under 5KB gzipped.",
+  },
+  {
+    id: "4",
+    title: "How accessible are the components?",
+    content:
+      "All components follow WAI-ARIA standards, featuring proper ARIA attributes, keyboard navigation, and screen reader support. Regular testing ensures compatibility with NVDA, VoiceOver, and JAWS.",
   },
 ];
 

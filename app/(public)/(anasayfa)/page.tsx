@@ -1,10 +1,25 @@
 "use client";
 import Ayah from "./components/ayah";
 import Banner from "./components/banner";
+import Faq from "./components/faq";
 import Features from "./components/features";
 import Prices from "./components/prices";
-import Stats from "./components/stats";
-import Works from "./components/works";
+import Process from "./components/process";
+
+export default function Home() {
+
+  return (
+    <div className="flex flex-col space-y-20">
+      <Ayah></Ayah>
+      <Banner></Banner>
+      <Features></Features>
+      <Prices></Prices>
+      <Process></Process>
+      <Faq></Faq>
+    </div>
+  );
+}
+
 // import { useRouter } from "next/navigation";
 // import { supabase } from "@/utils/supabaseClient";
 // import { Button } from "@/components/ui/button";
@@ -26,16 +41,3 @@ import Works from "./components/works";
 //   >
 //     Çıkış Yap
 //   </Button>;
-
-export default function Home() {
-
-  return (
-    <div className="flex flex-col space-y-16">
-      <Ayah></Ayah>
-      <Banner></Banner>
-      <Features></Features>
-      <Prices></Prices>
-      <Works></Works>
-    </div>
-  );
-}

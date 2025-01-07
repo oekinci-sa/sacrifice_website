@@ -4,6 +4,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,14 +13,13 @@ import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, "Your name is required."),
-  email: z.string().email("Invalid email address."),
   phone: z
-    .string()
-    .regex(
-      /^\(\d{3}\) \d{2} \d{4}$/,
-      "Phone number must be in the format (xxx) xx xxxx."
-    ),
-  company: z.string().min(1, "Company name is required."),
+  .string()
+  .regex(
+    /^\d{11}$/,
+    "Telefon numarası 11 haneli olmalıdır ve 0 ile başlamalıdır. Örn: 05XX XXX XX XX"
+  ),
+  email: z.string().email("Invalid email address."),
   message: z.string().min(1, "Message is required."),
 });
 
@@ -39,78 +39,65 @@ const Form = () => {
   };
 
   return (
-    <div className="p-4  h-auto border rounded-sm w-full">
+    <div className="p-4 h-auto border rounded-sm w-3/4">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Name */}
+        <div>
+          <Label htmlFor="name">Adınız *</Label>
+          <Input
+            id="name"
+            {...register("name")}
+            placeholder="Adınızı ve soyadınızı girin"
+            className={cn(errors.name && "border-red-500", "h-10 mt-1")}
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm">{errors.name.message}</p>
+          )}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Name */}
+          {/* Telefon */}
           <div>
-            <Label htmlFor="name">Your name *</Label>
+            <Label htmlFor="phone">Telefon Numarası *</Label>
             <Input
-              id="name"
-              {...register("name")}
-              placeholder="Full name"
-              className={cn(errors.name && "border-red-500", "h-12")}
+              id="phone"
+              {...register("phone")}
+              placeholder="05XX XXX XX XX"
+              className={cn(errors.phone && "border-red-500", "h-10 mt-1")}
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name.message}</p>
+            {errors.phone && (
+              <p className="text-red-500 text-sm">{errors.phone.message}</p>
             )}
           </div>
-          {/* Email */}
+
+          {/* E-posta */}
           <div>
-            <Label htmlFor="email">Email address *</Label>
+            <Label htmlFor="email">E-posta Adresi *</Label>
             <Input
               id="email"
               {...register("email")}
               type="email"
-              placeholder="name@example.com"
-              className={cn(errors.email && "border-red-500", "h-12")}
+              placeholder="isim@ornek.com"
+              className={cn(errors.email && "border-red-500", "h-10 mt-1")}
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email.message}</p>
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Phone */}
-          <div>
-            <Label htmlFor="phone">Phone number *</Label>
-            <Input
-              id="phone"
-              {...register("phone")}
-              placeholder="(xxx) xx xxxx"
-              className={cn(errors.phone && "border-red-500", "h-12")}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm">{errors.phone.message}</p>
-            )}
-          </div>
-          {/* Company */}
-          <div>
-            <Label htmlFor="company">Company *</Label>
-            <Input
-              id="company"
-              {...register("company")}
-              placeholder="Company name"
-              className={cn(errors.company && "border-red-500")}
-            />
-            {errors.company && (
-              <p className="text-red-500 text-sm">{errors.company.message}</p>
-            )}
-          </div>
-        </div>
-        {/* Message */}
+        {/* Mesaj */}
         <div>
-          <Label htmlFor="message">Message *</Label>
+          <Label htmlFor="message">Mesajınız *</Label>
           <Textarea
             id="message"
             {...register("message")}
-            placeholder="Write your message here..."
-            className={cn(errors.message && "border-red-500")}
+            placeholder="Mesajınızı buraya yazın..."
+            className={cn(errors.message && "border-red-500", "h-32 mt-1")}
           />
           {errors.message && (
             <p className="text-red-500 text-sm">{errors.message.message}</p>
           )}
         </div>
+
         {/* Submit Button */}
         <Button
           type="submit"

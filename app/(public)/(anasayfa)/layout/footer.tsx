@@ -91,7 +91,7 @@ const Footer = () => {
               {/* Phone */}
               <div className="flex gap-3">
                 <i className="bi bi-telephone text-primary"></i>
-                <p className="font-normal">0312 312 44 64 / 0552 652 90 00</p>
+                <p className="font-normal">0312 312 44 64 <span className="text-primary">/</span> 0552 652 90 00</p>
               </div>
               {/* Mail */}
               <div className="flex gap-3">
@@ -106,8 +106,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <hr className="container border border-white/5 border-1 mb-6" />
-      <p className="container text-sm text-white/60">
+      <hr className="container border border-white/10 border-1 mb-6" />
+      <p className="container text-sm text-white/75">
         Tüm hakları saklıdır. © 2025 İnsan ve Medeniyet Hareketi Ankara
       </p>
     </div>

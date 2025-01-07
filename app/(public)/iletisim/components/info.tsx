@@ -15,7 +15,7 @@ const Info = () => {
           />
           <div className='flex flex-col gap-1'>
             <p className='font-heading font-bold text-2xl'>{item.header}</p>
-            <p className='font-medium text-lg text-black/75'> {item.info}</p>
+            <p className='font text-lg text-black/75 dark:text-white/75'> {item.info}</p>
           </div>
         </div>
       ))}

@@ -12,10 +12,19 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Your name is required."),
-  phone: z.string().regex(/^\d{11}$/),
-  email: z.string().email("Invalid email address."),
-  message: z.string().min(1, "Message is required."),
+  name: z.string()
+    .min(2, "İsim en az 2 karakter olmalıdır")
+    .max(50, "İsim 50 karakterden uzun olamaz")
+    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "İsim sadece harf içerebilir"),
+  phone: z.string()
+    .regex(/^(05)[0-9][0-9][1-9]([0-9]){6}$/, 
+      "Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"),
+  email: z.string()
+    .email("Geçerli bir email adresi giriniz"),
+  message: z.string()
+    .min(10, "Mesaj en az 10 karakter olmalıdır")
+    .max(1000, "Mesaj 1000 karakterden uzun olamaz")
+    .trim(),
 });
 
 type FormData = z.infer<typeof formSchema>;

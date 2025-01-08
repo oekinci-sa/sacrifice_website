@@ -22,7 +22,7 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState<string>("tab-1");
 
   return (
-    <div className="container flex flex-col space-y-20">
+    <div className="container flex flex-col space-y-12">
       <div className="font-heading font-bold text-4xl text-center">
         Hisse Al
       </div>

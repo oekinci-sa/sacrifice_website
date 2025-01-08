@@ -1,8 +1,7 @@
 import Image from "next/image";
 import websiteLogoWhite from "@/public/website-logo-white.svg";
 
-
-import { mediaLinks } from "../../constants";
+import { mediaLinks } from "../constants";
 import CustomLink from "@/components/common/custom-link";
 
 const Footer = () => {
@@ -91,7 +90,10 @@ const Footer = () => {
               {/* Phone */}
               <div className="flex gap-3">
                 <i className="bi bi-telephone text-primary"></i>
-                <p className="font-normal">0312 312 44 64 <span className="text-primary">/</span> 0552 652 90 00</p>
+                <p className="font-normal">
+                  0312 312 44 64 <span className="text-primary">/</span> 0552
+                  652 90 00
+                </p>
               </div>
               {/* Mail */}
               <div className="flex gap-3">

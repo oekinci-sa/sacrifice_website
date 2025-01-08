@@ -20,8 +20,12 @@
     --primary-dark: 144.32, 90.24%, 32.16%;
     --primary-foreground: 0 0% 98%;
 
+    /* light-green */
     --secondary: 161.93, 88%, 39.22%;
     --secondary-foreground: 0 0% 9%;
+
+    /* light-light-green */
+    --tertiary: 145.26, 57.58%, 93.53%;
 
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
@@ -66,6 +70,7 @@
 
     --secondary: 145.26, 57.58%, 93.53%;
     --secondary-foreground: 0 0% 98%;
+    
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
     --accent: 0 0% 14.9%;

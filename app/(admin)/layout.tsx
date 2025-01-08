@@ -2,10 +2,9 @@ import { Inter, Instrument_Sans } from "next/font/google";
 import "/app/globals.css";
 
 import { ThemeProvider } from "@/components/common/theme-provider";
-import { ModeToggle } from "../../components/layout/public/Header/ModeToggle";
-import Logo from "../../components/layout/public/Header/Logo";
-import AdminNavbar from "./kurban-admin/components/admin-navbar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import AdminHeader from "./kurban-admin/components/layout/admin-header";
+import AdminFooter from "./kurban-admin/components/layout/admin-footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,24 +32,13 @@ export default function KurbanAdminLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex m-8 mt-4 gap-4 justify-between items-center">
-            <Logo></Logo>
-            <AdminNavbar></AdminNavbar>
-            <div className="flex items-center space-x-2">
-              <ModeToggle></ModeToggle>
-              <Avatar className="mr-2 h-5 w-5">
-                <AvatarImage
-                  src={`https://avatar.vercel.sh/acme-inc.png`}
-                  alt="Acme Inc."
-                />
-                <AvatarFallback>SC</AvatarFallback>
-              </Avatar>
+          <div className="flex flex-col">
+            <div className="mx-8">
+              <AdminHeader></AdminHeader>
+              {children}
             </div>
+            <AdminFooter></AdminFooter>
           </div>
-
-          <div className="p-4 pt-0">{children}</div>
-          {/* </SidebarInset>
-          </SidebarProvider> */}
         </ThemeProvider>
       </body>
     </html>

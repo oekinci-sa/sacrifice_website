@@ -124,7 +124,7 @@ const Checkout = ({ shareCount }: { shareCount: number }) => {
         <div className="space-y-8">
           {shareholders.map((shareholder) => (
             <div key={shareholder.id} className="flex flex-col gap-2">
-              <p className="font-bold text-xl text-secondary">
+              <p className="font-bold text-xl text-secondary dark:text-primary">
                 Hissedar {shareholder.id}
               </p>
               <div className="flex font-bold text-lg justify-between">

@@ -55,8 +55,8 @@ const Page = () => {
   const [data, setData] = useState<sacrificeSchema[]>([]);
 
   useEffect(() => {
+    // Güvenlik Riski: Admin yetkisi kontrolü yok
     const fetchData = async () => {
-      // Verileri çek ve real-time aboneliği başlat
       const { data: initialData, subscription } = await fetchTableData(
         "sacrifice_animals",
         (payload: {

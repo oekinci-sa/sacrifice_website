@@ -13,12 +13,7 @@ import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, "Your name is required."),
-  phone: z
-  .string()
-  .regex(
-    /^\d{11}$/,
-    "Telefon numarası 11 haneli olmalıdır ve 0 ile başlamalıdır. Örn: 05XX XXX XX XX"
-  ),
+  phone: z.string().regex(/^\d{11}$/),
   email: z.string().email("Invalid email address."),
   message: z.string().min(1, "Message is required."),
 });

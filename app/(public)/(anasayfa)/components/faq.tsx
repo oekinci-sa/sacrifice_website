@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   Accordion,
   AccordionContent,
@@ -9,7 +9,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
 import { Plus } from "lucide-react";
 
-import { faq_items } from "../../constants"
+import { faq_items } from "../constants";
 
 const Faq = () => {
   return (
@@ -39,6 +39,6 @@ const Faq = () => {
       </Accordion>
     </div>
   );
-}
+};
 
-export default Faq
+export default Faq;

@@ -1,13 +1,13 @@
-import React from 'react'
+import React from "react";
 
-import { features } from "../../constants";
-import Image from 'next/image';
+import { features } from "../constants";
+import Image from "next/image";
 
 const Features = () => {
   return (
     <div className="container flex flex-wrap justify-between">
       {features.map((item) => (
-        <div key={item.src} className="flex flex-col w-80">
+        <div key={item.src} className="flex flex-col flex-center w-80">
           <Image
             src={`/icons/${item.src}`}
             alt="Example SVG"
@@ -23,6 +23,6 @@ const Features = () => {
       ))}
     </div>
   );
-}
+};
 
-export default Features
+export default Features;

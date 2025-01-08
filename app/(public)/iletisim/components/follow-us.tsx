@@ -1,11 +1,11 @@
-import React from 'react'
-import { mediaLinks } from '../../constants';
-import Link from 'next/link';
+import React from "react";
+import { mediaLinks } from "../../(anasayfa)/constants";
+import Link from "next/link";
 
 const FollowUs = () => {
   return (
     <div className="flex space-x-8 items-center">
-      <p className='font-bold text-2xl'>Bizi takip edin!</p>
+      <p className="font-bold text-2xl">Bizi takip edin!</p>
       <div className="flex gap-6">
         {mediaLinks.map((item) => (
           <div
@@ -20,6 +20,6 @@ const FollowUs = () => {
       </div>
     </div>
   );
-}
+};
 
-export default FollowUs
+export default FollowUs;

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Sans, Playfair_Display } from "next/font/google";
 import "@/app/globals.css";
+
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import { ThemeProvider } from "@/components/common/theme-provider";
 import Header from "./(anasayfa)/layout/header";
 import Footer from "./(anasayfa)/layout/footer";
-
-import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,6 +49,7 @@ export default function RootLayout({
             <Header></Header>
             {children}
             <Analytics />
+            <SpeedInsights />
             <Footer></Footer>
           </div>
         </ThemeProvider>

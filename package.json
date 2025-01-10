@@ -28,6 +28,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/react-table": "^8.20.6",
+    "@vercel/analytics": "^1.4.1",
     "bootstrap-icons": "^1.11.3",
     "checkbox": "^0.0.1",
     "class-variance-authority": "^0.7.1",

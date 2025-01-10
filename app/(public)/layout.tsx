@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/common/theme-provider";
 import Header from "./(anasayfa)/layout/header";
 import Footer from "./(anasayfa)/layout/footer";
 
+import { Analytics } from "@vercel/analytics/react";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -44,6 +46,7 @@ export default function RootLayout({
           <div className="flex flex-col">
             <Header></Header>
             {children}
+            <Analytics />
             <Footer></Footer>
           </div>
         </ThemeProvider>

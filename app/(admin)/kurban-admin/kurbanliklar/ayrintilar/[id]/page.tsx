@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input"; // ShadCN Input component
 import { Button } from "@/components/ui/button"; // ShadCN Button component
 import { useParams } from "next/navigation";
+import { FormData } from "@/types";
 
 // Supabase client setup
 const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
@@ -15,16 +16,7 @@ export default function DetailsPage() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  interface FormData {
-    shareholder_1?: string;
-    shareholder_2?: string;
-    shareholder_3?: string;
-    shareholder_4?: string;
-    shareholder_5?: string;
-    shareholder_6?: string;
-    shareholder_7?: string;
-    // Add other fields as needed
-  }
+  
 
   const [formData, setFormData] = useState<FormData>({}); // Store updated data
 

@@ -24,12 +24,10 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         {/* Tablo başlığı için filtreleme alanı. */}
         <Input
-          placeholder="Kurbanlık numarasıyla ara..."
-          value={
-            (table.getColumn("sacrifice_no")?.getFilterValue() as string) ?? ""
-          }
+          placeholder="Notlar içinde ara..."
+          value={(table.getColumn("notes")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("sacrifice_no")?.setFilterValue(event.target.value)
+            table.getColumn("notes")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />

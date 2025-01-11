@@ -10,36 +10,6 @@ import { sacrificeSchema } from "@/types"
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 
-// export const sacrificeSchema = z.object({
-//   sacrifice_no: z.number(),
-//   sacrifice_time: z.string(),
-//   share_price: z.number(),
-//   empty_share: z.number(),
-//   notes: z.string().nullable(),
-//   sacrifice_id: z.number(),
-//   added_at: z.string(),
-// });
-
-// Simulate a database read for tasks.
-// async function getTasks() {
-//   const data = await fs.readFile(
-//     path.join(
-//       process.cwd(),
-//       "app/(admin)/kurban-admin/kurbanliklar/data/tasks.json"
-//     )
-//   );
-
-//   const tasks = JSON.parse(data.toString());
-
-//   return z.array(sacrificeSchema).parse(tasks);
-// }
-
-// export const metadata: Metadata = {
-//   title: "Tasks",
-//   description: "A task and issue tracker build using Tanstack Table.",
-// };
-
-
 const Page = () => {
   // const tasks = await getTasks();
 

@@ -131,25 +131,23 @@ export function DataTable<TData, TValue>({
           {/* Satırları oluşturur. */}
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={row.getIsSelected() && "selected"}
-              className="group"
-            >
-              {/* Görünür satırları döndürür. */}
-              {row.getVisibleCells().map((cell) => (
-              <TableCell
-                key={cell.id}
-                style={{ width: cell.column.columnDef.size }}
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                className="group"
               >
-                {/* Hücre içeriklerini oluşturur. */}
-                {flexRender(
-                cell.column.columnDef.cell,
-                cell.getContext()
-                )}
-              </TableCell>
-              ))}
-            </TableRow>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    style={{ width: cell.column.columnDef.size }}
+                  >
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
             ))
           ) : (
             <TableRow>
@@ -170,4 +168,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-

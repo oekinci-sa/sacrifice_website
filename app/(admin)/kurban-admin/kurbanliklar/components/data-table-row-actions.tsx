@@ -1,10 +1,9 @@
 "use client";
 
 import { Row } from "@tanstack/react-table";
-
-import { Button } from "@/components/ui/button";
-
+import { Pencil } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface DataTableRowActionsProps<TData extends { sacrifice_no: number }> {
   row: Row<TData>;
@@ -13,13 +12,15 @@ interface DataTableRowActionsProps<TData extends { sacrifice_no: number }> {
 export function DataTableRowActions<TData extends { sacrifice_no: number }>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  // kullanılarak satır verisi belirli bir yapıya uygun hale getiriliyor.
   const data = row.original;
-  console.log(data);
 
   return (
-    <Link href={`/kurban-admin/kurbanliklar/ayrintilar/${data.sacrifice_no}`}>
-      <Button>Düzenle</Button>
-    </Link>
+    <div className="opacity-0 group-hover:opacity-100 transition-opacity relative z-50">
+      <Link href={`/kurban-admin/kurbanliklar/ayrintilar/${data.sacrifice_no}`}>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </Link>
+    </div>
   );
 }

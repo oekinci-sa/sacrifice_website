@@ -18,7 +18,6 @@ Admin Pages:
 
 #TECH STACK
 Backend: Supabase
-- I want to 
 
 Frontend: React 18, Next JS 14, TypeScript, Shadcn Project, TailwindCSS
 - All TypeScript definitions should be organized under the types folder.

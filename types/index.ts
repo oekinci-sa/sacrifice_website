@@ -9,7 +9,7 @@ export type sacrificeSchema = {
   last_edited_by: string;
 };
 
-export type FormData {
+export type FormData = {
   shareholder_1?: string;
   shareholder_2?: string;
   shareholder_3?: string;

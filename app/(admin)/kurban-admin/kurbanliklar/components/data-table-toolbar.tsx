@@ -29,8 +29,10 @@ export function DataTableToolbar<TData>({
           onChange={(event) =>
             table.getColumn("notes")?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-8 w-[150px] lg:w-[550px]"
         />
+      
+      </div>
         {/* durum ve öncelik filtreleme yapılır. */}
         {table.getColumn("share_price") && (
           <DataTableFacetedFilter
@@ -58,8 +60,6 @@ export function DataTableToolbar<TData>({
             <X />
           </Button>
         )}
-      </div>
-      {/* Sağ üstteki gözüken dropdown */}
       <DataTableViewOptions table={table} />
     </div>
   );

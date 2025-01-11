@@ -8,9 +8,7 @@ import { useParams } from "next/navigation";
 import { FormData } from "@/types";
 
 // Supabase client setup
-const supabaseUrl = "https://xgrtwbvudkzvgavqskdt.supabase.co"; // Supabase URL'inizi buraya koyun
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Public anon anahtarınızı buraya koyun
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/utils/supabaseClient";
 
 export default function DetailsPage() {
   const { id } = useParams();

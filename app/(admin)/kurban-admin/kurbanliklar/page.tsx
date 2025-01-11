@@ -59,6 +59,7 @@ const Page = () => {
     const fetchData = async () => {
       const { data: initialData, subscription } = await fetchTableData(
         "sacrifice_animals",
+        { column: 'sacrifice_no', ascending: true },
         (payload: {
           eventType: string;
           new: sacrificeSchema;

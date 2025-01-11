@@ -1,10 +1,10 @@
 import { supabase } from "../utils/supabaseClient";
 
-export const fetchTableData = async (tableName, callback) => {
+export const fetchTableData = async (tableName, orderBy, callback) => {
   const { data, error } = await supabase
     .from(tableName)
     .select("*")
-    .order("sacrifice_no", { ascending: true });
+    .order(orderBy.column, { ascending: orderBy.ascending });
   if (error) {
     throw new Error(error.message);
   }

@@ -15,9 +15,8 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       <DataTableColumnHeader column={column} title="Kurban No" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px]">{row.getValue("sacrifice_no")}</div>
+      <div className="text-center">{row.getValue("sacrifice_no")}</div>
     ),
-    size: 80,
   },
   {
     // Görev başlığı.
@@ -27,14 +26,11 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="flex space-x-2">
-          <span className="max-w-[500px] truncate font-medium">
+        <div className="text-center">
             {row.getValue("sacrifice_time")}
-          </span>
         </div>
       );
     },
-    size: 80,
   },
   {
     // Görev durumu. Filtreleme var.
@@ -52,12 +48,11 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       }
 
       return (
-        <div className="flex w-[100px] items-center">
-          <span>{share_price.label}</span>
+        <div className="text-center">
+          {share_price.label}
         </div>
       );
     },
-    size: 80,
 
     // Filtreleme işlevi.
     filterFn: (row, id, value) => {
@@ -81,7 +76,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       }
 
       return (
-        <div className="flex items-center">
+        <div className="text-center">
           <span>{empty_share.label}</span>
         </div>
       );
@@ -90,7 +85,6 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
       return value.includes(cellValue); // String karşılaştırma yap
     },
-    size: 80,
   },
   {
     // Görev kimliği.
@@ -99,8 +93,9 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       <DataTableColumnHeader column={column} title="Notlar" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px] overflow-hidden">{row.getValue("notes")}</div>
+      <div className="overflow-hidden">{row.getValue("notes")}</div>
     ),
+    size: 800,
   },
   {
     id: "actions",

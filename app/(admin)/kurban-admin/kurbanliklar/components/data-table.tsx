@@ -100,7 +100,9 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       {/* Tablo araç çubuğunu oluşturur. */}
       <DataTableToolbar table={table} />
-      <div className="rounded-md border">
+
+      {/* Tablo bileşenini oluşturur. */}
+      <div className="rounded-sm border">
         <Table>
           {/* Tablo başlıklarını oluşturur. */}
           <TableHeader>
@@ -111,7 +113,7 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   return (
                     // Her bir kolon başlığını oluşturur.
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead key={header.id} colSpan={header.colSpan} className="bg-primary">
                       {/* Kolon başlığı yer tutucu ise, başlık oluşturmaz. */}
                       {header.isPlaceholder
                         ? null
@@ -125,43 +127,47 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-            <TableBody>
-            {/* Satırları oluşturur. */}
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {/* Görünür satırları döndürür. */}
-                {row.getVisibleCells().map((cell) => (
-                <TableCell
-                  key={cell.id}
-                  style={{ width: cell.column.columnDef.size }}
-                >
-                  {/* Hücre içeriklerini oluşturur. */}
-                  {flexRender(
-                  cell.column.columnDef.cell,
-                  cell.getContext()
-                  )}
-                </TableCell>
-                ))}
-              </TableRow>
-              ))
-            ) : (
-              <TableRow>
+          <TableBody>
+          {/* Satırları oluşturur. */}
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+              className="group"
+            >
+              {/* Görünür satırları döndürür. */}
+              {row.getVisibleCells().map((cell) => (
               <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
+                key={cell.id}
+                style={{ width: cell.column.columnDef.size }}
               >
-                No results.
+                {/* Hücre içeriklerini oluşturur. */}
+                {flexRender(
+                cell.column.columnDef.cell,
+                cell.getContext()
+                )}
               </TableCell>
-              </TableRow>
-            )}
-            </TableBody>
+              ))}
+            </TableRow>
+            ))
+          ) : (
+            <TableRow>
+            <TableCell
+              colSpan={columns.length}
+              className="h-24 text-center"
+            >
+              No results.
+            </TableCell>
+            </TableRow>
+          )}
+          </TableBody>
         </Table>
       </div>
+
+      {/* Tablo sayfalama bileşenini oluşturur. */}
       <DataTablePagination table={table} />
     </div>
   );
 }
+

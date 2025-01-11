@@ -27,15 +27,15 @@ export function DataTableColumnHeader<TData, TValue>({
   }
 
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
+    <div className={cn("flex text-white h-12", className)}>
       <DropdownMenu>
+        {/* Trigger */}
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
+            className="mx-auto my-auto hover:bg-primary-dark hover:text-white data-[state=open]:bg-primary-dark focus-visible:ring-0"
           >
-            <span>{title}</span>
+            <span className="font-bold">{title}</span>
             {column.getIsSorted() === "desc" ? (
               <ArrowDown />
             ) : column.getIsSorted() === "asc" ? (
@@ -45,6 +45,8 @@ export function DataTableColumnHeader<TData, TValue>({
             )}
           </Button>
         </DropdownMenuTrigger>
+
+        {/* Üstteki trigger alttakini çağıracak şekilde */}
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
             <ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" />

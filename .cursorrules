@@ -4,20 +4,54 @@ Project Description: The project is actually very similar to an e-commerce site.
 
 The features of the pages are as follows
 Public Pages:
-- / -> Page where general information about the organization is given.
-- /aboutus -> Page where the organizers of the organization are explained
-- /hisseal -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
+- /             -> Page where general information about the organization is given.
+- /hakkimizda   -> Page where the organizers of the organization are explained
+- /hisseal      -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
 - /hissesorgula -> Later, the area where the share information is queried with the code sent to their mobile phones and users can get a PDF printout.
-- /yazilar -> Blog page with articles about sacrifice worship
-- /contact -> Page where those who want to contact the institution can get information
+- /yazilar      -> Blog page with articles about sacrifice worship
+- /iletisim     -> Page where those who want to contact the institution can get information
 
 Admin Pages:
-- /kurban-admin/general-view -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
-- /kurban-admin/sacrifices -> Page with a table of sacrifices and access to special pages for these sacrifices.
-- /kurban-admin/shareholders -> Page with a table of shareholders and access to special pages for these shareholders.
+- /kurban-admin/genel-bakis     -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
+- /kurban-admin/kurbanliklar    -> Page with a table of sacrifices and access to special pages for these sacrifices.
+- /kurban-admin/kurbanliklar/ayrintilar/[id]    -> Page with a table of shareholders and access to special pages for these shareholders.
 
 #TECH STACK
 Backend: Supabase
+- I Have three tables in the database.
+- sacrifice_animals and its fields are:
+    - sacrifice_no: Kurbanlık numarası (eşsiz bir kimlik olabilir).
+    - sacrifice_time: Kurbanlık işleminin zamanı.
+    - share_price: Bir hissenin fiyatı.
+    - empty_share: Kalan boş hisse sayısı.
+    - notes: Ek bilgiler veya açıklamalar.
+    - sacrifice_id: Primary key (benzersiz bir kimlik alanı).
+    - added_at: Kaydın eklenme tarihi ve saati.
+    - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
+- shareholders and its fields are:
+    - shareholder_id: Primary key (benzersiz bir kimlik alanı).
+    - shareholder_name: Hissedarın adı.
+    - purchase_time: Hisse satın alım zamanı.
+    - total_amount_to_pay: Toplam ödenecek tutar.
+    - deposit_payment: Ödenen kapora miktarı.
+    - remaining_payment: Kalan ödeme miktarı.
+    - payment_status: Ödeme durumu (örneğin, "paid", "pending").
+    - delivery_fee: Teslimat ücreti.
+    - delivery_type: Teslimat türü (örneğin, "self-pickup", "home-delivery").
+    - delivery_location: Teslimat adresi veya konumu.
+    - phone_number: Hissedarın telefon numarası.
+    - notes: Ek bilgiler veya açıklamalar.
+    - vekalet: Vekalet durumu (örneğin, "verildi", "bekleniyor").
+    - sacrifice_no: Hangi kurbanlık ile ilişkili olduğu (foreign key olabilir).
+    - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
+- change_logs and its fields are:
+    - id: Primary key (benzersiz bir kimlik alanı).
+    - table_name: Hangi tablonun değiştirildiğini belirtir.
+    - row_id: Değiştirilen kaydın ID'si.
+    - description: Değişikliğin açıklaması (opsiyonel olabilir).
+    - operation: Yapılan işlem türü (ör. "INSERT", "UPDATE", "DELETE").
+    - changed_at: Değişikliğin yapıldığı tarih ve saat.
+    - change_owner: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
 
 Frontend: React 18, Next JS 14, TypeScript, Shadcn Project, TailwindCSS
 - All TypeScript definitions should be organized under the types folder.

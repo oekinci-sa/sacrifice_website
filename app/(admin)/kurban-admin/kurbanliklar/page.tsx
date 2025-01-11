@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 // Supabase
 import { fetchTableData } from "@/helpers/supabase";
+import { sacrificeSchema } from "@/types"
 
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
@@ -37,16 +38,6 @@ import { DataTable } from "./components/data-table";
 //   title: "Tasks",
 //   description: "A task and issue tracker build using Tanstack Table.",
 // };
-
-export type sacrificeSchema = {
-  sacrifice_id: number;
-  sacrifice_no: number;
-  sacrifice_time: string;
-  share_price: number;
-  empty_share: number;
-  notes: string;
-  added_at: string;
-};
 
 
 const Page = () => {

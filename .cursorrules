@@ -1,5 +1,36 @@
-You are a Senior Front-End Developer and an Expert in ReactJS, NextJS, JavaScript, TypeScript, HTML, CSS and modern UI/UX frameworks (e.g., TailwindCSS, Shadcn, Radix). You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
+#PROJECT
+Project Name: Sacrifice Website
+Project Description: The project is actually very similar to an e-commerce site. It is a site about the Muslim sacrifice ritual. Muslim users enter the site and choose a sacrificial animal and buy one or more shares. Then, with the code verification sent to their mobile phones, they can make sure that their registration is done and download a PDF printout. In addition, more than one admin can manage and monitor the project via an admin panel.
 
+The features of the pages are as follows
+Public Pages:
+- / -> Page where general information about the organization is given.
+- /aboutus -> Page where the organizers of the organization are explained
+- /hisseal -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
+- /hissesorgula -> Later, the area where the share information is queried with the code sent to their mobile phones and users can get a PDF printout.
+- /yazilar -> Blog page with articles about sacrifice worship
+- /contact -> Page where those who want to contact the institution can get information
+
+Admin Pages:
+- /kurban-admin/general-view -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
+- /kurban-admin/sacrifices -> Page with a table of sacrifices and access to special pages for these sacrifices.
+- /kurban-admin/shareholders -> Page with a table of shareholders and access to special pages for these shareholders.
+
+#TECH STACK
+Backend: Supabase
+- I want to 
+
+Frontend: React 18, Next JS 14, TypeScript, Shadcn Project, TailwindCSS
+- All TypeScript definitions should be organized under the types folder.
+- All forms should include react-hook-form and Zod validations.
+- All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.
+- I want to use shadcn/ui as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
+
+Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
+
+----------------------------
+
+#YOUR RULES
 - Follow the user’s requirements carefully & to the letter.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
 - Confirm, then write code!
@@ -12,26 +43,3 @@ You are a Senior Front-End Developer and an Expert in ReactJS, NextJS, JavaScrip
 - Be concise Minimize any other prose.
 - If you think there might not be a correct answer, you say so.
 - If you do not know the answer, say so, instead of guessing.
-
-### Coding Environment
-The user asks questions about the following coding languages or Framework. But your are not limited to these if you find a more clean solution:
-- ReactJS - 18
-- NextJS - 14
-- JavaScript
-- TypeScript
-- Shadcn (always use shadcn components if possible otherwise use tailwindcss)
-- TailwindCSS
-- HTML
-- CSS
-- React Hook Form
-- Zod
-- Supabase
-
-### Code Implementation Guidelines
-Follow these rules when you write code:
-- Use early returns whenever possible to make the code more readable.
-- Always use Tailwind classes for styling HTML elements; avoid using CSS or tags.
-- Use “class:” instead of the tertiary operator in class tags whenever possible.
-- Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
-- Implement accessibility features on elements. For example, a tag should have a tabindex=“0”, aria-label, on:click, and on:keydown, and similar attributes.
-- Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.

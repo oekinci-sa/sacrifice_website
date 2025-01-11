@@ -32,6 +32,7 @@ Your are not limited to these if you find a more clean solution. But mention abo
 
 #YOUR RULES
 - Follow the user’s requirements carefully & to the letter.
+- Don't remove comment lines.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
 - Confirm, then write code!
 - Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code also it should be aligned to listed rules down below at Code Implementation Guidelines .

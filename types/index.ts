@@ -31,17 +31,19 @@ export interface StaticShareholderFields {
   last_edited_by: string;
 }
 
-export interface ShareholderFormValues {
+export interface shareholderSchema {
   shareholder_id: string;
   shareholder_name: string;
   phone_number: string;
+  purchase_time: string;
   total_amount_to_pay: number;
   deposit_payment: number;
   remaining_payment: number;
   payment_status: "paid" | "pending";
-  delivery_fee: number;
-  delivery_type: "kesimhane" | "toplu-teslimat";
-  delivery_location?: "yenimahalle-camii" | "kecioren-pazar";
-  vekalet: boolean;
+  vekalet: "verildi" | "bekleniyor";
+  delivery_fee?: number;
+  delivery_type?: "kesimhane" | "toplu-teslimat";
+  delivery_location?: string;
   notes?: string;
+  last_edited_by?: string;
 }

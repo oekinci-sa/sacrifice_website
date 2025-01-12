@@ -30,3 +30,18 @@ export interface StaticShareholderFields {
   sacrifice_no: number;
   last_edited_by: string;
 }
+
+export interface ShareholderFormValues {
+  shareholder_id: string;
+  shareholder_name: string;
+  phone_number: string;
+  total_amount_to_pay: number;
+  deposit_payment: number;
+  remaining_payment: number;
+  payment_status: "paid" | "pending";
+  delivery_fee: number;
+  delivery_type: "kesimhane" | "toplu-teslimat";
+  delivery_location?: "yenimahalle-camii" | "kecioren-pazar";
+  vekalet: boolean;
+  notes?: string;
+}

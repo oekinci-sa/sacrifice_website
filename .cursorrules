@@ -14,52 +14,70 @@ Public Pages:
 Admin Pages:
 - /kurban-admin/genel-bakis     -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
 - /kurban-admin/kurbanliklar    -> Page with a table of sacrifices and access to special pages for these sacrifices.
-- /kurban-admin/kurbanliklar/ayrintilar/[id]    -> Page with a table of shareholders and access to special pages for these shareholders.
+    - /kurban-admin/kurbanliklar/ayrintilar/[id]    -> Page with a table of shareholders and access to special pages for these shareholders.
+- /kurban-admin/hissedarlar    -> Page with a table of shareholders and access to special pages for these sacrifices.
+
+#COMPONENT FEATURES
+
+Sidebar Component
+- The sidebar should have narrow and wide view features.
+- When the sidebar is minimized, the icons related to it should be visible.
+- The information of the logged in user should be on the bottom left of the sidebar. Dark - light mode selection should be possible as a feature in this menu.
+
+#PAGE FEATURES
+
+Admin Pages: The general layout should be as follows:
+- A sidebar on the left. Its feature was given in the "Component Features" part 
+
 
 #TECH STACK
-Backend: Supabase
-- I Have three tables in the database.
-- The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
-
-- sacrifice_animals and its fields are:
-    - sacrifice_id: Primary key (benzersiz bir kimlik alanı).
-    - sacrifice_no: Kurbanlık numarası (eşsiz bir kimlik olabilir).
-    - sacrifice_time: Kurbanlık kesim işleminin zamanı.
-    - share_price: Bir hissenin fiyatı.
-    - empty_share: Kalan boş hisse sayısı.
-    - notes: Ek bilgiler veya açıklamalar.
-    - added_at: Kurbanlık bilgisinin eklenme tarihi ve saati.
-    - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
-- shareholders and its fields are:
-    - shareholder_id: Primary key (benzersiz bir kimlik alanı).
-    - shareholder_name: Hissedarın adı.
-    - phone_number: Hissedarın telefon numarası.
-    - purchase_time: Hisse satın alım zamanı.
-    - sacrifice_no: Hangi kurbanlık ile ilişkili olduğu (foreign key).
-    - total_amount_to_pay: Toplam ödenecek tutar.
-    - deposit_payment: Ödenen kapora miktarı.
-    - remaining_payment: Kalan ödeme miktarı.
-    - payment_status: Ödeme durumu (örneğin, "paid", "pending").
-    - delivery_fee: Teslimat ücreti. Eğer teslimat türünü 
-    - delivery_type: Teslimat türü (örneğin, "Kesimhane", "Toplu Teslim Noktası").
-    - delivery_location: Eğer delivery'type olarak "Toplu Tesli Noktası" seçilirse, ekstra 500TL ücret verilecek.
-    - vekalet: Vekalet durumu (örneğin, "verildi", "bekleniyor").
-    - notes: Ek bilgiler veya açıklamalar.
-    - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
-- change_logs and its fields are:
-    - id: Primary key (benzersiz bir kimlik alanı).
-    - table_name: Hangi tablonun değiştirildiğini belirtir.
-    - row_id: Değiştirilen kaydın ID'si.
-    - description: Değişikliğin açıklaması.
-    - operation: Yapılan işlem türü (ör. "INSERT", "UPDATE", "DELETE").
-    - changed_at: Değişikliğin yapıldığı tarih ve saat.
-    - change_owner: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
 
 Frontend: React 18, Next JS 14, TypeScript, Shadcn Project, TailwindCSS
 - All TypeScript definitions should be organized under the types folder.
 - All forms should include react-hook-form and Zod validations.
 - All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.
-- I want to use shadcn/ui as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
+- I want to use shadcn as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
+- Use shadcn if possible, otherwise create componenet with tailwindcss
+
+Backend: Supabase
+- I Have three tables in the database.
+- The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
+
+Table 1: sacrifice_animals and its fields are:
+    - sacrifice_id: Primary key (a unique identifier field).
+    - sacrifice_no: Sacrifice number (could be a unique identifier).
+    - sacrifice_time: The time of the sacrifice operation.
+    - share_price: The price of a share.
+    - empty_share: The number of remaining empty shares.
+    - notes: Additional information or notes.
+    - added_at: The date and time when the sacrifice information was added.
+    - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+
+Table 2: shareholders and its fields are:
+    - shareholder_id: Primary key (a unique identifier field).
+    - shareholder_name: The name of the shareholder.
+    - phone_number: The phone number of the shareholder.
+    - purchase_time: The time of share purchase.
+    - sacrifice_no: The associated sacrifice (foreign key).
+    - total_amount_to_pay: The total amount to be paid.
+    - deposit_payment: The deposit amount paid.
+    - remaining_payment: The remaining payment amount.
+    - payment_status: Payment status (e.g., "paid", "pending").
+    - delivery_fee: Delivery fee.
+    - delivery_type: Delivery type (e.g., "Kesimhane", "Toplu Teslim Noktası").
+    - delivery_location: If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
+    - vekalet: Authorization status (e.g., "verildi", "bekleniyor").
+    - notes: Additional information or notes.
+    - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+
+Table 3: change_logs and its fields are:
+    - id: Primary key (a unique identifier field).
+    - table_name: Specifies which table was modified.
+    - row_id: The ID of the modified record.
+    - description: Description of the change.
+    - operation: The type of operation performed (e.g., "INSERT", "UPDATE", "DELETE").
+    - changed_at: The date and time when the change was made.
+    - change_owner: Information about the last person who edited the record (e.g., admin ID or name).
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
 

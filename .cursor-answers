@@ -71,3 +71,81 @@ Size projenin adım adım planlamasını Türkçe olarak anlatayım:
 4. Monitoring araçları entegrasyonu
 
 Bu adımların her biri kendi içinde alt görevlere bölünebilir. Hangi aşamadan başlamak istersiniz?
+
+
+
+DB Improvements
+2. Veritabanı Düzeyinde Kısıtlamalar
+Ödeme Tutarlarının Toplamı:
+Hissedarların ödediği toplam tutarın, total_amount_to_pay ile tutarlı olduğundan emin olun.
+Öneri: Veritabanı seviyesinde bir CHECK kısıtlaması ekleyin:
+sql
+Kodu kopyala
+CHECK (deposit_payment + remaining_payment = total_amount_to_pay)
+Boş Hisse Sayısı:
+sacrifice_animals.empty_share alanı, hissedar eklenip çıkarıldıkça otomatik olarak güncellenmeli.
+Öneri: Boş hisse sayısını manuel güncellemek yerine, trigger veya stored procedure ile otomatik hesaplama yapabilirsiniz:
+sql
+Kodu kopyala
+CREATE TRIGGER update_empty_share
+AFTER INSERT OR DELETE ON shareholders
+FOR EACH ROW
+EXECUTE PROCEDURE calculate_empty_share();
+
+CREATE TRIGGER set_timestamp
+BEFORE INSERT OR UPDATE ON sacrifice_animals
+FOR EACH ROW
+EXECUTE FUNCTION set_current_timestamp();
+
+
+4. Loglama ve Takip
+change_logs Tablonuzu Geliştirin:
+table_name alanına ek olarak, eski ve yeni değerleri de saklayabilirsiniz. Bu, bir kaydın nasıl değiştirildiğini daha iyi analiz etmenizi sağlar.
+Öneri: Yeni bir JSON alan ekleyerek eski ve yeni değerleri kaydedebilirsiniz:
+sql
+Kodu kopyala
+ALTER TABLE change_logs ADD COLUMN old_values JSONB;
+ALTER TABLE change_logs ADD COLUMN new_values JSONB;
+Tetikleyici ile eski ve yeni verileri kaydedebilirsiniz:
+sql
+Kodu kopyala
+CREATE TRIGGER log_changes
+AFTER UPDATE OR DELETE ON sacrifice_animals
+FOR EACH ROW
+EXECUTE FUNCTION log_record_changes();
+
+
+5. Performans ve Ölçeklenebilirlik
+Sorgu Performansı İçin İndeksleme:
+Sıklıkla sorgulanan alanlara indeks ekleyin:
+sacrifice_animals.sacrifice_no
+shareholders.sacrifice_no
+shareholders.phone_number (hızlı arama için).
+Öneri: Örnek bir indeks:
+sql
+Kodu kopyala
+CREATE INDEX idx_sacrifice_no ON shareholders (sacrifice_no);
+
+6. Teslimat Ücreti ve Türü
+Veritabanında Dinamik Ücretler:
+delivery_fee alanını elle doldurmak yerine, delivery_type seçimine göre dinamik olarak hesaplatabilirsiniz.
+Öneri: Örneğin, teslimat ücreti için bir sanal alan veya fonksiyon kullanın:
+sql
+Kodu kopyala
+CASE 
+  WHEN delivery_type = 'Toplu Teslim Noktası' THEN 500 
+  ELSE 0 
+END AS delivery_fee
+
+
+8. Kullanıcı Rolleri ve Güvenlik
+Admin Yetkilendirme:
+last_edited_by alanı, bir admin ID'si içeriyor gibi görünüyor. Ancak, güvenliği artırmak için adminlerin erişim seviyelerini yönetmek adına bir user_roles tablosu ekleyebilirsiniz.
+
+9. Yedekleme ve Kurtarma
+Düzenli Yedekleme Planı:
+Özellikle kurban organizasyonu gibi kritik süreçlerde, günlük veya haftalık yedekleme planı oluşturun.
+Öneri: pg_dump ile düzenli yedekleme betiği:
+bash
+Kodu kopyala
+pg_dump -U your_username -d your_database -F c -f backup_file_name

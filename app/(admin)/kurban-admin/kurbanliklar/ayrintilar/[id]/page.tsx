@@ -66,7 +66,7 @@ export default function DetailsPage() {
 
 
   return (
-    <div className="container mx-auto p-4">
+    <div>
       <h1 className="text-2xl font-bold mb-4">Details for ID: {id}</h1>
 
       {/* Control data */}

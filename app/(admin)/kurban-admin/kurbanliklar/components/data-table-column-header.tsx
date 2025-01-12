@@ -33,9 +33,9 @@ export function DataTableColumnHeader<TData, TValue>({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="mx-auto my-auto hover:bg-primary-dark hover:text-white data-[state=open]:bg-primary-dark focus-visible:ring-0"
+            className="mx-auto my-auto hover:bg-[#1baf48] hover:text-white data-[state=open]:bg-[#1baf48] focus-visible:ring-0"
           >
-            <span className="font-bold">{title}</span>
+            <span className="font-heading font-semibold text-base">{title}</span>
             {column.getIsSorted() === "desc" ? (
               <ArrowDown />
             ) : column.getIsSorted() === "asc" ? (

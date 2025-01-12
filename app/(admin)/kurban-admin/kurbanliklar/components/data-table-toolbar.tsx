@@ -21,8 +21,8 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
-        {/* Tablo başlığı için filtreleme alanı. */}
+      {/* Sol tarafta tek başına Search alanı */}
+      <div className="flex">
         <Input
           placeholder="Notlar içinde ara..."
           value={(table.getColumn("notes")?.getFilterValue() as string) ?? ""}
@@ -31,25 +31,10 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[550px]"
         />
-      
       </div>
-        {/* durum ve öncelik filtreleme yapılır. */}
-        {table.getColumn("share_price") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("share_price")}
-            title="Hisse Bedeli"
-            options={share_prices}
-          />
-        )}
-        {table.getColumn("empty_share") && (
-          // durum ve öncelik filtreleme yapılır.
-          <DataTableFacetedFilter
-            column={table.getColumn("empty_share")}
-            title="Boş Hisse"
-            options={empty_shares}
-          />
-        )}
-        {/* // Reset Button */}
+
+      {/* Sağ tarafta Hisse Bedeli, Boş Hisse ve Sütunlar butonları */}
+      <div className="flex items-center space-x-4">
         {isFiltered && (
           <Button
             variant="ghost"
@@ -60,7 +45,22 @@ export function DataTableToolbar<TData>({
             <X />
           </Button>
         )}
-      <DataTableViewOptions table={table} />
+        {table.getColumn("share_price") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("share_price")}
+            title="Hisse Bedeli"
+            options={share_prices}
+          />
+        )}
+        {table.getColumn("empty_share") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("empty_share")}
+            title="Boş Hisse"
+            options={empty_shares}
+          />
+        )}
+        <DataTableViewOptions table={table} />
+      </div>
     </div>
   );
 }

@@ -19,6 +19,8 @@ Admin Pages:
 #TECH STACK
 Backend: Supabase
 - I Have three tables in the database.
+- The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
+
 - sacrifice_animals and its fields are:
     - sacrifice_no: Kurbanlık numarası (eşsiz bir kimlik olabilir).
     - sacrifice_time: Kurbanlık işleminin zamanı.
@@ -31,7 +33,9 @@ Backend: Supabase
 - shareholders and its fields are:
     - shareholder_id: Primary key (benzersiz bir kimlik alanı).
     - shareholder_name: Hissedarın adı.
+    - phone_number: Hissedarın telefon numarası.
     - purchase_time: Hisse satın alım zamanı.
+    - sacrifice_no: Hangi kurbanlık ile ilişkili olduğu (foreign key).
     - total_amount_to_pay: Toplam ödenecek tutar.
     - deposit_payment: Ödenen kapora miktarı.
     - remaining_payment: Kalan ödeme miktarı.
@@ -39,16 +43,14 @@ Backend: Supabase
     - delivery_fee: Teslimat ücreti.
     - delivery_type: Teslimat türü (örneğin, "self-pickup", "home-delivery").
     - delivery_location: Teslimat adresi veya konumu.
-    - phone_number: Hissedarın telefon numarası.
-    - notes: Ek bilgiler veya açıklamalar.
     - vekalet: Vekalet durumu (örneğin, "verildi", "bekleniyor").
-    - sacrifice_no: Hangi kurbanlık ile ilişkili olduğu (foreign key olabilir).
+    - notes: Ek bilgiler veya açıklamalar.
     - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
 - change_logs and its fields are:
     - id: Primary key (benzersiz bir kimlik alanı).
     - table_name: Hangi tablonun değiştirildiğini belirtir.
     - row_id: Değiştirilen kaydın ID'si.
-    - description: Değişikliğin açıklaması (opsiyonel olabilir).
+    - description: Değişikliğin açıklaması.
     - operation: Yapılan işlem türü (ör. "INSERT", "UPDATE", "DELETE").
     - changed_at: Değişikliğin yapıldığı tarih ve saat.
     - change_owner: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
@@ -61,7 +63,7 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn Project, TailwindCSS
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
 
-----------------------------
+---------------
 
 #YOUR RULES
 - Follow the user’s requirements carefully & to the letter.

@@ -49,6 +49,7 @@ export function DataTableViewOptions<TData>({
               sacrifice_time: "Kurban Zamanı",
               share_price: "Hisse Bedeli",
               empty_share: "Boş Hisse",
+              notes: "Notlar",
             };
 
             // Varsayılan başlık: Eğer eşleşme yoksa `column.id` kullanılır

@@ -26,9 +26,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="text-center">
-            {row.getValue("sacrifice_time")}
-        </div>
+        <div className="text-center">{row.getValue("sacrifice_time")}</div>
       );
     },
   },
@@ -47,11 +45,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         return null;
       }
 
-      return (
-        <div className="text-center">
-          {share_price.label}
-        </div>
-      );
+      return <div className="text-center">{share_price.label}</div>;
     },
 
     // Filtreleme işlevi.
@@ -93,12 +87,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       <DataTableColumnHeader column={column} title="Notlar" />
     ),
     cell: ({ row }) => (
-      <div className="overflow-hidden">{row.getValue("notes")}</div>
+      <div className="line-clamp-1">{row.getValue("notes")}</div>
     ),
-    size: 800,
+    size: 1000,
   },
   {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
+    size: 20,
   },
 ];

@@ -81,7 +81,10 @@ const config: Config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        navlinkColor: "hsl(var(--navlink-color))",
+        navlinkColor: {
+          DEFAULT: "hsl(var(--navlink-color))",
+          light: "hsl(var(--navlink-color-light))",
+        },
         sectionBackground: "hsl(var(--section-background))",
         myRed: "hsl(var(--my-red))",
         buttonBlack: {

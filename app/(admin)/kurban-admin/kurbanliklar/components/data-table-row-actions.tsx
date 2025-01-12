@@ -15,7 +15,7 @@ export function DataTableRowActions<TData extends { sacrifice_no: number }>({
   const data = row.original;
 
   return (
-    <div className="opacity-0 group-hover:opacity-100 transition-opacity relative z-50">
+    <div className="flex justify-center opacity-0 group-hover:opacity-100 transition-opacity relative z-50">
       <Link href={`/kurban-admin/kurbanliklar/ayrintilar/${data.sacrifice_no}`}>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Pencil className="h-4 w-4" />

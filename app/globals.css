@@ -45,13 +45,13 @@
 
     /* My Colors */
     /* Navlink default */
+    --navlink-color-light: 240, 4.76%, 95.88%;
     --navlink-color: 150 1.03% 38.04%;
     /* button-black, how it works background */
     --button-black: 225, 5.88%, 13.33%;
     --button-black-light: 225, 2.99%, 26.27%;
     --section-background: 240 4.35% 9.02%;
     --my-red: 352.72, 67.84%, 50%;
-
   }
   .dark {
     /* Changed for dark mode background */

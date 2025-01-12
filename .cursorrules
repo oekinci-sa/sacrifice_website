@@ -22,13 +22,13 @@ Backend: Supabase
 - The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
 
 - sacrifice_animals and its fields are:
+    - sacrifice_id: Primary key (benzersiz bir kimlik alanı).
     - sacrifice_no: Kurbanlık numarası (eşsiz bir kimlik olabilir).
-    - sacrifice_time: Kurbanlık işleminin zamanı.
+    - sacrifice_time: Kurbanlık kesim işleminin zamanı.
     - share_price: Bir hissenin fiyatı.
     - empty_share: Kalan boş hisse sayısı.
     - notes: Ek bilgiler veya açıklamalar.
-    - sacrifice_id: Primary key (benzersiz bir kimlik alanı).
-    - added_at: Kaydın eklenme tarihi ve saati.
+    - added_at: Kurbanlık bilgisinin eklenme tarihi ve saati.
     - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).
 - shareholders and its fields are:
     - shareholder_id: Primary key (benzersiz bir kimlik alanı).
@@ -40,9 +40,9 @@ Backend: Supabase
     - deposit_payment: Ödenen kapora miktarı.
     - remaining_payment: Kalan ödeme miktarı.
     - payment_status: Ödeme durumu (örneğin, "paid", "pending").
-    - delivery_fee: Teslimat ücreti.
-    - delivery_type: Teslimat türü (örneğin, "self-pickup", "home-delivery").
-    - delivery_location: Teslimat adresi veya konumu.
+    - delivery_fee: Teslimat ücreti. Eğer teslimat türünü 
+    - delivery_type: Teslimat türü (örneğin, "Kesimhane", "Toplu Teslim Noktası").
+    - delivery_location: Eğer delivery'type olarak "Toplu Tesli Noktası" seçilirse, ekstra 500TL ücret verilecek.
     - vekalet: Vekalet durumu (örneğin, "verildi", "bekleniyor").
     - notes: Ek bilgiler veya açıklamalar.
     - last_edited_by: Kaydı en son düzenleyen kişinin bilgisi (örneğin, admin ID veya adı).

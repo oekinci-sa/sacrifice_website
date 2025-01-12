@@ -1,20 +1,32 @@
-export type sacrificeSchema = {
-  sacrifice_id: number;
-  sacrifice_no: number;
-  sacrifice_time: string;
-  share_price: number;
-  empty_share: number;
-  notes: string;
-  added_at: string;
-  last_edited_by: string;
-};
+import { z } from "zod";
 
-export type FormData = {
-  shareholder_1?: string;
-  shareholder_2?: string;
-  shareholder_3?: string;
-  shareholder_4?: string;
-  shareholder_5?: string;
-  shareholder_6?: string;
-  shareholder_7?: string;
+// Form için Zod şeması
+export const shareholderFormSchema = z.object({
+  shareholder_name: z.string().min(2, "İsim en az 2 karakter olmalıdır"),
+  phone_number: z.string().min(10, "Geçerli bir telefon numarası giriniz"),
+  total_amount_to_pay: z.number().min(0, "Geçerli bir tutar giriniz"),
+  deposit_payment: z.number().min(0, "Geçerli bir kapora tutarı giriniz"),
+  remaining_payment: z.number().min(0, "Geçerli bir kalan ödeme tutarı giriniz"),
+  payment_status: z.enum(["paid", "pending"], {
+    required_error: "Ödeme durumu seçiniz",
+  }),
+  delivery_fee: z.number().min(0, "Geçerli bir teslimat ücreti giriniz"),
+  delivery_type: z.enum(["kesimhane", "toplu-teslimat"], {
+    required_error: "Teslimat türü seçiniz",
+  }),
+  delivery_location: z.enum(["yenimahalle-camii", "kecioren-pazar"], {
+    required_error: "Teslimat noktası seçiniz",
+  }).optional(),
+  vekalet: z.boolean().default(false),
+  notes: z.string().optional(),
+});
+
+// Form için tip
+export type ShareholderFormValues = z.infer<typeof shareholderFormSchema>;
+
+// Statik alanlar için tip
+export interface StaticShareholderFields {
+  purchase_time: string;
+  sacrifice_no: number;
+  last_edited_by: string;
 }

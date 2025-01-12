@@ -47,3 +47,14 @@ export interface shareholderSchema {
   notes?: string;
   last_edited_by?: string;
 }
+
+export interface sacrificeSchema {
+  sacrifice_id: string;
+  sacrifice_no: number;
+  sacrifice_time: string;
+  share_price: number;
+  empty_share: number;
+  notes?: string;
+  added_at: string;
+  last_edited_by?: string;
+}

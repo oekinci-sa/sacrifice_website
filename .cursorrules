@@ -32,7 +32,7 @@ Admin Pages: The general layout should be as follows:
 
 #TECH STACK
 
-Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts TailwindCSS
+Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 - All TypeScript definitions should be organized under the types folder.
 - All forms should include react-hook-form and Zod validations.
 - All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.

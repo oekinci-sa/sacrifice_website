@@ -49,6 +49,7 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -75,33 +76,59 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
         .update(updatedData)
         .eq("shareholder_id", shareholder.shareholder_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        toast.error("Güncelleme başarısız", {
+          description: "Hissedar bilgileri güncellenirken bir hata oluştu. Lütfen tekrar deneyin.",
+          duration: 3000,
+        });
+        throw error;
+      }
 
-      toast.success("Hissedar bilgileri güncellendi");
+      toast.success("Güncelleme başarılı", {
+        description: "Hissedar bilgileri başarıyla güncellendi.",
+        duration: 3000,
+      });
       router.refresh();
     } catch (error) {
       console.error("Error updating shareholder:", error);
-      toast.error("Hissedar bilgileri güncellenirken bir hata oluştu");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
+      console.log(`Attempting to delete shareholder with ID: ${shareholder.shareholder_id}`);
+      
       const { error } = await supabase
         .from("shareholders")
         .delete()
         .eq("shareholder_id", shareholder.shareholder_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase deletion error:", error);
+        toast.error("Silme işlemi başarısız", {
+          description: "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+          duration: 3000,
+        });
+        throw error;
+      }
 
-      toast.success("Hissedar silindi");
+      console.log("Shareholder deleted successfully");
+      toast.success("Silme işlemi başarılı", {
+        description: `${shareholder.shareholder_name} isimli hissedar başarıyla silindi.`,
+        duration: 3000,
+      });
+      
+      setShowDeleteDialog(false);
       router.refresh();
       router.push("/kurban-admin/hissedarlar");
     } catch (error) {
-      console.error("Error deleting shareholder:", error);
-      toast.error("Hissedar silinirken bir hata oluştu");
+      console.error("Detailed deletion error:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -251,7 +278,7 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
     <div className="flex justify-between">
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" type="button">
+          <Button variant="destructive" type="button" disabled={isDeleting}>
             Hissedarı Sil
           </Button>
         </AlertDialogTrigger>
@@ -263,9 +290,13 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Evet, Sil
+            <AlertDialogCancel disabled={isDeleting}>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Siliniyor..." : "Evet, Sil"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -275,10 +306,11 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
           type="button"
           variant="outline"
           onClick={() => router.back()}
+          disabled={isSubmitting || isDeleting}
         >
           İptal
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || isDeleting}>
           {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
         </Button>
       </div>

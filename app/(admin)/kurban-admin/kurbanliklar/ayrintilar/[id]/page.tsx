@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input"; // ShadCN Input component
 import { Button } from "@/components/ui/button"; // ShadCN Button component
 import { useParams } from "next/navigation";

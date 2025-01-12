@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { empty_shares, share_prices } from "../data/data";
-import { sacrificeSchema } from "../data/schema";
+import { sacrificeSchema } from "@/types";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 

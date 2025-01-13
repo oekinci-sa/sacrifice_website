@@ -32,20 +32,23 @@ interface ShareholderFormProps {
     shareholder_id: string;
     shareholder_name: string;
     phone_number: string;
-    total_amount_to_pay: number;
-    deposit_payment: number;
+    total_amount: number;
+    paid_amount: number;
     remaining_payment: number;
     payment_status: "paid" | "pending";
     delivery_fee?: number;
     delivery_type?: "kesimhane" | "toplu-teslimat";
     delivery_location?: string;
-    vekalet: "verildi" | "bekleniyor";
+    sacrifice_consent: "verildi" | "bekleniyor";
     notes?: string;
   };
   section: "personal" | "payment" | "delivery" | "other";
 }
 
-export function ShareholderForm({ shareholder, section }: ShareholderFormProps) {
+export function ShareholderForm({
+  shareholder,
+  section,
+}: ShareholderFormProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,14 +63,14 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
       const updatedData = {
         shareholder_name: formData.get("shareholder_name"),
         phone_number: formData.get("phone_number"),
-        total_amount_to_pay: Number(formData.get("total_amount_to_pay")),
-        deposit_payment: Number(formData.get("deposit_payment")),
+        total_amount: Number(formData.get("total_amount")),
+        paid_amount: Number(formData.get("paid_amount")),
         remaining_payment: Number(formData.get("remaining_payment")),
         payment_status: formData.get("payment_status"),
         delivery_fee: Number(formData.get("delivery_fee")) || null,
         delivery_type: formData.get("delivery_type") || null,
         delivery_location: formData.get("delivery_location") || null,
-        vekalet: formData.get("vekalet"),
+        sacrifice_consent: formData.get("sacrifice_consent"),
         notes: formData.get("notes") || null,
       };
 
@@ -79,7 +82,8 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
       if (error) {
         console.error("Supabase update error:", error);
         toast.error("Güncelleme başarısız", {
-          description: "Hissedar bilgileri güncellenirken bir hata oluştu. Lütfen tekrar deneyin.",
+          description:
+            "Hissedar bilgileri güncellenirken bir hata oluştu. Lütfen tekrar deneyin.",
           duration: 3000,
         });
         throw error;
@@ -100,8 +104,10 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      console.log(`Attempting to delete shareholder with ID: ${shareholder.shareholder_id}`);
-      
+      console.log(
+        `Attempting to delete shareholder with ID: ${shareholder.shareholder_id}`
+      );
+
       const { error } = await supabase
         .from("shareholders")
         .delete()
@@ -110,7 +116,8 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
       if (error) {
         console.error("Supabase deletion error:", error);
         toast.error("Silme işlemi başarısız", {
-          description: "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+          description:
+            "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
           duration: 3000,
         });
         throw error;
@@ -121,7 +128,7 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
         description: `${shareholder.shareholder_name} isimli hissedar başarıyla silindi.`,
         duration: 3000,
       });
-      
+
       setShowDeleteDialog(false);
       router.refresh();
       router.push("/kurban-admin/hissedarlar");
@@ -158,22 +165,22 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
   const renderPaymentSection = () => (
     <div className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="total_amount_to_pay">Toplam Tutar (₺)</Label>
+        <Label htmlFor="total_amount">Toplam Tutar (₺)</Label>
         <Input
-          id="total_amount_to_pay"
-          name="total_amount_to_pay"
+          id="total_amount"
+          name="total_amount"
           type="number"
-          defaultValue={shareholder.total_amount_to_pay}
+          defaultValue={shareholder.total_amount}
           required
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="deposit_payment">Kapora (₺)</Label>
+        <Label htmlFor="paid_amount">Kapora (₺)</Label>
         <Input
-          id="deposit_payment"
-          name="deposit_payment"
+          id="paid_amount"
+          name="paid_amount"
           type="number"
-          defaultValue={shareholder.deposit_payment}
+          defaultValue={shareholder.paid_amount}
           required
         />
       </div>
@@ -206,8 +213,8 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
     <div className="space-y-4">
       <div className="grid gap-2">
         <Label htmlFor="delivery_type">Teslimat Tipi</Label>
-        <Select 
-          name="delivery_type" 
+        <Select
+          name="delivery_type"
           defaultValue={shareholder.delivery_type || "kesimhane"}
         >
           <SelectTrigger>
@@ -222,15 +229,17 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
       {shareholder.delivery_type === "toplu-teslimat" && (
         <div className="grid gap-2">
           <Label htmlFor="delivery_location">Teslimat Noktası</Label>
-          <Select 
-            name="delivery_location" 
+          <Select
+            name="delivery_location"
             defaultValue={shareholder.delivery_location}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="yenimahalle-camii">Yenimahalle Camii</SelectItem>
+              <SelectItem value="yenimahalle-camii">
+                Yenimahalle Camii
+              </SelectItem>
               <SelectItem value="kecioren-pazar">Keçiören Pazar</SelectItem>
             </SelectContent>
           </Select>
@@ -251,8 +260,11 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
   const renderOtherSection = () => (
     <div className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="vekalet">Vekalet</Label>
-        <Select name="vekalet" defaultValue={shareholder.vekalet}>
+        <Label htmlFor="sacrifice_consent">sacrifice_consent</Label>
+        <Select
+          name="sacrifice_consent"
+          defaultValue={shareholder.sacrifice_consent}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -291,8 +303,8 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
+            <AlertDialogAction
+              onClick={handleDelete}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -338,4 +350,4 @@ export function ShareholderForm({ shareholder, section }: ShareholderFormProps) 
       {section === "other" && renderFormButtons()}
     </form>
   );
-} 
+}

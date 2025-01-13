@@ -20,8 +20,8 @@ interface PaymentData {
   shareholder_name: string;
   phone_number: string;
   purchase_time: string;
-  total_amount_to_pay: number;
-  deposit_payment: number;
+  total_amount: number;
+  paid_amount: number;
   remaining_payment: number;
   payment_status: string;
   is_deposit_overdue: boolean;
@@ -42,10 +42,12 @@ export default function PaymentAnalysis() {
         if (error) throw error;
 
         // Process data to check for overdue deposits
-        const processedData = (data || []).map(item => ({
+        const processedData = (data || []).map((item) => ({
           ...item,
-          is_deposit_overdue: new Date(item.purchase_time) < new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-            && item.deposit_payment === 0
+          is_deposit_overdue:
+            new Date(item.purchase_time) <
+              new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) &&
+            item.paid_amount === 0,
         }));
 
         setPayments(processedData);
@@ -67,8 +69,10 @@ export default function PaymentAnalysis() {
     );
   }
 
-  const overdueDeposits = payments.filter(p => p.is_deposit_overdue);
-  const pendingPayments = payments.filter(p => p.payment_status === "pending");
+  const overdueDeposits = payments.filter((p) => p.is_deposit_overdue);
+  const pendingPayments = payments.filter(
+    (p) => p.payment_status === "pending"
+  );
 
   return (
     <div className="space-y-6">
@@ -93,7 +97,9 @@ export default function PaymentAnalysis() {
                     <TableCell>{payment.shareholder_name}</TableCell>
                     <TableCell>{payment.phone_number}</TableCell>
                     <TableCell>
-                      {format(new Date(payment.purchase_time), 'dd MMM yyyy', { locale: tr })}
+                      {format(new Date(payment.purchase_time), "dd MMM yyyy", {
+                        locale: tr,
+                      })}
                     </TableCell>
                     <TableCell>
                       <Badge variant="destructive">Kapora Gecikmiş</Badge>
@@ -137,4 +143,4 @@ export default function PaymentAnalysis() {
       </div>
     </div>
   );
-} 
+}

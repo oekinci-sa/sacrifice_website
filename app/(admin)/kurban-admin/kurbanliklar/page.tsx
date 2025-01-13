@@ -27,6 +27,12 @@ export default function KurbanliklarPage() {
 
   return (
     <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
+        <p className="text-muted-foreground">
+          Tüm kurbanlıkların listesi ve detaylı istatistikleri
+        </p>
+      </div>
       <SacrificeStatistics />
       <DataTable data={data} columns={columns} />
     </div>

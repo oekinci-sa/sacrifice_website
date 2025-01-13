@@ -1,25 +1,29 @@
 #PROJECT
+
 Project Name: Sacrifice Website
 Project Description: The project is actually very similar to an e-commerce site. It is a site about the Muslim sacrifice ritual. Muslim users enter the site and choose a sacrificial animal and buy one or more shares. Then, with the code verification sent to their mobile phones, they can make sure that their registration is done and download a PDF printout. In addition, more than one admin can manage and monitor the project via an admin panel.
 
 The features of the pages are as follows
 Public Pages:
-- /             -> Page where general information about the organization is given.
-- /hakkimizda   -> Page where the organizers of the organization are explained
-- /hisseal      -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
+
+- / -> Page where general information about the organization is given.
+- /hakkimizda -> Page where the organizers of the organization are explained
+- /hisseal -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
 - /hissesorgula -> Later, the area where the share information is queried with the code sent to their mobile phones and users can get a PDF printout.
-- /yazilar      -> Blog page with articles about sacrifice worship
-- /iletisim     -> Page where those who want to contact the institution can get information
+- /yazilar -> Blog page with articles about sacrifice worship
+- /iletisim -> Page where those who want to contact the institution can get information
 
 Admin Pages:
-- /kurban-admin/genel-bakis     -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
-- /kurban-admin/kurbanliklar    -> Page with a table of sacrifices and access to special pages for these sacrifices.
-    - /kurban-admin/kurbanliklar/ayrintilar/[id]    -> Page with a table of shareholders and access to special pages for these shareholders.
-- /kurban-admin/hissedarlar    -> Page with a table of shareholders and access to special pages for these sacrifices.
+
+- /kurban-admin/genel-bakis -> A page with some general information such as the number of animals, money collected, etc. and graphic table visualizations
+- /kurban-admin/kurbanliklar -> Page with a table of sacrifices and access to special pages for these sacrifices.
+  - /kurban-admin/kurbanliklar/ayrintilar/[id] -> Page with a table of shareholders and access to special pages for these shareholders.
+- /kurban-admin/hissedarlar -> Page with a table of shareholders and access to special pages for these sacrifices.
 
 #COMPONENT FEATURES
 
 Sidebar Component
+
 - The sidebar should have narrow and wide view features.
 - When the sidebar is minimized, the icons related to it should be visible.
 - The information of the logged in user should be on the bottom left of the sidebar. Dark - light mode selection should be possible as a feature in this menu.
@@ -27,64 +31,68 @@ Sidebar Component
 #PAGE FEATURES
 
 Admin Pages: The general layout should be as follows:
-- A sidebar on the left. Its feature was given in the "Component Features" part 
 
+- A sidebar on the left. Its feature was given in the "Component Features" part
 
 #TECH STACK
 
 Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
+
 - All TypeScript definitions should be organized under the types folder.
 - All forms should include react-hook-form and Zod validations.
 - All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.
 - I want to use shadcn as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
 - Use shadcn if possible, otherwise create componenet with tailwindcss
+- UI has dark mode feature. So choose the color scheme accordingly.
 
 Backend: Supabase
+
 - Use supabaseClient from /utils/supabaseClient.ts
 - I Have three tables in the database.
 - The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
 
-Table 1: sacrifice_animals and its fields are:
-    - sacrifice_id: Primary key (a unique identifier field).
-    - sacrifice_no: Sacrifice number (could be a unique identifier).
-    - sacrifice_time: The time of the sacrifice operation.
-    - share_price: The price of a share.
-    - empty_share: The number of remaining empty shares.
-    - notes: Additional information or notes.
-    - added_at: The date and time when the sacrifice information was added.
-    - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+Table 1: sacrifice_animals and its fields are: 
+  - sacrifice_id: Primary key (a unique identifier field). 
+  - sacrifice_no: Sacrifice number (could be a unique identifier). 
+  - sacrifice_time: The time of the sacrifice operation. 
+  - share_price: The price of a share. 
+  - empty_share: The number of remaining empty shares. Maximum number is 7 and minimum number is 0
+  - added_at: The date and time when the sacrifice information was added.
+  - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+  - notes: Additional information or notes. 
 
-Table 2: shareholders and its fields are:
-    - shareholder_id: Primary key (a unique identifier field).
-    - shareholder_name: The name of the shareholder.
-    - phone_number: The phone number of the shareholder.
-    - purchase_time: The time of share purchase.
-    - sacrifice_no: The associated sacrifice (foreign key).
-    - total_amount_to_pay: The total amount to be paid.
-    - deposit_payment: The deposit amount paid.
-    - remaining_payment: The remaining payment amount.
-    - payment_status: Payment status (e.g., "paid", "pending").
-    - delivery_fee: Delivery fee.
-    - delivery_type: Delivery type (e.g., "Kesimhane", "Toplu Teslim Noktası").
-    - delivery_location: If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
-    - vekalet: Authorization status (e.g., "verildi", "bekleniyor").
-    - notes: Additional information or notes.
-    - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+Table 2: shareholders and its fields are: 
+  - shareholder_id: Primary key (a unique identifier field). 
+  - shareholder_name: The name of the shareholder. 
+  - phone_number: The phone number of the shareholder. 
+  - purchase_time: The time of share purchase. 
+  - sacrifice_no: The associated sacrifice (foreign key). 
+  - paid_amount: The paid amount. 
+  - total_amount: The total amount to be paid. 
+  - remaining_payment: The remaining payment amount. 
+  - payment_status: Payment status (e.g., "paid", "pending"). 
+  - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
+  - delivery_type: Delivery type (e.g., "Kesimhane", "Toplu Teslim Noktası"). 
+  - delivery_location: This will ve only two options: "Yenimahalle Pazar Yeri" or "Keçiören Otoparkı".
+  - sacrifice_consent: This a boolean value in db. But it is displayed as "Vekalet" in UI and in forms, this field is shown in the drop-down menu as "Vekalet Alındı" or "Vekalet Alınmadı".
+  - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
+  - notes: Additional information or notes. 
 
-Table 3: change_logs and its fields are:
-    - id: Primary key (a unique identifier field).
-    - table_name: Specifies which table was modified.
-    - row_id: The ID of the modified record.
-    - description: Description of the change.
-    - operation: The type of operation performed (e.g., "INSERT", "UPDATE", "DELETE").
-    - changed_at: The date and time when the change was made.
-    - change_owner: Information about the last person who edited the record (e.g., admin ID or name).
+Table 3: change_logs and its fields are: 
+  - id: Primary key (a unique identifier field). 
+  - table_name: Specifies which table was modified.
+  - row_id: The ID of the modified record.
+  - description: Description of the change. 
+  - operation: The type of operation performed (e.g., "INSERT", "UPDATE", "DELETE"). 
+  - changed_at: The date and time when the change was made. 
+  - change_owner: Information about the last person who edited the record (e.g., admin ID or name).
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
 
----------------
+---
 
 #YOUR RULES
+
 - Follow the user’s requirements carefully & to the letter.
 - Don't remove comment lines.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.

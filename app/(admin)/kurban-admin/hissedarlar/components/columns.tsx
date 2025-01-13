@@ -19,12 +19,12 @@ export const columns: ColumnDef<any>[] = [
     ),
   },
   {
-    accessorKey: "total_amount_to_pay",
+    accessorKey: "total_amount",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Toplam Tutar" />
     ),
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("total_amount_to_pay"));
+      const amount = parseFloat(row.getValue("total_amount"));
       const formatted = new Intl.NumberFormat("tr-TR", {
         style: "currency",
         currency: "TRY",
@@ -57,10 +57,10 @@ export const columns: ColumnDef<any>[] = [
       <DataTableColumnHeader column={column} title="Ödeme Oranı" />
     ),
     cell: ({ row }) => {
-      const total = parseFloat(row.getValue("total_amount_to_pay"));
-      const deposit = parseFloat(row.original.deposit_payment) || 0;
+      const total = parseFloat(row.getValue("total_amount"));
+      const deposit = parseFloat(row.original.paid_amount) || 0;
       const ratio = (deposit / total) * 100;
-      
+
       return <div className="font-medium">%{ratio.toFixed(0)}</div>;
     },
   },
@@ -78,16 +78,18 @@ export const columns: ColumnDef<any>[] = [
     },
   },
   {
-    accessorKey: "vekalet",
+    accessorKey: "sacrifice_consent",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Vekalet" />
     ),
     cell: ({ row }) => {
-      const vekalet = row.getValue("vekalet");
+      const sacrifice_consent = row.getValue("sacrifice_consent");
 
       return (
-        <Badge variant={vekalet === "verildi" ? "default" : "secondary"}>
-          {vekalet === "verildi" ? "Verildi" : "Bekleniyor"}
+        <Badge
+          variant={sacrifice_consent === "verildi" ? "default" : "secondary"}
+        >
+          {sacrifice_consent === "verildi" ? "Verildi" : "Bekleniyor"}
         </Badge>
       );
     },
@@ -99,4 +101,4 @@ export const columns: ColumnDef<any>[] = [
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
-]; 
+];

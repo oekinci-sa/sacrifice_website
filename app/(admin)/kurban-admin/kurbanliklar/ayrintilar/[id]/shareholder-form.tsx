@@ -25,23 +25,33 @@ import { Separator } from "@/components/ui/separator";
 interface ShareholderFormProps {
   shareholder: any;
   index: number;
-  onSubmit: (values: ShareholderFormValues, shareholderId: string) => Promise<void>;
+  onSubmit: (
+    values: ShareholderFormValues,
+    shareholderId: string
+  ) => Promise<void>;
 }
 
-export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFormProps) {
+export function ShareholderForm({
+  shareholder,
+  index,
+  onSubmit,
+}: ShareholderFormProps) {
   const form = useForm<ShareholderFormValues>({
     resolver: zodResolver(shareholderFormSchema),
     defaultValues: {
       shareholder_name: shareholder.shareholder_name || "",
       phone_number: shareholder.phone_number || "",
-      total_amount_to_pay: Number(shareholder.total_amount_to_pay) || 0,
-      deposit_payment: Number(shareholder.deposit_payment) || 0,
+      total_amount: Number(shareholder.total_amount) || 0,
+      paid_amount: Number(shareholder.paid_amount) || 0,
       remaining_payment: Number(shareholder.remaining_payment) || 0,
       payment_status: shareholder.payment_status || "pending",
       delivery_fee: Number(shareholder.delivery_fee) || 0,
       delivery_type: shareholder.delivery_type || "kesimhane",
       delivery_location: shareholder.delivery_location || "yenimahalle-camii",
-      vekalet: typeof shareholder.vekalet === 'boolean' ? shareholder.vekalet : false,
+      sacrifice_consent:
+        typeof shareholder.sacrifice_consent === "boolean"
+          ? shareholder.sacrifice_consent
+          : false,
       notes: shareholder.notes || "",
     },
   });
@@ -54,27 +64,40 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
           <div>
             <p className="text-sm font-medium">Kayıt Tarihi</p>
             <p className="text-sm text-muted-foreground">
-              {new Date(shareholder.purchase_time || "").toLocaleString("tr-TR")}
+              {new Date(shareholder.purchase_time || "").toLocaleString(
+                "tr-TR"
+              )}
             </p>
           </div>
           <div>
             <p className="text-sm font-medium">Hissedar ID</p>
-            <p className="text-sm text-muted-foreground">{shareholder.shareholder_id}</p>
+            <p className="text-sm text-muted-foreground">
+              {shareholder.shareholder_id}
+            </p>
           </div>
           <div>
             <p className="text-sm font-medium">Son Düzenleyen</p>
-            <p className="text-sm text-muted-foreground">{shareholder.last_edited_by}</p>
+            <p className="text-sm text-muted-foreground">
+              {shareholder.last_edited_by}
+            </p>
           </div>
         </CardContent>
       </Card>
 
       {/* Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((values) => onSubmit(values, shareholder.shareholder_id))} className="space-y-16">
+        <form
+          onSubmit={form.handleSubmit((values) =>
+            onSubmit(values, shareholder.shareholder_id)
+          )}
+          className="space-y-16"
+        >
           {/* Hissedar Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-3">
-              <h3 className="font-semibold text-lg sticky top-0">Hissedar Bilgileri</h3>
+              <h3 className="font-semibold text-lg sticky top-0">
+                Hissedar Bilgileri
+              </h3>
             </div>
             <div className="col-span-9 grid grid-cols-2 gap-6">
               <FormField
@@ -112,17 +135,23 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
           {/* Ödeme Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-3">
-              <h3 className="font-semibold text-lg sticky top-0">Ödeme Bilgileri</h3>
+              <h3 className="font-semibold text-lg sticky top-0">
+                Ödeme Bilgileri
+              </h3>
             </div>
             <div className="col-span-9 grid grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="total_amount_to_pay"
+                name="total_amount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Toplam Tutar</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,12 +160,16 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
 
               <FormField
                 control={form.control}
-                name="deposit_payment"
+                name="paid_amount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Kapora</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -150,7 +183,11 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
                   <FormItem>
                     <FormLabel>Kalan Ödeme</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +223,9 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
           {/* Teslimat Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-3">
-              <h3 className="font-semibold text-lg sticky top-0">Teslimat Bilgileri</h3>
+              <h3 className="font-semibold text-lg sticky top-0">
+                Teslimat Bilgileri
+              </h3>
             </div>
             <div className="col-span-9 grid grid-cols-2 gap-6">
               <FormField
@@ -202,8 +241,12 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="kesimhane">Kesimhane'de Teslim</SelectItem>
-                        <SelectItem value="toplu-teslimat">Toplu Teslimat Noktasında Teslim</SelectItem>
+                        <SelectItem value="kesimhane">
+                          Kesimhane'de Teslim
+                        </SelectItem>
+                        <SelectItem value="toplu-teslimat">
+                          Toplu Teslimat Noktasında Teslim
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -224,8 +267,12 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="yenimahalle-camii">Yenimahalle Camii</SelectItem>
-                        <SelectItem value="kecioren-pazar">Keçiören Pazar Yeri</SelectItem>
+                        <SelectItem value="yenimahalle-camii">
+                          Yenimahalle Camii
+                        </SelectItem>
+                        <SelectItem value="kecioren-pazar">
+                          Keçiören Pazar Yeri
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -240,7 +287,11 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
                   <FormItem>
                     <FormLabel>Teslimat Ücreti</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -254,22 +305,26 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
           {/* Diğer Bilgiler */}
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-3">
-              <h3 className="font-semibold text-lg sticky top-0">Diğer Bilgiler</h3>
+              <h3 className="font-semibold text-lg sticky top-0">
+                Diğer Bilgiler
+              </h3>
             </div>
             <div className="col-span-9 grid grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="vekalet"
+                name="sacrifice_consent"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vekalet Durumu</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(value === "verildi")} 
+                    <FormLabel>sacrifice_consent Durumu</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "verildi")
+                      }
                       value={field.value ? "verildi" : "bekleniyor"}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Vekalet durumu seçin" />
+                          <SelectValue placeholder="sacrifice_consent durumu seçin" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -305,4 +360,4 @@ export function ShareholderForm({ shareholder, index, onSubmit }: ShareholderFor
       </Form>
     </div>
   );
-} 
+}

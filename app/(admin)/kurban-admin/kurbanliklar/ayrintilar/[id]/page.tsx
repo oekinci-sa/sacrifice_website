@@ -34,7 +34,7 @@ export default function DetailsPage() {
     async function fetchData() {
       if (!id) return;
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from("shareholders")
         .select("*")
@@ -52,11 +52,14 @@ export default function DetailsPage() {
     fetchData();
   }, [id]);
 
-  async function onSubmit(values: ShareholderFormValues, shareholderId: string) {
+  async function onSubmit(
+    values: ShareholderFormValues,
+    shareholderId: string
+  ) {
     try {
       const updateData = {
         ...values,
-        vekalet: Boolean(values.vekalet)
+        sacrifice_consent: Boolean(values.sacrifice_consent),
       };
 
       const { error } = await supabase
@@ -97,7 +100,11 @@ export default function DetailsPage() {
       <div className="container mx-auto">
         <Card>
           <CardContent className="p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-4"
+            >
               <TabsList className="grid grid-cols-7 gap-4">
                 {shareholders.map((_, index) => (
                   <TabsTrigger

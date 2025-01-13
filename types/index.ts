@@ -4,9 +4,11 @@ import { z } from "zod";
 export const shareholderFormSchema = z.object({
   shareholder_name: z.string().min(2, "İsim en az 2 karakter olmalıdır"),
   phone_number: z.string().min(10, "Geçerli bir telefon numarası giriniz"),
-  total_amount_to_pay: z.number().min(0, "Geçerli bir tutar giriniz"),
-  deposit_payment: z.number().min(0, "Geçerli bir kapora tutarı giriniz"),
-  remaining_payment: z.number().min(0, "Geçerli bir kalan ödeme tutarı giriniz"),
+  total_amount: z.number().min(0, "Geçerli bir tutar giriniz"),
+  paid_amount: z.number().min(0, "Geçerli bir kapora tutarı giriniz"),
+  remaining_payment: z
+    .number()
+    .min(0, "Geçerli bir kalan ödeme tutarı giriniz"),
   payment_status: z.enum(["paid", "pending"], {
     required_error: "Ödeme durumu seçiniz",
   }),
@@ -14,10 +16,12 @@ export const shareholderFormSchema = z.object({
   delivery_type: z.enum(["kesimhane", "toplu-teslimat"], {
     required_error: "Teslimat türü seçiniz",
   }),
-  delivery_location: z.enum(["yenimahalle-camii", "kecioren-pazar"], {
-    required_error: "Teslimat noktası seçiniz",
-  }).optional(),
-  vekalet: z.boolean().default(false),
+  delivery_location: z
+    .enum(["yenimahalle-camii", "kecioren-pazar"], {
+      required_error: "Teslimat noktası seçiniz",
+    })
+    .optional(),
+  sacrifice_consent: z.boolean().default(false),
   notes: z.string().optional(),
 });
 
@@ -36,11 +40,11 @@ export interface shareholderSchema {
   shareholder_name: string;
   phone_number: string;
   purchase_time: string;
-  total_amount_to_pay: number;
-  deposit_payment: number;
+  total_amount: number;
+  paid_amount: number;
   remaining_payment: number;
   payment_status: "paid" | "pending";
-  vekalet: "verildi" | "bekleniyor";
+  sacrifice_consent: "verildi" | "bekleniyor";
   delivery_fee?: number;
   delivery_type?: "kesimhane" | "toplu-teslimat";
   delivery_location?: string;

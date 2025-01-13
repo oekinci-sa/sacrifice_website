@@ -94,6 +94,7 @@ export function ActivityTable({ data }: ActivityTableProps) {
 
   return (
     <div className="space-y-4">
+        {/* Table Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <Input
@@ -204,8 +205,10 @@ export function ActivityTable({ data }: ActivityTableProps) {
         </div>
       </div>
 
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
+            {/* Table Header */}
           <TableHeader>
             <TableRow>
               <TableHead>Tarih</TableHead>
@@ -215,6 +218,8 @@ export function ActivityTable({ data }: ActivityTableProps) {
               <TableHead>Kullanıcı</TableHead>
             </TableRow>
           </TableHeader>
+
+          {/* Table Body */}
           <TableBody>
             {paginatedData.map((item) => (
               <TableRow key={item.id}>

@@ -77,11 +77,11 @@ Bu adımların her biri kendi içinde alt görevlere bölünebilir. Hangi aşama
 DB Improvements
 2. Veritabanı Düzeyinde Kısıtlamalar
 Ödeme Tutarlarının Toplamı:
-Hissedarların ödediği toplam tutarın, total_amount_to_pay ile tutarlı olduğundan emin olun.
+Hissedarların ödediği toplam tutarın, total_amount ile tutarlı olduğundan emin olun.
 Öneri: Veritabanı seviyesinde bir CHECK kısıtlaması ekleyin:
 sql
 Kodu kopyala
-CHECK (deposit_payment + remaining_payment = total_amount_to_pay)
+CHECK (paid_amount + remaining_payment = total_amount)
 Boş Hisse Sayısı:
 sacrifice_animals.empty_share alanı, hissedar eklenip çıkarıldıkça otomatik olarak güncellenmeli.
 Öneri: Boş hisse sayısını manuel güncellemek yerine, trigger veya stored procedure ile otomatik hesaplama yapabilirsiniz:

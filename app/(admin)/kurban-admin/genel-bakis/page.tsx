@@ -109,7 +109,7 @@ export default function GeneralOverview() {
         // Calculate overdue deposits (3 days after purchase)
         const overdueDeposits = shareholders?.filter(s => 
           new Date(s.purchase_time) < new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) && 
-          s.deposit_payment === 0
+          s.paid_amount === 0
         ).length || 0;
 
         const pendingPayments = shareholders?.filter(s => s.payment_status === "pending").length || 0;

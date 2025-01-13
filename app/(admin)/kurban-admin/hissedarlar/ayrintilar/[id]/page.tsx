@@ -16,14 +16,14 @@ interface Shareholder {
   shareholder_name: string;
   phone_number: string;
   purchase_time: string;
-  total_amount_to_pay: number;
-  deposit_payment: number;
+  total_amount: number;
+  paid_amount: number;
   remaining_payment: number;
   payment_status: "paid" | "pending";
   delivery_fee?: number;
   delivery_type?: "kesimhane" | "toplu-teslimat";
   delivery_location?: string;
-  vekalet: "verildi" | "bekleniyor";
+  sacrifice_consent: "verildi" | "bekleniyor";
   notes?: string;
   sacrifice_no?: string;
   sacrifice?: {
@@ -48,13 +48,15 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         const { data, error } = await supabase
           .from("shareholders")
-          .select(`
+          .select(
+            `
             *,
             sacrifice:sacrifice_no (
               sacrifice_no,
               sacrifice_time
             )
-          `)
+          `
+          )
           .eq("shareholder_id", params.id)
           .single();
 
@@ -105,7 +107,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hissedar Bilgileri</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Hissedar Bilgileri
+        </h1>
         <p className="text-muted-foreground">
           Hissedar detaylarını görüntüleyin ve düzenleyin
         </p>
@@ -116,21 +120,25 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         <div className="grid grid-cols-3 gap-6">
           <div className="space-y-2">
             <h3 className="font-semibold">Kurbanlık No</h3>
-            <p className="text-muted-foreground">{shareholder?.sacrifice?.sacrifice_no || "-"}</p>
+            <p className="text-muted-foreground">
+              {shareholder?.sacrifice?.sacrifice_no || "-"}
+            </p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold">Kesim Zamanı</h3>
             <p className="text-muted-foreground">
-              {shareholder?.sacrifice?.sacrifice_time 
-                ? new Date(shareholder.sacrifice.sacrifice_time).toLocaleString("tr-TR") 
+              {shareholder?.sacrifice?.sacrifice_time
+                ? new Date(shareholder.sacrifice.sacrifice_time).toLocaleString(
+                    "tr-TR"
+                  )
                 : "-"}
             </p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold">Hisse Alım Tarihi</h3>
             <p className="text-muted-foreground">
-              {shareholder?.purchase_time 
-                ? new Date(shareholder.purchase_time).toLocaleString("tr-TR") 
+              {shareholder?.purchase_time
+                ? new Date(shareholder.purchase_time).toLocaleString("tr-TR")
                 : "-"}
             </p>
           </div>
@@ -149,7 +157,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
               </p>
             </div>
             <div className="pt-4">
-              {shareholder && <ShareholderForm shareholder={shareholder} section="personal" />}
+              {shareholder && (
+                <ShareholderForm shareholder={shareholder} section="personal" />
+              )}
             </div>
           </div>
         </div>
@@ -164,7 +174,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
               </p>
             </div>
             <div className="pt-4">
-              {shareholder && <ShareholderForm shareholder={shareholder} section="payment" />}
+              {shareholder && (
+                <ShareholderForm shareholder={shareholder} section="payment" />
+              )}
             </div>
           </div>
         </div>
@@ -179,7 +191,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
               </p>
             </div>
             <div className="pt-4">
-              {shareholder && <ShareholderForm shareholder={shareholder} section="delivery" />}
+              {shareholder && (
+                <ShareholderForm shareholder={shareholder} section="delivery" />
+              )}
             </div>
           </div>
         </div>
@@ -190,15 +204,17 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Diğer Bilgiler</h2>
               <p className="text-sm text-muted-foreground">
-                Vekalet ve not bilgileri
+                sacrifice_consent ve not bilgileri
               </p>
             </div>
             <div className="pt-4">
-              {shareholder && <ShareholderForm shareholder={shareholder} section="other" />}
+              {shareholder && (
+                <ShareholderForm shareholder={shareholder} section="other" />
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

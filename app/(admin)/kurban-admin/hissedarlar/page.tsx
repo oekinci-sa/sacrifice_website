@@ -4,13 +4,26 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
-import { shareholderSchema } from "@/types";
+import { ShareholderStatistics } from "./components/statistics";
+
+interface Shareholder {
+  shareholder_id: string;
+  shareholder_name: string;
+  phone_number: string;
+  total_amount_to_pay: number;
+  paid_amount: number;
+  remaining_payment: number;
+  payment_status: "paid" | "pending";
+  delivery_type: "kesimhane" | "toplu-teslimat";
+  delivery_location?: "yenimahalle-camii" | "kecioren-pazar";
+  vekalet: boolean;
+  notes?: string;
+}
 
 export default function ShareholdersPage() {
-  const [data, setData] = useState<shareholderSchema[]>([]);
+  const [data, setData] = useState<Shareholder[]>([]);
 
   useEffect(() => {
-    // İlk veri yüklemesi
     const fetchData = async () => {
       const { data: shareholders, error } = await supabase
         .from("shareholders")
@@ -26,45 +39,39 @@ export default function ShareholdersPage() {
 
     fetchData();
 
-    // Gerçek zamanlı güncellemeler için subscription
-    const subscription = supabase
-      .channel('shareholders-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'shareholders' 
-        }, 
-        (payload) => {
-          // Değişiklik türüne göre state'i güncelle
-          if (payload.eventType === 'INSERT') {
-            setData(prevData => [...prevData, payload.new as shareholderSchema]);
-          } else if (payload.eventType === 'DELETE') {
-            setData(prevData => prevData.filter(item => item.shareholder_id !== payload.old.shareholder_id));
-          } else if (payload.eventType === 'UPDATE') {
-            setData(prevData => prevData.map(item => 
-              item.shareholder_id === payload.new.shareholder_id ? payload.new as shareholderSchema : item
-            ));
-          }
+    // Realtime subscription
+    const channel = supabase
+      .channel("shareholders-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "shareholders",
+        },
+        () => {
+          fetchData();
         }
       )
       .subscribe();
 
-    // Cleanup subscription
     return () => {
-      subscription.unsubscribe();
+      channel.unsubscribe();
     };
   }, []);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hissedarlar</h1>
-        <p className="text-muted-foreground">
-          Tüm hissedarların listesi ve detayları
-        </p>
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Hissedarlar</h2>
+          <p className="text-muted-foreground">
+            Tüm hissedarların listesi ve detaylı istatistikleri
+          </p>
+        </div>
       </div>
-      <DataTable columns={columns} data={data} />
+      <ShareholderStatistics />
+      <DataTable data={data} columns={columns} />
     </div>
   );
 } 

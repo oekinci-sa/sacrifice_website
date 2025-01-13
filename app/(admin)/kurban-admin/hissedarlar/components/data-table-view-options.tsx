@@ -52,7 +52,7 @@ export function DataTableViewOptions<TData>({
                   ? "İsim Soyisim"
                   : column.id === "phone_number"
                   ? "Telefon"
-                  : column.id === "total_amount_to_pay"
+                  : column.id === "total_amount"
                   ? "Toplam Tutar"
                   : column.id === "payment_status"
                   ? "Ödeme Durumu"
@@ -60,7 +60,7 @@ export function DataTableViewOptions<TData>({
                   ? "Ödeme Oranı"
                   : column.id === "delivery_type"
                   ? "Teslimat Tipi"
-                  : column.id === "vekalet"
+                  : column.id === "sacrifice_consent"
                   ? "Vekalet"
                   : column.id}
               </DropdownMenuCheckboxItem>
@@ -69,4 +69,4 @@ export function DataTableViewOptions<TData>({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}

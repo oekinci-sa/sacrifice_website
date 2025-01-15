@@ -3,132 +3,311 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { PieChart } from "@/components/ui/pie-chart";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 import { supabase } from "@/utils/supabaseClient";
 
 interface ShareholderStats {
   totalShareholders: number;
-  fullPaymentCount: number;
-  proxyCount: number;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  paymentStats: {
+    completed: number;
+    waitingDeposit: number;
+    waitingRemaining: number;
+  };
   deliveryStats: {
-    location: string;
-    count: number;
-    percentage: number;
-  }[];
+    kesimhane: number;
+    topluTeslimat: number;
+  };
+  consentStats: {
+    verildi: number;
+    bekliyor: number;
+  };
+  deliveryLocations: {
+    [key: string]: number;
+  };
 }
+
+const COLORS = {
+  green: "#22c55e",
+  yellow: "#eab308",
+  red: "#ef4444",
+  blue: "#3b82f6",
+  purple: "#a855f7",
+};
 
 export function ShareholderStatistics() {
   const [stats, setStats] = useState<ShareholderStats>({
     totalShareholders: 0,
-    fullPaymentCount: 0,
-    proxyCount: 0,
-    deliveryStats: [],
+    totalAmount: 0,
+    paidAmount: 0,
+    remainingAmount: 0,
+    paymentStats: {
+      completed: 0,
+      waitingDeposit: 0,
+      waitingRemaining: 0,
+    },
+    deliveryStats: {
+      kesimhane: 0,
+      topluTeslimat: 0,
+    },
+    consentStats: {
+      verildi: 0,
+      bekliyor: 0,
+    },
+    deliveryLocations: {},
   });
 
   useEffect(() => {
     async function fetchStats() {
-      const { data: shareholders, error } = await supabase
-        .from("shareholders")
-        .select("*");
+      try {
+        const { data: shareholders, error } = await supabase
+          .from("shareholders")
+          .select("*");
 
-      if (error) {
-        console.error("Error fetching stats:", error);
-        return;
+        if (error) throw error;
+
+        // Basic statistics
+        const totalShareholders = shareholders.length;
+        const totalAmount = shareholders.reduce((acc, curr) => acc + curr.total_amount, 0);
+        const paidAmount = shareholders.reduce((acc, curr) => acc + curr.paid_amount, 0);
+        const remainingAmount = totalAmount - paidAmount;
+
+        // Payment status statistics
+        const paymentStats = {
+          completed: shareholders.filter(s => s.remaining_payment === 0).length,
+          waitingDeposit: shareholders.filter(s => s.paid_amount < 2000).length,
+          waitingRemaining: shareholders.filter(s => s.paid_amount >= 2000 && s.remaining_payment > 0).length,
+        };
+
+        // Delivery statistics
+        const deliveryStats = {
+          kesimhane: shareholders.filter(s => s.delivery_type === "Kesimhane").length,
+          topluTeslimat: shareholders.filter(s => s.delivery_type === "Toplu Teslim Noktası").length,
+        };
+
+        // Consent statistics
+        const consentStats = {
+          verildi: shareholders.filter(s => s.sacrifice_consent === true).length,
+          bekliyor: shareholders.filter(s => s.sacrifice_consent === false).length,
+        };
+
+        // Delivery locations statistics
+        const deliveryLocations = shareholders.reduce((acc: { [key: string]: number }, curr) => {
+          if (curr.delivery_location) {
+            acc[curr.delivery_location] = (acc[curr.delivery_location] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        setStats({
+          totalShareholders,
+          totalAmount,
+          paidAmount,
+          remainingAmount,
+          paymentStats,
+          deliveryStats,
+          consentStats,
+          deliveryLocations,
+        });
+      } catch (error) {
+        console.error("Error fetching shareholder statistics:", error);
       }
-
-      const totalShareholders = shareholders.length;
-      const fullPaymentCount = shareholders.filter(
-        (s) => s.payment_status === "paid"
-      ).length;
-      const proxyCount = shareholders.filter(
-        (s) => s.sacrifice_consent === "verildi"
-      ).length;
-
-      // Teslimat noktası istatistikleri
-      const deliveryLocations = shareholders.reduce((acc, curr) => {
-        if (!curr.delivery_location) return acc;
-        acc[curr.delivery_location] = (acc[curr.delivery_location] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const deliveryStats = Object.entries(deliveryLocations).map(
-        ([location, count]) => ({
-          location: location === "yenimahalle-camii" ? "Yenimahalle Camii" : "Keçiören Pazar",
-          count,
-          percentage: (count / totalShareholders) * 100,
-        })
-      );
-
-      setStats({
-        totalShareholders,
-        fullPaymentCount,
-        proxyCount,
-        deliveryStats,
-      });
     }
 
     fetchStats();
   }, []);
 
+  const paymentStatusData = [
+    { name: "Tamamlandı", value: stats.paymentStats.completed, color: COLORS.green },
+    { name: "Kapora Bekleniyor", value: stats.paymentStats.waitingDeposit, color: COLORS.red },
+    { name: "Kalan Ödeme Bekleniyor", value: stats.paymentStats.waitingRemaining, color: COLORS.yellow },
+  ];
+
+  const deliveryData = [
+    { name: "Kesimhane", value: stats.deliveryStats.kesimhane, color: COLORS.blue },
+    { name: "Toplu Teslim", value: stats.deliveryStats.topluTeslimat, color: COLORS.purple },
+  ];
+
+  const locationData = Object.entries(stats.deliveryLocations).map(([name, value], index) => ({
+    name,
+    value,
+    color: Object.values(COLORS)[index % Object.values(COLORS).length],
+  }));
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* Tam Ödeme İstatistiği */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Tam Ödeme Yapan Hissedarlar
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.fullPaymentCount} / {stats.totalShareholders}
-          </div>
-          <Progress
-            value={(stats.fullPaymentCount / stats.totalShareholders) * 100}
-            className="mt-2"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            {((stats.fullPaymentCount / stats.totalShareholders) * 100).toFixed(1)}% tamamlandı
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid gap-4">
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Toplam Hissedar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalShareholders}</div>
+            <Progress 
+              value={stats.totalShareholders > 0 
+                ? (stats.paymentStats.completed / stats.totalShareholders) * 100 
+                : 0}
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              {stats.paymentStats.completed} hissedar ödemesini tamamladı
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* Vekalet İstatistiği */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Vekalet Alınan Hissedarlar
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.proxyCount} / {stats.totalShareholders}
-          </div>
-          <Progress
-            value={(stats.proxyCount / stats.totalShareholders) * 100}
-            className="mt-2"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            {((stats.proxyCount / stats.totalShareholders) * 100).toFixed(1)}% tamamlandı
-          </p>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Toplam Tutar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.totalAmount)}
+            </div>
+            <Progress 
+              value={stats.totalAmount > 0 ? (stats.paidAmount / stats.totalAmount) * 100 : 0}
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              Tahsilat oranı: {stats.totalAmount > 0 ? ((stats.paidAmount / stats.totalAmount) * 100).toFixed(1) : 0}%
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* Teslimat Dağılımı */}
-      <Card className="col-span-2">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Teslimat Noktası Dağılımı</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PieChart
-            data={stats.deliveryStats.map(stat => ({
-              name: stat.location,
-              value: stat.count,
-              percentage: stat.percentage,
-            }))}
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Toplanan Ödeme</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.paidAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Kalan: {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.remainingAmount)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vekalet Durumu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.consentStats.verildi}</div>
+            <Progress 
+              value={stats.totalShareholders > 0 
+                ? (stats.consentStats.verildi / stats.totalShareholders) * 100 
+                : 0}
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              {stats.consentStats.bekliyor} hissedar vekalet vermedi
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                    label
+                  >
+                    {paymentStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Teslimat Tercihleri</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={deliveryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                    label
+                  >
+                    {deliveryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={locationData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" name="Hissedar Sayısı">
+                    {locationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

@@ -48,11 +48,11 @@ interface PaymentStatusData {
 }
 
 interface ActivityLog {
-  id: string;
+  event_id: string;
   table_name: string;
   row_id: string;
   description: string;
-  operation: "INSERT" | "UPDATE" | "DELETE";
+  change_type: "Ekleme" | "Güncelleme" | "Silme";
   changed_at: string;
   change_owner: string;
 }
@@ -79,14 +79,25 @@ export default function GeneralOverview() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        // Fetch sacrifices data
+        // Get total counts first
+        const { count: sacrificesCount, error: countError1 } = await supabase
+          .from("sacrifice_animals")
+          .select("*", { count: "exact", head: true });
+
+        const { count: shareholdersCount, error: countError2 } = await supabase
+          .from("shareholders")
+          .select("*", { count: "exact", head: true });
+
+        if (countError1 || countError2) throw countError1 || countError2;
+
+        // Fetch all sacrifices data
         const { data: sacrifices, error: sacrificesError } = await supabase
           .from("sacrifice_animals")
           .select("*");
 
         if (sacrificesError) throw sacrificesError;
 
-        // Fetch shareholders data
+        // Fetch all shareholders data
         const { data: shareholders, error: shareholdersError } = await supabase
           .from("shareholders")
           .select("*");
@@ -104,15 +115,15 @@ export default function GeneralOverview() {
         const emptyShares = sacrifices?.reduce((acc, curr) => acc + (curr.empty_share || 0), 0) || 0;
         
         const totalPayments = shareholders?.length || 0;
-        const completedPayments = shareholders?.filter(s => s.payment_status === "paid").length || 0;
+        const completedPayments = shareholders?.filter(s => s.remaining_payment === 0).length || 0;
 
         // Calculate overdue deposits (3 days after purchase)
         const overdueDeposits = shareholders?.filter(s => 
           new Date(s.purchase_time) < new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) && 
-          s.paid_amount === 0
+          s.paid_amount < 2000
         ).length || 0;
 
-        const pendingPayments = shareholders?.filter(s => s.payment_status === "pending").length || 0;
+        const pendingPayments = shareholders?.filter(s => s.remaining_payment > 0).length || 0;
 
         // Calculate today's statistics
         const todaysSales = shareholders?.filter(s => 
@@ -120,18 +131,23 @@ export default function GeneralOverview() {
         ).length || 0;
 
         const todaysPayments = shareholders?.filter(s => 
-          s.payment_status === "paid" && 
+          s.remaining_payment === 0 && 
           new Date(s.purchase_time).toDateString() === today.toDateString()
         ).length || 0;
 
-        // Son 7 günün tarihlerini oluştur
-        const last7Days = eachDayOfInterval({
-          start: subDays(new Date(), 6),
-          end: new Date()
+        // Get first and last purchase dates
+        const purchaseDates = shareholders?.map(s => new Date(s.purchase_time)) || [];
+        const firstPurchaseDate = purchaseDates.length > 0 ? new Date(Math.min(...purchaseDates.map(d => d.getTime()))) : subDays(new Date(), 6);
+        const lastPurchaseDate = purchaseDates.length > 0 ? new Date(Math.max(...purchaseDates.map(d => d.getTime()))) : new Date();
+
+        // Create date range from first to last purchase
+        const dateRange = eachDayOfInterval({
+          start: firstPurchaseDate,
+          end: lastPurchaseDate
         });
 
-        // Günlük hisse alımlarını hesapla
-        const dailySharesData = last7Days.map(date => {
+        // Calculate daily share purchases
+        const dailySharesData = dateRange.map(date => {
           const dayStart = new Date(date.setHours(0, 0, 0, 0));
           const dayEnd = new Date(date.setHours(23, 59, 59, 999));
           
@@ -146,16 +162,23 @@ export default function GeneralOverview() {
           };
         });
 
-        // Ödeme durumu dağılımını hesapla
-        const paid = shareholders?.filter(s => s.payment_status === "paid").length || 0;
-        const pending = shareholders?.filter(s => s.payment_status === "pending").length || 0;
+        // Calculate payment status distribution
+        const paid = shareholders?.filter(s => s.remaining_payment === 0).length || 0;
+        const pending = shareholders?.filter(s => s.remaining_payment > 0).length || 0;
 
         const paymentStatusData = [
           { status: 'Tamamlandı', value: paid, color: '#22c55e' },
           { status: 'Bekliyor', value: pending, color: '#eab308' },
         ];
 
-        // Fetch activity logs
+        // Get total count of logs
+        const { count: logsCount, error: countError3 } = await supabase
+          .from("change_logs")
+          .select("*", { count: "exact", head: true });
+
+        if (countError3) throw countError3;
+
+        // Fetch all activity logs and transform the data
         const { data: logs, error: logsError } = await supabase
           .from("change_logs")
           .select("*")
@@ -163,8 +186,32 @@ export default function GeneralOverview() {
 
         if (logsError) throw logsError;
 
-        setActivityLogs(logs || []);
+        // Transform the logs to match the ActivityLog interface
+        const transformedLogs = (logs || []).map(log => {
+          let change_type: "Ekleme" | "Güncelleme" | "Silme";
+          switch (log.change_type) {
+            case "INSERT":
+              change_type = "Ekleme";
+              break;
+            case "UPDATE":
+              change_type = "Güncelleme";
+              break;
+            default:
+              change_type = "Silme";
+          }
 
+          return {
+            event_id: log.event_id,
+            table_name: log.table_name,
+            row_id: log.row_id,
+            description: log.description,
+            change_type,
+            changed_at: log.changed_at,
+            change_owner: log.change_owner
+          };
+        });
+
+        setActivityLogs(transformedLogs);
         setDailyShares(dailySharesData);
         setPaymentStatus(paymentStatusData);
 
@@ -286,14 +333,18 @@ export default function GeneralOverview() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((stats.remainingSacrifices / stats.totalSacrifices) * 100).toFixed(1)}%
+              {stats.totalSacrifices > 0 
+                ? ((stats.remainingSacrifices / stats.totalSacrifices) * 100).toFixed(1)
+                : "0"}%
             </div>
             <Progress 
-              value={(stats.remainingSacrifices / stats.totalSacrifices) * 100} 
+              value={stats.totalSacrifices > 0 
+                ? (stats.remainingSacrifices / stats.totalSacrifices) * 100 
+                : 0} 
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              Kalan kurbanlık sayısı
+              Boş hissesi olan kurbanlık sayısı
             </p>
           </CardContent>
         </Card>
@@ -307,14 +358,18 @@ export default function GeneralOverview() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((stats.emptyShares / stats.totalShares) * 100).toFixed(1)}%
+              {stats.totalShares > 0 
+                ? ((stats.emptyShares / stats.totalShares) * 100).toFixed(1)
+                : "0"}%
             </div>
             <Progress 
-              value={(stats.emptyShares / stats.totalShares) * 100} 
+              value={stats.totalShares > 0 
+                ? (stats.emptyShares / stats.totalShares) * 100
+                : 0} 
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              Boştaki hisse sayısı
+              Boştaki hisse oranı
             </p>
           </CardContent>
         </Card>
@@ -328,10 +383,14 @@ export default function GeneralOverview() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((stats.completedPayments / stats.totalPayments) * 100).toFixed(1)}%
+              {stats.totalPayments > 0 
+                ? ((stats.completedPayments / stats.totalPayments) * 100).toFixed(1)
+                : "0"}%
             </div>
             <Progress 
-              value={(stats.completedPayments / stats.totalPayments) * 100} 
+              value={stats.totalPayments > 0 
+                ? (stats.completedPayments / stats.totalPayments) * 100
+                : 0} 
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
@@ -341,27 +400,32 @@ export default function GeneralOverview() {
         </Card>
       </div>
 
-      {/* Yeni Grafikler */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Günlük Hisse Alımları</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyShares}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Günlük Hisse Alımları */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Günlük Hisse Alımları</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailyShares}>
+                <XAxis 
+                  dataKey="date"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" name="Hisse Sayısı" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Ödeme Grafikleri */}
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
@@ -378,6 +442,8 @@ export default function GeneralOverview() {
                     outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
+                    nameKey="status"
+                    label
                   >
                     {paymentStatus.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -390,29 +456,27 @@ export default function GeneralOverview() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Ödeme Grafiği */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ödeme Analizi</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={paymentChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="Geciken Kapora" fill="#ef4444" />
-                <Bar dataKey="Bekleyen Ödeme" fill="#eab308" />
-                <Bar dataKey="Tamamlanan" fill="#22c55e" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Ödeme Analizi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={paymentChartData}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="Geciken Kapora" fill="#ef4444" />
+                  <Bar dataKey="Bekleyen Ödeme" fill="#eab308" />
+                  <Bar dataKey="Tamamlanan" fill="#22c55e" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Son İşlemler */}
       <Card>

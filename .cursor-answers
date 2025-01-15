@@ -149,3 +149,136 @@ Düzenli Yedekleme Planı:
 bash
 Kodu kopyala
 pg_dump -U your_username -d your_database -F c -f backup_file_name
+
+
+
+#TIMEOUT MECHANISM
+Haklısınız, sabit bir süre koymak bazı senaryolarda problem yaratabilir. Kullanıcı formu doldurmayı hızlıca bırakırsa veya sekmeyi kapatırsa, "bekleme süresi" gereksiz yere veritabanındaki hisselerin rezerve edilmiş gibi görünmesine neden olabilir. Bu sorunu çözmek için, **kullanıcı davranışını takip eden bir mekanizma** ile bu durumu gerçek zamanlı olarak algılamak ve çözüm üretmek gerekiyor. İşte bu duruma yönelik alternatif ve daha dinamik bir yaklaşım:
+
+---
+
+### **Çözüm: Kullanıcı Davranışına Dayalı Rezervasyon Kontrolü**
+Hisse rezervasyonu sırasında, kullanıcı aktif mi değil mi ve form doldurmayı tamamladı mı gibi durumları kontrol ederek, rezervasyonu gerçek zamanlı olarak güncelleyebilirsiniz.
+
+#### 1. **Kullanıcı Aktivitesi Takibi (Heartbeat Mekanizması)**
+Kullanıcı formu doldururken veya rezervasyon ekranındayken, backend’e düzenli olarak bir "heartbeat" sinyali gönderilir. Eğer backend’e belirli bir süre boyunca bu sinyal ulaşmazsa (örneğin 1 dakika), rezervasyon iptal edilir.
+
+- **Nasıl Çalışır?**
+  - Kullanıcı hisse seçip form doldurmaya başlar.
+  - Frontend, her 30 saniyede bir backend’e "Kullanıcı hala aktif mi?" mesajını gönderir.
+  - Backend, bu aktiviteyi izleyerek rezervasyonu açık tutar. 
+  - Eğer belirli bir süre (ör. 60 saniye) boyunca heartbeat alınmazsa, rezervasyon iptal edilir ve hisseler tekrar boş görünür.
+
+**Frontend (JavaScript) Örneği:**
+```javascript
+let heartbeatInterval;
+
+function startHeartbeat(reservationId) {
+  heartbeatInterval = setInterval(() => {
+    fetch(`/api/heartbeat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reservationId })
+    });
+  }, 30000); // Her 30 saniyede bir heartbeat gönder
+}
+
+function stopHeartbeat() {
+  clearInterval(heartbeatInterval);
+}
+
+// Kullanıcı form sayfasını terk ettiğinde veya sekmeyi kapattığında
+window.addEventListener("beforeunload", stopHeartbeat);
+```
+
+**Backend (Node.js veya benzeri) Örneği:**
+```javascript
+let activeReservations = {}; // Aktif rezervasyonları takip etmek için
+
+// Heartbeat API
+app.post("/api/heartbeat", (req, res) => {
+  const { reservationId } = req.body;
+  if (activeReservations[reservationId]) {
+    activeReservations[reservationId].lastHeartbeat = Date.now();
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404); // Rezervasyon bulunamadı
+  }
+});
+
+// Rezervasyon Temizleme
+setInterval(() => {
+  const now = Date.now();
+  for (const reservationId in activeReservations) {
+    if (now - activeReservations[reservationId].lastHeartbeat > 60000) {
+      // 60 saniyeden uzun süre heartbeat yoksa rezervasyonu iptal et
+      cancelReservation(reservationId);
+      delete activeReservations[reservationId];
+    }
+  }
+}, 30000);
+```
+
+---
+
+#### 2. **Sekme veya Sayfa Değişikliğini Algılama**
+Kullanıcı sekmeyi kapatırsa veya başka bir sayfaya geçerse, bu durumu algılayarak rezervasyonu hemen iptal edebilirsiniz.
+
+- **Frontend'de `visibilitychange` Event'i Kullanma:**
+```javascript
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    stopHeartbeat(); // Kullanıcı sayfadan ayrıldı
+    fetch(`/api/cancelReservation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reservationId })
+    });
+  }
+});
+```
+
+---
+
+#### 3. **Veritabanında Rezervasyon İşlemleri**
+Rezervasyon sürecini ve iptalleri dinamik olarak yönetmek için şu adımları izleyebilirsiniz:
+
+- Kullanıcı formu doldurmaya başlarken bir rezervasyon oluşturulur:
+```sql
+INSERT INTO share_reservations (sacrifice_no, reserved_shares, reserved_by, reserved_at)
+VALUES ($sacrifice_no, $reserved_shares, $user_id, NOW());
+```
+
+- Kullanıcı aktif olduğu sürece rezervasyon güncellenir (heartbeat aracılığıyla):
+```sql
+UPDATE share_reservations
+SET reserved_at = NOW()
+WHERE reservation_id = $reservation_id;
+```
+
+- Kullanıcı formu doldurmayı bırakırsa veya sekmeyi kapatırsa rezervasyon iptal edilir:
+```sql
+DELETE FROM share_reservations
+WHERE reservation_id = $reservation_id;
+```
+
+---
+
+#### 4. **Backend'de Rezervasyonların Temizlenmesi**
+Backend tarafında, **heartbeat alınmayan rezervasyonları iptal etmek** için düzenli bir kontrol işlemi çalıştırabilirsiniz. Bu işlem, rezervasyonun otomatik olarak kaldırılmasını sağlar.
+
+**Heartbeat Kontrol Mekanizması:**
+```sql
+DELETE FROM share_reservations
+WHERE NOW() - reserved_at > INTERVAL '1 minute';
+```
+
+---
+
+### **Avantajlar:**
+1. **Dinamik Yönetim:** Kullanıcı gerçekten aktif olmadığında rezervasyon otomatik olarak serbest bırakılır.
+2. **Gerçek Zamanlı Güncelleme:** Hisse bilgisi her zaman doğru tutulur, sabit bir süreye bağlı kalınmaz.
+3. **Daha Az Bekleme:** Kullanıcı hızlıca vazgeçerse hisseler hemen serbest kalır, başka bir kullanıcı hisseyi seçebilir.
+
+### **Sonuç:**
+Bu çözüm, kullanıcı davranışını gerçek zamanlı olarak izleyerek rezervasyonların doğru ve tutarlı bir şekilde yönetilmesini sağlar. Hem backend hem de frontend tarafında, sekme kapatma veya aktivitesizlik durumlarını ele alarak veritabanında gereksiz "rezerve edilmiş" gibi görünen hisseleri önlersiniz.

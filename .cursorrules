@@ -44,6 +44,7 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 - I want to use shadcn as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
 - Use shadcn if possible, otherwise create componenet with tailwindcss
 - UI has dark mode feature. So choose the color scheme accordingly.
+- At the end of the process of writing or deleting or updating something to the database from the frontend, inform the user whether the process is positive or negative with shadcn toast components.
 
 Backend: Supabase
 
@@ -52,40 +53,49 @@ Backend: Supabase
 - The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key.
 
 Table 1: sacrifice_animals and its fields are: 
-  - sacrifice_id: Primary key (a unique identifier field). 
-  - sacrifice_no: Sacrifice number (could be a unique identifier). 
+  - sacrifice_id: Primary key (a unique identifier). 
+  - sacrifice_no: Sacrifice number (a unique identifier). 
   - sacrifice_time: The time of the sacrifice operation. 
   - share_price: The price of a share. 
-  - empty_share: The number of remaining empty shares. Maximum number is 7 and minimum number is 0
-  - added_at: The date and time when the sacrifice information was added.
+  - total_price: The price of a sacrifice animal. (share_price * 7)
+  - empty_share: The number of remaining empty shares. Maximum number is 7 and minimum number is 0.
+  - last_edited_time: The date and time when the sacrifice information was last edited. There is a trigger in the database that updates this field when the sacrifice information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
-  - notes: Additional information or notes. 
+  - notes: Additional information or notes.
 
-Table 2: shareholders and its fields are: 
-  - shareholder_id: Primary key (a unique identifier field). 
-  - shareholder_name: The name of the shareholder. 
-  - phone_number: The phone number of the shareholder. 
-  - purchase_time: The time of share purchase. 
-  - sacrifice_no: The associated sacrifice (foreign key). 
-  - paid_amount: The paid amount. 
-  - total_amount: The total amount to be paid. 
-  - remaining_payment: The remaining payment amount. 
-  - payment_status: Payment status (e.g., "paid", "pending"). 
+Table 2: shareholders and its fields are:
+  - shareholder_id: Primary key (a unique identifier field).
+  - shareholder_name: The name of the shareholder.
+  - phone_number: The phone number of the shareholder. -> varchar(13)
+  - purchase_time: The time of share purchase. Default value is (now() AT TIME ZONE 'Europe/Istanbul'::text) so don't send backend to this column value.
+  - sacrifice_id: The associated sacrifice (foreign key). 
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
+  - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.
+  - total_amount: The total amount to be paid. (share_price + delivery_fee)
+  - paid_amount: The paid amount. 
+  - remaining_payment: The remaining payment amount. (total_amount - paid_amount)
+  - payment_status: Payment status (e.g., "paid", "pending").
+        When using this field in the frontend,
+        - If the paid_amount is not more than 2000 liras, it should say the "Kapora bekleniyor."
+        - If the paid_amount is more than 2000 liras but the remaining_payment is still not 0, it should say the "Kalan ödeme bekleniyor."
   - delivery_type: Delivery type (e.g., "Kesimhane", "Toplu Teslim Noktası"). 
-  - delivery_location: This will ve only two options: "Yenimahalle Pazar Yeri" or "Keçiören Otoparkı".
+  - delivery_location: If Delivery type is "Toplu Teslim Noktası", this will be only two options: "Yenimahalle Pazar Yeri" or "Keçiören Otoparkı". Otherwise Kesimhane.
   - sacrifice_consent: This a boolean value in db. But it is displayed as "Vekalet" in UI and in forms, this field is shown in the drop-down menu as "Vekalet Alındı" or "Vekalet Alınmadı".
+  - last_edited_time: The date and time when the shareholder information was last edited. There is a trigger in the database that updates this field when the shareholder information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
-  - notes: Additional information or notes. 
+  - notes: Additional information or notes.
 
 Table 3: change_logs and its fields are: 
-  - id: Primary key (a unique identifier field). 
+  - event_id: Primary key - serial (a unique identifier field). 
   - table_name: Specifies which table was modified.
   - row_id: The ID of the modified record.
+  - column_name: Column name where the change was made.
+  - old_value
+  - new_value
+  - change_type: The type of operation performed (e.g., "Ekleme", "Güncelleme", "Silme"). 
   - description: Description of the change. 
-  - operation: The type of operation performed (e.g., "INSERT", "UPDATE", "DELETE"). 
-  - changed_at: The date and time when the change was made. 
   - change_owner: Information about the last person who edited the record (e.g., admin ID or name).
+  - changed_at: The date and time when the change was made. 
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
 

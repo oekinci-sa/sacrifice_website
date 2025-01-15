@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { formatPhoneForDisplay } from "@/utils/formatters";
 
 export const columns: ColumnDef<any>[] = [
   {
@@ -17,6 +18,10 @@ export const columns: ColumnDef<any>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Telefon" />
     ),
+    cell: ({ row }) => {
+      const phone = formatPhoneForDisplay(row.getValue("phone_number"));
+      return phone;
+    },
   },
   {
     accessorKey: "total_amount",

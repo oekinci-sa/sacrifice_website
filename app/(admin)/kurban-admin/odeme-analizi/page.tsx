@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 
 interface PaymentData {
@@ -23,34 +27,24 @@ interface PaymentData {
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;
-  payment_status: string;
-  is_deposit_overdue: boolean;
 }
 
 export default function PaymentAnalysis() {
+  const router = useRouter();
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overdue-deposits");
 
   useEffect(() => {
     async function fetchPayments() {
       try {
         const { data, error } = await supabase
           .from("shareholders")
-          .select("*")
-          .or("payment_status.eq.pending");
+          .select("*");
 
         if (error) throw error;
 
-        // Process data to check for overdue deposits
-        const processedData = (data || []).map((item) => ({
-          ...item,
-          is_deposit_overdue:
-            new Date(item.purchase_time) <
-              new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) &&
-            item.paid_amount === 0,
-        }));
-
-        setPayments(processedData);
+        setPayments(data || []);
       } catch (error) {
         console.error("Error fetching payments:", error);
       } finally {
@@ -69,78 +63,153 @@ export default function PaymentAnalysis() {
     );
   }
 
-  const overdueDeposits = payments.filter((p) => p.is_deposit_overdue);
+  const overdueDeposits = payments.filter(
+    (p) => 
+      new Date(p.purchase_time) < new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) && 
+      p.paid_amount < 2000
+  );
+
   const pendingPayments = payments.filter(
-    (p) => p.payment_status === "pending"
+    (p) => p.paid_amount >= 2000 && p.remaining_payment > 0
   );
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Geciken Kaporalar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>İsim</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>Kayıt Tarihi</TableHead>
-                  <TableHead>Durum</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {overdueDeposits.map((payment) => (
-                  <TableRow key={payment.shareholder_id}>
-                    <TableCell>{payment.shareholder_name}</TableCell>
-                    <TableCell>{payment.phone_number}</TableCell>
-                    <TableCell>
-                      {format(new Date(payment.purchase_time), "dd MMM yyyy", {
-                        locale: tr,
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="destructive">Kapora Gecikmiş</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Bekleyen Ödemeler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>İsim</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>Kalan Ödeme</TableHead>
-                  <TableHead>Durum</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingPayments.map((payment) => (
-                  <TableRow key={payment.shareholder_id}>
-                    <TableCell>{payment.shareholder_name}</TableCell>
-                    <TableCell>{payment.phone_number}</TableCell>
-                    <TableCell>{payment.remaining_payment} ₺</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">Ödeme Bekliyor</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Ödeme Analizi</h2>
+        <p className="text-muted-foreground">
+          Geciken kaporalar ve bekleyen ödemelerin detaylı analizi
+        </p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overdue-deposits" className="flex items-center gap-2">
+            Geciken Kaporalar
+            <Badge variant="destructive" className="ml-2">
+              {overdueDeposits.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="pending-payments" className="flex items-center gap-2">
+            Bekleyen Ödemeler
+            <Badge variant="secondary" className="ml-2">
+              {pendingPayments.length}
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overdue-deposits">
+          <Card>
+            <CardHeader>
+              <CardTitle>Geciken Kaporalar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>İsim</TableHead>
+                    <TableHead>Telefon</TableHead>
+                    <TableHead>Kayıt Tarihi</TableHead>
+                    <TableHead>Ödenen Tutar</TableHead>
+                    <TableHead>Kalan Tutar</TableHead>
+                    <TableHead>Durum</TableHead>
+                    <TableHead className="text-right">İşlemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {overdueDeposits.map((payment) => (
+                    <TableRow key={payment.shareholder_id}>
+                      <TableCell className="font-medium">
+                        {payment.shareholder_name}
+                      </TableCell>
+                      <TableCell>{payment.phone_number}</TableCell>
+                      <TableCell>
+                        {format(new Date(payment.purchase_time), "dd MMM yyyy", {
+                          locale: tr,
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(payment.paid_amount)}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(payment.remaining_payment)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">Kapora Gecikmiş</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${payment.shareholder_id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pending-payments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bekleyen Ödemeler</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>İsim</TableHead>
+                    <TableHead>Telefon</TableHead>
+                    <TableHead>Kayıt Tarihi</TableHead>
+                    <TableHead>Ödenen Tutar</TableHead>
+                    <TableHead>Kalan Tutar</TableHead>
+                    <TableHead>Durum</TableHead>
+                    <TableHead className="text-right">İşlemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingPayments.map((payment) => (
+                    <TableRow key={payment.shareholder_id}>
+                      <TableCell className="font-medium">
+                        {payment.shareholder_name}
+                      </TableCell>
+                      <TableCell>{payment.phone_number}</TableCell>
+                      <TableCell>
+                        {format(new Date(payment.purchase_time), "dd MMM yyyy", {
+                          locale: tr,
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(payment.paid_amount)}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(payment.remaining_payment)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">Kalan Ödeme Bekleniyor</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${payment.shareholder_id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

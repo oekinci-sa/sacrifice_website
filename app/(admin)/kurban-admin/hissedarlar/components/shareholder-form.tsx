@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
 
 interface ShareholderFormProps {
   shareholder: {
@@ -62,7 +63,7 @@ export function ShareholderForm({
       const formData = new FormData(e.currentTarget);
       const updatedData = {
         shareholder_name: formData.get("shareholder_name"),
-        phone_number: formData.get("phone_number"),
+        phone_number: formatPhoneForDB(formData.get("phone_number") as string),
         total_amount: Number(formData.get("total_amount")),
         paid_amount: Number(formData.get("paid_amount")),
         remaining_payment: Number(formData.get("remaining_payment")),
@@ -155,8 +156,9 @@ export function ShareholderForm({
         <Input
           id="phone_number"
           name="phone_number"
-          defaultValue={shareholder.phone_number}
+          defaultValue={formatPhoneForDisplay(shareholder.phone_number)}
           required
+          placeholder="05555555555"
         />
       </div>
     </div>

@@ -1,26 +1,44 @@
 "use client";
 
 import { Row } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
-interface DataTableRowActionsProps<TData extends { sacrifice_no: number }> {
+interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
 
-export function DataTableRowActions<TData extends { sacrifice_no: number }>({
+export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const data = row.original;
+  const router = useRouter();
+  const sacrifice = row.original as any;
 
   return (
-    <div className="flex justify-center opacity-0 group-hover:opacity-100 transition-opacity relative z-50">
-      <Link href={`/kurban-admin/kurbanliklar/ayrintilar/${data.sacrifice_no}`}>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Pencil className="h-4 w-4" />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
         </Button>
-      </Link>
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuItem
+          onClick={() => router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrifice.sacrifice_id}`)}
+        >
+          Detaylar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -18,9 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ShareholderFormValues, shareholderFormSchema } from "@/types";
-import { Separator } from "@/components/ui/separator";
+import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
 
 interface ShareholderFormProps {
   shareholder: any;
@@ -40,7 +40,7 @@ export function ShareholderForm({
     resolver: zodResolver(shareholderFormSchema),
     defaultValues: {
       shareholder_name: shareholder.shareholder_name || "",
-      phone_number: shareholder.phone_number || "",
+      phone_number: formatPhoneForDisplay(shareholder.phone_number) || "",
       total_amount: Number(shareholder.total_amount) || 0,
       paid_amount: Number(shareholder.paid_amount) || 0,
       remaining_payment: Number(shareholder.remaining_payment) || 0,
@@ -56,48 +56,53 @@ export function ShareholderForm({
     },
   });
 
+  // Watch for delivery type changes to update delivery fee
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "delivery_type") {
+        const deliveryFee = value.delivery_type === "toplu-teslimat" ? 500 : 0;
+        form.setValue("delivery_fee", deliveryFee);
+        
+        // Update total amount
+        const newTotalAmount = (shareholder.share_price || 0) + deliveryFee;
+        form.setValue("total_amount", newTotalAmount);
+        
+        // Update remaining payment
+        const paidAmount = form.getValues("paid_amount");
+        form.setValue("remaining_payment", newTotalAmount - paidAmount);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, shareholder.share_price]);
+
+  const handleSubmit = form.handleSubmit((values) => {
+    const formattedValues = {
+      ...values,
+      phone_number: formatPhoneForDB(values.phone_number),
+    };
+    onSubmit(formattedValues, shareholder.shareholder_id);
+  });
+
+  const getPaymentStatus = (paid: number, remaining: number) => {
+    if (paid < 2000) return "Kapora bekleniyor.";
+    if (remaining > 0) return "Kapora ödendi. Kalan ödeme bekleniyor.";
+    return "Ödeme tamamlandı.";
+  };
+
   return (
     <div className="space-y-12">
-      {/* Statik Bilgiler */}
-      <Card className="bg-muted/50 shadow-none border-none">
-        <CardContent className="grid grid-cols-3 gap-4 p-6">
-          <div>
-            <p className="text-sm font-medium">Kayıt Tarihi</p>
-            <p className="text-sm text-muted-foreground">
-              {new Date(shareholder.purchase_time || "").toLocaleString(
-                "tr-TR"
-              )}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Hissedar ID</p>
-            <p className="text-sm text-muted-foreground">
-              {shareholder.shareholder_id}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Son Düzenleyen</p>
-            <p className="text-sm text-muted-foreground">
-              {shareholder.last_edited_by}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Form */}
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit((values) =>
-            onSubmit(values, shareholder.shareholder_id)
-          )}
-          className="space-y-16"
-        >
+        <form onSubmit={handleSubmit} className="space-y-16">
           {/* Hissedar Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-3">
               <h3 className="font-semibold text-lg sticky top-0">
                 Hissedar Bilgileri
               </h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Kayıt Tarihi: {new Date(shareholder.purchase_time || "").toLocaleString("tr-TR")}
+              </p>
             </div>
             <div className="col-span-9 grid grid-cols-2 gap-6">
               <FormField
@@ -121,7 +126,7 @@ export function ShareholderForm({
                   <FormItem>
                     <FormLabel>Telefon Numarası</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="05555555555" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,8 +134,6 @@ export function ShareholderForm({
               />
             </div>
           </div>
-
-          <Separator className="my-12" />
 
           {/* Ödeme Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
@@ -138,87 +141,37 @@ export function ShareholderForm({
               <h3 className="font-semibold text-lg sticky top-0">
                 Ödeme Bilgileri
               </h3>
+              <div className="space-y-2 mt-2 text-sm text-muted-foreground">
+                <p>Toplam Tutar: {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(form.getValues("total_amount"))}</p>
+                <p>Kalan Ödeme: {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(form.getValues("remaining_payment"))}</p>
+                <p>Ödeme Durumu: {getPaymentStatus(form.getValues("paid_amount"), form.getValues("remaining_payment"))}</p>
+              </div>
             </div>
-            <div className="col-span-9 grid grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="total_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Toplam Tutar</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+            <div className="col-span-9">
               <FormField
                 control={form.control}
                 name="paid_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kapora</FormLabel>
+                    <FormLabel>Ödenen Tutar</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const paidAmount = Number(e.target.value);
+                          field.onChange(paidAmount);
+                          const totalAmount = form.getValues("total_amount");
+                          form.setValue("remaining_payment", totalAmount - paidAmount);
+                        }}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="remaining_payment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Kalan Ödeme</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="payment_status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ödeme Durumu</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Ödeme durumu seçin" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="paid">Ödendi</SelectItem>
-                        <SelectItem value="pending">Bekliyor</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
           </div>
-
-          <Separator className="my-12" />
 
           {/* Teslimat Bilgileri */}
           <div className="grid grid-cols-12 gap-6">
@@ -227,7 +180,7 @@ export function ShareholderForm({
                 Teslimat Bilgileri
               </h3>
             </div>
-            <div className="col-span-9 grid grid-cols-2 gap-6">
+            <div className="col-span-9">
               <FormField
                 control={form.control}
                 name="delivery_type"
@@ -254,53 +207,35 @@ export function ShareholderForm({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="delivery_location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Teslimat Noktası</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Teslimat noktası seçin" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="yenimahalle-camii">
-                          Yenimahalle Camii
-                        </SelectItem>
-                        <SelectItem value="kecioren-pazar">
-                          Keçiören Pazar Yeri
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="delivery_fee"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Teslimat Ücreti</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {form.watch("delivery_type") === "toplu-teslimat" && (
+                <FormField
+                  control={form.control}
+                  name="delivery_location"
+                  render={({ field }) => (
+                    <FormItem className="mt-4">
+                      <FormLabel>Teslimat Noktası</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Teslimat noktası seçin" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="yenimahalle-camii">
+                            Yenimahalle Camii
+                          </SelectItem>
+                          <SelectItem value="kecioren-pazar">
+                            Keçiören Pazar Yeri
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
           </div>
-
-          <Separator className="my-12" />
 
           {/* Diğer Bilgiler */}
           <div className="grid grid-cols-12 gap-6">
@@ -309,13 +244,13 @@ export function ShareholderForm({
                 Diğer Bilgiler
               </h3>
             </div>
-            <div className="col-span-9 grid grid-cols-2 gap-6">
+            <div className="col-span-9 space-y-4">
               <FormField
                 control={form.control}
                 name="sacrifice_consent"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>sacrifice_consent Durumu</FormLabel>
+                    <FormLabel>Vekalet</FormLabel>
                     <Select
                       onValueChange={(value) =>
                         field.onChange(value === "verildi")
@@ -324,7 +259,7 @@ export function ShareholderForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="sacrifice_consent durumu seçin" />
+                          <SelectValue placeholder="Vekalet durumu seçin" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -353,7 +288,13 @@ export function ShareholderForm({
             </div>
           </div>
 
-          <Button type="submit" className="w-full mt-12">
+          <div className="flex justify-end">
+            <p className="text-sm text-muted-foreground">
+              Son düzenleyen: {shareholder.last_edited_by}
+            </p>
+          </div>
+
+          <Button type="submit" className="w-full">
             Değişiklikleri Kaydet
           </Button>
         </form>

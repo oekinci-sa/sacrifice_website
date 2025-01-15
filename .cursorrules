@@ -73,6 +73,7 @@ Table 2: shareholders and its fields are:
   - shareholder_id: Primary key (a unique identifier field).
   - shareholder_name: The name of the shareholder.
   - phone_number: The phone number of the shareholder. -> varchar(13)
+        When we receive an input from users regarding a phone_number, we will definitely check it and send it to db as +905555555555, but when we show it to users in the frontend, we should remove the +9 at the beginning and show it as 05555555555.
   - purchase_time: The time of share purchase. Default value is (now() AT TIME ZONE 'Europe/Istanbul'::text) so don't send backend to this column value.
   - sacrifice_id: The associated sacrifice (foreign key). 
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.

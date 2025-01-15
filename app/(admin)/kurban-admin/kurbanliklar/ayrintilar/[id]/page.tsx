@@ -21,6 +21,7 @@ interface Shareholder extends ShareholderFormValues {
   shareholder_id: string;
   purchase_time: string;
   last_edited_by: string;
+  share_price: number;
 }
 
 export default function DetailsPage() {
@@ -35,16 +36,35 @@ export default function DetailsPage() {
       if (!id) return;
       setLoading(true);
 
+      // First, get the sacrifice details to get the share price
+      const { data: sacrifice, error: sacrificeError } = await supabase
+        .from("sacrifice_animals")
+        .select("share_price")
+        .eq("sacrifice_id", id)
+        .single();
+
+      if (sacrificeError) {
+        toast.error("Kurbanlık bilgileri yüklenirken hata oluştu");
+        console.error(sacrificeError);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("shareholders")
         .select("*")
-        .eq("sacrifice_no", id);
+        .eq("sacrifice_id", id);
 
       if (error) {
         toast.error("Veri yüklenirken hata oluştu");
         console.error(error);
       } else if (data) {
-        setShareholders(data);
+        // Add share price to each shareholder
+        const shareholdersWithPrice = data.map(shareholder => ({
+          ...shareholder,
+          share_price: sacrifice.share_price
+        }));
+        setShareholders(shareholdersWithPrice);
       }
       setLoading(false);
     }

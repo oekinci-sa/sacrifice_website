@@ -10,7 +10,6 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShareholderFormValues, shareholderFormSchema } from "@/types";
@@ -30,16 +29,17 @@ export default function DetailsPage() {
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("0");
+  const [sacrificeNo, setSacrificeNo] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
       if (!id) return;
       setLoading(true);
 
-      // First, get the sacrifice details to get the share price
+      // First, get the sacrifice details to get the share price and sacrifice_no
       const { data: sacrifice, error: sacrificeError } = await supabase
         .from("sacrifice_animals")
-        .select("share_price")
+        .select("share_price, sacrifice_no")
         .eq("sacrifice_id", id)
         .single();
 
@@ -49,6 +49,8 @@ export default function DetailsPage() {
         setLoading(false);
         return;
       }
+
+      setSacrificeNo(sacrifice.sacrifice_no);
 
       const { data, error } = await supabase
         .from("shareholders")
@@ -112,43 +114,41 @@ export default function DetailsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">Kurban No: {id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Kurban No: {sacrificeNo}</h2>
         </div>
       </div>
       <Separator />
 
       <div className="container mx-auto">
-        <Card>
-          <CardContent className="p-6">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="space-y-4"
-            >
-              <TabsList className="grid grid-cols-7 gap-4">
-                {shareholders.map((_, index) => (
-                  <TabsTrigger
-                    key={index}
-                    value={index.toString()}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {index + 1}. Hissedar
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {shareholders.map((shareholder, index) => (
-                <TabsContent key={index} value={index.toString()}>
-                  <ShareholderForm
-                    shareholder={shareholder}
-                    index={index + 1}
-                    onSubmit={onSubmit}
-                  />
-                </TabsContent>
+        <div className="p-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <TabsList className="grid grid-cols-7 gap-4">
+              {shareholders.map((_, index) => (
+                <TabsTrigger
+                  key={index}
+                  value={index.toString()}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  {index + 1}. Hissedar
+                </TabsTrigger>
               ))}
-            </Tabs>
-          </CardContent>
-        </Card>
+            </TabsList>
+
+            {shareholders.map((shareholder, index) => (
+              <TabsContent key={index} value={index.toString()}>
+                <ShareholderForm
+                  shareholder={shareholder}
+                  index={index + 1}
+                  onSubmit={onSubmit}
+                />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
       </div>
     </div>
   );

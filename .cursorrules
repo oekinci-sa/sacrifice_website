@@ -81,13 +81,9 @@ Table 2: shareholders and its fields are:
   - total_amount: The total amount to be paid. (share_price + delivery_fee)
   - paid_amount: The paid amount. 
   - remaining_payment: The remaining payment amount. (total_amount - paid_amount)
-  - payment_status: Payment status (e.g., "paid", "pending").
-        When using this field in the frontend,
-        - If the paid_amount is not more than 2000 liras, it should say the "Kapora bekleniyor."
-        - If the paid_amount is more than 2000 liras but the remaining_payment is still not 0, it should say the "Kalan ödeme bekleniyor."
-  - delivery_type: Delivery type (e.g., "Kesimhane", "Toplu Teslim Noktası"). 
-  - delivery_location: If Delivery type is "Toplu Teslim Noktası", this will be only two options: "Yenimahalle Pazar Yeri" or "Keçiören Otoparkı". Otherwise Kesimhane.
-  - sacrifice_consent: This a boolean value in db. But it is displayed as "Vekalet" in UI and in forms, this field is shown in the drop-down menu as "Vekalet Alındı" or "Vekalet Alınmadı".
+  - delivery_type: Delivery type (e.g., "kesimhane", "toplu-teslim-noktasi"). 
+  - delivery_location: If Delivery type is "toplu-teslim-noktasi", this will be only two options: "yenimahalle-pazar-yeri" or "kecioren-otoparki". Otherwise "kesimhane".
+  - sacrifice_consent: This a boolean value in db. But it is displayed as "vekalet" in UI and in forms, this field is shown in the drop-down menu as "vekalet-alindi" or "vekalet-alinmadi".
   - last_edited_time: The date and time when the shareholder information was last edited. There is a trigger in the database that updates this field when the shareholder information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
   - notes: Additional information or notes.

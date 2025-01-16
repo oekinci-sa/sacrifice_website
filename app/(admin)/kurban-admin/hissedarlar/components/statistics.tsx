@@ -152,7 +152,7 @@ export function ShareholderStatistics() {
     <div className="grid gap-4">
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Hissedar</CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Tutar</CardTitle>
           </CardHeader>
@@ -188,7 +188,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplanan Ödeme</CardTitle>
           </CardHeader>
@@ -202,7 +202,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Vekalet Durumu</CardTitle>
           </CardHeader>
@@ -223,7 +223,7 @@ export function ShareholderStatistics() {
 
       {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-2">
+        <Card className="col-span-2 shadow-none">
           <CardHeader>
             <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
           </CardHeader>
@@ -254,7 +254,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Teslimat Tercihleri</CardTitle>
           </CardHeader>
@@ -285,7 +285,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
+        <Card className="col-span-3 shadow-none">
           <CardHeader>
             <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
           </CardHeader>
@@ -293,7 +293,6 @@ export function ShareholderStatistics() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={locationData}>
-                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />

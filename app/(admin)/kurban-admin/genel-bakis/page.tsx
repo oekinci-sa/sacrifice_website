@@ -12,7 +12,6 @@ import {
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
   PieChart,
@@ -259,7 +258,7 @@ export default function GeneralOverview() {
     <div className="space-y-6">
       {/* Günlük KPI'lar */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Bugünkü Satışlar</CardTitle>
           </CardHeader>
@@ -271,7 +270,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Bugünkü Ödemeler</CardTitle>
           </CardHeader>
@@ -283,7 +282,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Geciken Kapora</CardTitle>
           </CardHeader>
@@ -302,7 +301,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Bekleyen Ödemeler</CardTitle>
           </CardHeader>
@@ -324,7 +323,7 @@ export default function GeneralOverview() {
 
       {/* Progress Barlar */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Kurbanlık Durumu</CardTitle>
             <span className="text-xs text-muted-foreground">
@@ -349,7 +348,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Hisse Durumu</CardTitle>
             <span className="text-xs text-muted-foreground">
@@ -374,7 +373,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ödeme Durumu</CardTitle>
             <span className="text-xs text-muted-foreground">
@@ -401,7 +400,7 @@ export default function GeneralOverview() {
       </div>
 
       {/* Günlük Hisse Alımları */}
-      <Card>
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle>Günlük Hisse Alımları</CardTitle>
         </CardHeader>
@@ -426,7 +425,7 @@ export default function GeneralOverview() {
 
       {/* Ödeme Grafikleri */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
           </CardHeader>
@@ -457,7 +456,7 @@ export default function GeneralOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Ödeme Analizi</CardTitle>
           </CardHeader>
@@ -479,7 +478,7 @@ export default function GeneralOverview() {
       </div>
 
       {/* Son İşlemler */}
-      <Card>
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle>Son İşlemler</CardTitle>
         </CardHeader>

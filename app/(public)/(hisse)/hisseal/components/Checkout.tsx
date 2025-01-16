@@ -23,14 +23,23 @@ interface CheckoutProps {
   onApprove: () => void;
 }
 
+interface FormErrors {
+  name?: string;
+  phone?: string;
+  delivery_type?: string;
+  delivery_location?: string;
+}
+
 const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps) => {
   const [localFormData, setLocalFormData] = useState<any[]>([]);
   const [currentEmptyShare, setCurrentEmptyShare] = useState<number>(0);
+  const [formErrors, setFormErrors] = useState<FormErrors[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     if (formData) {
       setLocalFormData(formData);
+      setFormErrors(Array(formData.length).fill({}));
     } else if (sacrifice) {
       setLocalFormData(Array(1).fill({
         name: "",
@@ -38,6 +47,7 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
         delivery_type: "kesimhane",
         delivery_location: "",
       }));
+      setFormErrors([{}]);
     }
 
     // Set up realtime subscription for empty_share updates
@@ -69,11 +79,53 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
     }
   }, [sacrifice, formData]);
 
+  const validateField = (index: number, field: string, value: string) => {
+    const errors = { ...formErrors[index] };
+    
+    switch (field) {
+      case 'name':
+        if (!value) {
+          errors.name = "Ad soyad zorunludur";
+        } else {
+          delete errors.name;
+        }
+        break;
+      case 'phone':
+        if (!value) {
+          errors.phone = "Telefon numarası zorunludur";
+        } else if (!/^0[0-9]{10}$/.test(value)) {
+          errors.phone = "Geçerli bir telefon numarası giriniz";
+        } else {
+          delete errors.phone;
+        }
+        break;
+      case 'delivery_type':
+        if (!value) {
+          errors.delivery_type = "Teslimat tercihi zorunludur";
+        } else {
+          delete errors.delivery_type;
+        }
+        break;
+      case 'delivery_location':
+        if (localFormData[index]?.delivery_type === "toplu-teslim-noktasi" && !value) {
+          errors.delivery_location = "Teslimat noktası seçiniz";
+        } else {
+          delete errors.delivery_location;
+        }
+        break;
+    }
+
+    const newFormErrors = [...formErrors];
+    newFormErrors[index] = errors;
+    setFormErrors(newFormErrors);
+  };
+
   const handleInputChange = (index: number, field: string, value: string | boolean) => {
     const updatedData = [...localFormData];
     updatedData[index] = { ...updatedData[index], [field]: value };
     setLocalFormData(updatedData);
     setFormData(updatedData);
+    validateField(index, field, value as string);
   };
 
   const handleAddShareholder = async () => {
@@ -177,7 +229,11 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                       onChange={(e) =>
                         handleInputChange(index, "name", e.target.value)
                       }
+                      className={formErrors[index]?.name ? "border-red-500" : ""}
                     />
+                    {formErrors[index]?.name && (
+                      <p className="text-sm text-red-500 mt-1">{formErrors[index].name}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor={`phone-${index}`}>Telefon Numarası</Label>
@@ -191,7 +247,11 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                           handleInputChange(index, "phone", value);
                         }
                       }}
+                      className={formErrors[index]?.phone ? "border-red-500" : ""}
                     />
+                    {formErrors[index]?.phone && (
+                      <p className="text-sm text-red-500 mt-1">{formErrors[index].phone}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor={`delivery-${index}`}>Teslimat Tercihi</Label>
@@ -199,7 +259,7 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                       value={localFormData[index]?.delivery_type || "kesimhane"}
                       onValueChange={(value) => handleInputChange(index, "delivery_type", value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={formErrors[index]?.delivery_type ? "border-red-500" : ""}>
                         <SelectValue placeholder="Teslimat türü seçin" />
                       </SelectTrigger>
                       <SelectContent>
@@ -207,6 +267,9 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                         <SelectItem value="toplu-teslim-noktasi">Toplu Teslimat Noktasında Teslim</SelectItem>
                       </SelectContent>
                     </Select>
+                    {formErrors[index]?.delivery_type && (
+                      <p className="text-sm text-red-500 mt-1">{formErrors[index].delivery_type}</p>
+                    )}
                   </div>
                   {localFormData[index]?.delivery_type === "toplu-teslim-noktasi" && (
                     <div>
@@ -215,7 +278,7 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                         value={localFormData[index]?.delivery_location || ""}
                         onValueChange={(value) => handleInputChange(index, "delivery_location", value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={formErrors[index]?.delivery_location ? "border-red-500" : ""}>
                           <SelectValue placeholder="Teslimat noktası seçin" />
                         </SelectTrigger>
                         <SelectContent>
@@ -223,6 +286,9 @@ const Checkout = ({ sacrifice, formData, setFormData, onApprove }: CheckoutProps
                           <SelectItem value="kecioren-otoparki">Keçiören Otoparkı</SelectItem>
                         </SelectContent>
                       </Select>
+                      {formErrors[index]?.delivery_location && (
+                        <p className="text-sm text-red-500 mt-1">{formErrors[index].delivery_location}</p>
+                      )}
                     </div>
                   )}
                 </form>

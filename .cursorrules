@@ -100,7 +100,7 @@ Table 2: shareholders and its fields are:
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
   - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.
   - total_amount: The total amount to be paid. (share_price + delivery_fee)
-  - paid_amount: The paid amount. 
+  - paid_amount: The paid amount. (initial value is 0)
   - remaining_payment: The remaining payment amount. (total_amount - paid_amount)
   - delivery_type: Delivery type (e.g., "kesimhane", "toplu-teslim-noktasi"). 
   - delivery_location: If Delivery type is "toplu-teslim-noktasi", this will be only two options: "yenimahalle-pazar-yeri" or "kecioren-otoparki". Otherwise "kesimhane".

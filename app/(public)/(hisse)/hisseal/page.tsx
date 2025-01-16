@@ -20,6 +20,7 @@ const Page = () => {
   const router = useRouter();
   const [selectedSacrifice, setSelectedSacrifice] = useState<sacrificeSchema | null>(null);
   const [formData, setFormData] = useState<any>(null);
+  const [formErrors, setFormErrors] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>("tab-1");
   const [data, setData] = useState<sacrificeSchema[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -283,15 +284,33 @@ const Page = () => {
   const handleApprove = async () => {
     if (!selectedSacrifice || !formData) return;
 
-    // Validate form data
-    const isValid = formData.every((data: any) => 
-      data.name && 
-      data.phone && 
-      data.delivery_type && 
-      (data.delivery_type === "kesimhane" || data.delivery_location)
-    );
+    // Validate form data and collect validation errors
+    let hasErrors = false;
+    const validationErrors = formData.map((data: any) => {
+      const errors: { [key: string]: string } = {};
+      
+      if (!data.name) {
+        errors.name = "Ad soyad zorunludur";
+        hasErrors = true;
+      }
+      if (!data.phone) {
+        errors.phone = "Telefon numarası zorunludur";
+        hasErrors = true;
+      }
+      if (!data.delivery_type) {
+        errors.delivery_type = "Teslimat tercihi zorunludur";
+        hasErrors = true;
+      }
+      if (data.delivery_type === "toplu-teslim-noktasi" && !data.delivery_location) {
+        errors.delivery_location = "Teslimat noktası seçiniz";
+        hasErrors = true;
+      }
+      
+      return errors;
+    });
 
-    if (!isValid) {
+    if (hasErrors) {
+      setFormErrors(validationErrors);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -300,20 +319,47 @@ const Page = () => {
       return;
     }
 
+    // Format phone numbers
+    const formattedData = formData.map((data: any) => {
+      let phone = data.phone;
+      // Remove any non-digit characters
+      phone = phone.replace(/\D/g, "");
+      // Remove leading 0 if exists
+      if (phone.startsWith("0")) {
+        phone = phone.substring(1);
+      }
+      // Add +90 prefix if not exists
+      if (!phone.startsWith("90")) {
+        phone = "90" + phone;
+      }
+      // Add + at the beginning
+      phone = "+" + phone;
+
+      return {
+        ...data,
+        phone,
+      };
+    });
+
     // Insert shareholders
     const { error } = await supabase
       .from("shareholders")
-      .insert(formData.map((data: any) => ({
-        ...data,
+      .insert(formattedData.map((data: any) => ({
+        shareholder_name: data.name,
+        phone_number: data.phone,
         sacrifice_id: selectedSacrifice.sacrifice_id,
         share_price: selectedSacrifice.share_price,
+        delivery_type: data.delivery_type,
+        delivery_location: data.delivery_type === "kesimhane" ? "kesimhane" : data.delivery_location,
         delivery_fee: data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0,
         total_amount: selectedSacrifice.share_price + (data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0),
         paid_amount: 0,
         remaining_payment: selectedSacrifice.share_price + (data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0),
+        sacrifice_consent: false
       })));
 
     if (error) {
+      console.error("Error inserting shareholders:", error);
       toast({
         variant: "destructive",
         title: "Hata",

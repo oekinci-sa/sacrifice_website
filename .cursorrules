@@ -9,6 +9,27 @@ Public Pages:
 - / -> Page where general information about the organization is given.
 - /hakkimizda -> Page where the organizers of the organization are explained
 - /hisseal -> Where the animal is chosen and personal information such as name and surname is entered for the shares received from the animals. Then, they receive the relevant information as an SMS message to their phones. There will be no online payment on the site. Fees will be collected in cash.
+    There are two tabs on this page: Share Selection and Share Approval
+
+    Share Selection Tab:
+    There is a table and there is a share buy button on each row. If the empty share count is 0, the button appears as passive. When the button on the rows with empty shares is pressed, a pop-up opens and a question is asked how many shares you want to select? Here, a decrease occurs in the db according to the value selected by the user. Then, the system takes us to the Share Approval tab.
+
+    Share Approval Tab:
+    Here, an accordion menu is formed as many as the number of shares selected and there is some shareholder information such as name and surname in them.
+
+    There is also an "Add New Shareholder" button on this page. This button will add the new shareholder if there is space in the database (it should learn this by querying the db) and will decrease the empty_share value from the db.
+
+    In case everything is positive, the user presses the approve button and this shareholder information is written to the shareholders table and the person is directed to the share inquiry screen.
+
+    However, there may be some negative situations.
+        1. For example, a person can keep the page open for 10 minutes while filling out a form, but this time other users cannot select these shares. There should be a timeout for this. For example, if the person does not perform any action within 3 minutes, a pop-up warning will be displayed to the user with 1 minute left in the form, with a countdown.
+
+        And if the user is still inactive when the time is up, the empty_share field should increase by the number of accordions that have occurred.
+
+        2. Another negative situation is when the person closes the tab completely or leaves the current page on this tab. In this case, the empty_share field should increase by the number of accordions that have occurred before the person leaves the page or the page is completely closed. (These negative situations can be controlled with the Beacon API.)
+
+        You don't need to return to the share selection tab when the window or the changes are made, this should only happen when there is a timeout.
+
 - /hissesorgula -> Later, the area where the share information is queried with the code sent to their mobile phones and users can get a PDF printout.
 - /yazilar -> Blog page with articles about sacrifice worship
 - /iletisim -> Page where those who want to contact the institution can get information

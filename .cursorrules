@@ -127,6 +127,7 @@ Your are not limited to these if you find a more clean solution. But mention abo
 
 #YOUR RULES
 
+- Design website based on components. Do not stuff code into a single page 
 - Follow the user’s requirements carefully & to the letter.
 - Don't remove comment lines.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
@@ -140,3 +141,4 @@ Your are not limited to these if you find a more clean solution. But mention abo
 - Be concise Minimize any other prose.
 - If you think there might not be a correct answer, you say so.
 - If you do not know the answer, say so, instead of guessing.
+- Correct linter errors and warnings.

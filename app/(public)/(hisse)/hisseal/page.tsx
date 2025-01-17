@@ -18,52 +18,78 @@ const API_ENDPOINT = '/api/update-empty-share';
 
 const Page = () => {
   const router = useRouter();
-  const [selectedSacrifice, setSelectedSacrifice] = useState<sacrificeSchema | null>(null);
-  const [formData, setFormData] = useState<any>(null);
-  const [formErrors, setFormErrors] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("tab-1");
   const [data, setData] = useState<sacrificeSchema[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedSacrifice, setSelectedSacrifice] = useState<sacrificeSchema | null>(null);
   const [tempSelectedSacrifice, setTempSelectedSacrifice] = useState<sacrificeSchema | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(TIMEOUT_DURATION);
+  const [formData, setFormData] = useState<any[]>([]);
+  const [formErrors, setFormErrors] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("tab-1");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(180);
   const [showWarning, setShowWarning] = useState(false);
   const [lastInteractionTime, setLastInteractionTime] = useState<number>(Date.now());
   const { toast } = useToast();
 
-  // Initial data fetch and realtime subscription
   useEffect(() => {
     const fetchData = async () => {
-      const { data: sacrifices } = await supabase
+      const { data: initialData, error } = await supabase
         .from("sacrifice_animals")
         .select("*")
-        .order("sacrifice_no", { ascending: true });
+        .order('sacrifice_no', { ascending: true });
 
-      if (sacrifices) {
-        setData(sacrifices);
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Veri Yükleme Hatası",
+          description: "Veriler yüklenirken bir hata oluştu: " + error.message,
+        });
+        return;
       }
+
+      setData(initialData || []);
+
+      const channel = supabase.channel('db-changes', {
+        config: {
+          broadcast: { self: true }
+        }
+      });
+
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sacrifice_animals'
+          },
+          (payload: any) => {
+            if (payload.eventType === "INSERT") {
+              setData((currentData) => {
+                const newData = [...currentData, payload.new as sacrificeSchema];
+                return newData.sort((a, b) => a.sacrifice_no - b.sacrifice_no);
+              });
+            } else if (payload.eventType === "UPDATE") {
+              setData((currentData) =>
+                currentData.map((item) =>
+                  item.sacrifice_id === payload.new.sacrifice_id ? (payload.new as sacrificeSchema) : item
+                ).sort((a, b) => a.sacrifice_no - b.sacrifice_no)
+              );
+            } else if (payload.eventType === "DELETE") {
+              setData((currentData) =>
+                currentData.filter((item) => item.sacrifice_id !== payload.old.sacrifice_id)
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
     };
 
     fetchData();
-
-    const channel = supabase
-      .channel('public:sacrifice_animals')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sacrifice_animals' },
-        (payload) => {
-          if (payload.eventType === 'UPDATE' && payload.new) {
-            setData(currentData => 
-              currentData.map(item => 
-                item.sacrifice_id === payload.new.sacrifice_id ? payload.new : item
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
+  }, [toast]);
 
   // Function to update empty_share in the database
   const updateEmptyShare = useCallback(async (sacrificeId: string, change: number) => {
@@ -110,7 +136,7 @@ const Page = () => {
       console.log("Beacon API request sent with data:", data);
 
       setSelectedSacrifice(null);
-      setFormData(null);
+      setFormData([]);
     }
   }, [selectedSacrifice, formData]);
 

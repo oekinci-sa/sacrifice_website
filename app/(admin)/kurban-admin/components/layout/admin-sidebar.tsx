@@ -22,28 +22,41 @@ import {
   Scissors,
   Users,
   CreditCard,
+  UserCog,
 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const sidebarNavItems = [
   {
     title: "Genel Bakış",
     href: "/kurban-admin/genel-bakis",
     icon: LayoutDashboard,
+    roles: ["admin", "editor"],
   },
   {
     title: "Kurbanlıklar",
     href: "/kurban-admin/kurbanliklar",
     icon: Scissors,
+    roles: ["admin", "editor"],
   },
   {
     title: "Hissedarlar",
     href: "/kurban-admin/hissedarlar",
     icon: Users,
+    roles: ["admin", "editor"],
   },
   {
     title: "Ödeme Analizi",
     href: "/kurban-admin/odeme-analizi",
     icon: CreditCard,
+    roles: ["admin", "editor"],
+  },
+  {
+    title: "Kullanıcı Yönetimi",
+    href: "/kurban-admin/kullanici-yonetimi",
+    icon: UserCog,
+    roles: ["admin"],
   },
 ] as const;
 
@@ -55,12 +68,22 @@ interface AdminSidebarProps {
 export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { data: session } = useSession();
 
   const toggleCollapsed = () => {
     const newState = !isCollapsed;
     onCollapsedChange(newState);
     localStorage.setItem("sidebarCollapsed", JSON.stringify(newState));
   };
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/giris" });
+  };
+
+  // Filter nav items based on user role
+  const authorizedNavItems = sidebarNavItems.filter((item) =>
+    item.roles.includes(session?.user?.role as string)
+  );
 
   return (
     <div className={cn(
@@ -81,7 +104,7 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
       
       <div className="flex-1 overflow-y-auto">
         <nav className="space-y-1 px-2 py-4">
-          {sidebarNavItems.map((item) => (
+          {authorizedNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -100,9 +123,19 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
       <div className="mt-auto border-t border-zinc-800 p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-full justify-start gap-2 text-zinc-400 hover:text-white hover:bg-zinc-900">
-              <User className="h-4 w-4" />
-              {!isCollapsed && <span>Kullanıcı Menüsü</span>}
+            <Button variant="ghost" className="h-12 w-full justify-start gap-2 text-zinc-400 hover:text-white hover:bg-zinc-900">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarFallback>
+                  {session?.user?.name?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+              {!isCollapsed && (
+                <div className="flex flex-col items-start text-left">
+                  <span className="text-sm font-medium">{session?.user?.name}</span>
+                  <span className="text-xs text-zinc-500">{session?.user?.email}</span>
+                </div>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -119,7 +152,7 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
                 </>
               )}
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Çıkış Yap</span>
             </DropdownMenuItem>

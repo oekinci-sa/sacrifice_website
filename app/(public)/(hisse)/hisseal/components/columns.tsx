@@ -3,7 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { sacrificeSchema } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
@@ -14,7 +15,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(!isSorted)}
-          className="w-full"
+          className="w-full h-full text-base font-medium p-4 rounded-none"
         >
           Kesim Sırası
           {isSorted === "asc" ? (
@@ -39,7 +40,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(!isSorted)}
-          className="w-full"
+          className="w-full h-full text-base font-medium p-4 rounded-none"
         >
           Kesim Saati
           {isSorted === "asc" ? (
@@ -72,7 +73,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full"
+          className="w-full h-full text-base font-medium p-4 rounded-none"
         >
           Hisse Bedeli
           {isSorted === "asc" ? (
@@ -86,7 +87,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="text-center">
+      <div className="text-center font-medium">
         {new Intl.NumberFormat('tr-TR', { 
           style: 'currency', 
           currency: 'TRY',
@@ -95,7 +96,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       </div>
     ),
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id).toString());
+      return value.includes((row.getValue(id) as number).toString());
     },
   },
   {
@@ -106,7 +107,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full"
+          className="w-full h-full text-base font-medium p-4 rounded-none"
         >
           Boş Hisse
           {isSorted === "asc" ? (
@@ -119,25 +120,59 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("empty_share")}</div>
-    ),
+    cell: ({ row }) => {
+      const emptyShare = row.getValue("empty_share") as number;
+      let bgColor = "bg-[#F0FBF1]";
+      let textColor = "text-[#39C645]";
+      
+      if (emptyShare <= 2) {
+        bgColor = "bg-[#FCEFEF]";
+        textColor = "text-[#D22D2D]";
+      } else if (emptyShare <= 4) {
+        bgColor = "bg-[#FFFAEC]";
+        textColor = "text-[#F9BC06]";
+      }
+
+      return (
+        <div className="text-center">
+          <span className={cn(
+            "inline-flex items-center justify-center w-8 h-8 rounded-md",
+            bgColor,
+            textColor,
+            "font-medium"
+          )}>
+            {emptyShare}
+          </span>
+        </div>
+      );
+    },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id).toString());
+      return value.includes((row.getValue(id) as number).toString());
     },
   },
   {
     id: "actions",
     cell: ({ row, table }) => {
       const sacrifice = row.original;
+      const emptyShare = sacrifice.empty_share;
+
+      if (emptyShare === 0) {
+        return (
+          <div className="text-center text-sm text-muted-foreground">
+            Tükendi
+          </div>
+        );
+      }
+
       return (
         <div className="text-center">
           <Button
-            variant="default"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
             onClick={() => (table.options.meta as any)?.onSacrificeSelect(sacrifice)}
-            disabled={sacrifice.empty_share === 0}
           >
-            Hisse Al
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       );

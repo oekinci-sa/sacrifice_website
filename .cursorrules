@@ -48,6 +48,12 @@ Admin Pages:
 
 #COMPONENT FEATURES
 
+Table Components
+I am showing some rows in color in the table element. Pay attention to the following while coloring.
+- When using green color, text color: #39C645 background color: #F0FBF1
+- When using red color, text color: #D22D2D background color: #FCEFEF
+- When using yellow color, text color: #F9BC06 background color: #FFFAEC
+
 Sidebar Component
 
 - The sidebar should have narrow and wide view features.

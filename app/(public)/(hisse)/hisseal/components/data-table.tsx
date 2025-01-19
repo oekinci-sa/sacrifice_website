@@ -27,6 +27,13 @@ import { Button } from "@/components/ui/button";
 import { sacrificeSchema } from "@/types";
 import { Input } from "@/components/ui/input";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -93,7 +100,14 @@ export function DataTable<TData, TValue>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="font-heading text-2xl">Kurbanlık Seçim Tablosu</h2>
+        <p className="text-muted-foreground">
+          Kurbanlık seçimlerinizi yaparken sütun adlarına tıklayarak sıralama yapabilir ve filtreleri kullanarak sadece istediğiniz kurbanlıklarının görüntülenmesini sağlayabilirsiniz.
+        </p>
+      </div>
+
       <div className="flex items-center justify-end">
         <div className="flex items-center space-x-4">
           {isFiltered && (
@@ -123,14 +137,14 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="border-t border-b">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="text-center">
+                    <TableHead key={header.id} className="text-center p-0">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -149,10 +163,10 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className="hover:bg-transparent border-b last:border-b-0"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-center">
+                    <TableCell key={cell.id} className="text-center py-4 text-sm font-medium">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -176,19 +190,23 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Sayfa başına</p>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value));
+            <Select
+              value={table.getState().pagination.pageSize.toString()}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value));
               }}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent"
             >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={pageSize.toString()}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-sm font-medium">kayıt</p>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">

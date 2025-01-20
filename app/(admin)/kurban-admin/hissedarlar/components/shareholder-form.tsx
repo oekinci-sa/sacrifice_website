@@ -149,6 +149,7 @@ export function ShareholderForm({
           name="shareholder_name"
           defaultValue={shareholder.shareholder_name}
           required
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
       <div className="grid gap-2">
@@ -159,6 +160,7 @@ export function ShareholderForm({
           defaultValue={formatPhoneForDisplay(shareholder.phone_number)}
           required
           placeholder="05555555555"
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
     </div>
@@ -174,16 +176,18 @@ export function ShareholderForm({
           type="number"
           defaultValue={shareholder.total_amount}
           required
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="paid_amount">Kapora (₺)</Label>
+        <Label htmlFor="paid_amount">Ödenen Tutar (₺)</Label>
         <Input
           id="paid_amount"
           name="paid_amount"
           type="number"
           defaultValue={shareholder.paid_amount}
           required
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
       <div className="grid gap-2">
@@ -194,16 +198,17 @@ export function ShareholderForm({
           type="number"
           defaultValue={shareholder.remaining_payment}
           required
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="payment_status">Ödeme Durumu</Label>
         <Select name="payment_status" defaultValue={shareholder.payment_status}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-[#F7F7F8] border-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="paid">Tamamlandı</SelectItem>
+            <SelectItem value="paid">Ödendi</SelectItem>
             <SelectItem value="pending">Bekliyor</SelectItem>
           </SelectContent>
         </Select>
@@ -219,7 +224,7 @@ export function ShareholderForm({
           name="delivery_type"
           defaultValue={shareholder.delivery_type || "kesimhane"}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-[#F7F7F8] border-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -235,7 +240,7 @@ export function ShareholderForm({
             name="delivery_location"
             defaultValue={shareholder.delivery_location}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-[#F7F7F8] border-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -254,6 +259,7 @@ export function ShareholderForm({
           name="delivery_fee"
           type="number"
           defaultValue={shareholder.delivery_fee || 0}
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
     </div>
@@ -262,12 +268,12 @@ export function ShareholderForm({
   const renderOtherSection = () => (
     <div className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="sacrifice_consent">sacrifice_consent</Label>
+        <Label htmlFor="sacrifice_consent">Vekalet</Label>
         <Select
           name="sacrifice_consent"
           defaultValue={shareholder.sacrifice_consent}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-[#F7F7F8] border-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -281,8 +287,8 @@ export function ShareholderForm({
         <Textarea
           id="notes"
           name="notes"
-          defaultValue={shareholder.notes || ""}
-          className="min-h-[100px]"
+          defaultValue={shareholder.notes}
+          className="bg-[#F7F7F8] border-0"
         />
       </div>
     </div>

@@ -51,7 +51,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           .select(
             `
             *,
-            sacrifice:sacrifice_no (
+            sacrifice:sacrifice_animals!sacrifice_id (
               sacrifice_no,
               sacrifice_time
             )

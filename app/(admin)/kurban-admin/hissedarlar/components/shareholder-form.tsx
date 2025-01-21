@@ -40,7 +40,7 @@ interface ShareholderFormProps {
     delivery_fee?: number;
     delivery_type?: "kesimhane" | "toplu-teslimat" | "toplu-teslim-noktasi";
     delivery_location?: string;
-    sacrifice_consent: "verildi" | "bekleniyor";
+    sacrifice_consent: boolean;
     notes?: string;
   };
   section: "personal" | "payment" | "delivery" | "other";
@@ -141,221 +141,130 @@ export function ShareholderForm({
   };
 
   const renderPersonalSection = () => (
-    <div className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="shareholder_name">İsim Soyisim</Label>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-3">
+        <Label htmlFor="shareholder_name" className="text-base">İsim Soyisim</Label>
         <Input
           id="shareholder_name"
           name="shareholder_name"
           defaultValue={shareholder.shareholder_name}
           required
-          className="bg-[#F7F7F8] border-0"
+          className="bg-[#F7F7F8] border-0 md:text-[16px]"
         />
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="phone_number">Telefon</Label>
+      <div className="grid gap-3">
+        <Label htmlFor="phone_number" className="text-base">Telefon</Label>
         <Input
           id="phone_number"
           name="phone_number"
           defaultValue={formatPhoneForDisplay(shareholder.phone_number)}
           required
           placeholder="05555555555"
-          className="bg-[#F7F7F8] border-0"
+          className="bg-[#F7F7F8] border-0 md:text-[16px]"
         />
       </div>
     </div>
   );
 
   const renderPaymentSection = () => (
-    <div className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="total_amount">Toplam Tutar (₺)</Label>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-3">
+        <Label htmlFor="total_amount" className="text-base">Toplam Tutar (₺)</Label>
         <Input
           id="total_amount"
           name="total_amount"
           type="number"
           defaultValue={shareholder.total_amount}
           required
-          className="bg-[#F7F7F8] border-0"
+          className="bg-[#F7F7F8] border-0 md:text-[16px]"
         />
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="paid_amount">Ödenen Tutar (₺)</Label>
+      <div className="grid gap-3">
+        <Label htmlFor="paid_amount" className="text-base">Ödenen Tutar (₺)</Label>
         <Input
           id="paid_amount"
           name="paid_amount"
           type="number"
           defaultValue={shareholder.paid_amount}
           required
-          className="bg-[#F7F7F8] border-0"
+          className="bg-[#F7F7F8] border-0 md:text-[16px]"
         />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="remaining_payment">Kalan Ödeme (₺)</Label>
-        <Input
-          id="remaining_payment"
-          name="remaining_payment"
-          type="number"
-          defaultValue={shareholder.remaining_payment}
-          required
-          className="bg-[#F7F7F8] border-0"
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="payment_status">Ödeme Durumu</Label>
-        <Select name="payment_status" defaultValue={shareholder.payment_status}>
-          <SelectTrigger className="bg-[#F7F7F8] border-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="paid">Ödendi</SelectItem>
-            <SelectItem value="pending">Bekliyor</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
     </div>
   );
 
   const renderDeliverySection = () => (
-    <div className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="delivery_type">Teslimat Tipi</Label>
+    <div className="grid grid-cols-1 gap-4">
+      <div className="grid gap-3">
+        <Label htmlFor="delivery_type" className="text-base">Teslimat Şekli</Label>
         <Select
           name="delivery_type"
           defaultValue={shareholder.delivery_type || "kesimhane"}
         >
-          <SelectTrigger className="bg-[#F7F7F8] border-0">
+          <SelectTrigger className="bg-[#F7F7F8] border-0 text-base">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="kesimhane">Kesimhane</SelectItem>
-            <SelectItem value="toplu-teslimat">Toplu Teslimat</SelectItem>
+            <SelectItem value="kesimhane" className="text-base">Kesimhane</SelectItem>
+            <SelectItem value="toplu-teslim-noktasi" className="text-base">Toplu Teslim Noktası</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      {shareholder.delivery_type === "toplu-teslimat" && (
-        <div className="grid gap-2">
-          <Label htmlFor="delivery_location">Teslimat Noktası</Label>
+      {shareholder.delivery_type === "toplu-teslim-noktasi" && (
+        <div className="grid gap-3">
+          <Label htmlFor="delivery_location" className="text-base">Teslimat Noktası</Label>
           <Select
             name="delivery_location"
             defaultValue={shareholder.delivery_location}
           >
-            <SelectTrigger className="bg-[#F7F7F8] border-0">
+            <SelectTrigger className="bg-[#F7F7F8] border-0 text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="yenimahalle-camii">
-                Yenimahalle Camii
-              </SelectItem>
-              <SelectItem value="kecioren-pazar">Keçiören Pazar</SelectItem>
+              <SelectItem value="yenimahalle-pazar-yeri" className="text-base">Yenimahalle Pazar Yeri</SelectItem>
+              <SelectItem value="kecioren-otoparki" className="text-base">Keçiören Otoparkı</SelectItem>
             </SelectContent>
           </Select>
         </div>
       )}
-      <div className="grid gap-2">
-        <Label htmlFor="delivery_fee">Teslimat Ücreti (₺)</Label>
-        <Input
-          id="delivery_fee"
-          name="delivery_fee"
-          type="number"
-          defaultValue={shareholder.delivery_fee || 0}
-          className="bg-[#F7F7F8] border-0"
-        />
-      </div>
     </div>
   );
 
   const renderOtherSection = () => (
     <div className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="sacrifice_consent">Vekalet</Label>
+      <div className="grid gap-3">
+        <Label htmlFor="sacrifice_consent" className="text-base">Vekalet</Label>
         <Select
           name="sacrifice_consent"
           defaultValue={shareholder.sacrifice_consent}
         >
-          <SelectTrigger className="bg-[#F7F7F8] border-0">
+          <SelectTrigger className="bg-[#F7F7F8] border-0 text-base">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="verildi">Verildi</SelectItem>
-            <SelectItem value="bekleniyor">Bekleniyor</SelectItem>
+            <SelectItem value="verildi" className="text-base">Verildi</SelectItem>
+            <SelectItem value="bekleniyor" className="text-base">Bekleniyor</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="notes">Notlar</Label>
+      <div className="grid gap-3">
+        <Label htmlFor="notes" className="text-base">Notlar</Label>
         <Textarea
           id="notes"
           name="notes"
           defaultValue={shareholder.notes}
-          className="bg-[#F7F7F8] border-0"
+          className="bg-[#F7F7F8] border-0 text-base"
         />
       </div>
     </div>
   );
 
-  const renderFormButtons = () => (
-    <div className="flex justify-between">
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogTrigger asChild>
-          <Button variant="destructive" type="button" disabled={isDeleting}>
-            Hissedarı Sil
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu işlem geri alınamaz. Bu hissedar kalıcı olarak silinecektir.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>İptal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Siliniyor..." : "Evet, Sil"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <div className="flex space-x-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isSubmitting || isDeleting}
-        >
-          İptal
-        </Button>
-        <Button type="submit" disabled={isSubmitting || isDeleting}>
-          {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderSection = () => {
-    switch (section) {
-      case "personal":
-        return renderPersonalSection();
-      case "payment":
-        return renderPaymentSection();
-      case "delivery":
-        return renderDeliverySection();
-      case "other":
-        return renderOtherSection();
-      default:
-        return null;
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {renderSection()}
-      {section === "other" && renderFormButtons()}
-    </form>
+    <>
+      {section === "personal" && renderPersonalSection()}
+      {section === "payment" && renderPaymentSection()}
+      {section === "delivery" && renderDeliverySection()}
+      {section === "other" && renderOtherSection()}
+    </>
   );
 }

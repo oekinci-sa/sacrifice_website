@@ -38,7 +38,7 @@ interface ShareholderFormProps {
     remaining_payment: number;
     payment_status: "paid" | "pending";
     delivery_fee?: number;
-    delivery_type?: "kesimhane" | "toplu-teslimat";
+    delivery_type?: "kesimhane" | "toplu-teslimat" | "toplu-teslim-noktasi";
     delivery_location?: string;
     sacrifice_consent: "verildi" | "bekleniyor";
     notes?: string;

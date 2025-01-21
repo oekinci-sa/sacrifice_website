@@ -6,6 +6,7 @@ import { ShareholderForm } from "../../components/shareholder-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Download, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 interface PageProps {
   params: {
@@ -181,12 +182,24 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         <div>
           <div className="border border-gray-200 rounded-lg">
             {/* Image Section */}
-            <div className="aspect-[3/1] bg-red-100 rounded-t-lg relative">
+            <div className="aspect-[3/1] rounded-t-lg relative overflow-hidden">
+              <Image 
+                src="/images/ai-cows.avif" 
+                alt="Cow" 
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
               {/* Profile icon */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white rounded-full p-4">
-                <div className="w-16 h-16 bg-[#00B074] rounded-full flex items-center justify-center text-white text-2xl font-heading">
-                  {shareholder?.shareholder_name?.[0]?.toUpperCase() || "H"}
-                </div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white rounded-full p-6 w-32 h-32 flex items-center justify-center">
+                <Image 
+                  src="/icons/user-icon2.svg"
+                  alt="User Icon"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-contain"
+                />  
               </div>
             </div>
 

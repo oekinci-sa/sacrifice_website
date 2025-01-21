@@ -31,19 +31,21 @@ interface ActivityLog {
 }
 
 interface ActivityTableProps {
-  data: ActivityLog[];
+  data?: ActivityLog[];
 }
 
-export function ActivityTable({ data }: ActivityTableProps) {
-  const [filterType, setFilterType] = useState<string>("all");
+export function ActivityTable({ data = [] }: ActivityTableProps) {
+  const [filterType, setFilterType] = useState<"all" | "Ekleme" | "Güncelleme" | "Silme">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Filter data based on type and search term
   const filteredData = data.filter((log) => {
     const matchesType = filterType === "all" || log.change_type === filterType;
     const matchesSearch = log.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.table_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.change_owner.toLowerCase().includes(searchTerm.toLowerCase());
+      log.row_id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
   });
 

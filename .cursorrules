@@ -44,7 +44,8 @@ Admin Pages:
 - /kurban-admin/hissedarlar
     - Some Graphs
     - Page with a table of shareholders and access to special pages for these sacrifices.
-- /kurban-admin/
+- /kurban-admin/kullanici-yonetimi -> Page where users can be managed.
+- /kurban-admin/degisiklik-kayitlari -> Page where change logs can be viewed.
 
 #COMPONENT FEATURES
 

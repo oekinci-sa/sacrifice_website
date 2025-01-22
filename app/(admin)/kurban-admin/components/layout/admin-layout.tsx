@@ -5,9 +5,14 @@ import { AdminSidebar } from "./admin-sidebar";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
+  sidebarNav: {
+    title: string;
+    href: string;
+    icon: React.ReactNode;
+  }[];
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children, sidebarNav }: AdminLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
@@ -22,7 +27,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="fixed inset-y-0 z-50">
         <AdminSidebar 
           isCollapsed={isSidebarCollapsed} 
-          onCollapsedChange={setIsSidebarCollapsed} 
+          onCollapsedChange={setIsSidebarCollapsed}
+          sidebarNav={sidebarNav}
         />
       </div>
       <main className={`transition-all duration-300 ${isSidebarCollapsed ? "pl-[60px]" : "pl-[240px]"}`}>

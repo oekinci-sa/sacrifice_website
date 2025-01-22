@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Download, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import html2pdf from "html2pdf.js";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 interface PageProps {
   params: {
@@ -37,6 +39,15 @@ interface Shareholder {
     empty_share: number;
     total_price: number;
   };
+  logs: {
+    event_id: string;
+    changed_at: string;
+    description: string;
+    change_type: "Ekleme" | "Güncelleme" | "Silme";
+    column_name: string;
+    old_value: string;
+    new_value: string;
+  }[];
 }
 
 // Helper function to format time without seconds
@@ -44,6 +55,43 @@ const formatTime = (time: string) => {
   if (!time) return '-';
   const [hours, minutes] = time.split(':');
   return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+};
+
+// Helper function to format location name
+const formatLocationName = (location: string) => {
+  switch (location) {
+    case "kesimhane":
+      return "Kesimhane";
+    case "yenimahalle-pazar-yeri":
+      return "Yenimahalle Pazar Yeri";
+    case "kecioren-otoparki":
+      return "Keçiören Otoparkı";
+    default:
+      return location;
+  }
+};
+
+// Helper function to get custom description
+const getCustomDescription = (log: Shareholder['logs'][0], totalAmount: number) => {
+  if (log.change_type === "Ekleme") {
+    return "Hisse alımı gerçekleştirildi";
+  }
+
+  if (log.column_name === "Ödenen Tutar") {
+    const newValue = parseInt(log.new_value);
+    if (newValue === totalAmount) {
+      return "Tüm ödemeler tamamlandı.";
+    }
+    return `Yapılan ödeme miktarı ${parseInt(log.old_value).toLocaleString('tr-TR')} TL'den ${newValue.toLocaleString('tr-TR')} TL'ye yükseldi.`;
+  }
+
+  if (log.column_name === "Teslimat Noktası") {
+    const oldLocation = formatLocationName(log.old_value);
+    const newLocation = formatLocationName(log.new_value);
+    return `Hisse teslimi ${oldLocation} yerine ${newLocation}'nda yapılacak.`;
+  }
+
+  return log.description;
 };
 
 export default function ShareholderDetailsPage({ params }: PageProps) {
@@ -80,7 +128,21 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         if (error) throw error;
 
-        setShareholder(data);
+        // Fetch change logs for the shareholder
+        const searchPattern = `%${data.shareholder_name} (${data.sacrifice_id})%`;
+        console.log("Search pattern:", searchPattern);
+
+        const { data: logsData, error: logsError } = await supabase
+          .from("change_logs")
+          .select("*")
+          .ilike("row_id", searchPattern)
+          .order("changed_at", { ascending: true });
+
+        if (logsError) throw logsError;
+
+        console.log("Logs data:", logsData);
+
+        setShareholder({ ...data, logs: logsData });
       } catch (err) {
         console.error("Error fetching shareholder:", err);
         setError("Hissedar bilgileri yüklenirken bir hata oluştu");
@@ -185,11 +247,11 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between h-[40px]">
         <h1 className="text-2xl font-bold font-heading">
           Hissedar Ayrıntıları
         </h1>
-        {!isEditing && (
+        {!isEditing ? (
           <Button 
             variant="default" 
             className="bg-primary hover:bg-primary/90"
@@ -198,6 +260,8 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
             <Download className="mr-2 h-4 w-4" />
             PDF İndir
           </Button>
+        ) : (
+          <div className="w-[116px]"></div>
         )}
       </div>
 
@@ -399,50 +463,50 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
                 </h3>
                 <hr className="border-gray-200 mt-4 mb-6" />
                 <div className="relative space-y-6">
-                  {/* Timeline Line */}
-                  <div className="absolute left-[2.4rem] top-10 bottom-10 w-px bg-[#00B074]/20 -z-10" />
-
-                  <div className="flex items-start gap-6">
-                    <div className="relative w-20 h-20 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0">
-                      <div className="w-4 h-4 bg-[#00B074] rounded-full" />
-                    </div>
-                    <div className="pt-2">
-                      <p className="text-sm text-muted-foreground font-heading">
-                        11.02.2025 - 19:38
-                      </p>
-                      <p className="font-medium font-heading">
-                        Hisse alımı gerçekleştirildi.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-6">
-                    <div className="relative w-20 h-20 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0">
-                      <div className="w-4 h-4 bg-[#00B074] rounded-full" />
-                    </div>
-                    <div className="pt-2">
-                      <p className="text-sm text-muted-foreground font-heading">
-                        12.02.2025 - 19:12
-                      </p>
-                      <p className="font-medium font-heading">
-                        Ödeme yapıldı: 5000 TL
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-6">
-                    <div className="relative w-20 h-20 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0">
-                      <div className="w-4 h-4 bg-[#00B074] rounded-full" />
-                    </div>
-                    <div className="pt-2">
-                      <p className="text-sm text-muted-foreground font-heading">
-                        03.03.2025 - 12:15
-                      </p>
-                      <p className="font-medium font-heading">
-                        Vekalet alındı.
-                      </p>
-                    </div>
-                  </div>
+                  {shareholder?.logs?.filter(log => 
+                    log.change_type === "Ekleme" || 
+                    log.column_name === "Ödenen Tutar" || 
+                    log.column_name === "Teslimat Noktası"
+                  ).length ? (
+                    shareholder.logs
+                      .filter(log => 
+                        log.change_type === "Ekleme" || 
+                        log.column_name === "Ödenen Tutar" || 
+                        log.column_name === "Teslimat Noktası"
+                      )
+                      .map((log, index, array) => (
+                        <div key={log.event_id} className="relative">
+                          <div className="flex items-start gap-6">
+                            <div className="flex flex-col items-center">
+                              <div className="relative w-14 h-14 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0 z-10">
+                                {log.change_type === "Ekleme" ? (
+                                  <i className="bi bi-person-check-fill text-[#00B074] text-2xl" />
+                                ) : log.column_name === "Ödenen Tutar" ? (
+                                  <i className="bi bi-wallet-fill text-[#00B074] text-2xl" />
+                                ) : log.column_name === "Teslimat Noktası" ? (
+                                  <i className="bi bi-geo-alt-fill text-[#00B074] text-2xl" />
+                                ) : (
+                                  <div className="w-4 h-4 bg-[#00B074] rounded-full" />
+                                )}
+                              </div>
+                              {index < array.length - 1 && (
+                                <div className="w-[2px] h-8 bg-[#DBDDE1] mt-2 -mb-4" />
+                              )}
+                            </div>
+                            <div className="pt-2">
+                              <p className="text-sm text-muted-foreground font-heading">
+                                {format(new Date(log.changed_at), "dd.MM.yyyy - HH:mm", { locale: tr })}
+                              </p>
+                              <p className="font-medium font-heading">
+                                {getCustomDescription(log, shareholder.total_amount)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Kullanıcı geçmişi bulunamadı.</p>
+                  )}
                 </div>
               </div>
             </div>

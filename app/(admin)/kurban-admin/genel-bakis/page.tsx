@@ -37,6 +37,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 const chartData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
@@ -88,9 +90,75 @@ interface DashboardStats {
   totalSacrifices: number;
   remainingSacrifices: number;
   remainingDeposits: number;
+  deliveryStats: {
+    kesimhane: number;
+    topluTeslimat: number;
+  };
+  deliveryLocations: {
+    [key: string]: number;
+  };
 }
 
+interface ActivityLog {
+  event_id: string;
+  changed_at: string;
+  description: string;
+  change_type: "Ekleme" | "Güncelleme" | "Silme";
+  column_name: string;
+  old_value: string;
+  new_value: string;
+}
 
+interface ChartDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+const COLORS = {
+  green: "#22c55e",
+  red: "#ef4444",
+  blue: "#3b82f6",
+  purple: "#a855f7",
+  yellow: "#eab308",
+} as const;
+
+// Helper function to format location names
+const formatLocationName = (location: string) => {
+  switch (location) {
+    case "kesimhane":
+      return "Kesimhane";
+    case "yenimahalle-pazar-yeri":
+      return "Yenimahalle Pazar Yeri";
+    case "kecioren-otoparki":
+      return "Keçiören Otoparkı";
+    default:
+      return location;
+  }
+};
+
+// Helper function to get custom description
+const getCustomDescription = (log: ActivityLog, totalAmount: number) => {
+  if (log.change_type === "Ekleme") {
+    return "Hisse alımı gerçekleştirildi";
+  }
+
+  if (log.column_name === "Ödenen Tutar") {
+    const newValue = parseInt(log.new_value);
+    if (newValue === totalAmount) {
+      return "Tüm ödemeler tamamlandı.";
+    }
+    return `Yapılan ödeme miktarı ${parseInt(log.old_value).toLocaleString('tr-TR')} TL'den ${newValue.toLocaleString('tr-TR')} TL'ye yükseldi.`;
+  }
+
+  if (log.column_name === "Teslimat Noktası") {
+    const oldLocation = formatLocationName(log.old_value);
+    const newLocation = formatLocationName(log.new_value);
+    return `Hisse teslimi ${oldLocation} yerine ${newLocation}'nda yapılacak.`;
+  }
+
+  return log.description;
+};
 
 export default function GeneralOverviewPage() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -103,7 +171,13 @@ export default function GeneralOverviewPage() {
     totalSacrifices: 0,
     remainingSacrifices: 0,
     remainingDeposits: 0,
+    deliveryStats: {
+      kesimhane: 0,
+      topluTeslimat: 0,
+    },
+    deliveryLocations: {},
   });
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -174,6 +248,17 @@ export default function GeneralOverviewPage() {
         ).length;
         const pending = shareholdersData.length - paid;
 
+        // Fetch activity logs
+        const { data: logsData, error: logsError } = await supabase
+          .from("change_logs")
+          .select("*")
+          .order("changed_at", { ascending: false })
+          .limit(10);
+
+        if (logsError) throw logsError;
+
+        setActivityLogs(logsData);
+
         setStats({
           totalShares,
           emptyShares,
@@ -184,6 +269,11 @@ export default function GeneralOverviewPage() {
           totalSacrifices: sacrificeData.length,
           remainingSacrifices,
           remainingDeposits,
+          deliveryStats: {
+            kesimhane: 0,
+            topluTeslimat: 0,
+          },
+          deliveryLocations: {},
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -205,6 +295,23 @@ export default function GeneralOverviewPage() {
     }),
     []
   );
+
+  // Chart data
+  const paymentStatusData: ChartDataItem[] = [
+    { name: "Tamamlandı", value: stats.totalShareholders - stats.remainingDeposits, color: COLORS.green },
+    { name: "Kapora Bekleniyor", value: stats.remainingDeposits, color: COLORS.red },
+  ];
+
+  const deliveryData: ChartDataItem[] = [
+    { name: "Kesimhane", value: stats.deliveryStats.kesimhane, color: COLORS.blue },
+    { name: "Toplu Teslim", value: stats.deliveryStats.topluTeslimat, color: COLORS.purple },
+  ];
+
+  const locationData: ChartDataItem[] = Object.entries(stats.deliveryLocations).map(([name, value], index) => ({
+    name: formatLocationName(name),
+    value,
+    color: Object.values(COLORS)[index % Object.values(COLORS).length],
+  }));
 
   if (loading) {
     return (
@@ -326,47 +433,191 @@ export default function GeneralOverviewPage() {
         </CardContent>
       </Card>
 
-      {/* Kurbanlık Bedellerine Göre Satışlar */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Kurbanlık Bedellerine Göre Satışlar</CardTitle>
-          <CardDescription>Tooltip with line indicator.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfigm}>
-            <BarChart accessibilityLayer data={chartDatam}>
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tickFormatter={(value) => {
-                  return new Date(value).toLocaleDateString("en-US", {
-                    weekday: "short",
-                  });
-                }}
-              />
-              <Bar
-                dataKey="running"
-                stackId="a"
-                fill="var(--color-running)"
-                radius={[0, 0, 4, 4]}
-              />
-              <Bar
-                dataKey="swimming"
-                stackId="a"
-                fill="var(--color-swimming)"
-                radius={[4, 4, 0, 0]}
-              />
-              <ChartTooltip
-                content={<ChartTooltipContent indicator="line" />}
-                cursor={false}
-                defaultIndex={1}
-              />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {/* Kurbanlık Bedelleri ve Son Hareketler */}
+      <div className="grid gap-4 grid-cols-3">
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>Kurbanlık Bedellerine Göre Satışlar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfigm}>
+              <BarChart accessibilityLayer data={chartDatam}>
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => {
+                    return new Date(value).toLocaleDateString("en-US", {
+                      weekday: "short",
+                    });
+                  }}
+                />
+                <Bar
+                  dataKey="running"
+                  stackId="a"
+                  fill="var(--color-running)"
+                  radius={[0, 0, 4, 4]}
+                />
+                <Bar
+                  dataKey="swimming"
+                  stackId="a"
+                  fill="var(--color-swimming)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <ChartTooltip
+                  content={<ChartTooltipContent indicator="line" />}
+                  cursor={false}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activities */}
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>Son Hareketler</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="relative space-y-6">
+                {activityLogs?.slice(0, 10).map((log, index, array) => (
+                  <div key={log.event_id} className="relative">
+                    <div className="flex items-start gap-6">
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-14 h-14 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0 z-10">
+                          {log.change_type === "Ekleme" ? (
+                            <i className="bi bi-person-check-fill text-[#00B074] text-2xl" />
+                          ) : log.column_name === "Ödenen Tutar" ? (
+                            <i className="bi bi-wallet2 text-[#00B074] text-2xl" />
+                          ) : log.column_name === "Teslimat Noktası" ? (
+                            <i className="bi bi-geo-alt-fill text-[#00B074] text-2xl" />
+                          ) : (
+                            <div className="w-4 h-4 bg-[#00B074] rounded-full" />
+                          )}
+                        </div>
+                        {index < array.length - 1 && (
+                          <div className="w-[2px] h-12 bg-[#DBDDE1] mt-4 mb-4" />
+                        )}
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-sm text-muted-foreground font-heading">
+                          {format(new Date(log.changed_at), "dd.MM.yyyy - HH:mm", { locale: tr })}
+                        </p>
+                        <p className="font-medium font-heading">
+                          {getCustomDescription(log, parseInt(log.new_value))}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!activityLogs || activityLogs.length === 0) && (
+                  <p className="text-sm text-muted-foreground">Henüz hareket bulunmuyor.</p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts and Recent Activities */}
+      <div className="grid gap-4">
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* ... existing cards ... */}
+        </div>
+
+        {/* Charts and Recent Activities */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* Payment Status Chart */}
+          <Card className="col-span-2 shadow-none">
+            <CardHeader>
+              <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={paymentStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      nameKey="name"
+                      label
+                    >
+                      {paymentStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery Preferences Chart */}
+          <Card className="col-span-2 shadow-none">
+            <CardHeader>
+              <CardTitle>Teslimat Tercihleri</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={deliveryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      nameKey="name"
+                      label
+                    >
+                      {deliveryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery Locations Chart */}
+          <Card className="col-span-2 shadow-none">
+            <CardHeader>
+              <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={locationData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" name="Hissedar Sayısı">
+                      {locationData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

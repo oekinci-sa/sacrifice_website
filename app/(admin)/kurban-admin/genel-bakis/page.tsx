@@ -39,24 +39,22 @@ import {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const chartData = [
-  { date: "2024-04-01", desktop: 222, mobile: 150 },
-  { date: "2024-04-02", desktop: 97, mobile: 180 },
-  { date: "2024-04-03", desktop: 167, mobile: 120 },
-  { date: "2024-06-30", desktop: 446, mobile: 400 },
-];
-
 const chartConfig = {
-  views: {
-    label: "Page Views",
-  },
-  desktop: {
-    label: "Desktop",
+  today: {
+    label: "Bugün",
     color: "hsl(var(--chart-1))",
   },
-  mobile: {
-    label: "Mobile",
+  week: {
+    label: "Son 2 Hafta",
     color: "hsl(var(--chart-2))",
+  },
+  month: {
+    label: "Son 1 Ay",
+    color: "hsl(var(--chart-3))",
+  },
+  all: {
+    label: "Tüm Zamanlar",
+    color: "hsl(var(--chart-4))",
   },
 } satisfies ChartConfig;
 
@@ -83,13 +81,16 @@ const chartConfigm = {
 interface DashboardStats {
   totalShares: number;
   emptyShares: number;
+  filledShares: number;
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;
   totalShareholders: number;
   totalSacrifices: number;
-  remainingSacrifices: number;
+  completedSacrifices: number;
   remainingDeposits: number;
+  shareholdersWithIncompletePayments: number;
+  shareholdersWithCompletePayments: number;
   deliveryStats: {
     kesimhane: number;
     topluTeslimat: number;
@@ -164,13 +165,16 @@ export default function GeneralOverviewPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalShares: 0,
     emptyShares: 0,
+    filledShares: 0,
     totalAmount: 0,
     paidAmount: 0,
     remainingAmount: 0,
     totalShareholders: 0,
     totalSacrifices: 0,
-    remainingSacrifices: 0,
+    completedSacrifices: 0,
     remainingDeposits: 0,
+    shareholdersWithIncompletePayments: 0,
+    shareholdersWithCompletePayments: 0,
     deliveryStats: {
       kesimhane: 0,
       topluTeslimat: 0,
@@ -178,6 +182,14 @@ export default function GeneralOverviewPage() {
     deliveryLocations: {},
   });
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [chartData, setChartData] = useState<Array<{ date: string; count: number }>>([]);
+  const [activeChart, setActiveChart] = React.useState<keyof typeof chartConfig>("today");
+  const [chartTotals, setChartTotals] = useState({
+    today: 0,
+    week: 0,
+    month: 0,
+    all: 0,
+  });
 
   const [loading, setLoading] = useState(true);
 
@@ -196,7 +208,15 @@ export default function GeneralOverviewPage() {
           (sum, sacrifice) => sum + (sacrifice.empty_share || 0),
           0
         );
-        const remainingSacrifices = sacrificeData.filter(
+        const filledShares = totalShares - emptyShares;
+        
+        // Count sacrifices with no empty shares
+        const completedSacrifices = sacrificeData.filter(
+          (s) => s.empty_share === 0
+        ).length;
+        
+        // Count sacrifices with any empty shares for progress bar
+        const sacrificesWithEmptyShares = sacrificeData.filter(
           (s) => s.empty_share > 0
         ).length;
 
@@ -217,30 +237,153 @@ export default function GeneralOverviewPage() {
           0
         );
 
-        // Calculate remaining deposits (less than 2000 TL paid)
-        const remainingDeposits = shareholdersData.filter(
-          (s) => s.paid_amount < 2000
+        // Calculate remaining deposits (less than 2000 TL paid after 3 days)
+        const remainingDeposits = shareholdersData.filter((s) => {
+          const purchaseDate = new Date(s.purchase_time);
+          const threeDaysAfterPurchase = new Date(purchaseDate);
+          threeDaysAfterPurchase.setDate(threeDaysAfterPurchase.getDate() + 3);
+          
+          return s.paid_amount < 2000 && new Date() > threeDaysAfterPurchase;
+        }).length;
+
+        // Calculate shareholders with incomplete payments
+        const shareholdersWithIncompletePayments = shareholdersData.filter(
+          (s) => s.paid_amount < s.total_amount
         ).length;
 
-        // Calculate daily shares data
+        const shareholdersWithCompletePayments = shareholdersData.filter(
+          (s) => s.paid_amount >= s.total_amount
+        ).length;
+
+        // Fetch shareholders data for chart
+        const { data: shareholdersDataForChart, error: shareholdersErrorForChart } = await supabase
+          .from("shareholders")
+          .select("purchase_time")
+          .order("purchase_time", { ascending: true });
+
+        if (shareholdersErrorForChart) throw shareholdersErrorForChart;
+
+        // Calculate totals for each tab
+        const totals = {
+          today: 0,
+          week: 0,
+          month: 0,
+          all: 0,
+        };
+
+        // Today's total
         const today = new Date();
-        const startDate = subDays(today, 6);
-        const dateRange = eachDayOfInterval({ start: startDate, end: today });
+        today.setHours(0, 0, 0, 0);
+        const todayEnd = new Date(today);
+        todayEnd.setHours(23, 59, 59, 999);
+        totals.today = shareholdersDataForChart.filter((s) => {
+          const purchaseDate = new Date(s.purchase_time);
+          return purchaseDate >= today && purchaseDate <= todayEnd;
+        }).length;
 
-        const dailySharesData = dateRange.map((date) => {
-          const dayStart = new Date(date.setHours(0, 0, 0, 0));
-          const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+        // Last 2 weeks total
+        const twoWeeksAgo = subDays(today, 14);
+        totals.week = shareholdersDataForChart.filter((s) => {
+          const purchaseDate = new Date(s.purchase_time);
+          return purchaseDate >= twoWeeksAgo;
+        }).length;
 
-          const count = shareholdersData.filter((s) => {
-            const purchaseDate = new Date(s.purchase_time);
-            return purchaseDate >= dayStart && purchaseDate <= dayEnd;
-          }).length;
+        // Last month total  
+        const oneMonthAgo = subDays(today, 30);
+        totals.month = shareholdersDataForChart.filter((s) => {
+          const purchaseDate = new Date(s.purchase_time);
+          return purchaseDate >= oneMonthAgo;
+        }).length;
 
-          return {
-            date: format(date, "dd MMM", { locale: tr }),
-            count,
-          };
-        });
+        // All time total
+        totals.all = shareholdersDataForChart.length;
+
+        setChartTotals(totals);
+
+        // Calculate date ranges based on active chart
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        
+        let startDate = todayDate;
+        let dailySharesData;
+
+        if (activeChart === "today") {
+          // Create array of 24 hours for today
+          dailySharesData = Array.from({ length: 24 }, (_, hour) => {
+            const hourStart = new Date(todayDate);
+            hourStart.setHours(hour, 0, 0, 0);
+            const hourEnd = new Date(todayDate);
+            hourEnd.setHours(hour, 59, 59, 999);
+
+            const count = shareholdersDataForChart.filter((s) => {
+              const purchaseDate = new Date(s.purchase_time);
+              return purchaseDate >= hourStart && purchaseDate <= hourEnd;
+            }).length;
+
+            return {
+              date: `${hour.toString().padStart(2, '0')}:00`,
+              count,
+            };
+          });
+        } else {
+          switch (activeChart) {
+            case "week":
+              startDate = subDays(todayDate, 14);
+              break;
+            case "month":
+              startDate = subDays(todayDate, 30);
+              break;
+            case "all":
+              // Find the earliest and latest purchase dates
+              const dates = shareholdersDataForChart.map(s => new Date(s.purchase_time).getTime());
+              startDate = new Date(Math.min(...dates));
+              const endDate = new Date(Math.max(...dates));
+
+              const dateRange = eachDayOfInterval({ 
+                start: startDate, 
+                end: endDate 
+              });
+              
+              dailySharesData = dateRange.map((date) => {
+                const dayStart = new Date(date);
+                dayStart.setHours(0, 0, 0, 0);
+                const dayEnd = new Date(date);
+                dayEnd.setHours(23, 59, 59, 999);
+
+                const count = shareholdersDataForChart.filter((s) => {
+                  const purchaseDate = new Date(s.purchase_time);
+                  return purchaseDate >= dayStart && purchaseDate <= dayEnd;
+                }).length;
+
+                return {
+                  date: format(date, "dd MMM", { locale: tr }),
+                  count,
+                };
+              });
+              break;
+          }
+
+          const dateRange = eachDayOfInterval({ start: startDate, end: todayDate });
+          
+          dailySharesData = dateRange.map((date) => {
+            const dayStart = new Date(date);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(date);
+            dayEnd.setHours(23, 59, 59, 999);
+
+            const count = shareholdersDataForChart.filter((s) => {
+              const purchaseDate = new Date(s.purchase_time);
+              return purchaseDate >= dayStart && purchaseDate <= dayEnd;
+            }).length;
+
+            return {
+              date: format(date, "dd MMM", { locale: tr }),
+              count,
+            };
+          });
+        }
+
+        setChartData(dailySharesData);
 
         // Calculate payment status data
         const paid = shareholdersData.filter(
@@ -262,13 +405,16 @@ export default function GeneralOverviewPage() {
         setStats({
           totalShares,
           emptyShares,
+          filledShares,
           totalAmount,
           paidAmount,
           remainingAmount: totalAmount - paidAmount,
           totalShareholders: shareholdersData.length,
           totalSacrifices: sacrificeData.length,
-          remainingSacrifices,
+          completedSacrifices,
           remainingDeposits,
+          shareholdersWithIncompletePayments,
+          shareholdersWithCompletePayments,
           deliveryStats: {
             kesimhane: 0,
             topluTeslimat: 0,
@@ -283,18 +429,12 @@ export default function GeneralOverviewPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [activeChart]);
 
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("desktop");
-
-  const total = React.useMemo(
-    () => ({
-      desktop: chartData.reduce((acc, curr) => acc + curr.desktop, 0),
-      mobile: chartData.reduce((acc, curr) => acc + curr.mobile, 0),
-    }),
-    []
-  );
+  // Calculate total for the active period
+  const total = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.count, 0);
+  }, [chartData]);
 
   // Chart data
   const paymentStatusData: ChartDataItem[] = [
@@ -322,62 +462,80 @@ export default function GeneralOverviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <h1 className="text-2xl font-bold font-heading">Genel Bakış</h1>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Kalan Kurbanlıklar"
-          value={stats.remainingSacrifices}
-          maxValue={stats.totalSacrifices}
-        />
-        <StatCard
-          title="Kalan Hisseler"
-          value={stats.emptyShares}
-          maxValue={stats.totalShares}
-        />
-        <StatCard
-          title="Eksik Kaporalar"
-          value={stats.remainingDeposits}
-          maxValue={stats.totalShareholders}
-          actionLink={{
-            text: "Tümünü göster",
-            href: "/kurban-admin/odeme-analizi?tab=eksik-kapora",
-          }}
-        />
-        <StatCard
-          title="Toplam Ödemeler"
-          value={stats.paidAmount}
-          maxValue={stats.totalAmount}
-          suffix=" TL"
-        />
+      <div className="grid gap-16 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <StatCard
+            title="Kalan Kurbanlıklar"
+            value={stats.totalSacrifices - stats.completedSacrifices}
+            maxValue={stats.totalSacrifices}
+            displayValue={stats.completedSacrifices}
+            actionLink={{
+              text: "Tümünü göster",
+              href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+            }}
+          />
+        </div>
+        <div>
+          <StatCard
+            title="Kalan Hisseler"
+            value={stats.emptyShares}
+            maxValue={stats.totalShares}
+            displayValue={stats.filledShares}
+          />
+        </div>
+        <div>
+          <StatCard
+            title="Eksik Kaporalar"
+            value={stats.totalShareholders - stats.remainingDeposits}
+            maxValue={stats.totalShareholders}
+            actionLink={{
+              text: "Tümünü göster",
+              href: "/kurban-admin/odeme-analizi?tab=eksik-kapora",
+            }}
+          />
+        </div>
+        <div>
+          <StatCard
+            title="Eksik Ödemeler"
+            value={stats.shareholdersWithIncompletePayments}
+            maxValue={stats.totalShareholders}
+            displayValue={stats.shareholdersWithCompletePayments}
+            actionLink={{
+              text: "Tümünü göster",
+              href: "/kurban-admin/odeme-analizi?tab=eksik-odeme",
+            }}
+          />
+        </div>
       </div>
 
       {/* Günlük Hisse Alımları */}
-      <Card>
+      <Card className="shadow-none">
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-4 sm:py-5">
             <CardTitle>Satış Grafikleri</CardTitle>
             <CardDescription>
-              Showing total visitors for the last 3 months
+              Dönemlere göre hisse satış sayıları
             </CardDescription>
           </div>
           <div className="flex">
-            {["desktop", "mobile"].map((key) => {
+            {Object.keys(chartConfig).map((key) => {
               const chart = key as keyof typeof chartConfig;
               return (
                 <button
                   key={chart}
                   data-active={activeChart === chart}
-                  className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                  className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-8 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-12 sm:py-4"
                   onClick={() => setActiveChart(chart)}
                 >
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground px-2">
                     {chartConfig[chart].label}
                   </span>
-                  <span className="text-lg font-bold leading-none sm:text-3xl">
-                    {total[key as keyof typeof total].toLocaleString()}
+                  <span className="text-lg font-bold leading-none sm:text-2xl px-2">
+                    {chartTotals[chart].toLocaleString()}
                   </span>
                 </button>
               );
@@ -390,44 +548,47 @@ export default function GeneralOverviewPage() {
             className="aspect-auto h-[250px] w-full"
           >
             <BarChart
-              accessibilityLayer
               data={chartData}
               margin={{
                 left: 12,
                 right: 12,
               }}
             >
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} className="z-0" />
               <XAxis
                 dataKey="date"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  });
-                }}
+                className="z-0"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="z-0"
+              />
+              <Bar
+                dataKey="count"
+                fill="hsl(var(--chart-1))"
+                radius={[4, 4, 0, 0]}
+                className="z-30"
               />
               <ChartTooltip
+                cursor={{ 
+                  fill: 'rgba(0, 0, 0, 0.1)',
+                  strokeWidth: 0,
+                  className: 'z-10'
+                }}
                 content={
                   <ChartTooltipContent
-                    className="w-[150px]"
-                    nameKey="views"
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                    }}
+                    className="w-[150px] z-40"
+                    nameKey="Hisse Sayısı"
                   />
                 }
+                wrapperStyle={{ zIndex: 40 }}
               />
-              <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
             </BarChart>
           </ChartContainer>
         </CardContent>
@@ -435,47 +596,8 @@ export default function GeneralOverviewPage() {
 
       {/* Kurbanlık Bedelleri ve Son Hareketler */}
       <div className="grid gap-4 grid-cols-3">
-        <Card className="col-span-2 shadow-none">
-          <CardHeader>
-            <CardTitle>Kurbanlık Bedellerine Göre Satışlar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfigm} className="h-[200px]">
-              <BarChart accessibilityLayer data={chartDatam}>
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      weekday: "short",
-                    });
-                  }}
-                />
-                <Bar
-                  dataKey="running"
-                  stackId="a"
-                  fill="var(--color-running)"
-                  radius={[0, 0, 4, 4]}
-                />
-                <Bar
-                  dataKey="swimming"
-                  stackId="a"
-                  fill="var(--color-swimming)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent indicator="line" />}
-                  cursor={false}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
         {/* Recent Activities */}
-        <Card className="shadow-none">
+        <Card className="col-span-3 shadow-none">
           <CardHeader>
             <CardTitle>Son Hareketler</CardTitle>
           </CardHeader>
@@ -522,77 +644,7 @@ export default function GeneralOverviewPage() {
       </div>
 
       {/* Charts and Recent Activities */}
-      <div className="grid gap-4">
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* ... existing cards ... */}
-        </div>
-
         {/* Charts and Recent Activities */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {/* Payment Status Chart */}
-          <Card className="col-span-2 shadow-none">
-            <CardHeader>
-              <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={paymentStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      nameKey="name"
-                      label
-                    >
-                      {paymentStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Delivery Preferences Chart */}
-          <Card className="col-span-2 shadow-none">
-            <CardHeader>
-              <CardTitle>Teslimat Tercihleri</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={deliveryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      nameKey="name"
-                      label
-                    >
-                      {deliveryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Delivery Locations Chart */}
           <Card className="col-span-2 shadow-none">
@@ -616,8 +668,6 @@ export default function GeneralOverviewPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
     </div>
   );
 }

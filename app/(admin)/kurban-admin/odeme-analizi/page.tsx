@@ -10,12 +10,14 @@ import { columns } from "./components/columns";
 import { shareholderSchema } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { StatCard } from "@/components/ui/stat-card";
 
 export default function OdemeAnaliziPage() {
   const router = useRouter();
   const [overdueDeposits, setOverdueDeposits] = useState<shareholderSchema[]>([]);
   const [pendingPayments, setPendingPayments] = useState<shareholderSchema[]>([]);
   const [completedPayments, setCompletedPayments] = useState<shareholderSchema[]>([]);
+  const [stats, setStats] = useState({ paidAmount: 0, totalAmount: 0 });
 
   useEffect(() => {
     async function fetchData() {
@@ -45,6 +47,11 @@ export default function OdemeAnaliziPage() {
         setOverdueDeposits(overdueDeposits);
         setPendingPayments(pendingPayments);
         setCompletedPayments(completedPayments);
+
+        // Calculate total paid amount and total amount
+        const totalPaidAmount = shareholders.reduce((total, shareholder) => total + shareholder.paid_amount, 0);
+        const totalAmount = shareholders.reduce((total, shareholder) => total + shareholder.remaining_payment + shareholder.paid_amount, 0);
+        setStats({ paidAmount: totalPaidAmount, totalAmount });
       }
     }
 
@@ -54,10 +61,17 @@ export default function OdemeAnaliziPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ödeme Analizi</h1>
-        <p className="text-muted-foreground">
-          Ödemelerin durumu ve detaylı analizi
-        </p>
+        <h1 className="text-2xl font-bold font-heading">Ödeme Analizi</h1>
+        <p className="text-muted-foreground">Ödemelerin durumu ve detaylı analizi</p>
+
+        <div className="mt-6">
+          <StatCard
+            title="Toplam Ödemeler"
+            value={stats.paidAmount}
+            maxValue={stats.totalAmount}
+            suffix=" TL"
+          />
+        </div>
       </div>
 
       <Tabs defaultValue="overdue-deposits">

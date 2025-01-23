@@ -26,15 +26,16 @@ interface NavItem {
 
 interface NavMainProps {
   items: NavItem[]
+  subMenusOpen: boolean
 }
 
-export function NavMain({ items }: NavMainProps) {
+export function NavMain({ items, subMenusOpen }: NavMainProps) {
   const pathname = usePathname()
   const router = useRouter()
 
   return (
-    <SidebarGroup className="mt-8">
-      <SidebarMenu className="flex flex-col gap-4">
+    <SidebarGroup className="mt-4">
+      <SidebarMenu className="flex flex-col gap-1">
         {items.map((item) => {
           const isActive = pathname === item.url
           const hasSubItems = item.items && item.items.length > 0
@@ -42,20 +43,20 @@ export function NavMain({ items }: NavMainProps) {
           return (
             <SidebarMenuItem key={item.title}>
               {hasSubItems ? (
-                <Collapsible defaultOpen={pathname.startsWith(item.url)}>
+                <Collapsible defaultOpen={subMenusOpen && pathname.startsWith(item.url)}>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton 
                       className="group hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
                     >
                       <div className="flex-1 flex items-center gap-2" onClick={() => router.push(item.url)}>
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         <span className="text-base font-medium">{item.title}</span>
                       </div>
                       <ChevronRight className="ml-auto h-5 w-5 transition-transform duration-200 group-data-[state=open]:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="pl-10 mt-4 flex flex-col gap-4">
+                    <div className="pl-6 mt-1 flex flex-col gap-1">
                       {item.items?.map((subItem) => (
                         <SidebarMenuItem key={subItem.title}>
                           <SidebarMenuButton 

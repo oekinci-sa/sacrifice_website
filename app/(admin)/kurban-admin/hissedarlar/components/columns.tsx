@@ -124,7 +124,7 @@ export const columns: ColumnDef<any>[] = [
       );
     },
     cell: ({ row }) => {
-      const total = parseFloat(row.getValue("total_amount"));
+      const total = parseFloat(row.original.total_amount);
       const deposit = parseFloat(row.original.paid_amount) || 0;
       const ratio = (deposit / total) * 100;
 
@@ -178,11 +178,11 @@ export const columns: ColumnDef<any>[] = [
       );
     },
     sortingFn: (rowA, rowB) => {
-      const totalA = parseFloat(rowA.getValue("total_amount"));
+      const totalA = parseFloat(rowA.original.total_amount);
       const depositA = parseFloat(rowA.original.paid_amount) || 0;
       const ratioA = (depositA / totalA) * 100;
 
-      const totalB = parseFloat(rowB.getValue("total_amount"));
+      const totalB = parseFloat(rowB.original.total_amount);
       const depositB = parseFloat(rowB.original.paid_amount) || 0;
       const ratioB = (depositB / totalB) * 100;
 

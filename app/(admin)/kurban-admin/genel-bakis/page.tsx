@@ -435,12 +435,12 @@ export default function GeneralOverviewPage() {
 
       {/* Kurbanlık Bedelleri ve Son Hareketler */}
       <div className="grid gap-4 grid-cols-3">
-        <Card className="col-span-2">
+        <Card className="col-span-2 shadow-none">
           <CardHeader>
             <CardTitle>Kurbanlık Bedellerine Göre Satışlar</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfigm}>
+            <ChartContainer config={chartConfigm} className="h-[200px]">
               <BarChart accessibilityLayer data={chartDatam}>
                 <XAxis
                   dataKey="date"

@@ -8,12 +8,12 @@ import { tr } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -223,7 +223,7 @@ export default function GeneralOverviewPage() {
         // Fetch shareholders data with purchase_time
         const { data: shareholdersData, error: shareholdersError } =
           await supabase
-            .from("shareholders")
+          .from("shareholders")
             .select("total_amount, paid_amount, purchase_time");
 
         if (shareholdersError) throw shareholdersError;
@@ -339,7 +339,7 @@ export default function GeneralOverviewPage() {
               startDate = new Date(Math.min(...dates));
               const endDate = new Date(Math.max(...dates));
 
-              const dateRange = eachDayOfInterval({ 
+        const dateRange = eachDayOfInterval({
                 start: startDate, 
                 end: endDate 
               });
@@ -372,15 +372,15 @@ export default function GeneralOverviewPage() {
             dayEnd.setHours(23, 59, 59, 999);
 
             const count = shareholdersDataForChart.filter((s) => {
-              const purchaseDate = new Date(s.purchase_time);
-              return purchaseDate >= dayStart && purchaseDate <= dayEnd;
+            const purchaseDate = new Date(s.purchase_time);
+            return purchaseDate >= dayStart && purchaseDate <= dayEnd;
             }).length;
 
-            return {
+          return {
               date: format(date, "dd MMM", { locale: tr }),
               count,
-            };
-          });
+          };
+        });
         }
 
         setChartData(dailySharesData);
@@ -478,7 +478,7 @@ export default function GeneralOverviewPage() {
               href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
             }}
           />
-        </div>
+            </div>
         <div>
           <StatCard
             title="Kalan Hisseler"
@@ -486,7 +486,7 @@ export default function GeneralOverviewPage() {
             maxValue={stats.totalShares}
             displayValue={stats.filledShares}
           />
-        </div>
+            </div>
         <div>
           <StatCard
             title="Eksik Kaporalar"
@@ -497,7 +497,7 @@ export default function GeneralOverviewPage() {
               href: "/kurban-admin/odeme-analizi?tab=eksik-kapora",
             }}
           />
-        </div>
+            </div>
         <div>
           <StatCard
             title="Eksik Ödemeler"
@@ -509,7 +509,7 @@ export default function GeneralOverviewPage() {
               href: "/kurban-admin/odeme-analizi?tab=eksik-odeme",
             }}
           />
-        </div>
+            </div>
       </div>
 
       {/* Günlük Hisse Alımları */}
@@ -555,8 +555,8 @@ export default function GeneralOverviewPage() {
               }}
             >
               <CartesianGrid vertical={false} className="z-0" />
-              <XAxis
-                dataKey="date"
+                <XAxis 
+                  dataKey="date"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -589,7 +589,7 @@ export default function GeneralOverviewPage() {
                 }
                 wrapperStyle={{ zIndex: 40 }}
               />
-            </BarChart>
+              </BarChart>
           </ChartContainer>
         </CardContent>
       </Card>
@@ -637,7 +637,7 @@ export default function GeneralOverviewPage() {
                 {(!activityLogs || activityLogs.length === 0) && (
                   <p className="text-sm text-muted-foreground">Henüz hareket bulunmuyor.</p>
                 )}
-              </div>
+            </div>
             </ScrollArea>
           </CardContent>
         </Card>
@@ -648,26 +648,26 @@ export default function GeneralOverviewPage() {
 
           {/* Delivery Locations Chart */}
           <Card className="col-span-2 shadow-none">
-            <CardHeader>
+          <CardHeader>
               <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={locationData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
                     <Bar dataKey="value" name="Hissedar Sayısı">
                       {locationData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

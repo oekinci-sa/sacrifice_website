@@ -16,6 +16,7 @@ import {
   Legend,
 } from "recharts";
 import { supabase } from "@/utils/supabaseClient";
+import { StatCard } from "@/components/ui/stat-card";
 
 interface SacrificeStats {
   totalSacrifices: number;
@@ -33,6 +34,7 @@ interface SacrificeStats {
     verildi: number;
     bekliyor: number;
   };
+  completedSacrifices: number;
 }
 
 const COLORS = {
@@ -60,6 +62,7 @@ export function SacrificeStatistics() {
       verildi: 0,
       bekliyor: 0,
     },
+    completedSacrifices: 0,
   });
 
   useEffect(() => {
@@ -102,6 +105,11 @@ export function SacrificeStatistics() {
           bekliyor: shareholders?.filter(s => s.sacrifice_consent === false).length || 0,
         };
 
+        // Count sacrifices with no empty shares
+        const completedSacrifices = sacrifices?.filter(
+          (s) => s.empty_share === 0
+        ).length || 0;
+
         setStats({
           totalSacrifices,
           totalShares,
@@ -112,6 +120,7 @@ export function SacrificeStatistics() {
           averageSharePrice,
           deliveryStats,
           consentStats,
+          completedSacrifices,
         });
       } catch (error) {
         console.error("Error fetching sacrifice statistics:", error);
@@ -141,67 +150,17 @@ export function SacrificeStatistics() {
 
   return (
     <div className="grid gap-4">
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Kurbanlık</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSacrifices}</div>
-            <p className="text-xs text-muted-foreground">
-              Toplam {stats.totalShares} hisse
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Boş Hisseler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.emptyShares}</div>
-            <Progress 
-              value={stats.totalShares > 0 ? ((stats.totalShares - stats.emptyShares) / stats.totalShares) * 100 : 0}
-              className="mt-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Doluluk oranı: {stats.totalShares > 0 ? (((stats.totalShares - stats.emptyShares) / stats.totalShares) * 100).toFixed(1) : 0}%
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Tutar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.totalAmount)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Ortalama Hisse: {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.averageSharePrice)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplanan Ödeme</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(stats.collectedAmount)}
-            </div>
-            <Progress 
-              value={stats.totalAmount > 0 ? (stats.collectedAmount / stats.totalAmount) * 100 : 0}
-              className="mt-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Tahsilat oranı: {stats.totalAmount > 0 ? ((stats.collectedAmount / stats.totalAmount) * 100).toFixed(1) : 0}%
-            </p>
-          </CardContent>
-        </Card>
+      <div>
+        <StatCard
+          title="Kalan Kurbanlıklar"
+          value={stats.totalSacrifices - stats.completedSacrifices}
+          maxValue={stats.totalSacrifices}
+          displayValue={stats.completedSacrifices}
+          actionLink={{
+            text: "Tümünü göster",
+            href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+          }}
+        />
       </div>
 
       {/* Charts */}

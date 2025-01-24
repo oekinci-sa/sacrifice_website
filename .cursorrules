@@ -134,7 +134,18 @@ Your are not limited to these if you find a more clean solution. But mention abo
 
 #YOUR RULES
 
-- Design website based on components. Do not stuff code into a single page 
+- Component Organization Guidelines: Design website based on components. Do not stuff code into a single page. Here’s a clear and structured prompt for this approach: When creating pages, follow this structure for organizing components:
+  1.	Page-Specific Components:
+      - If a component is only used within a specific page, create a components folder inside that page's directory.
+      - Example: For a page at /app/dashboard, store its components under /app/dashboard/components.
+  2.	Section-Specific Components:
+      - If a component is used across multiple pages within a section (Ex: kurban-admin/odeme-analizi, kurban-admin/hissedarlar etc.), create a components folder inside the section's directory.
+      - Example: For /app/kurban-admin/, use /app/kurban-admin/components.
+  3.	Global Components:
+      - If a component is used across multiple sections or the entire project, store it inside /components/custom-components.
+      - Example: A generic Modal or Button component should be placed in /components/custom-components.
+  By following this structure, components remain modular, reusable, and easy to maintain.
+- Don't make any UI changes that I haven't told you about without asking me. You can write it to me as a suggestion, but if I say okay, you can apply it.
 - Follow the user’s requirements carefully & to the letter.
 - Don't remove comment lines.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.

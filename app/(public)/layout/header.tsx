@@ -1,6 +1,6 @@
 import { ModeToggle } from "@/components/layout/public/Header/mode-toggle";
-import Logo from "../../../../components/layout/public/Header/logo";
-import Navigation from "../../../../components/layout/public/Header/navigation";
+import Logo from "@/components/layout/public/Header/logo";
+import Navigation from "@/components/layout/public/Header/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

@@ -1,10 +1,74 @@
+'use client';
+
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import websiteLogoWhite from "@/public/website-logo-white.svg";
+import { supabase } from "@/utils/supabaseClient";
 
-import { mediaLinks } from "../constants";
+import { mediaLinks } from "../../(public)/constants";
 import CustomLink from "@/components/common/custom-link";
 
+interface SacrificeAnimal {
+  empty_share: number;
+}
+
+interface MediaLink {
+  href: string;
+  iconName: string;
+}
+
 const Footer = () => {
+  const [totalEmptyShares, setTotalEmptyShares] = useState<number>(0);
+
+  const fetchTotalEmptyShares = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sacrifice_animals')
+        .select('empty_share');
+
+      if (error) {
+        console.error('Error fetching empty shares:', error);
+        return;
+      }
+
+      if (data) {
+        const total = data.reduce((sum, item) => sum + (item.empty_share || 0), 0);
+        setTotalEmptyShares(total);
+      }
+    } catch (error) {
+      console.error('Error in fetchTotalEmptyShares:', error);
+    }
+  };
+
+  useEffect(() => {
+    // İlk yüklemede verileri al
+    fetchTotalEmptyShares();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel('sacrifice_animals_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sacrifice_animals'
+        },
+        (payload) => {
+          console.log('Change received!', payload);
+          fetchTotalEmptyShares();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
+
+    // Cleanup subscription
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
+
   return (
     <div className="bg-buttonBlack mt-20 pt-12 pb-6">
       <div className="container flex justify-between text-white mb-8">
@@ -28,7 +92,7 @@ const Footer = () => {
 
           {/* Social Media */}
           <div className="flex gap-6">
-            {mediaLinks.map((item) => (
+            {mediaLinks.map((item: MediaLink) => (
               <div
                 key={item.href}
                 className="flex items-center justify-center text rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
@@ -64,7 +128,7 @@ const Footer = () => {
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
                     <span className="ml-2 bg-myRed text-white text-[12px] px-2 py-1 rounded-[2px]">
-                      Son 30 Hisse
+                      Son {totalEmptyShares} Hisse
                     </span>
                   </CustomLink>
                 </div>

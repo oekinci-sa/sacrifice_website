@@ -51,3 +51,26 @@ export interface sacrificeSchema {
   added_at: string;
   last_edited_by?: string;
 }
+
+export interface ShareholderType {
+  shareholder_id: string
+  shareholder_name: string
+  phone_number: string
+  purchase_time: string
+  sacrifice_id: string
+  delivery_fee: number
+  share_price: number
+  total_amount: number
+  paid_amount: number
+  remaining_payment: number
+  delivery_type: "kesimhane" | "toplu-teslim-noktasi"
+  delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki"
+  sacrifice_consent: boolean
+  last_edited_time: string
+  last_edited_by: string
+  notes?: string
+  sacrifice?: {
+    sacrifice_id: string
+    sacrifice_no: string
+  }
+}

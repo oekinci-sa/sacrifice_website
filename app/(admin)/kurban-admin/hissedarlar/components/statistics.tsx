@@ -150,8 +150,8 @@ export function ShareholderStatistics() {
 
   return (
     <div className="grid gap-4">
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Cards and Delivery Chart */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Hissedar</CardTitle>
@@ -219,10 +219,42 @@ export function ShareholderStatistics() {
             </p>
           </CardContent>
         </Card>
+
+        <Card className="shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Teslimat Tercihleri</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[100px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={deliveryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={25}
+                    outerRadius={40}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {deliveryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground text-center">
+              Kesimhane: {stats.deliveryStats.kesimhane} | Toplu: {stats.deliveryStats.topluTeslimat}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
         <Card className="col-span-2 shadow-none">
           <CardHeader>
             <CardTitle>Ödeme Durumu Dağılımı</CardTitle>
@@ -254,38 +286,7 @@ export function ShareholderStatistics() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Teslimat Tercihleri</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={deliveryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    label
-                  >
-                    {deliveryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-3 shadow-none">
+        <Card className="col-span-2 shadow-none">
           <CardHeader>
             <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
           </CardHeader>

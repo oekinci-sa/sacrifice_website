@@ -1,99 +1,70 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
 import { empty_shares, share_prices } from "../data/data";
 import { sacrificeSchema } from "@/types";
-import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
-    // Görev kimliği.
     accessorKey: "sacrifice_no",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Kurban No" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue("sacrifice_no")}</div>
-    ),
+    header: "Kurban No",
+    cell: ({ row }) => <div className="text-center">{row.getValue("sacrifice_no")}</div>,
+    size: 200,
   },
   {
-    // Görev başlığı.
     accessorKey: "sacrifice_time",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Kurban Zamanı" />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="text-center">{row.getValue("sacrifice_time")}</div>
-      );
-    },
+    header: "Kesim Saati",
+    cell: ({ row }) => <div className="text-center">{row.getValue("sacrifice_time")}</div>,
+    size: 200,
   },
   {
-    // Görev durumu. Filtreleme var.
     accessorKey: "share_price",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Hisse Bedeli" />
-    ),
+    header: "Hisse Bedeli",
     cell: ({ row }) => {
       const share_price = share_prices.find(
         (share_price) => share_price.value == row.getValue("share_price")
       );
-
-      if (!share_price) {
-        return null;
-      }
-
-      return <div className="text-center">{share_price.label}</div>;
+      return share_price ? <div className="text-center">{share_price.label}</div> : null;
     },
-
-    // Filtreleme işlevi.
     filterFn: (row, id, value) => {
-      const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
-      return value.includes(cellValue); // String karşılaştırma yap
+      const cellValue = row.getValue(id)?.toString();
+      return value.includes(cellValue);
     },
+    enableColumnFilter: true,
+    size: 200,
   },
   {
-    // Görev önceliği.
     accessorKey: "empty_share",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Boş Hisse" />
-    ),
+    header: "Boş Hisse",
     cell: ({ row }) => {
       const empty_share = empty_shares.find(
         (empty_share) => empty_share.value == row.getValue("empty_share")
       );
-
-      if (!empty_share) {
-        return null;
-      }
-
-      return (
+      return empty_share ? (
         <div className="text-center">
           <span>{empty_share.label}</span>
         </div>
-      );
+      ) : null;
     },
     filterFn: (row, id, value) => {
-      const cellValue = row.getValue(id)?.toString(); // Hücre değerini string'e çevir
-      return value.includes(cellValue); // String karşılaştırma yap
+      const cellValue = row.getValue(id)?.toString();
+      return value.includes(cellValue);
     },
+    enableColumnFilter: true,
+    size: 200,
   },
   {
-    // Görev kimliği.
     accessorKey: "notes",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Notlar" />
-    ),
-    cell: ({ row }) => (
-      <div className="line-clamp-1">{row.getValue("notes")}</div>
-    ),
-    size: 1000,
+    header: "Notlar",
+    cell: ({ row }) => <div className="line-clamp-1">{row.getValue("notes")}</div>,
+    size: 200,
+    enableSorting: false,
   },
   {
     id: "actions",
+    header: "",
     cell: ({ row }) => <DataTableRowActions row={row} />,
-    size: 20,
+    size: 200,
   },
 ];

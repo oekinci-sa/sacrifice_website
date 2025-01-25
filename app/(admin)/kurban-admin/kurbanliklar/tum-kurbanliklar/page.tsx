@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DataTable } from "../components/data-table";
+import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { columns } from "../components/columns";
 import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema } from "@/types";
@@ -32,7 +32,7 @@ export default function TumKurbanliklarPage() {
           Tüm kurbanlıkların listesi
         </p>
       </div>
-      <DataTable data={data} columns={columns} />
+      <CustomDataTable data={data} columns={columns} />
     </div>
   );
 } 

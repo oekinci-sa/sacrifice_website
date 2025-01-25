@@ -130,16 +130,6 @@ export function SacrificeStatistics() {
     fetchStats();
   }, []);
 
-  const deliveryData = [
-    { name: "Kesimhane", value: stats.deliveryStats.kesimhane, color: COLORS.blue },
-    { name: "Toplu Teslim", value: stats.deliveryStats.topluTeslimat, color: COLORS.purple },
-  ];
-
-  const consentData = [
-    { name: "Vekalet Alındı", value: stats.consentStats.verildi, color: COLORS.green },
-    { name: "Vekalet Bekleniyor", value: stats.consentStats.bekliyor, color: COLORS.yellow },
-  ];
-
   const paymentData = [
     {
       name: "Ödemeler",
@@ -164,8 +154,8 @@ export function SacrificeStatistics() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-2 shadow-none">
+      <div className="grid gap-4">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Ödeme Durumu</CardTitle>
           </CardHeader>
@@ -183,68 +173,6 @@ export function SacrificeStatistics() {
                   <Bar dataKey="Toplanan" stackId="a" fill={COLORS.green} />
                   <Bar dataKey="Kalan" stackId="a" fill={COLORS.yellow} />
                 </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Teslimat Tercihleri</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={deliveryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    label
-                  >
-                    {deliveryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-2 shadow-none">
-          <CardHeader>
-            <CardTitle>Vekalet Durumu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={consentData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    label
-                  >
-                    {consentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
               </ResponsiveContainer>
             </div>
           </CardContent>

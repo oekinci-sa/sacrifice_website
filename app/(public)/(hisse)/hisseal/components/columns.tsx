@@ -152,30 +152,28 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     id: "actions",
+    header: "",
     cell: ({ row, table }) => {
-      const sacrifice = row.original;
-      const emptyShare = sacrifice.empty_share;
+      const sacrifice = row.original
+      const emptyShare = sacrifice.empty_share
 
       if (emptyShare === 0) {
-        return (
-          <div className="text-center text-sm text-muted-foreground">
-            Tükendi
-          </div>
-        );
+        return <div className="text-center text-sm text-muted-foreground">Tükendi</div>
       }
 
       return (
         <div className="text-center">
           <Button
             variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
+            size="sm"
+            className="h-8 w-8 p-0"
             onClick={() => (table.options.meta as any)?.onSacrificeSelect(sacrifice)}
           >
             <Plus className="h-4 w-4" />
+            <span className="sr-only">Seç</span>
           </Button>
         </div>
-      );
+      ) 
     },
   },
 ]; 

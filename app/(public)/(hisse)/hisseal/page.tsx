@@ -3,7 +3,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React, { useState, useEffect, useCallback } from "react";
 import Checkout from "./components/Checkout";
-import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema } from "@/types";
@@ -11,25 +10,26 @@ import { ShareSelectDialog } from "./components/share-select-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 
-const TIMEOUT_DURATION = 20; // 3 minutes
-const WARNING_THRESHOLD = 10; // Show warning at 1 minute
+const TIMEOUT_DURATION = 30; // 3 minutes
+const WARNING_THRESHOLD = 15; // Show warning at 1 minute
 const API_ENDPOINT = '/api/update-empty-share';
 
 const Page = () => {
+  const { toast } = useToast();
   const router = useRouter();
   const [data, setData] = useState<sacrificeSchema[]>([]);
   const [selectedSacrifice, setSelectedSacrifice] = useState<sacrificeSchema | null>(null);
   const [tempSelectedSacrifice, setTempSelectedSacrifice] = useState<sacrificeSchema | null>(null);
   const [formData, setFormData] = useState<any[]>([]);
-  const [formErrors, setFormErrors] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("tab-1");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(180);
+  const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
+  const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
   const [showWarning, setShowWarning] = useState(false);
-  const [lastInteractionTime, setLastInteractionTime] = useState<number>(Date.now());
-  const { toast } = useToast();
 
+  // Fetch initial data and setup real-time subscription
   useEffect(() => {
     const fetchData = async () => {
       const { data: initialData, error } = await supabase
@@ -140,46 +140,39 @@ const Page = () => {
     }
   }, [selectedSacrifice, formData]);
 
-  // Timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (activeTab === "tab-2") {
-      timer = setInterval(() => {
-        const now = Date.now();
-        const timeSinceLastInteraction = Math.floor((now - lastInteractionTime) / 1000);
-        const timeRemaining = TIMEOUT_DURATION - timeSinceLastInteraction;
-
-        if (timeRemaining <= WARNING_THRESHOLD && timeRemaining > 0 && !showWarning) {
-          setShowWarning(true);
-        }
-        
-        if (timeRemaining <= 0) {
-          console.log("Timeout occurred, resetting to share selection tab");
-          cleanup();
-          setActiveTab("tab-1");
-          setShowWarning(false);
-          return;
-        }
-        
-        setTimeLeft(timeRemaining);
-      }, 1000);
-    }
-
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [activeTab, lastInteractionTime, showWarning, cleanup]);
-
-  // Handle user interactions
+  // Handle user interaction
   const handleInteraction = useCallback(() => {
     setLastInteractionTime(Date.now());
-    if (showWarning) {
-      setShowWarning(false);
-    }
-  }, [showWarning]);
+    setShowWarning(false);
+  }, []);
+
+  // Timer effect
+  useEffect(() => {
+    if (activeTab !== "tab-2" || !selectedSacrifice) return;
+
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastInteractionTime) / 1000);
+      const remaining = TIMEOUT_DURATION - elapsed;
+
+      if (remaining <= 0) {
+        // Time's up - reset everything
+        setTimeLeft(0);
+        setActiveTab("tab-1");
+        setSelectedSacrifice(null);
+        setFormData([]);
+        updateEmptyShare(selectedSacrifice.sacrifice_id, formData.length);
+        setShowWarning(false);
+      } else {
+        setTimeLeft(remaining);
+        if (remaining <= WARNING_THRESHOLD && !showWarning) {
+          setShowWarning(true);
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeTab, selectedSacrifice, lastInteractionTime, formData.length, updateEmptyShare, showWarning]);
 
   // Handle page unload and navigation with Beacon API
   useEffect(() => {
@@ -224,6 +217,7 @@ const Page = () => {
     };
   }, [selectedSacrifice, formData, activeTab]);
 
+  // Handle sacrifice selection
   const handleSacrificeSelect = async (sacrifice: sacrificeSchema) => {
     const { data: latestSacrifice, error } = await supabase
       .from("sacrifice_animals")
@@ -253,6 +247,7 @@ const Page = () => {
     setIsDialogOpen(true);
   };
 
+  // Handle share count selection
   const handleShareCountSelect = async (shareCount: number) => {
     if (!tempSelectedSacrifice) return;
 
@@ -307,36 +302,21 @@ const Page = () => {
     setLastInteractionTime(Date.now());
   };
 
+  // Handle form approval
   const handleApprove = async () => {
     if (!selectedSacrifice || !formData) return;
 
-    // Validate form data and collect validation errors
-    let hasErrors = false;
-    const validationErrors = formData.map((data: any) => {
-      const errors: { [key: string]: string } = {};
-      
-      if (!data.name) {
-        errors.name = "Ad soyad zorunludur";
-        hasErrors = true;
-      }
-      if (!data.phone) {
-        errors.phone = "Telefon numarası zorunludur";
-        hasErrors = true;
-      }
-      if (!data.delivery_type) {
-        errors.delivery_type = "Teslimat tercihi zorunludur";
-        hasErrors = true;
-      }
-      if (data.delivery_type === "toplu-teslim-noktasi" && !data.delivery_location) {
-        errors.delivery_location = "Teslimat noktası seçiniz";
-        hasErrors = true;
-      }
-      
-      return errors;
+    // Validate form data
+    const isValid = formData.every((data) => {
+      return (
+        data.name.trim() !== "" &&
+        data.phone.trim() !== "" &&
+        data.delivery_type !== "" &&
+        (data.delivery_type === "kesimhane" || data.delivery_location !== "")
+      );
     });
 
-    if (hasErrors) {
-      setFormErrors(validationErrors);
+    if (!isValid) {
       toast({
         variant: "destructive",
         title: "Hata",
@@ -346,26 +326,12 @@ const Page = () => {
     }
 
     // Format phone numbers
-    const formattedData = formData.map((data: any) => {
-      let phone = data.phone;
-      // Remove any non-digit characters
-      phone = phone.replace(/\D/g, "");
-      // Remove leading 0 if exists
-      if (phone.startsWith("0")) {
-        phone = phone.substring(1);
-      }
-      // Add +90 prefix if not exists
-      if (!phone.startsWith("90")) {
-        phone = "90" + phone;
-      }
-      // Add + at the beginning
-      phone = "+" + phone;
-
-      return {
-        ...data,
-        phone,
-      };
-    });
+    const formattedData = formData.map((data) => ({
+      ...data,
+      phone: data.phone.startsWith("+90")
+        ? data.phone
+        : "+90" + data.phone.replace(/[^0-9]/g, ""),
+    }));
 
     // Insert shareholders
     const { error } = await supabase
@@ -425,10 +391,12 @@ const Page = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="tab-1">
-          <DataTable 
+          <CustomDataTable 
             data={data} 
             columns={columns} 
-            onSacrificeSelect={handleSacrificeSelect}
+            meta={{
+              onSacrificeSelect: handleSacrificeSelect
+            }}
           />
         </TabsContent>
         <TabsContent value="tab-2">

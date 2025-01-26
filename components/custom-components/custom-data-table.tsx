@@ -63,6 +63,7 @@ import { columnIcon } from "@/app/(admin)/kurban-admin/degisiklik-kayitlari/comp
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  meta?: Record<string, any>
 }
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -78,6 +79,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
 export function CustomDataTable<TData, TValue>({
   columns,
   data,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -101,6 +103,7 @@ export function CustomDataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    meta,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),

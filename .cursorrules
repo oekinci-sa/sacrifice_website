@@ -84,6 +84,7 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 Backend: Supabase
 
 - Use supabaseClient from /utils/supabaseClient.ts
+- Always use realtime database feature for the operations. So, always create subscriptions.
 - I Have three tables in the database.
 - The sacrifice_animals and sacrifice_no tables in the shareholders tables are connected to each other with a foreign key (sacrifice_id).
 - When an operation is performed on the database, show a notification about the result with shadcn toast notifications. For example, your operation could not be performed: (Explanation)

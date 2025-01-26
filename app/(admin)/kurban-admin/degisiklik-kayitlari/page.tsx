@@ -2,67 +2,63 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { ActivityTable } from "../genel-bakis/components/activity-table";
+import { CustomDataTable } from "@/components/custom-components/custom-data-table";
+import { columns, type ChangeLog } from "./components/columns";
 
-interface ActivityLog {
-  event_id: string;
-  table_name: string;
-  row_id: string;
-  description: string;
-  change_type: "Ekleme" | "Güncelleme" | "Silme";
-  changed_at: string;
-  change_owner: string;
-}
-
-export default function ActivityLogsPage() {
-  const [loading, setLoading] = useState(true);
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+export default function ChangeLogsPage() {
+  const [data, setData] = useState<ChangeLog[]>([]);
 
   useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        // Fetch activity logs
-        const { data: logsData, error: logsError } = await supabase
-          .from("change_logs")
-          .select("*")
-          .order("changed_at", { ascending: false });
+    async function fetchData() {
+      const { data: logs, error } = await supabase
+        .from("change_logs")
+        .select("*")
+        .order("changed_at", { ascending: false });
 
-        if (logsError) throw logsError;
-
-        // Transform logs data
-        const transformedLogs = logsData.map(log => ({
-          event_id: log.event_id,
-          table_name: log.table_name,
-          row_id: log.row_id,
-          description: log.description,
-          change_type: log.change_type as "Ekleme" | "Güncelleme" | "Silme",
-          changed_at: log.changed_at,
-          change_owner: log.change_owner
-        }));
-
-        setActivityLogs(transformedLogs);
-      } catch (error) {
-        console.error("Error fetching activity logs:", error);
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("Error fetching change logs:", error);
+        return;
       }
-    };
 
-    fetchLogs();
+      if (logs) {
+        setData(logs);
+      }
+    }
+
+    fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold font-heading">Değişiklik Kayıtları</h1>
-      <ActivityTable data={activityLogs} />
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Değişiklik Kayıtları</h1>
+        <p className="text-muted-foreground">
+          Sistemde yapılan tüm değişikliklerin kayıtları
+        </p>
+      </div>
+      <CustomDataTable 
+        data={data} 
+        columns={columns} 
+        filters={[
+          {
+            id: "change_type",
+            title: "İşlem Türü",
+            options: [
+              { label: "Ekleme", value: "Ekleme" },
+              { label: "Güncelleme", value: "Güncelleme" },
+              { label: "Silme", value: "Silme" },
+            ],
+          },
+          {
+            id: "table_name",
+            title: "Tablo",
+            options: [
+              { label: "Kurbanlıklar", value: "sacrifice_animals" },
+              { label: "Hissedarlar", value: "shareholders" },
+            ],
+          },
+        ]}
+      />
     </div>
   );
 } 

@@ -4,6 +4,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { empty_shares, share_prices } from "../data/data";
 import { sacrificeSchema } from "@/types";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
@@ -60,11 +62,27 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => <div className="line-clamp-1">{row.getValue("notes")}</div>,
     size: 200,
     enableSorting: false,
+    enableHiding: true,
   },
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center gap-2">
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+          onClick={() => {
+            // TODO: Implement view functionality
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+        <DataTableRowActions row={row} />
+      </div>
+    ),
     size: 200,
+    enableSorting: false,
   },
 ];

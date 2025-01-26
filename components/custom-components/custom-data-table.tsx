@@ -34,7 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Pencil } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Pencil, Eye } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -58,6 +58,7 @@ import { toast } from "sonner"
 
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter"
 import { supabase } from "@/utils/supabaseClient"
+import { columnIcon } from "@/app/(admin)/kurban-admin/degisiklik-kayitlari/components/columns"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -80,7 +81,9 @@ export function CustomDataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    notes: false,
+  })
   const [globalFilter, setGlobalFilter] = React.useState("")
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
     pageIndex: 0,
@@ -192,8 +195,9 @@ export function CustomDataTable<TData, TValue>({
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto h-8 px-2 text-sm">
-                Sütunlar
+              <Button variant="outline" size="sm" className="ml-auto">
+                {columnIcon}
+                <span className="ml-2">Sütunlar</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -201,41 +205,6 @@ export function CustomDataTable<TData, TValue>({
                 .getAllColumns()
                 .filter((column) => column.getCanHide())
                 .map((column) => {
-                  let headerText = "";
-                  if (column.id === "actions") {
-                    headerText = "Eylemler";
-                  } else if (typeof column.columnDef.header === "string") {
-                    headerText = column.columnDef.header;
-                  } else if (typeof column.columnDef.header === "function") {
-                    const context = column.getContext();
-                    const rendered = column.columnDef.header(context);
-                    if (rendered && typeof rendered === "object" && "props" in rendered) {
-                      headerText = rendered.props.children[0];
-                    }
-                  }
-
-                  if (!headerText && column.id !== "actions") {
-                    switch (column.id) {
-                      case "sacrifice_no":
-                        headerText = "Kurban No";
-                        break;
-                      case "sacrifice_time":
-                        headerText = "Kesim Saati";
-                        break;
-                      case "share_price":
-                        headerText = "Hisse Bedeli";
-                        break;
-                      case "empty_share":
-                        headerText = "Boş Hisse";
-                        break;
-                      case "notes":
-                        headerText = "Notlar";
-                        break;
-                      default:
-                        headerText = column.id;
-                    }
-                  }
-
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
@@ -243,22 +212,10 @@ export function CustomDataTable<TData, TValue>({
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     >
-                      {headerText}
+                      {column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  table.getAllColumns().forEach((column) => {
-                    if (column.getCanHide()) {
-                      column.toggleVisibility(true)
-                    }
-                  })
-                }}
-              >
-                Hepsini Göster
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -318,69 +275,7 @@ export function CustomDataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="text-center h-10 align-middle">
-                      {cell.column.id === "actions" ? (
-                        <div className="flex justify-center items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
-                            onClick={() => {
-                              const router = useRouter();
-                              const record = row.original as any;
-                              router.push(
-                                `/kurban-admin/hissedarlar/ayrintilar/${record.shareholder_id}`
-                              );
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                className="hover:bg-destructive/10 hover:text-destructive"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>İptal</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={async () => {
-                                    const record = row.original as any;
-                                    const { error } = await supabase
-                                      .from("shareholders")
-                                      .delete()
-                                      .eq("shareholder_id", record.shareholder_id);
-
-                                    if (error) {
-                                      toast.error("Hissedar silinirken bir hata oluştu");
-                                      return;
-                                    }
-
-                                    toast.success("Hissedar başarıyla silindi");
-                                    window.location.reload();
-                                  }}
-                                  className="bg-destructive hover:bg-destructive/90"
-                                >
-                                  Sil
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      ) : (
-                        flexRender(cell.column.columnDef.cell, cell.getContext())
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

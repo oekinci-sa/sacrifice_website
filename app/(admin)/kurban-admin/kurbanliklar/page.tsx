@@ -29,11 +29,11 @@ interface ChartData {
 const chartConfig = {
   emptyShares: {
     label: "Boş",
-    color: "hsl(var(--chart-2))",
+    color: "#f0fbf1",
   },
   completedAnimals: {
     label: "Dolu",
-    color: "hsl(var(--chart-1))",
+    color: "#39C645",
   },
 } satisfies ChartConfig;
 
@@ -128,11 +128,7 @@ export default function KurbanliklarPage() {
                 tickFormatter={(value) => Math.floor(value).toString()}
               />
               <Tooltip
-                cursor={{ 
-                  fill: 'rgba(0, 0, 0, 0.1)',
-                  strokeWidth: 0,
-                  className: 'z-10'
-                }}
+                cursor={{ fill: "transparent" }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const price = payload[0].payload.sharePrice;
@@ -150,14 +146,14 @@ export default function KurbanliklarPage() {
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between text-[0.70rem] gap-8">
                               <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full" style={{ background: 'var(--color-completedAnimals)' }} />
+                                <div className="h-2 w-2 rounded-full" style={{ background: '#39C645' }} />
                                 <span className="text-muted-foreground">Dolu</span>
                               </div>
                               <span className="font-semibold">{completedValue}</span>
                             </div>
                             <div className="flex items-center justify-between text-[0.70rem] gap-8">
                               <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full" style={{ background: 'var(--color-emptyShares)' }} />
+                                <div className="h-2 w-2 rounded-full" style={{ background: '#f0fbf1' }} />
                                 <span className="text-muted-foreground">Boş</span>
                               </div>
                               <span className="font-semibold">{emptyValue}</span>
@@ -172,14 +168,14 @@ export default function KurbanliklarPage() {
               />
               <Bar
                 dataKey="completedAnimals"
-                fill="var(--color-completedAnimals)"
+                fill="#39C645"
                 radius={[0, 0, 4, 4]}
                 className="z-20"
                 stackId="a"
               />
               <Bar
                 dataKey="emptyShares"
-                fill="var(--color-emptyShares)"
+                fill="#f0fbf1"
                 radius={[4, 4, 0, 0]}
                 className="z-30"
                 stackId="a"

@@ -1,12 +1,74 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShareholderStatistics } from "./components/statistics";
+import { CustomStatistics } from "@/components/custom-components/custom-statistics";
 import { supabase } from "@/utils/supabaseClient";
 import { shareholderSchema } from "@/types";
 
+interface ShareholderStats {
+  missingDeposits: number;
+  missingPayments: number;
+  consentStats: {
+    verildi: number;
+    bekliyor: number;
+  };
+  totalShareholders: number;
+}
+
 export default function HissedarlarPage() {
+  const [stats, setStats] = useState<ShareholderStats>({
+    missingDeposits: 0,
+    missingPayments: 0,
+    consentStats: {
+      verildi: 0,
+      bekliyor: 0,
+    },
+    totalShareholders: 0,
+  });
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch shareholders data
+      const { data: shareholders } = await supabase
+        .from("shareholders")
+        .select("*");
+
+      if (shareholders) {
+        // Calculate statistics
+        const totalShareholders = shareholders.length;
+        const missingDeposits = shareholders.filter(s => s.paid_amount < 2000).length;
+        const missingPayments = shareholders.filter(s => s.remaining_payment > 0).length;
+        const vekaletAlindiCount = shareholders.filter(s => s.sacrifice_consent === true).length;
+        const vekaletAlinmadiCount = shareholders.filter(s => s.sacrifice_consent === false).length;
+
+        setStats({
+          missingDeposits,
+          missingPayments,
+          consentStats: {
+            verildi: vekaletAlindiCount,
+            bekliyor: vekaletAlinmadiCount,
+          },
+          totalShareholders,
+        });
+      }
+
+      // Fetch recent activities
+      const { data: activities } = await supabase
+        .from("change_logs")
+        .select("*")
+        .eq("table_name", "shareholders")
+        .order("changed_at", { ascending: false })
+        .limit(10);
+
+      if (activities) {
+        setRecentActivities(activities);
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <div className="space-y-8">
       <div>
@@ -15,7 +77,7 @@ export default function HissedarlarPage() {
           Hissedarların genel durumu ve detayları
         </p>
       </div>
-      <ShareholderStatistics />
+      <CustomStatistics stats={stats} recentActivities={recentActivities} />
     </div>
   );
 } 

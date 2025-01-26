@@ -1,0 +1,74 @@
+Satış garifklerinde bahsettiğim gri sütunun yeşil barın önüne geçmesisorunu, kurbanlıklar sayfasındaki kurbanlık bedelelerine göre satışlar grafiğinde çözülmüş durumda ona bakıp düzeltir misin problemi?
+
+------------------------
+hisse al
+------------------------
+Hisse Al sayfasındki tabloda şöyle bir sorun yaşıyorum. Şimd hisse bedeli ve boş hisse sayısına göre bir filtrelem yapıyorum. Buradaki butonlara tıklanınca bir menü açılıyor ve oradan filtrelenecek değerleri seçiyorum. Fakat seçtiğim değerlerin Butonun kendi div'i içinde bana ayrıca gösterilmesini istemiyorum. bu durumu çözer misin hisse al sayfasında?
+
+Bir de tablo oluşurken otomatik filtreli oluşsun. Sanki bir kullanıcı boş hisse bedeli filtresinden 1-2-3-4-5-6-7 numaralarını seçmiş gibi. Bu sayede kullanıcılar daha hızlı bir şekilde işlem yapabilirler. Fakat daha sonra bu filtrelemeyi kaldırabilirler filtre butonları araclığıyla.
+1-2-3-4-5 butonlarının hepsinin içinde olduğu div ortalı fakat be n bu butonların da o div'e ortalnmasını istiyorum. Şu anda sola yaslılar.
+
+Bir de ilk kez yüklenirken bu /hisseal tablosu boş hissesi sıfır olanlar, sanki boş hisse bedeli butonuyla filtrelenmiş gibi sadee boş hissesi 0 olmayan hayvanlar gözükmeli ilk olarak kullancıya kolaylık olması için.
+
+İlk yüklemede boş hissesi 0 olan hayvanları getirmedin tamam ama ben bunu db'ye sorgu atarken boş hissesi 0 olanları getirme diye demedim. Sen tüm hayvanları getir fakat getirdikten sonra tablo filtrleeriyle sanki bir kullancı boş hissesi kalmayan hayvanları filtrelemiş gibi olsun diye dedim.
+
+
+Filtrelerde menü açılınca her ifadenin karşısında şu anki şartlara uyan kaç adet kurbanlık var gösterilecek. Örneğin 32000 karşısında 5 yazmalı açılır menüde. Bu sayede kullanıcılar hangi filtrelerin ne kadar kurbanlık getireceğini daha iyi anlayabilirler.
+
+
+------------------------
+Genel Bkış
+------------------------
+- Eksik kaporalardan kastımız nedir tam? Bir bilgi tooltipi olabilir. -> Kurban alımından 3 gün geçmesine rağmen 2000TL yatırmayanların listesi.
+- Kalan hisse ortalam kaç hayvan yapar?
+Satış grafikleri tablosunda tablardaki sayılar ve yazılar her aynı satır hizasında olmalılar. Yazıların font büyüklüğü bir tık daha büyük olmalı.
+- Satış grafikleri tablosunda tablardaki sayılar ve yazılar her aynı satır hizasında olmalılar. Yazıların font büyüklüğü bir tık daha büyük olmalı.
+  - Satış grafikleri tablosunda ayrıca ay bazlı da olabilir mesela ekim asım aralık da ayrı ayrı görülebilir.
+
+Son Hareketler
+
+
+------------------------
+kurbanlıklar
+------------------------
+Hissesi tam olarak ödene kurbamlıklar
+Ödeme durumu her bir kurbanlık için ayrı ayrı gösterilecek görsel olacak. -> Ödemesi eksik/tüm kurbanlık sayısı olacak sağ üstünde olacak.
+Kurbanlık Bedellerine göre Satışlar bölümünde renk değişimi düşünülebilir. 
+
+/hisseal sayfasındaki tabloyu custom-data-table tablosunu kullanarak yeniden oluşturu musun? Burada eylemler bölmünüde farklı logicler var. O sebeple onları çok iyi bir şekilde analiz edip db ile filan konuşup işlem yapan yerlerin atlanmamasını istiyorum. Onları da yeni tabloda muhakkak oluşturman lazım. Fİltreleme bölümünde Hisse Bdedeli ve Boş Hisse saysına göre filtreleme özelliği var /kurban-admin/kurbamlıklar/tum-kurbanliklar sayfasında olduğu gibi. /hisseal sayfasındaki tabloda sütunları gösterip gizleme özelliğine ihtiyaç yok. Bunu oluşturma. Eylemler bölümünde +'ya tıklayınca mesela bir modal çıkıyor. Bu tür özellikleri filan da kaybetmesin tablo kesinlikle. Sadece görünümünde değişiklikler istiyorum yani tablonun.
+
+------------------------
+Hissedarlar
+------------------------
+- /kurban-admin//hissedarlar sayfasındaki ilk satırlardaki istatistikleri kaldırıp aşağıdaki istatistikleri bu component'ten oluşturur musun?
+Eksik Kaporalar ->
+Eksik Ödemeler
+Veklaet alındı alınmadı
+Son hissedar işlemleri
+Görselleştirmeler:
+- Teslimat için toplu teslimat noktasına göre
+- Ödeme durumlarına göre
+Hissedar ayrıntıları -> Kurbanlığa da gidebilme seçeneği olmalı buradan.
+------------------------
+Ödmee Analizi
+------------------------
+Tamamlanan ödemeler sayfasında ödenen tutar kısmı kaldırılmlaı.
+En son yapılan ödemeler
+
+Sana söylediğim şeylerr dışında herhangi bir değişikliklik gerçekleştirme UI'da.
+
+Header row üzerine gelince çıkan dikdörtgen yüksekliği ile hücrelerin bulunduğu row üzerine gelindiğinde çıkan dikdörtgen yüksekliği aynı olmalı.
+
+
+------------------------
+Component Dizayn
+------------------------
+
+
+Şimdi search barı sola taşıma ve sağ ise tüm kurbanlıkların olduğu tablodaki gibi checkbox'lar aracılığı ile de filtreleme yapma özelliğini custom-componenets altındaki tabloma eklemek istiyorum. Bir de o an sayfada buluna sütunları gösterme ve gizleme özelliklerini de ekler misin? UI özellikleri olarak da tüm kurbanlıklar sayfasındaki gibi olabilir. Sütunlardaki en sağda bir adet buton yapmışsın yukarı aşağı ok şeklinde ona gerek yok. Sütun adının hemen yanındaki ok yeterli.
+
+Gene lBakış sayfasında card'lar statistics.tsx dosyasından oluşturulmuştu. Bu statistics dosyasını custom-componenets altında custom-statistics.tsx adıyla oluşturup oraya taşıyabilir misin? Ve bu dosyayı 
+
+Ödeme oranı sütunundaki hücrelerin genişliği aynı olmalı. Progess bar sola yaslı ve yüzde ifadesi de sol yaslı olmalı.
+
+Ne kadar ödeme yapıldığı kısmında, hissedarın toplam borcundan daha fazla ödeme yapılamamlı. 

@@ -64,6 +64,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   meta?: Record<string, any>
+  pageSizeOptions?: number[]
 }
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -80,16 +81,23 @@ export function CustomDataTable<TData, TValue>({
   columns,
   data,
   meta,
+  pageSizeOptions = [10, 20, 50, 100, 150],
 }: DataTableProps<TData, TValue>) {
+  const tableColumns = React.useMemo(() => columns, [columns])
+  
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([
+    {
+      id: "empty_share",
+      value: ["1", "2", "3", "4", "5", "6", "7"]
+    }
+  ])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     notes: false,
   })
-  const [globalFilter, setGlobalFilter] = React.useState("")
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: pageSizeOptions[0],
   })
   const [sharePrices, setSharePrices] = React.useState<{ label: string; value: string }[]>([])
 
@@ -102,7 +110,7 @@ export function CustomDataTable<TData, TValue>({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
     meta,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -110,26 +118,12 @@ export function CustomDataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const columnIds = ["sacrifice_no", "notes"];
-      return columnIds.some((id) => {
-        const value = row.getValue(id);
-        return value !== undefined
-          ? String(value)
-              .toLowerCase()
-              .includes(String(filterValue).toLowerCase())
-          : false;
-      });
-    },
-    getFacetedUniqueValues: getFacetedUniqueValues(),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      globalFilter,
       pagination: {
         pageIndex,
         pageSize,
@@ -150,7 +144,10 @@ export function CustomDataTable<TData, TValue>({
       if (prices) {
         const uniquePrices = Array.from(new Set(prices.map((p) => p.share_price)));
         const options = uniquePrices.map((price) => ({
-          label: price.toString(),
+          label: `${new Intl.NumberFormat('tr-TR', { 
+            style: 'decimal',
+            maximumFractionDigits: 0 
+          }).format(price)} ₺`,
           value: price.toString(),
         }));
         setSharePrices(options);
@@ -163,201 +160,190 @@ export function CustomDataTable<TData, TValue>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center">
-        <Input
-          placeholder="Ara..."
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-        <div className="flex items-center ml-auto space-x-2">
-          {isFiltered && (
-            <Button
-              variant="ghost"
-              onClick={() => setColumnFilters([])}
-              className="h-8 px-2 lg:px-3"
-            >
-              Sıfırla
-              <X className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-          {table.getColumn("share_price") && (
-            <DataTableFacetedFilter
-              column={table.getColumn("share_price")}
-              title="Hisse Bedeli"
-              options={sharePrices}
-            />
-          )}
-          {table.getColumn("empty_share") && (
-            <DataTableFacetedFilter
-              column={table.getColumn("empty_share")}
-              title="Boş Hisse"
-              options={emptyShares}
-            />
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="ml-auto">
-                {columnIcon}
-                <span className="ml-2">Sütunlar</span>
+    <div className="mt-8">
+      <div className="space-y-4">
+        <div className="flex items-center">
+          <Input
+            placeholder="Kurbanlık no ile ara..."
+            value={(table.getColumn("sacrifice_no")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("sacrifice_no")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+          <div className="flex items-center ml-auto space-x-2">
+            {isFiltered && (
+              <Button
+                variant="ghost"
+                onClick={() => setColumnFilters([])}
+                className="h-8 px-2 lg:px-3 flex items-center gap-2 text-sm"
+              >
+                Tüm filtreleri temizle
+                <X className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+            <div className="relative">
+              {table.getColumn("share_price")?.getFilterValue()?.length > 0 && (
+                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {(table.getColumn("share_price")?.getFilterValue() as string[])?.length}
+                </div>
+              )}
+              <DataTableFacetedFilter
+                column={table.getColumn("share_price")}
+                title="Hisse Bedeli"
+                options={sharePrices}
+              />
+            </div>
+            <div className="relative">
+              {table.getColumn("empty_share")?.getFilterValue()?.length > 0 && (
+                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {(table.getColumn("empty_share")?.getFilterValue() as string[])?.length}
+                </div>
+              )}
+              <DataTableFacetedFilter
+                column={table.getColumn("empty_share")}
+                title="Boş Hisse"
+                options={emptyShares}
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="rounded-md">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead 
-                    key={header.id} 
-                    className="h-12 text-center w-[200px]"
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div className="flex justify-center">
-                        <Button
-                          variant="ghost"
-                          className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {typeof header.column.columnDef.header === "string" ? (
-                            <div className="flex items-center gap-2">
-                              <span>{header.column.columnDef.header}</span>
-                              {header.column.getCanSort() && (
-                                header.column.getIsSorted() === "asc" ? (
-                                  <ArrowUp className="h-4 w-4" />
-                                ) : header.column.getIsSorted() === "desc" ? (
-                                  <ArrowDown className="h-4 w-4" />
-                                ) : (
-                                  <ArrowUpDown className="h-4 w-4" />
-                                )
-                              )}
-                            </div>
-                          ) : (
-                            flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-muted/50"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-center h-10 align-middle">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+        <div className="rounded-md">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead 
+                      key={header.id} 
+                      className="h-12 text-center w-[200px]"
+                    >
+                      {header.isPlaceholder ? null : (
+                        <div className="flex justify-center">
+                          <Button
+                            variant="ghost"
+                            className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {typeof header.column.columnDef.header === "string" ? (
+                              <div className="flex items-center gap-2">
+                                <span>{header.column.columnDef.header}</span>
+                                {header.column.getCanSort() && (
+                                  header.column.getIsSorted() === "asc" ? (
+                                    <ArrowUp className="h-4 w-4" />
+                                  ) : header.column.getIsSorted() === "desc" ? (
+                                    <ArrowDown className="h-4 w-4" />
+                                  ) : (
+                                    <ArrowUpDown className="h-4 w-4" />
+                                  )
+                                )}
+                              </div>
+                            ) : (
+                              flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Kayıt bulunamadı.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">Sayfa başına satır</p>
-          <Select
-            value={pageSize.toString()}
-            onValueChange={(value) => {
-              setPagination(prev => ({ ...prev, pageSize: Number(value) }))
-            }}
-          >
-            <SelectTrigger className="h-8 w-[70px] bg-muted border-0">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 25, 50, 100].map((size) => (
-                <SelectItem key={size} value={size.toString()}>
-                  {size}
-                </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="text-center h-10 align-middle">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={tableColumns.length} className="h-24 text-center">
+                    Kayıt bulunamadı.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div className="flex-1 text-center text-sm text-muted-foreground">
-          Toplam {table.getFilteredRowModel().rows.length} adet sonuç bulundu.
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-            className="h-8 w-8 p-0"
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="h-8 w-8 p-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="text-sm text-muted-foreground">
-            Sayfa {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">Sayfa başına satır</p>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => {
+                setPagination(prev => ({ ...prev, pageSize: Number(value) }))
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px] bg-muted border-0">
+                <SelectValue placeholder={pageSize.toString()} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {pageSizeOptions.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Button
-            variant="outline"
-            size="sm"  
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="h-8 w-8 p-0"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-            className="h-8 w-8 p-0"
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
+          <div className="flex-1 text-center text-sm text-muted-foreground">
+            Toplam {table.getFilteredRowModel().rows.length} adet sonuç bulundu.
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Sayfa {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"  
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

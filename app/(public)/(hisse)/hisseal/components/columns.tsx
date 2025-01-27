@@ -15,15 +15,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(!isSorted)}
-          className="w-full h-full text-base font-medium p-4 rounded-none"
+          className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
         >
-          Kesim Sırası
+          Kurbanlık No
           {isSorted === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
           ) : isSorted === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="h-4 w-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="h-4 w-4" />
           )}
         </Button>
       );
@@ -31,6 +31,11 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => (
       <div className="text-center">{row.getValue("sacrifice_no")}</div>
     ),
+    filterFn: (row, id, value) => {
+      const searchValue = value.toLowerCase();
+      const cellValue = String(row.getValue(id)).toLowerCase();
+      return cellValue.includes(searchValue);
+    },
   },
   {
     accessorKey: "sacrifice_time",
@@ -40,15 +45,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(!isSorted)}
-          className="w-full h-full text-base font-medium p-4 rounded-none"
+          className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
         >
           Kesim Saati
           {isSorted === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
           ) : isSorted === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="h-4 w-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="h-4 w-4" />
           )}
         </Button>
       );
@@ -73,15 +78,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full h-full text-base font-medium p-4 rounded-none"
+          className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
         >
           Hisse Bedeli
           {isSorted === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
           ) : isSorted === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="h-4 w-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="h-4 w-4" />
           )}
         </Button>
       );
@@ -89,10 +94,9 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => (
       <div className="text-center font-medium">
         {new Intl.NumberFormat('tr-TR', { 
-          style: 'currency', 
-          currency: 'TRY',
+          style: 'decimal',
           maximumFractionDigits: 0 
-        }).format(row.getValue("share_price"))}
+        }).format(row.getValue("share_price"))} ₺
       </div>
     ),
     filterFn: (row, id, value) => {
@@ -107,40 +111,24 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full h-full text-base font-medium p-4 rounded-none"
+          className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
         >
           Boş Hisse
           {isSorted === "asc" ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
           ) : isSorted === "desc" ? (
-            <ArrowDown className="ml-2 h-4 w-4" />
+            <ArrowDown className="h-4 w-4" />
           ) : (
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown className="h-4 w-4" />
           )}
         </Button>
       );
     },
     cell: ({ row }) => {
       const emptyShare = row.getValue("empty_share") as number;
-      let bgColor = "bg-[#F0FBF1]";
-      let textColor = "text-[#39C645]";
-      
-      if (emptyShare <= 2) {
-        bgColor = "bg-[#FCEFEF]";
-        textColor = "text-[#D22D2D]";
-      } else if (emptyShare <= 4) {
-        bgColor = "bg-[#FFFAEC]";
-        textColor = "text-[#F9BC06]";
-      }
-
       return (
         <div className="text-center">
-          <span className={cn(
-            "inline-flex items-center justify-center w-8 h-8 rounded-md",
-            bgColor,
-            textColor,
-            "font-medium"
-          )}>
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-md font-medium">
             {emptyShare}
           </span>
         </div>
@@ -158,7 +146,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       const emptyShare = sacrifice.empty_share
 
       if (emptyShare === 0) {
-        return <div className="text-center text-sm text-muted-foreground">Tükendi</div>
+        return (
+          <div className="text-center">
+            <span className="bg-[#FCEFEF] text-[#D22D2D] px-2 py-1 rounded text-sm">
+              Tükendi
+            </span>
+          </div>
+        )
       }
 
       return (

@@ -27,6 +27,14 @@ export function ShareSelectDialog({
   const [selectedCount, setSelectedCount] = useState<number | null>(null);
 
   useEffect(() => {
+    // Reset selected count when dialog is closed
+    if (!isOpen) {
+      setSelectedCount(null);
+    }
+
+    // Reset current empty share when sacrifice changes
+    setCurrentEmptyShare(sacrifice.empty_share);
+
     if (isOpen) {
       const channel = supabase.channel('sacrifice-updates')
         .on(
@@ -84,12 +92,18 @@ export function ShareSelectDialog({
       return;
     }
 
+    toast({
+      title: "Acele etmenize gerek yok",
+      description: "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
+      duration: 10000,
+    });
+
     onSelect(selectedCount);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-center">Hisse Adedi Seçimi</DialogTitle>
         </DialogHeader>
@@ -107,9 +121,9 @@ export function ShareSelectDialog({
           ) : (
             <>
               <p className="text-center text-muted-foreground">
-                Seçmiş olduğunuz <span className="text-primary font-medium">{sacrifice.share_price.toLocaleString('tr-TR')}₺</span>'lik kurbanlıktan kaç adet hisse almak istersiniz?
+                Seçmiş olduğunuz <span className="text-primary font-medium">{sacrifice.share_price.toLocaleString('tr-TR')} ₺</span>'lik kurbanlıktan kaç adet hisse almak istersiniz?
               </p>
-              <div className="flex justify-center gap-4 flex-wrap">
+              <div className="grid grid-cols-7 gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (
                   <Button
                     key={count}

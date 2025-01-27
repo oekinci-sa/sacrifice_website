@@ -11,8 +11,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
+import { Button } from "@/components/ui/button";
 
-const TIMEOUT_DURATION = 30; // 3 minutes
+const TIMEOUT_DURATION = 6000; // 3 minutes
 const WARNING_THRESHOLD = 15; // Show warning at 1 minute
 const API_ENDPOINT = '/api/update-empty-share';
 
@@ -300,6 +301,15 @@ const Page = () => {
     setActiveTab("tab-2");
     setIsDialogOpen(false);
     setLastInteractionTime(Date.now());
+
+    // Delayed toast message
+    setTimeout(() => {
+      toast({
+        title: "Acele etmenize gerek yok",
+        description: "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
+        duration: 10000,
+      });
+    }, 1000);
   };
 
   // Handle form approval
@@ -364,32 +374,79 @@ const Page = () => {
     router.push("/hissesorgula");
   };
 
+  // Helper function to get step number
+  const getCurrentStep = () => {
+    switch (activeTab) {
+      case "tab-1":
+        return 1;
+      case "tab-2":
+        return 2;
+      case "tab-3":
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
   return (
-    <div className="container flex flex-col space-y-12" onClick={handleInteraction} onKeyDown={handleInteraction}>
-      <div className="font-heading font-bold text-4xl text-center">
-        Hisse Al
-        {activeTab === "tab-2" && (
-          <div className="text-lg font-normal text-muted-foreground mt-2">
-            Kalan Süre: {timeLeft} saniye
+    <div className="container flex flex-col space-y-8" onClick={handleInteraction} onKeyDown={handleInteraction}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="relative mt-12 mb-16">
+          <div className="w-full flex justify-between items-start">
+            {/* Step 1 */}
+            <div className="flex flex-col items-start">
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
+                  ${getCurrentStep() >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                >
+                  1
+                </div>
+                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Hisse Seçim
+                </h3>
+              </div>
+            </div>
+
+            {/* Connector Line 1 */}
+            <div className="flex-1 flex items-center mx-4">
+              <div className="h-0.5 bg-muted w-full mt-5" />
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-start">
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
+                  ${getCurrentStep() >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                >
+                  2
+                </div>
+                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Hissedar Bilgileri
+                </h3>
+              </div>
+            </div>
+
+            {/* Connector Line 2 */}
+            <div className="flex-1 flex items-center mx-4">
+              <div className="h-0.5 bg-muted w-full mt-5" />
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-start">
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
+                  ${getCurrentStep() >= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                >
+                  3
+                </div>
+                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Hisse Onay
+                </h3>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mx-auto w-full">
-        <TabsList className="h-auto bg-red rounded-none border-b border-border bg-transparent p-0">
-          <TabsTrigger
-            value="tab-1"
-            className="relative text-lg font-heading font-semibold rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
-          >
-            Hisse Seçim
-          </TabsTrigger>
-          <TabsTrigger
-            value="tab-2"
-            className="relative text-lg font-heading font-semibold rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
-            disabled={!selectedSacrifice}
-          >
-            Hisse Onay
-          </TabsTrigger>
-        </TabsList>
+        </div>
+
         <TabsContent value="tab-1">
           <CustomDataTable 
             data={data} 
@@ -397,6 +454,7 @@ const Page = () => {
             meta={{
               onSacrificeSelect: handleSacrificeSelect
             }}
+            pageSizeOptions={[10, 20, 50, 100, 150]}
           />
         </TabsContent>
         <TabsContent value="tab-2">
@@ -404,10 +462,32 @@ const Page = () => {
             sacrifice={selectedSacrifice} 
             formData={formData} 
             setFormData={setFormData}
-            onApprove={handleApprove}
+            onApprove={() => setActiveTab("tab-3")}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
+        <TabsContent value="tab-3">
+          <div className="space-y-8">
+            <div className="rounded-lg border p-6">
+              <h3 className="font-heading text-lg font-semibold mb-4">Hisse Özeti</h3>
+              {/* Hisse özet bilgileri buraya gelecek */}
+              <Button
+                onClick={handleApprove}
+                className="w-full bg-primary hover:bg-primary/90 text-white mt-4"
+              >
+                Hisse Kaydını Tamamla
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {activeTab === "tab-2" && (
+        <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
+          Kalan Süre: {timeLeft} saniye
+        </div>
+      )}
+
       {tempSelectedSacrifice && (
         <ShareSelectDialog
           isOpen={isDialogOpen}
@@ -416,6 +496,7 @@ const Page = () => {
           onSelect={handleShareCountSelect}
         />
       )}
+      
       <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
         <AlertDialogContent>
           <AlertDialogTitle>Uyarı</AlertDialogTitle>

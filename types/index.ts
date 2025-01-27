@@ -8,8 +8,7 @@ export const shareholderFormSchema = z.object({
   paid_amount: z.number(),
   remaining_payment: z.number(),
   delivery_fee: z.number(),
-  delivery_type: z.enum(["kesimhane", "toplu-teslimat"]),
-  delivery_location: z.enum(["yenimahalle-camii", "kecioren-pazar"]),
+  delivery_location: z.enum(["kesimhane", "yenimahalle-pazar-yeri", "kecioren-otoparki"]),
   sacrifice_consent: z.boolean(),
   notes: z.string(),
 });
@@ -29,27 +28,29 @@ export interface shareholderSchema {
   shareholder_name: string;
   phone_number: string;
   purchase_time: string;
+  sacrifice_id: string;
+  delivery_location: string;
+  delivery_fee: number;
+  share_price: number;
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;
-  payment_status: "paid" | "pending";
-  sacrifice_consent: "verildi" | "bekleniyor";
-  delivery_fee?: number;
-  delivery_type?: "kesimhane" | "toplu-teslimat";
-  delivery_location?: string;
-  notes?: string;
-  last_edited_by?: string;
+  sacrifice_consent: boolean;
+  last_edited_time: string | null;
+  last_edited_by: string | null;
+  notes: string | null;
 }
 
 export interface sacrificeSchema {
   sacrifice_id: string;
   sacrifice_no: number;
-  sacrifice_time: string;
+  sacrifice_time: string | null;
   share_price: number;
+  total_price: number;
   empty_share: number;
-  notes?: string;
-  added_at: string;
-  last_edited_by?: string;
+  last_edited_time: string | null;
+  last_edited_by: string | null;
+  notes: string | null;
 }
 
 export interface ShareholderType {
@@ -63,7 +64,6 @@ export interface ShareholderType {
   total_amount: number
   paid_amount: number
   remaining_payment: number
-  delivery_type: "kesimhane" | "toplu-teslim-noktasi"
   delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki"
   sacrifice_consent: boolean
   last_edited_time: string
@@ -73,4 +73,17 @@ export interface ShareholderType {
     sacrifice_id: string
     sacrifice_no: string
   }
+}
+
+export interface changeLogSchema {
+  event_id: number
+  table_name: string
+  row_id: string
+  column_name: string
+  old_value: string | null
+  new_value: string | null
+  change_type: string
+  description: string
+  change_owner: string
+  changed_at: string
 }

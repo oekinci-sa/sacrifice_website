@@ -17,7 +17,7 @@ export const useSacrifices = () => {
           schema: 'public',
           table: 'sacrifice_animals'
         },
-        (payload) => {
+        () => {
           // Invalidate and refetch
           queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
         }

@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Download, Search } from "lucide-react";
 import { supabase } from "@/utils/supabaseClient";
 import { formatPhoneForDisplay } from "@/utils/formatters";
+import { toast } from "sonner";
 
 interface ShareholderInfo {
   shareholder_name: string;
@@ -30,6 +31,11 @@ export default function HisseSorgula() {
   const [shareholderInfo, setShareholderInfo] = useState<ShareholderInfo | null>(null);
 
   const handleSearch = async () => {
+    if (!phone) {
+      toast.error("Lütfen bir telefon numarası girin");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setShareholderInfo(null);
@@ -59,7 +65,7 @@ export default function HisseSorgula() {
         .from("shareholders")
         .select(`
           *,
-          sacrifice:sacrifice_id (
+          sacrifice:sacrifice_animals (
             sacrifice_no,
             sacrifice_time,
             share_price
@@ -93,6 +99,19 @@ export default function HisseSorgula() {
   const handleDownload = () => {
     // PDF indirme işlemi burada yapılacak
     console.log("PDF indiriliyor...");
+  };
+
+  const getDeliveryLocationText = (location: string) => {
+    switch (location) {
+      case "kesimhane":
+        return "Kesimhanede Teslim";
+      case "yenimahalle-pazar-yeri":
+        return "Yenimahalle Pazar Yeri";
+      case "kecioren-otoparki":
+        return "Keçiören Otoparkı";
+      default:
+        return location;
+    }
   };
 
   return (
@@ -194,13 +213,7 @@ export default function HisseSorgula() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <p className="font-semibold">Teslim Yeri:</p>
-                    <p>
-                      {shareholderInfo.delivery_type === "kesimhane"
-                        ? "Kesimhane"
-                        : shareholderInfo.delivery_location === "yenimahalle-camii"
-                        ? "Yenimahalle Camii"
-                        : "Keçiören Pazar Yeri"}
-                    </p>
+                    <p>{getDeliveryLocationText(shareholderInfo.delivery_location)}</p>
                   </div>
                 </div>
               </div>

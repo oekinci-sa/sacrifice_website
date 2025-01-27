@@ -116,12 +116,11 @@ const Page = () => {
         : "+90" + data.phone.replace(/[^0-9]/g, ""),
       sacrifice_id: selectedSacrifice.sacrifice_id,
       share_price: selectedSacrifice.share_price,
-      delivery_type: data.delivery_type,
-      delivery_location: data.delivery_type === "kesimhane" ? "kesimhane" : data.delivery_location,
-      delivery_fee: data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0,
-      total_amount: selectedSacrifice.share_price + (data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0),
+      delivery_location: data.delivery_location,
+      delivery_fee: data.delivery_location !== "kesimhane" ? 500 : 0,
+      total_amount: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
       paid_amount: 0,
-      remaining_payment: selectedSacrifice.share_price + (data.delivery_type === "toplu-teslim-noktasi" ? 500 : 0),
+      remaining_payment: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
       sacrifice_consent: false,
     }));
 

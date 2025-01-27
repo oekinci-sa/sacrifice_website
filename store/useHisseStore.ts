@@ -4,7 +4,6 @@ import { sacrificeSchema } from '@/types'
 interface FormData {
   name: string
   phone: string
-  delivery_type: "kesimhane" | "toplu-teslim-noktasi"
   delivery_location: string
 }
 

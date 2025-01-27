@@ -27,6 +27,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface ShareholderFormProps {
   shareholder: {
@@ -46,6 +57,20 @@ interface ShareholderFormProps {
   section: "personal" | "payment" | "delivery" | "other";
 }
 
+const formSchema = z.object({
+  name: z.string().min(1, "Ad soyad zorunludur"),
+  phone: z.string()
+    .regex(/^0/, "Telefon numarası 0 ile başlamalıdır")
+    .refine(
+      (val) => val.replace(/\s/g, '').length === 11,
+      "Telefon numarası 11 haneli olmalıdır"
+    ),
+  delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
+  notes: z.string().optional(),
+})
+
+type FormData = z.infer<typeof formSchema>
+
 export function ShareholderForm({
   shareholder,
   section,
@@ -54,6 +79,18 @@ export function ShareholderForm({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: shareholder.shareholder_name,
+      phone: shareholder.phone_number.startsWith("+90")
+        ? "0" + shareholder.phone_number.slice(3)
+        : shareholder.phone_number,
+      delivery_location: shareholder.delivery_location,
+      notes: shareholder.notes || "",
+    },
+  })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

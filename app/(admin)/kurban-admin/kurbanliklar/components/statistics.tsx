@@ -110,6 +110,34 @@ export function SacrificeStatistics() {
           (s) => s.empty_share === 0
         ).length || 0;
 
+        // Teslimat noktalarına göre dağılım
+        const deliveryLocationStats = shareholders.reduce((acc, curr) => {
+          const location = curr.delivery_location
+          acc[location] = (acc[location] || 0) + 1
+          return acc
+        }, {} as Record<string, number>)
+
+        const deliveryLocationData = {
+          labels: Object.keys(deliveryLocationStats).map(location => {
+            switch (location) {
+              case "kesimhane":
+                return "Kesimhanede Teslim"
+              case "yenimahalle-pazar-yeri":
+                return "Yenimahalle Pazar Yeri"
+              case "kecioren-otoparki":
+                return "Keçiören Otoparkı"
+              default:
+                return location
+            }
+          }),
+          datasets: [
+            {
+              label: "Hissedar Sayısı",
+              data: Object.values(deliveryLocationStats),
+            },
+          ],
+        }
+
         setStats({
           totalSacrifices,
           totalShares,

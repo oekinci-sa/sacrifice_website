@@ -38,7 +38,6 @@ const formSchema = z.object({
       (val) => val.replace(/\s/g, '').length === 11,
       "Telefon numarası 11 haneli olmalıdır"
     ),
-  delivery_type: z.enum(["kesimhane", "toplu-teslim-noktasi"]),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
 })
 
@@ -59,10 +58,8 @@ export default function Checkout({
   onApprove,
   onBack,
 }: CheckoutProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [showBackDialog, setShowBackDialog] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>[]>([])
-  const router = useRouter()
 
   const validateField = (index: number, field: keyof FormData, value: string) => {
     try {
@@ -100,7 +97,6 @@ export default function Checkout({
     setFormData([...formData, {
       name: "",
       phone: "",
-      delivery_type: "kesimhane",
       delivery_location: "",
     }])
     setErrors([...errors, {}])
@@ -125,53 +121,12 @@ export default function Checkout({
     onBack()
   }
 
-  const handleApprove = () => {
-    // Validate all fields
-    const newErrors = formData.map(data => {
-      const result: Record<string, string> = {}
-      
-      // Type-safe field validation
-      const validateField = (field: keyof FormData) => {
-        try {
-          const fieldSchema = formSchema.shape[field]
-          fieldSchema.parse(data[field])
-        } catch (error) {
-          if (error instanceof z.ZodError) {
-            result[field] = error.errors[0].message
-          }
-        }
-      }
-
-      validateField("name")
-      validateField("phone")
-      validateField("delivery_type")
-      validateField("delivery_location")
-
-      return result
-    })
-
-    setErrors(newErrors)
-
-    // Check if there are any errors
-    const hasErrors = newErrors.some(error => Object.keys(error).length > 0)
-    if (hasErrors) {
-      toast.error("Lütfen tüm alanları doğru şekilde doldurun")
-      return
-    }
-
-    // Log form data to console
-    console.log("Form Data:", formData)
-
-    onApprove()
-  }
-
   const validateForm = () => {
     // Validate all form fields
     const isValid = formData.every((data) => {
       const isPhoneValid = /^0[0-9]{10}$/.test(data.phone)
       const hasName = data.name.trim() !== ""
-      const hasDeliveryType = data.delivery_type !== undefined
-      const hasLocation = data.delivery_type === "kesimhane" || data.delivery_location !== ""
+      const hasLocation = data.delivery_location !== ""
 
       if (!hasName) {
         toast.error("Lütfen tüm hissedarların isimlerini girin")
@@ -181,11 +136,7 @@ export default function Checkout({
         toast.error("Lütfen geçerli bir telefon numarası girin (05XX XXX XX XX formatında)")
         return false
       }
-      if (!hasDeliveryType) {
-        toast.error("Lütfen teslimat tipini seçin")
-        return false
-      }
-      if (!hasLocation && data.delivery_type === "toplu-teslim-noktasi") {
+      if (!hasLocation) {
         toast.error("Lütfen teslimat noktasını seçin")
         return false
       }
@@ -232,34 +183,18 @@ export default function Checkout({
               onChange={(e) => handleInputChange(index, "phone", e.target.value)}
             />
             <Select
-              value={data.delivery_type}
-              onValueChange={(value: "kesimhane" | "toplu-teslim-noktasi") =>
-                handleInputChange(index, "delivery_type", value)
-              }
+              value={data.delivery_location}
+              onValueChange={(value) => handleInputChange(index, "delivery_location", value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Teslimat Tipi" />
+                <SelectValue placeholder="Teslimat Noktası" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="kesimhane">Kesimhanede Teslim</SelectItem>
-                <SelectItem value="toplu-teslim-noktasi">Toplu Teslim Noktası (+500₺)</SelectItem>
+                <SelectItem value="yenimahalle-pazar-yeri">Yenimahalle Pazar Yeri (+500₺)</SelectItem>
+                <SelectItem value="kecioren-otoparki">Keçiören Otoparkı (+500₺)</SelectItem>
               </SelectContent>
             </Select>
-
-            {data.delivery_type === "toplu-teslim-noktasi" && (
-              <Select
-                value={data.delivery_location}
-                onValueChange={(value) => handleInputChange(index, "delivery_location", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Teslimat Noktası" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yenimahalle-pazar-yeri">Yenimahalle Pazar Yeri</SelectItem>
-                  <SelectItem value="kecioren-otoparki">Keçiören Otoparkı</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
           </div>
         </div>
       ))}
@@ -277,17 +212,21 @@ export default function Checkout({
       </div>
 
       <AlertDialog open={showBackDialog} onOpenChange={setShowBackDialog}>
-        <AlertDialogContent className="max-w-xl">
+        <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader className="space-y-6">
-            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Geri dönerseniz, girdiğiniz tüm bilgiler silinecek ve seçtiğiniz hisseler serbest kalacaktır.
+            <AlertDialogTitle className="text-xl font-semibold">
+              Emin misiniz?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              Eğer geri dönerseniz, yaptığınız değişiklikler kaybolacaktır. Ayrıca, daha önce seçmiş olduğunuz hisseler başkaları tarafından seçilebilir hale gelecektir. Devam etmek istediğinize emin misiniz?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="space-x-4 pt-6">
-            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmBack}>
-              Eminim, geri döneceğim
+          <AlertDialogFooter className="flex space-x-4 pt-6">
+            <AlertDialogCancel className="flex-1">
+              Hayır, bu sayfada kalmak istiyorum
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBack} className="flex-1">
+              Evet, geri dönmek istiyorum
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,5 +1,7 @@
 Satış garifklerinde bahsettiğim gri sütunun yeşil barın önüne geçmesisorunu, kurbanlıklar sayfasındaki kurbanlık bedelelerine göre satışlar grafiğinde çözülmüş durumda ona bakıp düzeltir misin problemi?
 
+supabse realtime subscription sorunu olduğu için bir kişi sayfayı arkaplanda açık tutubailir. özellikle telefonlarda filan. Bunu nasıl çözebilirim?
+
 ------------------------
 hisse al
 ------------------------

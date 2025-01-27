@@ -38,15 +38,18 @@ const formSchema = z.object({
       (val) => val.replace(/\s/g, '').length === 11,
       "Telefon numarası 11 haneli olmalıdır"
     ),
+  delivery_type: z.enum(["kesimhane", "toplu-teslim-noktasi"]),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
 })
 
+type FormData = z.infer<typeof formSchema>
+
 interface CheckoutProps {
   sacrifice: sacrificeSchema | null
-  formData: any[]
-  setFormData: (data: any[]) => void
+  formData: FormData[]
+  setFormData: (data: FormData[]) => void
   onApprove: () => void
-  setActiveTab: (tab: string) => void
+  onBack: () => void
 }
 
 export default function Checkout({
@@ -54,14 +57,14 @@ export default function Checkout({
   formData,
   setFormData,
   onApprove,
-  setActiveTab,
+  onBack,
 }: CheckoutProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [showBackDialog, setShowBackDialog] = useState(false)
-  const [errors, setErrors] = useState<any[]>([])
+  const [errors, setErrors] = useState<Record<string, string>[]>([])
   const router = useRouter()
 
-  const validateField = (index: number, field: keyof typeof formSchema.shape, value: string) => {
+  const validateField = (index: number, field: keyof FormData, value: string) => {
     try {
       const fieldSchema = formSchema.shape[field]
       fieldSchema.parse(value)
@@ -82,7 +85,7 @@ export default function Checkout({
     }
   }
 
-  const handleInputChange = (index: number, field: keyof typeof formSchema.shape, value: string) => {
+  const handleInputChange = (index: number, field: keyof FormData, value: string) => {
     const newFormData = [...formData]
     newFormData[index] = {
       ...newFormData[index],
@@ -97,6 +100,7 @@ export default function Checkout({
     setFormData([...formData, {
       name: "",
       phone: "",
+      delivery_type: "kesimhane",
       delivery_location: "",
     }])
     setErrors([...errors, {}])
@@ -118,24 +122,31 @@ export default function Checkout({
 
   const confirmBack = () => {
     setShowBackDialog(false)
-    setActiveTab("tab-1")
-    router.push("/hisseal")
+    onBack()
   }
 
   const handleApprove = () => {
     // Validate all fields
     const newErrors = formData.map(data => {
-      const result: any = {}
-      Object.keys(formSchema.shape).forEach(field => {
+      const result: Record<string, string> = {}
+      
+      // Type-safe field validation
+      const validateField = (field: keyof FormData) => {
         try {
-          const fieldSchema = formSchema.shape[field as keyof typeof formSchema.shape]
+          const fieldSchema = formSchema.shape[field]
           fieldSchema.parse(data[field])
         } catch (error) {
           if (error instanceof z.ZodError) {
             result[field] = error.errors[0].message
           }
         }
-      })
+      }
+
+      validateField("name")
+      validateField("phone")
+      validateField("delivery_type")
+      validateField("delivery_location")
+
       return result
     })
 
@@ -154,99 +165,113 @@ export default function Checkout({
     onApprove()
   }
 
+  const validateForm = () => {
+    // Validate all form fields
+    const isValid = formData.every((data) => {
+      const isPhoneValid = /^0[0-9]{10}$/.test(data.phone)
+      const hasName = data.name.trim() !== ""
+      const hasDeliveryType = data.delivery_type !== undefined
+      const hasLocation = data.delivery_type === "kesimhane" || data.delivery_location !== ""
+
+      if (!hasName) {
+        toast.error("Lütfen tüm hissedarların isimlerini girin")
+        return false
+      }
+      if (!isPhoneValid) {
+        toast.error("Lütfen geçerli bir telefon numarası girin (05XX XXX XX XX formatında)")
+        return false
+      }
+      if (!hasDeliveryType) {
+        toast.error("Lütfen teslimat tipini seçin")
+        return false
+      }
+      if (!hasLocation && data.delivery_type === "toplu-teslim-noktasi") {
+        toast.error("Lütfen teslimat noktasını seçin")
+        return false
+      }
+
+      return true
+    })
+
+    return isValid
+  }
+
+  const handleContinue = () => {
+    if (validateForm()) {
+      onApprove()
+    }
+  }
+
   return (
     <div className="space-y-8">
       {formData.map((data, index) => (
-        <div key={index} className="bg-white">
-
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">{index + 1}. Hissedar</h3>
+        <div key={index} className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">
+              {index + 1}. Hissedar
+            </h3>
             <Button
               variant="ghost"
+              className="flex items-center gap-2 text-destructive hover:bg-red-50"
               onClick={() => handleRemoveShareholder(index)}
-              className="hover:bg-red-50 text-destructive hover:text-destructive flex items-center gap-2"
             >
-              <X className="h-4 w-4" />
+              <span className="text-lg">×</span>
               <span>Hisseyi sil</span>
             </Button>
           </div>
 
-          {/* Form fields */}
-          <div className="flex gap-16">
-            <div className="flex-1">
-              <Label htmlFor={`name-${index}`} className="mb-3 block">Ad Soyad</Label>
-              <Input
-                id={`name-${index}`}
-                value={data.name}
-                onChange={(e) => handleInputChange(index, "name", e.target.value)}
-                onBlur={() => validateField(index, "name", data.name)}
-                className="bg-[#F7F7F8] border-0 text-[#4B5675]"
-              />
-              {errors[index]?.name && (
-                <p className="text-sm text-destructive mt-1">{errors[index].name}</p>
-              )}
-            </div>
-            <div className="flex-1">
-              <Label htmlFor={`phone-${index}`} className="mb-3 block">Telefon</Label>
-              <Input
-                id={`phone-${index}`}
-                value={data.phone}
-                onChange={(e) => handleInputChange(index, "phone", e.target.value)}
-                onBlur={() => validateField(index, "phone", data.phone)}
-                placeholder="05XX XXX XX XX"
-                className="bg-[#F7F7F8] border-0 text-[#4B5675]"
-              />
-              {errors[index]?.phone && (
-                <p className="text-sm text-destructive mt-1">{errors[index].phone}</p>
-              )}
-            </div>
-            <div className="flex-1">
-              <Label className="mb-3 block">Teslimat Noktası Tercihi</Label>
+          <div className="grid gap-4">
+            <Input
+              placeholder="Ad Soyad"
+              value={data.name}
+              onChange={(e) => handleInputChange(index, "name", e.target.value)}
+            />
+            <Input
+              placeholder="Telefon (05XX XXX XX XX)"
+              value={data.phone}
+              onChange={(e) => handleInputChange(index, "phone", e.target.value)}
+            />
+            <Select
+              value={data.delivery_type}
+              onValueChange={(value: "kesimhane" | "toplu-teslim-noktasi") =>
+                handleInputChange(index, "delivery_type", value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Teslimat Tipi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="kesimhane">Kesimhanede Teslim</SelectItem>
+                <SelectItem value="toplu-teslim-noktasi">Toplu Teslim Noktası (+500₺)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {data.delivery_type === "toplu-teslim-noktasi" && (
               <Select
                 value={data.delivery_location}
                 onValueChange={(value) => handleInputChange(index, "delivery_location", value)}
-                onOpenChange={() => validateField(index, "delivery_location", data.delivery_location)}
               >
-                <SelectTrigger className="bg-[#F7F7F8] border-0 text-[#4B5675]">
-                  <SelectValue placeholder="Lütfen seçiniz" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Teslimat Noktası" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="kesimhane">Kesimhane'de Teslim</SelectItem>
-                  <SelectSeparator />
                   <SelectItem value="yenimahalle-pazar-yeri">Yenimahalle Pazar Yeri</SelectItem>
                   <SelectItem value="kecioren-otoparki">Keçiören Otoparkı</SelectItem>
                 </SelectContent>
               </Select>
-              {errors[index]?.delivery_location && (
-                <p className="text-sm text-destructive mt-1">{errors[index].delivery_location}</p>
-              )}
-            </div>
+            )}
           </div>
-
-          {index < formData.length - 1 && (
-            <div className="border-t mt-12 mb-8" />
-          )}
         </div>
       ))}
-      
-      <div className="flex justify-between items-center gap-4 pt-4">
+
+      <div className="flex justify-between pt-6">
         <Button
           variant="outline"
-          onClick={handleBack}
+          onClick={() => setShowBackDialog(true)}
         >
           Geri Dön
         </Button>
-        <Button
-          variant="outline"
-          onClick={handleAddShareholder}
-        >
-          Yeni Hissedar Ekle
-        </Button>
-        <Button
-          onClick={handleApprove}
-          className="bg-primary hover:bg-primary/90 text-white"
-        >
+        <Button onClick={handleContinue}>
           Devam Et
         </Button>
       </div>
@@ -254,16 +279,14 @@ export default function Checkout({
       <AlertDialog open={showBackDialog} onOpenChange={setShowBackDialog}>
         <AlertDialogContent className="max-w-xl">
           <AlertDialogHeader className="space-y-6">
-            <AlertDialogTitle className="text-xl">Dikkat</AlertDialogTitle>
-            <AlertDialogDescription className="text-base leading-relaxed">
-              Eğer geri dönerseniz, yaptığınız tüm değişiklikler kaybolacaktır. Ayrıca, daha önce seçmiş olduğunuz hisseler başkaları tarafından seçilebilir hale gelecektir. Devam etmek istediğinize emin misiniz?
+            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Geri dönerseniz, girdiğiniz tüm bilgiler silinecek ve seçtiğiniz hisseler serbest kalacaktır.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="space-x-4 pt-6">
-            <AlertDialogCancel className="bg-muted hover:bg-muted/90 flex-1">
-              Hayır, bu sayfada kalmak istiyorum
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmBack} className="bg-destructive hover:bg-destructive/90 flex-1">
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBack}>
               Eminim, geri döneceğim
             </AlertDialogAction>
           </AlertDialogFooter>

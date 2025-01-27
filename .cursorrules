@@ -113,8 +113,7 @@ Table 2: shareholders and its fields are:
   - total_amount: The total amount to be paid. (share_price + delivery_fee)
   - paid_amount: The paid amount. (initial value is 0)
   - remaining_payment: The remaining payment amount. (total_amount - paid_amount)
-  - delivery_type: Delivery type (e.g., "kesimhane", "toplu-teslim-noktasi"). 
-  - delivery_location: If Delivery type is "toplu-teslim-noktasi", this will be only two options: "yenimahalle-pazar-yeri" or "kecioren-otoparki". Otherwise "kesimhane".
+  - delivery_location: "yenimahalle-pazar-yeri" or "kecioren-otoparki" or "kesimhane".
   - sacrifice_consent: This a boolean value in db. But it is displayed as "vekalet" in UI and in forms, this field is shown in the drop-down menu as "vekalet-alindi" or "vekalet-alinmadi".
   - last_edited_time: The date and time when the shareholder information was last edited. There is a trigger in the database that updates this field when the shareholder information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).

@@ -5,6 +5,7 @@ supabse realtime subscription sorunu olduğu için bir kişi sayfayı arkaplanda
 ------------------------
 hisse al
 ------------------------
+Checkout -> Geri dönünce db'de olması gerenini iki katı artış meydana geliyor. 
 Hisse Al sayfasındki tabloda şöyle bir sorun yaşıyorum. Şimd hisse bedeli ve boş hisse sayısına göre bir filtrelem yapıyorum. Buradaki butonlara tıklanınca bir menü açılıyor ve oradan filtrelenecek değerleri seçiyorum. Fakat seçtiğim değerlerin Butonun kendi div'i içinde bana ayrıca gösterilmesini istemiyorum. bu durumu çözer misin hisse al sayfasında?
 
 Bir de tablo oluşurken otomatik filtreli oluşsun. Sanki bir kullanıcı boş hisse bedeli filtresinden 1-2-3-4-5-6-7 numaralarını seçmiş gibi. Bu sayede kullanıcılar daha hızlı bir şekilde işlem yapabilirler. Fakat daha sonra bu filtrelemeyi kaldırabilirler filtre butonları araclığıyla.

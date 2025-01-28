@@ -78,16 +78,42 @@ export const useUpdateSacrifice = () => {
 
 // Create shareholders
 export const useCreateShareholders = () => {
+  const queryClient = useQueryClient()
+  let hasCalled = false
+
   return useMutation({
+    mutationKey: ["createShareholders"],
     mutationFn: async (shareholders: any[]) => {
-      const { error } = await supabase
+      console.log("Mutation received data:", shareholders)
+
+      // Prevent duplicate calls
+      if (hasCalled) {
+        console.warn("Mutation has already been called, preventing duplicate call")
+        return
+      }
+      hasCalled = true
+
+      // Prevent empty data
+      if (!shareholders || !shareholders.length) {
+        console.warn("Mutation received empty data, aborting")
+        return
+      }
+
+      const { data, error } = await supabase
         .from("shareholders")
         .insert(shareholders)
+        .select()
 
       if (error) {
-        toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu: " + error.message)
+        console.error("Supabase error details:", error)
+        toast.error(`Hissedar bilgileri kaydedilirken bir hata oluştu: ${error.message}`)
         throw error
       }
+
+      return data
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+    }
   })
 } 

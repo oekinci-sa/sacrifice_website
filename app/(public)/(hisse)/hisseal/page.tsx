@@ -12,6 +12,7 @@ import { CustomDataTable } from "@/components/custom-components/custom-data-tabl
 import { Button } from "@/components/ui/button";
 import { useHisseStore } from "@/store/useHisseStore";
 import { useSacrifices, useUpdateSacrifice, useCreateShareholders } from "@/hooks/useSacrifices";
+import ShareholderSummary from "./components/ShareholderSummary"
 
 const TIMEOUT_DURATION = 6000; // 3 minutes
 const WARNING_THRESHOLD = 15; // Show warning at 1 minute
@@ -247,22 +248,32 @@ const Page = () => {
             formData={formData} 
             setFormData={setFormData}
             onApprove={() => setCurrentStep("confirmation")}
-            onBack={() => setCurrentStep("selection")}
+            onBack={async (shareCount) => {
+              if (!selectedSacrifice) return;
+              
+              try {
+                // Mevcut empty_share değerini shareCount kadar artır
+                await updateSacrifice.mutateAsync({
+                  sacrificeId: selectedSacrifice.sacrifice_id,
+                  emptyShare: selectedSacrifice.empty_share + shareCount,
+                });
+                
+                // Store'u sıfırla
+                resetStore();
+                // İlk adıma dön
+                setCurrentStep("selection");
+              } catch (error) {
+                // Error is handled in the mutation
+              }
+            }}
           />
         </TabsContent>
-        <TabsContent value="tab-3">
-          <div className="space-y-8">
-            <div className="rounded-lg border p-6">
-              <h3 className="font-heading text-lg font-semibold mb-4">Hisse Özeti</h3>
-              {/* Hisse özet bilgileri buraya gelecek */}
-              <Button
-                onClick={handleApprove}
-                className="w-full bg-primary hover:bg-primary/90 text-white mt-4"
-              >
-                Hisse Kaydını Tamamla
-              </Button>
-            </div>
-          </div>
+        <TabsContent value="tab-3" className="space-y-8">
+          <ShareholderSummary 
+            sacrifice={selectedSacrifice}
+            shareholders={formData}
+            onApprove={handleApprove}
+          />
         </TabsContent>
       </Tabs>
 

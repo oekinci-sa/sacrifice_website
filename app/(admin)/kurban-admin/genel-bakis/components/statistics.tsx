@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Wallet, UserMinus, AlertCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../../utils/supabaseClient';
 import { StatCard } from '../../components/StatCard';
 import { Card } from '../../components/Card';
 

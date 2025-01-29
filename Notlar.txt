@@ -13,6 +13,11 @@ Filtrelerde menü açılınca her ifadenin karşısında şu anki şartlara uyan
 
 Kişi geri döne bastı ve hemen semeyi kapattı böyle bir durum kontrolü
 
+[Kontroller]
+Timeout
+Geri dönme
+Sayfayı kapatma
+
 ------------------------
 Genel Bkış
 ------------------------

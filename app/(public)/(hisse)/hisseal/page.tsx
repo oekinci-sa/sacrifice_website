@@ -33,10 +33,12 @@ const Page = () => {
     tempSelectedSacrifice,
     formData,
     currentStep,
+    stepNumber,
+    tabValue,
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
-    setCurrentStep: setStoreCurrentStep,
+    goToStep,
     resetStore,
   } = useHisseStore();
 
@@ -86,7 +88,7 @@ const Page = () => {
           });
         } finally {
           setShowWarning(false);
-          setStoreCurrentStep("selection");
+          goToStep("selection");
           resetStore();
           setTimeLeft(TIMEOUT_DURATION);
         }
@@ -102,7 +104,7 @@ const Page = () => {
 
     const timer = setInterval(checkTimeout, 1000);
     return () => clearInterval(timer);
-  }, [lastInteractionTime, showWarning, currentStep, setStoreCurrentStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
+  }, [lastInteractionTime, showWarning, currentStep, goToStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
 
   // Sayfa seviyesinde etkileşimleri takip et
   useEffect(() => {
@@ -197,7 +199,7 @@ const Page = () => {
         phone: "",
         delivery_location: "",
       }));
-      setStoreCurrentStep("details");
+      goToStep("details");
       setIsDialogOpen(false);
       setLastInteractionTime(Date.now());
     } catch (error) {
@@ -232,46 +234,18 @@ const Page = () => {
     }
   };
 
-  // Helper function to get step number
-  const getCurrentStep = () => {
-    switch (currentStep) {
-      case "selection":
-        return 1;
-      case "details":
-        return 2;
-      case "confirmation":
-        return 3;
-      default:
-        return 1;
-    }
-  };
-
-  // Helper function to get tab value
-  const getTabValue = () => {
-    switch (currentStep) {
-      case "selection":
-        return "tab-1";
-      case "details":
-        return "tab-2";
-      case "confirmation":
-        return "tab-3";
-      default:
-        return "tab-1";
-    }
-  };
-
   return (
     <div className="container flex flex-col space-y-8">
-      <Tabs value={getTabValue()} onValueChange={(value) => {
+      <Tabs value={tabValue} onValueChange={(value) => {
         switch (value) {
           case "tab-1":
-            setStoreCurrentStep("selection");
+            goToStep("selection");
             break;
           case "tab-2":
-            setStoreCurrentStep("details");
+            goToStep("details");
             break;
           case "tab-3":
-            setStoreCurrentStep("confirmation");
+            goToStep("confirmation");
             break;
         }
       }} className="w-full">
@@ -281,57 +255,39 @@ const Page = () => {
             <div className="flex flex-col items-start">
               <div className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${getCurrentStep() > 1 ? 'bg-primary text-white' : getCurrentStep() === 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  ${stepNumber >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
-                  {getCurrentStep() > 1 ? (
-                    <Check className="w-6 h-6 animate-[check_0.3s_ease-in-out]" />
-                  ) : (
-                    "1"
-                  )}
+                  {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Hisse Seçim
+                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Hisse Seçimi
                 </h3>
               </div>
-            </div>
-
-            {/* Connector Line 1 */}
-            <div className="flex-1 flex items-center mx-4">
-              <div className="h-0.5 bg-muted w-full mt-5" />
             </div>
 
             {/* Step 2 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${getCurrentStep() > 2 ? 'bg-primary text-white' : getCurrentStep() === 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  ${stepNumber >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
-                  {getCurrentStep() > 2 ? (
-                    <Check className="w-6 h-6 animate-[check_0.3s_ease-in-out]" />
-                  ) : (
-                    "2"
-                  )}
+                  {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
                   Hissedar Bilgileri
                 </h3>
               </div>
-            </div>
-
-            {/* Connector Line 2 */}
-            <div className="flex-1 flex items-center mx-4">
-              <div className="h-0.5 bg-muted w-full mt-5" />
             </div>
 
             {/* Step 3 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${getCurrentStep() === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  ${stepNumber === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
                   3
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
                   Hisse Onay
                 </h3>
               </div>
@@ -354,9 +310,9 @@ const Page = () => {
             sacrifice={selectedSacrifice} 
             formData={formData} 
             setFormData={setFormData}
-            onApprove={() => setStoreCurrentStep("confirmation")}
+            onApprove={() => goToStep("confirmation")}
             resetStore={resetStore}
-            setCurrentStep={setStoreCurrentStep}
+            setCurrentStep={goToStep}
             setLastInteractionTime={setLastInteractionTime}
             onBack={async (shareCount) => {
               if (!selectedSacrifice) return;
@@ -387,7 +343,7 @@ const Page = () => {
                 // Store'u sıfırla
                 resetStore();
                 // İlk adıma dön
-                setStoreCurrentStep("selection");
+                goToStep("selection");
               } catch (error) {
                 // Error is handled in the mutation
               }
@@ -399,7 +355,7 @@ const Page = () => {
             sacrifice={selectedSacrifice}
             shareholders={formData}
             onApprove={handleApprove}
-            setCurrentStep={setStoreCurrentStep}
+            setCurrentStep={goToStep}
             remainingTime={timeLeft}
             setRemainingTime={setTimeLeft}
           />

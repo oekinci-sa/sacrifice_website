@@ -104,13 +104,6 @@ export default function PhoneVerificationDialog({
           <DialogTitle>
             {step === 'phone' ? 'Telefon Numarası Doğrulama' : 'Doğrulama Kodu'}
           </DialogTitle>
-          <Button
-            variant="ghost"
-            className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         <div className="space-y-6 py-4">

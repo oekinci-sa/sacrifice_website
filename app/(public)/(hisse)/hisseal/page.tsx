@@ -141,6 +141,42 @@ const Page = () => {
     };
   }, [currentStep, TIMEOUT_DURATION]);
 
+  // Sayfa kapatma/yenileme durumunda DB güncelleme
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Sadece 2. ve 3. adımda çalışsın
+      if (currentStep !== "details" && currentStep !== "confirmation") return;
+      if (!selectedSacrifice || !formData.length) return;
+
+      // Tarayıcının standart onay mesajını göster
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const handleUnload = () => {
+      // Sadece 2. ve 3. adımda çalışsın
+      if (currentStep !== "details" && currentStep !== "confirmation") return;
+      if (!selectedSacrifice || !formData.length) return;
+
+      // Beacon API ile güncelleme yap
+      const updateData = {
+        sacrifice_id: selectedSacrifice.sacrifice_id,
+        form_count: formData.length
+      };
+
+      const blob = new Blob([JSON.stringify(updateData)], { type: 'application/json' });
+      navigator.sendBeacon('/api/update-sacrifice', blob);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [currentStep, selectedSacrifice, formData]);
+
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);
     setIsDialogOpen(true);

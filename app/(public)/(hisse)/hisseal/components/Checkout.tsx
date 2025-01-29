@@ -83,6 +83,7 @@ export default function Checkout({
   const [showLastShareDialog, setShowLastShareDialog] = useState(false)
   const [shareToRemove, setShareToRemove] = useState<number | null>(null)
   const updateSacrifice = useUpdateSacrifice()
+  const [isAddingShare, setIsAddingShare] = useState(false)
 
   // React Query ile güncel sacrifice verisini al
   const { data: sacrifices } = useSacrifices()
@@ -183,15 +184,28 @@ export default function Checkout({
   }
 
   const handleAddShareholder = async () => {
-    if (!sacrifice || !currentSacrifice?.empty_share) return;
+    // İşlem zaten devam ediyorsa veya mutation yükleme durumundaysa çık
+    if (!sacrifice || !currentSacrifice?.empty_share || isAddingShare || updateSacrifice.isPending) return;
 
     try {
-      // Son hisse eklendiyse toast göster
-      if (currentSacrifice.empty_share === 1) {
-        toast.success("Bu Kurbanlık Tamamlandı!", {
-          description: "Bu kurbanlıktaki son hisseyi eklediniz.",
-          duration: 5000,
-        });
+      setIsAddingShare(true);
+
+      // Önce güncel kurban bilgisini kontrol et
+      const { data: latestSacrifice, error } = await supabase
+        .from("sacrifice_animals")
+        .select("empty_share")
+        .eq("sacrifice_id", sacrifice.sacrifice_id)
+        .single();
+
+      if (error || !latestSacrifice) {
+        toast.error("Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.");
+        return;
+      }
+
+      // Eğer empty_share değeri değiştiyse işlemi iptal et
+      if (latestSacrifice.empty_share !== currentSacrifice.empty_share) {
+        toast.error("Kurbanlık bilgileri değişti. Lütfen sayfayı yenileyiniz.");
+        return;
       }
 
       // Form state'ini güncelle
@@ -202,13 +216,32 @@ export default function Checkout({
       }]);
       setErrors([...errors, {}]);
 
-      // DB'de empty_share'i 1 azalt ve güncellemeyi bekle
+      // DB'de empty_share'i 1 azalt
       await updateSacrifice.mutateAsync({
         sacrificeId: sacrifice.sacrifice_id,
         emptyShare: currentSacrifice.empty_share - 1,
       });
+
+      // Son hisse eklendiyse toast göster
+      if (currentSacrifice.empty_share === 1) {
+        toast.success("Bu Kurbanlık Tamamlandı!", {
+          description: "Bu kurbanlıktaki son hisseyi eklediniz.",
+          duration: 5000,
+        });
+      }
     } catch (error) {
+      // Hata durumunda form state'ini geri al
+      const newFormData = [...formData];
+      newFormData.pop();
+      setFormData(newFormData);
+
+      const newErrors = [...errors];
+      newErrors.pop();
+      setErrors(newErrors);
+
       toast.error("Yeni hisse eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsAddingShare(false);
     }
   }
 
@@ -363,7 +396,7 @@ export default function Checkout({
             <Button
               onClick={handleAddShareholder}
               className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300"
-              disabled={formData.length >= 7}
+              disabled={formData.length >= 7 || isAddingShare || updateSacrifice.isPending}
             >
               <Plus className="h-5 w-5 mr-2" />
               Yeni Hissedar Ekle

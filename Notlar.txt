@@ -11,6 +11,7 @@ Son hisse seçildiğinde bir toast mesajı eklemek istiyorum. 2. adımda. Bu da 
 
 Filtrelerde menü açılınca her ifadenin karşısında şu anki şartlara uyan kaç adet kurbanlık var gösterilecek. Örneğin 32000 karşısında 5 yazmalı açılır menüde. Bu sayede kullanıcılar hangi filtrelerin ne kadar kurbanlık getireceğini daha iyi anlayabilirler.
 
+Kişi geri döne bastı ve hemen semeyi kapattı böyle bir durum kontrolü
 
 ------------------------
 Genel Bkış

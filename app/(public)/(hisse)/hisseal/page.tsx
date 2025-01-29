@@ -16,7 +16,7 @@ import ShareholderSummary from "./components/shareholder-summary"
 import { supabase } from "@/utils/supabaseClient";
 import { Check } from "lucide-react"
 
-const TIMEOUT_DURATION = 15; // 3 minutes
+const TIMEOUT_DURATION = 10; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {
@@ -48,10 +48,12 @@ const Page = () => {
   // Handle interaction timeout
   useEffect(() => {
     const checkTimeout = async () => {
+      if (currentStep !== "details" && currentStep !== "confirmation") return;
+
       const timePassed = Math.floor((Date.now() - lastInteractionTime) / 1000);
       const remaining = TIMEOUT_DURATION - timePassed;
 
-      if (remaining <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
+      if (remaining <= 0) {
         try {
           if (selectedSacrifice) {
             // Önce güncel kurban bilgisini al
@@ -83,28 +85,23 @@ const Page = () => {
             description: "İşlem sırasında bir hata oluştu.",
           });
         } finally {
-          setShowWarning(false); // Popup'ı kapat
+          setShowWarning(false);
           setStoreCurrentStep("selection");
           resetStore();
           setTimeLeft(TIMEOUT_DURATION);
         }
       } else {
         setTimeLeft(remaining);
-        if (remaining <= WARNING_THRESHOLD && !showWarning && (currentStep === "details" || currentStep === "confirmation")) {
+        
+        // Warning threshold kontrolü
+        if (remaining <= WARNING_THRESHOLD && !showWarning) {
           setShowWarning(true);
         }
       }
     };
 
-    // Sadece 2. ve 3. adımda timer'ı çalıştır
-    let timer: NodeJS.Timeout;
-    if (currentStep === "details" || currentStep === "confirmation") {
-      timer = setInterval(checkTimeout, 1000);
-    }
-
-    return () => {
-      if (timer) clearInterval(timer);
-    };
+    const timer = setInterval(checkTimeout, 1000);
+    return () => clearInterval(timer);
   }, [lastInteractionTime, showWarning, currentStep, setStoreCurrentStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
 
   // Sayfa seviyesinde etkileşimleri takip et
@@ -113,6 +110,7 @@ const Page = () => {
       if (currentStep === "details" || currentStep === "confirmation") {
         setLastInteractionTime(Date.now());
         setShowWarning(false);
+        setTimeLeft(TIMEOUT_DURATION); // Her etkileşimde süreyi sıfırla
       }
     };
 
@@ -141,7 +139,7 @@ const Page = () => {
       window.removeEventListener('scroll', handleScrollInteraction);
       window.removeEventListener('focus', handleFocusInteraction);
     };
-  }, [currentStep]); // Sadece currentStep değiştiğinde yeniden bağla
+  }, [currentStep, TIMEOUT_DURATION]);
 
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);

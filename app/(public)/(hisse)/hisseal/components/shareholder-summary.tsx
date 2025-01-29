@@ -68,17 +68,6 @@ export default function ShareholderSummary({
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const createShareholders = useCreateShareholders()
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setRemainingTime((prev: number) => {
-        if (prev <= 0) return 0
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [setRemainingTime])
-
   const handleVerificationComplete = async (verifiedPhone: string) => {
     // Doğrulama dialogundan gelen numarayı temizle (başındaki +9'u kaldır ve sadece rakamları al)
     const cleanVerifiedPhone = verifiedPhone.replace(/\D/g, '').replace(/^9/, '')

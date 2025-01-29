@@ -49,8 +49,7 @@ Admin Pages:
 
 #COMPONENT FEATURES
 
-Table Components
-I am showing some rows in color in the table element. Pay attention to the following while coloring.
+#COLOR MANAGEMENT
 - When using green color, text color: #39C645 background color: #F0FBF1
 - When using red color, text color: #D22D2D background color: #FCEFEF
 - When using yellow color, text color: #F9BC06 background color: #FFFAEC
@@ -107,6 +106,7 @@ Table 2: shareholders and its fields are:
   - phone_number: The phone number of the shareholder. -> varchar(13)
         When we receive an input from users regarding a phone_number, we will definitely check it and send it to db as +905555555555, but when we show it to users in the frontend, we should remove the +9 at the beginning and show it as 05555555555.
   - purchase_time: The time of share purchase. Default value is (now() AT TIME ZONE 'Europe/Istanbul'::text) so don't send backend to this column value.
+  - purchased_by: This is the name of the user who purchased the share.
   - sacrifice_id: The associated sacrifice (foreign key). 
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
   - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.
@@ -130,6 +130,20 @@ Table 3: change_logs and its fields are:
   - description: Description of the change. 
   - change_owner: Information about the last person who edited the record (e.g., admin ID or name).
   - changed_at: The date and time when the change was made. 
+
+Table 4: users and its fields are:
+  - id (Primary Key 🔑): A unique identifier for each user. This is google auth id.
+  - email: Stores the email address of the user.
+  - name: The full name of the user.
+  - image: Stores a URL or a file path to the user's profile picture.
+  - role: Defines the user's role in the system (e.g., "admin", "user", "moderator"). Can be useful for access control and permissions management.
+  - status: Indicates whether the user is active, banned, pending approval, etc.
+  Common values: "active", "inactive", "banned", "pending".
+  - created_at: Stores the timestamp when the user was created.
+  Typically set to CURRENT_TIMESTAMP when the row is inserted.
+  - updated_at: Stores the timestamp when the user record was last updated.
+  Automatically updated using triggers or ORM-level updates.
+
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.
 

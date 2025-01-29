@@ -92,11 +92,13 @@ export function ShareSelectDialog({
       return;
     }
 
-    toast({
-      title: "Acele etmenize gerek yok",
-      description: "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
-      duration: 10000,
-    });
+    setTimeout(() => {
+      toast({
+        title: "Acele etmenize gerek yok",
+        description: "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
+        duration: 10000,
+      });
+    }, 1000);
 
     onSelect(selectedCount);
   };
@@ -123,7 +125,7 @@ export function ShareSelectDialog({
               <p className="text-center text-muted-foreground">
                 Seçmiş olduğunuz <span className="text-primary font-medium">{sacrifice.share_price.toLocaleString('tr-TR')} ₺</span>'lik kurbanlıktan kaç adet hisse almak istersiniz?
               </p>
-              <div className="grid grid-cols-7 gap-4 justify-center items-center max-w-[500px] mx-auto">
+              <div className="flex flex-wrap gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (
                   <Button
                     key={count}

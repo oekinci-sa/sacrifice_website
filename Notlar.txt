@@ -5,16 +5,9 @@ supabse realtime subscription sorunu olduğu için bir kişi sayfayı arkaplanda
 ------------------------
 hisse al
 ------------------------
-Checkout -> Geri dönünce db'de olması gerenini iki katı artış meydana geliyor. 
-Hisse Al sayfasındki tabloda şöyle bir sorun yaşıyorum. Şimd hisse bedeli ve boş hisse sayısına göre bir filtrelem yapıyorum. Buradaki butonlara tıklanınca bir menü açılıyor ve oradan filtrelenecek değerleri seçiyorum. Fakat seçtiğim değerlerin Butonun kendi div'i içinde bana ayrıca gösterilmesini istemiyorum. bu durumu çözer misin hisse al sayfasında?
-
-Bir de tablo oluşurken otomatik filtreli oluşsun. Sanki bir kullanıcı boş hisse bedeli filtresinden 1-2-3-4-5-6-7 numaralarını seçmiş gibi. Bu sayede kullanıcılar daha hızlı bir şekilde işlem yapabilirler. Fakat daha sonra bu filtrelemeyi kaldırabilirler filtre butonları araclığıyla.
-1-2-3-4-5 butonlarının hepsinin içinde olduğu div ortalı fakat be n bu butonların da o div'e ortalnmasını istiyorum. Şu anda sola yaslılar.
-
-Bir de ilk kez yüklenirken bu /hisseal tablosu boş hissesi sıfır olanlar, sanki boş hisse bedeli butonuyla filtrelenmiş gibi sadee boş hissesi 0 olmayan hayvanlar gözükmeli ilk olarak kullancıya kolaylık olması için.
-
-İlk yüklemede boş hissesi 0 olan hayvanları getirmedin tamam ama ben bunu db'ye sorgu atarken boş hissesi 0 olanları getirme diye demedim. Sen tüm hayvanları getir fakat getirdikten sonra tablo filtrleeriyle sanki bir kullancı boş hissesi kalmayan hayvanları filtrelemiş gibi olsun diye dedim.
-
+2. adımda kalan hisse bedeli ve yeni hissedar ekle eş zamanlı olmalı.
+Yeni hissedar ekle butonu kapandığındaki div'in yukarı kayması
+Son hisse seçildiğinde bir toast mesajı eklemek istiyorum. 2. adımda. Bu da olmadı.
 
 Filtrelerde menü açılınca her ifadenin karşısında şu anki şartlara uyan kaç adet kurbanlık var gösterilecek. Örneğin 32000 karşısında 5 yazmalı açılır menüde. Bu sayede kullanıcılar hangi filtrelerin ne kadar kurbanlık getireceğini daha iyi anlayabilirler.
 

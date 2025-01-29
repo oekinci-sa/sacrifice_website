@@ -12,10 +12,12 @@ import { CustomDataTable } from "@/components/custom-components/custom-data-tabl
 import { Button } from "@/components/ui/button";
 import { useHisseStore } from "@/store/useHisseStore";
 import { useSacrifices, useUpdateSacrifice, useCreateShareholders } from "@/hooks/useSacrifices";
-import ShareholderSummary from "./components/ShareholderSummary"
+import ShareholderSummary from "./components/shareholder-summary"
+import { supabase } from "@/utils/supabaseClient";
+import { Check } from "lucide-react"
 
-const TIMEOUT_DURATION = 6000; // 3 minutes
-const WARNING_THRESHOLD = 15; // Show warning at 1 minute
+const TIMEOUT_DURATION = 15; // 3 minutes
+const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {
   const { toast } = useToast();
@@ -34,7 +36,7 @@ const Page = () => {
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
-    setCurrentStep,
+    setCurrentStep: setStoreCurrentStep,
     resetStore,
   } = useHisseStore();
 
@@ -45,30 +47,101 @@ const Page = () => {
 
   // Handle interaction timeout
   useEffect(() => {
-    const checkTimeout = () => {
+    const checkTimeout = async () => {
       const timePassed = Math.floor((Date.now() - lastInteractionTime) / 1000);
       const remaining = TIMEOUT_DURATION - timePassed;
 
-      if (remaining <= 0) {
-        setCurrentStep("selection");
-        resetStore();
-        setTimeLeft(TIMEOUT_DURATION);
+      if (remaining <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
+        try {
+          if (selectedSacrifice) {
+            // Önce güncel kurban bilgisini al
+            const { data: currentSacrifice, error } = await supabase
+              .from("sacrifice_animals")
+              .select("empty_share")
+              .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+              .single();
+
+            if (error || !currentSacrifice) {
+              toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+              });
+              return;
+            }
+
+            // DB'de empty_share'i form sayısı kadar artır
+            await updateSacrifice.mutateAsync({
+              sacrificeId: selectedSacrifice.sacrifice_id,
+              emptyShare: currentSacrifice.empty_share + formData.length,
+            });
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Hata",
+            description: "İşlem sırasında bir hata oluştu.",
+          });
+        } finally {
+          setShowWarning(false); // Popup'ı kapat
+          setStoreCurrentStep("selection");
+          resetStore();
+          setTimeLeft(TIMEOUT_DURATION);
+        }
       } else {
         setTimeLeft(remaining);
-        if (remaining <= WARNING_THRESHOLD && !showWarning) {
+        if (remaining <= WARNING_THRESHOLD && !showWarning && (currentStep === "details" || currentStep === "confirmation")) {
           setShowWarning(true);
         }
       }
     };
 
-    const timer = setInterval(checkTimeout, 1000);
-    return () => clearInterval(timer);
-  }, [lastInteractionTime, showWarning, setCurrentStep, resetStore]);
+    // Sadece 2. ve 3. adımda timer'ı çalıştır
+    let timer: NodeJS.Timeout;
+    if (currentStep === "details" || currentStep === "confirmation") {
+      timer = setInterval(checkTimeout, 1000);
+    }
 
-  const handleInteraction = () => {
-    setLastInteractionTime(Date.now());
-    setShowWarning(false);
-  };
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [lastInteractionTime, showWarning, currentStep, setStoreCurrentStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
+
+  // Sayfa seviyesinde etkileşimleri takip et
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (currentStep === "details" || currentStep === "confirmation") {
+        setLastInteractionTime(Date.now());
+        setShowWarning(false);
+      }
+    };
+
+    // Mouse tıklamaları
+    const handleMouseInteraction = () => handleInteraction();
+
+    // Klavye etkileşimleri
+    const handleKeyInteraction = () => handleInteraction();
+
+    // Scroll etkileşimleri
+    const handleScrollInteraction = () => handleInteraction();
+
+    // Focus değişiklikleri
+    const handleFocusInteraction = () => handleInteraction();
+
+    if (currentStep === "details" || currentStep === "confirmation") {
+      window.addEventListener('mousedown', handleMouseInteraction);
+      window.addEventListener('keydown', handleKeyInteraction);
+      window.addEventListener('scroll', handleScrollInteraction);
+      window.addEventListener('focus', handleFocusInteraction);
+    }
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseInteraction);
+      window.removeEventListener('keydown', handleKeyInteraction);
+      window.removeEventListener('scroll', handleScrollInteraction);
+      window.removeEventListener('focus', handleFocusInteraction);
+    };
+  }, [currentStep]); // Sadece currentStep değiştiğinde yeniden bağla
 
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);
@@ -90,17 +163,9 @@ const Page = () => {
         phone: "",
         delivery_location: "",
       }));
-      setCurrentStep("details");
+      setStoreCurrentStep("details");
       setIsDialogOpen(false);
       setLastInteractionTime(Date.now());
-
-      setTimeout(() => {
-        toast({
-          title: "Acele etmenize gerek yok",
-          description: "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
-          duration: 10000,
-        });
-      }, 1000);
     } catch (error) {
       // Error is handled in the mutation
     }
@@ -162,17 +227,17 @@ const Page = () => {
   };
 
   return (
-    <div className="container flex flex-col space-y-8" onClick={handleInteraction} onKeyDown={handleInteraction}>
+    <div className="container flex flex-col space-y-8">
       <Tabs value={getTabValue()} onValueChange={(value) => {
         switch (value) {
           case "tab-1":
-            setCurrentStep("selection");
+            setStoreCurrentStep("selection");
             break;
           case "tab-2":
-            setCurrentStep("details");
+            setStoreCurrentStep("details");
             break;
           case "tab-3":
-            setCurrentStep("confirmation");
+            setStoreCurrentStep("confirmation");
             break;
         }
       }} className="w-full">
@@ -181,10 +246,14 @@ const Page = () => {
             {/* Step 1 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
-                  ${getCurrentStep() >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${getCurrentStep() > 1 ? 'bg-primary text-white' : getCurrentStep() === 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
-                  1
+                  {getCurrentStep() > 1 ? (
+                    <Check className="w-6 h-6 animate-[check_0.3s_ease-in-out]" />
+                  ) : (
+                    "1"
+                  )}
                 </div>
                 <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
                   Hisse Seçim
@@ -200,10 +269,14 @@ const Page = () => {
             {/* Step 2 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
-                  ${getCurrentStep() >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${getCurrentStep() > 2 ? 'bg-primary text-white' : getCurrentStep() === 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
-                  2
+                  {getCurrentStep() > 2 ? (
+                    <Check className="w-6 h-6 animate-[check_0.3s_ease-in-out]" />
+                  ) : (
+                    "2"
+                  )}
                 </div>
                 <h3 className={`ml-3 text-lg font-semibold ${getCurrentStep() >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
                   Hissedar Bilgileri
@@ -219,8 +292,8 @@ const Page = () => {
             {/* Step 3 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium
-                  ${getCurrentStep() >= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${getCurrentStep() === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
                 >
                   3
                 </div>
@@ -247,21 +320,40 @@ const Page = () => {
             sacrifice={selectedSacrifice} 
             formData={formData} 
             setFormData={setFormData}
-            onApprove={() => setCurrentStep("confirmation")}
+            onApprove={() => setStoreCurrentStep("confirmation")}
+            resetStore={resetStore}
+            setCurrentStep={setStoreCurrentStep}
+            setLastInteractionTime={setLastInteractionTime}
             onBack={async (shareCount) => {
               if (!selectedSacrifice) return;
               
               try {
-                // Mevcut empty_share değerini shareCount kadar artır
+                // Önce güncel kurban bilgisini al
+                const { data: currentSacrifice, error } = await supabase
+                  .from("sacrifice_animals")
+                  .select("empty_share")
+                  .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+                  .single();
+
+                if (error || !currentSacrifice) {
+                  toast({
+                    variant: "destructive",
+                    title: "Hata",
+                    description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+                  });
+                  return;
+                }
+
+                // Güncel empty_share değerini kullanarak güncelleme yap
                 await updateSacrifice.mutateAsync({
                   sacrificeId: selectedSacrifice.sacrifice_id,
-                  emptyShare: selectedSacrifice.empty_share + shareCount,
+                  emptyShare: currentSacrifice.empty_share + shareCount,
                 });
                 
                 // Store'u sıfırla
                 resetStore();
                 // İlk adıma dön
-                setCurrentStep("selection");
+                setStoreCurrentStep("selection");
               } catch (error) {
                 // Error is handled in the mutation
               }
@@ -273,11 +365,14 @@ const Page = () => {
             sacrifice={selectedSacrifice}
             shareholders={formData}
             onApprove={handleApprove}
+            setCurrentStep={setStoreCurrentStep}
+            remainingTime={timeLeft}
+            setRemainingTime={setTimeLeft}
           />
         </TabsContent>
       </Tabs>
 
-      {currentStep === "details" && (
+      {(currentStep === "details" || currentStep === "confirmation") && (
         <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
           Kalan Süre: {timeLeft} saniye
         </div>

@@ -2,13 +2,19 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { sacrificeSchema } from '@/types'
 
-interface FormData {
+export interface FormData {
   name: string
   phone: string
   delivery_location: string
 }
 
 export type Step = "selection" | "details" | "confirmation"
+
+export const STEP_MAPPING = {
+  selection: { number: 1, value: "tab-1" },
+  details: { number: 2, value: "tab-2" },
+  confirmation: { number: 3, value: "tab-3" }
+} as const;
 
 interface HisseState {
   selectedSacrifice: sacrificeSchema | null
@@ -20,11 +26,8 @@ interface HisseState {
   setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setTempSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setFormData: (data: FormData[]) => void
-  setCurrentStep: (step: Step) => void
   resetStore: () => void
   goToStep: (step: Step) => void
-  getStepNumber: () => number
-  getTabValue: () => string
 }
 
 const initialState = {
@@ -38,37 +41,19 @@ const initialState = {
 
 export const useHisseStore = create<HisseState>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
       
       setSelectedSacrifice: (sacrifice) => set({ selectedSacrifice: sacrifice }),
       setTempSelectedSacrifice: (sacrifice) => set({ tempSelectedSacrifice: sacrifice }),
       setFormData: (data) => set({ formData: data }),
-      setCurrentStep: (step) => set({ currentStep: step }),
-      resetStore: () => set({
-        selectedSacrifice: null,
-        tempSelectedSacrifice: null,
-        formData: [],
-        currentStep: "selection",
-        stepNumber: 1,
-        tabValue: "tab-1"
+      resetStore: () => set(initialState),
+      goToStep: (step) => set({
+        currentStep: step,
+        stepNumber: STEP_MAPPING[step].number,
+        tabValue: STEP_MAPPING[step].value
       }),
-      goToStep: (step) => {
-        const stepMapping = {
-          selection: { number: 1, value: "tab-1" },
-          details: { number: 2, value: "tab-2" },
-          confirmation: { number: 3, value: "tab-3" }
-        };
-
-        set({
-          currentStep: step,
-          stepNumber: stepMapping[step].number,
-          tabValue: stepMapping[step].value
-        });
-      },
-      getStepNumber: () => get().stepNumber,
-      getTabValue: () => get().tabValue,
     }),
     { name: 'hisse-store' }
   )
-) 
+)

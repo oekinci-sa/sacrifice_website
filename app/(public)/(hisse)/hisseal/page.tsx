@@ -7,7 +7,7 @@ import { columns } from "./components/columns";
 import { ShareSelectDialog } from "./components/share-select-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { useHisseStore } from "@/store/useHisseStore";
@@ -22,6 +22,7 @@ const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 const Page = () => {
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
   const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
@@ -145,7 +146,7 @@ const Page = () => {
 
   // Sayfa kapatma/yenileme durumunda DB güncelleme
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       // Sadece 2. ve 3. adımda çalışsın
       if (currentStep !== "details" && currentStep !== "confirmation") return;
       if (!selectedSacrifice || !formData.length) return;
@@ -153,6 +154,28 @@ const Page = () => {
       // Tarayıcının standart onay mesajını göster
       e.preventDefault();
       e.returnValue = '';
+
+      try {
+        // Önce güncel kurban bilgisini al
+        const { data: currentSacrifice, error } = await supabase
+          .from("sacrifice_animals")
+          .select("empty_share")
+          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+          .single();
+
+        if (error || !currentSacrifice) {
+          console.error("Kurbanlık bilgileri alınamadı");
+          return;
+        }
+
+        // DB'de empty_share'i form sayısı kadar artır
+        await updateSacrifice.mutateAsync({
+          sacrificeId: selectedSacrifice.sacrifice_id,
+          emptyShare: currentSacrifice.empty_share + formData.length,
+        });
+      } catch (error) {
+        console.error("DB güncelleme hatası:", error);
+      }
     };
 
     const handleUnload = () => {
@@ -170,14 +193,34 @@ const Page = () => {
       navigator.sendBeacon('/api/update-sacrifice', blob);
     };
 
+    const handlePopState = () => {
+      if (currentStep !== "details" && currentStep !== "confirmation") return;
+      if (!selectedSacrifice || !formData.length) return;
+
+      // Reset store and update DB
+      resetStore();
+      handleBeforeUnload(new Event('beforeunload') as BeforeUnloadEvent);
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('unload', handleUnload);
+    window.addEventListener('popstate', handlePopState);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('unload', handleUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
-  }, [currentStep, selectedSacrifice, formData]);
+  }, [currentStep, selectedSacrifice, formData, updateSacrifice, resetStore]);
+
+  // Reset store when navigating away from the page
+  useEffect(() => {
+    return () => {
+      if (currentStep === "details" || currentStep === "confirmation") {
+        resetStore();
+      }
+    };
+  }, [pathname, currentStep, resetStore]);
 
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);

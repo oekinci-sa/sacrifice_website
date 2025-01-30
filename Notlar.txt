@@ -36,9 +36,10 @@ kurbanlıklar
 ------------------------
 Hissesi tam olarak ödene kurbamlıklar
 Ödeme durumu her bir kurbanlık için ayrı ayrı gösterilecek görsel olacak. -> Ödemesi eksik/tüm kurbanlık sayısı olacak sağ üstünde olacak.
-Kurbanlık Bedellerine göre Satışlar bölümünde renk değişimi düşünülebilir. Kırmızı sarı ve yeşil
+Kurbanlık Bedellerine göre Satışlar bölümünde renk değişimi düşünülebilir. Yeşil toınları ile
 
 /hisseal sayfasındaki tabloyu custom-data-table tablosunu kullanarak yeniden oluşturu musun? Burada eylemler bölmünüde farklı logicler var. O sebeple onları çok iyi bir şekilde analiz edip db ile filan konuşup işlem yapan yerlerin atlanmamasını istiyorum. Onları da yeni tabloda muhakkak oluşturman lazım. Fİltreleme bölümünde Hisse Bdedeli ve Boş Hisse saysına göre filtreleme özelliği var /kurban-admin/kurbamlıklar/tum-kurbanliklar sayfasında olduğu gibi. /hisseal sayfasındaki tabloda sütunları gösterip gizleme özelliğine ihtiyaç yok. Bunu oluşturma. Eylemler bölümünde +'ya tıklayınca mesela bir modal çıkıyor. Bu tür özellikleri filan da kaybetmesin tablo kesinlikle. Sadece görünümünde değişiklikler istiyorum yani tablonun.
+
 
 
 

@@ -180,32 +180,6 @@ export function SacrificeStatistics() {
           }}
         />
       </div>
-
-      {/* Charts */}
-      <div className="grid gap-4">
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Ödeme Durumu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={paymentData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => 
-                      new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Number(value))
-                    }
-                  />
-                  <Bar dataKey="Toplanan" stackId="a" fill={COLORS.green} />
-                  <Bar dataKey="Kalan" stackId="a" fill={COLORS.yellow} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 } 

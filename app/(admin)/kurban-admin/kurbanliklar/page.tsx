@@ -29,7 +29,7 @@ interface ChartData {
 const chartConfig = {
   emptyShares: {
     label: "Boş",
-    color: "#f0fbf1",
+    color: "#e5e7eb",
   },
   completedAnimals: {
     label: "Dolu",
@@ -153,7 +153,7 @@ export default function KurbanliklarPage() {
                             </div>
                             <div className="flex items-center justify-between text-[0.70rem] gap-8">
                               <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full" style={{ background: '#f0fbf1' }} />
+                                <div className="h-2 w-2 rounded-full" style={{ background: '#e5e7eb' }} />
                                 <span className="text-muted-foreground">Boş</span>
                               </div>
                               <span className="font-semibold">{emptyValue}</span>
@@ -175,7 +175,7 @@ export default function KurbanliklarPage() {
               />
               <Bar
                 dataKey="emptyShares"
-                fill="#f0fbf1"
+                fill="#e5e7eb"
                 radius={[4, 4, 0, 0]}
                 className="z-30"
                 stackId="a"

@@ -637,37 +637,11 @@ export default function GeneralOverviewPage() {
                 {(!activityLogs || activityLogs.length === 0) && (
                   <p className="text-sm text-muted-foreground">Henüz hareket bulunmuyor.</p>
                 )}
-            </div>
+              </div>
             </ScrollArea>
           </CardContent>
         </Card>
       </div>
-
-      {/* Charts and Recent Activities */}
-        {/* Charts and Recent Activities */}
-
-          {/* Delivery Locations Chart */}
-          <Card className="col-span-2 shadow-none">
-          <CardHeader>
-              <CardTitle>Teslimat Noktaları Dağılımı</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={locationData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                    <Bar dataKey="value" name="Hissedar Sayısı">
-                      {locationData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

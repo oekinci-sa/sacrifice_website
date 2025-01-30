@@ -48,6 +48,106 @@ const Page = () => {
   const updateSacrifice = useUpdateSacrifice();
   const createShareholders = useCreateShareholders();
 
+  // Reset form state when entering the page
+  useEffect(() => {
+    if (pathname === "/hisseal") {
+      resetStore();
+      goToStep("selection");
+    }
+  }, [pathname]);
+
+  // Handle navigation changes
+  useEffect(() => {
+    let isNavigating = false;
+
+    const handleRouteChange = async (url: string) => {
+      if (isNavigating) return true;
+      
+      // Only handle if we're in details or confirmation step
+      if (currentStep !== "details" && currentStep !== "confirmation") return true;
+      if (!selectedSacrifice || !formData.length) return true;
+
+      isNavigating = true;
+
+      try {
+        // Get current sacrifice info
+        const { data: currentSacrifice, error } = await supabase
+          .from("sacrifice_animals")
+          .select("empty_share")
+          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+          .single();
+
+        if (error || !currentSacrifice) {
+          toast({
+            variant: "destructive",
+            title: "Hata",
+            description: "Kurbanlık bilgileri alınamadı.",
+          });
+          return false;
+        }
+
+        // Update empty_share in DB
+        await updateSacrifice.mutateAsync({
+          sacrificeId: selectedSacrifice.sacrifice_id,
+          emptyShare: currentSacrifice.empty_share + formData.length,
+        });
+
+        // Reset store after successful update
+        resetStore();
+        goToStep("selection");
+        return true;
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "İşlem sırasında bir hata oluştu.",
+        });
+        return false;
+      } finally {
+        isNavigating = false;
+      }
+    };
+
+    const handlePopState = async (event: PopStateEvent) => {
+      const result = await handleRouteChange(window.location.href);
+      if (!result) {
+        event.preventDefault();
+        history.pushState(null, '', window.location.href);
+      }
+    };
+
+    // Listen for navigation events
+    window.addEventListener('popstate', handlePopState);
+    
+    // Create a proxy for pushState and replaceState
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function() {
+      const url = arguments[2] as string;
+      const shouldContinue = handleRouteChange(url);
+      if (shouldContinue) {
+        return originalPushState.apply(this, arguments as any);
+      }
+      return undefined;
+    };
+
+    window.history.replaceState = function() {
+      const url = arguments[2] as string;
+      const shouldContinue = handleRouteChange(url);
+      if (shouldContinue) {
+        return originalReplaceState.apply(this, arguments as any);
+      }
+      return undefined;
+    };
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+    };
+  }, [currentStep, selectedSacrifice, formData, updateSacrifice, resetStore, goToStep]);
+
   // Handle interaction timeout
   useEffect(() => {
     const checkTimeout = async () => {
@@ -146,7 +246,7 @@ const Page = () => {
 
   // Sayfa kapatma/yenileme durumunda DB güncelleme
   useEffect(() => {
-    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Sadece 2. ve 3. adımda çalışsın
       if (currentStep !== "details" && currentStep !== "confirmation") return;
       if (!selectedSacrifice || !formData.length) return;
@@ -154,28 +254,6 @@ const Page = () => {
       // Tarayıcının standart onay mesajını göster
       e.preventDefault();
       e.returnValue = '';
-
-      try {
-        // Önce güncel kurban bilgisini al
-        const { data: currentSacrifice, error } = await supabase
-          .from("sacrifice_animals")
-          .select("empty_share")
-          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-          .single();
-
-        if (error || !currentSacrifice) {
-          console.error("Kurbanlık bilgileri alınamadı");
-          return;
-        }
-
-        // DB'de empty_share'i form sayısı kadar artır
-        await updateSacrifice.mutateAsync({
-          sacrificeId: selectedSacrifice.sacrifice_id,
-          emptyShare: currentSacrifice.empty_share + formData.length,
-        });
-      } catch (error) {
-        console.error("DB güncelleme hatası:", error);
-      }
     };
 
     const handleUnload = () => {
@@ -193,34 +271,14 @@ const Page = () => {
       navigator.sendBeacon('/api/update-sacrifice', blob);
     };
 
-    const handlePopState = () => {
-      if (currentStep !== "details" && currentStep !== "confirmation") return;
-      if (!selectedSacrifice || !formData.length) return;
-
-      // Reset store and update DB
-      resetStore();
-      handleBeforeUnload(new Event('beforeunload') as BeforeUnloadEvent);
-    };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('unload', handleUnload);
-    window.addEventListener('popstate', handlePopState);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('unload', handleUnload);
-      window.removeEventListener('popstate', handlePopState);
     };
-  }, [currentStep, selectedSacrifice, formData, updateSacrifice, resetStore]);
-
-  // Reset store when navigating away from the page
-  useEffect(() => {
-    return () => {
-      if (currentStep === "details" || currentStep === "confirmation") {
-        resetStore();
-      }
-    };
-  }, [pathname, currentStep, resetStore]);
+  }, [currentStep, selectedSacrifice, formData]);
 
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);

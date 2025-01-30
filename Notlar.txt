@@ -15,8 +15,9 @@ Kişi geri döne bastı ve hemen semeyi kapattı böyle bir durum kontrolü
 
 [Kontroller]
 Timeout
-Geri dönme
+Browser geri tuşu ile dönme
 Sayfayı kapatma
+Navigasyon butonlarından başka sayfaya geçmek
 
 ------------------------
 Genel Bkış

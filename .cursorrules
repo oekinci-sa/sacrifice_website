@@ -75,6 +75,7 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 - All forms should include react-hook-form and Zod validations.
 - Server state management → React Query
 - Client state (UI state) management → Zustand veya useState
+- use /hooks folder for custom hooks.
 - All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.
 - I want to use shadcn as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
 - Use shadcn if possible, otherwise create componenet with tailwindcss

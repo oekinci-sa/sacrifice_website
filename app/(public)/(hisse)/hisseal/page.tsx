@@ -15,6 +15,8 @@ import { useSacrifices, useUpdateSacrifice, useCreateShareholders } from "@/hook
 import ShareholderSummary from "./components/shareholder-summary"
 import { supabase } from "@/utils/supabaseClient";
 import { Check } from "lucide-react"
+import { ShareFilters } from "./components/ShareFilters";
+import { ColumnFiltersState } from "@tanstack/react-table";
 
 const TIMEOUT_DURATION = 10; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
@@ -27,6 +29,12 @@ const Page = () => {
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
   const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
   const [showWarning, setShowWarning] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+    {
+      id: "empty_share",
+      value: ["1", "2", "3", "4", "5", "6", "7"]
+    }
+  ]);
 
   // Zustand store
   const {
@@ -404,6 +412,13 @@ const Page = () => {
               onSacrificeSelect: handleSacrificeSelect
             }}
             pageSizeOptions={[10, 20, 50, 100, 150]}
+            filters={({ table, columnFilters, onColumnFiltersChange }) => (
+              <ShareFilters 
+                table={table} 
+                columnFilters={columnFilters}
+                onColumnFiltersChange={onColumnFiltersChange} 
+              />
+            )}
           />
         </TabsContent>
         <TabsContent value="tab-2">

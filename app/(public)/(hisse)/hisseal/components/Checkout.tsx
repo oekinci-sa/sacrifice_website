@@ -40,7 +40,7 @@ const formSchema = z.object({
     .regex(/^0/, "Telefon numarası 0 ile başlamalıdır")
     .refine(
       (val) => val.replace(/\D/g, '').length === 11,
-      "Telefon numarası 11 haneli olmalıdır (Boşluklar hariç)"
+      "Telefon numarası 11 haneli olmalıdır"
     ),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
 })
@@ -154,7 +154,7 @@ export default function Checkout({
       if (!/^0/.test(value)) {
         newErrors[index].phone = "Telefon numarası 0 ile başlamalıdır"
       } else if (value.replace(/\D/g, '').length !== 11) {
-        newErrors[index].phone = "Telefon numarası 11 haneli olmalıdır (Boşluklar hariç)"
+        newErrors[index].phone = "Telefon numarası 11 haneli olmalıdır"
       } else {
         delete newErrors[index].phone
       }

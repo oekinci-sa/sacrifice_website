@@ -14,6 +14,7 @@ import {
   VisibilityState,
   SortingState,
   Column,
+  Table as TableInstance,
 } from "@tanstack/react-table"
 
 import {
@@ -65,6 +66,11 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   meta?: Record<string, any>
   pageSizeOptions?: number[]
+  filters?: (props: { 
+    table: TableInstance<TData>;
+    columnFilters: ColumnFiltersState;
+    onColumnFiltersChange: (filters: ColumnFiltersState) => void;
+  }) => React.ReactNode | null
 }
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -82,6 +88,7 @@ export function CustomDataTable<TData, TValue>({
   data,
   meta,
   pageSizeOptions = [10, 20, 50, 100, 150],
+  filters,
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])
   
@@ -162,52 +169,11 @@ export function CustomDataTable<TData, TValue>({
   return (
     <div className="mt-8">
       <div className="space-y-4">
-        <div className="flex items-center">
-          <Input
-            placeholder="Kurbanlık no ile ara..."
-            value={(table.getColumn("sacrifice_no")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("sacrifice_no")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <div className="flex items-center ml-auto space-x-2">
-            {isFiltered && (
-              <Button
-                variant="ghost"
-                onClick={() => setColumnFilters([])}
-                className="h-8 px-2 lg:px-3 flex items-center gap-2 text-sm"
-              >
-                Tüm filtreleri temizle
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            <div className="relative">
-              {table.getColumn("share_price")?.getFilterValue()?.length > 0 && (
-                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  {(table.getColumn("share_price")?.getFilterValue() as string[])?.length}
-                </div>
-              )}
-              <DataTableFacetedFilter
-                column={table.getColumn("share_price")}
-                title="Hisse Bedeli"
-                options={sharePrices}
-              />
-            </div>
-            <div className="relative">
-              {table.getColumn("empty_share")?.getFilterValue()?.length > 0 && (
-                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  {(table.getColumn("empty_share")?.getFilterValue() as string[])?.length}
-                </div>
-              )}
-              <DataTableFacetedFilter
-                column={table.getColumn("empty_share")}
-                title="Boş Hisse"
-                options={emptyShares}
-              />
-            </div>
-          </div>
-        </div>
+        {typeof filters === 'function' ? filters({ 
+          table,
+          columnFilters,
+          onColumnFiltersChange: setColumnFilters
+        }) : null}
 
         <div className="rounded-md">
           <Table>
@@ -278,8 +244,10 @@ export function CustomDataTable<TData, TValue>({
             </TableBody>
           </Table>
         </div>
-
+        
+        {/* Table Footer */}
         <div className="flex items-center justify-between">
+          {/* Row Number */}
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground">Sayfa başına satır</p>
             <Select
@@ -300,9 +268,11 @@ export function CustomDataTable<TData, TValue>({
               </SelectContent>
             </Select>
           </div>
+          {/* Total Rows */}
           <div className="flex-1 text-center text-sm text-muted-foreground">
             Toplam {table.getFilteredRowModel().rows.length} adet sonuç bulundu.
           </div>
+          {/* Pagination */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

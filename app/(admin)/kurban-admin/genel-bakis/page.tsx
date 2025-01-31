@@ -595,9 +595,9 @@ export default function GeneralOverviewPage() {
       </Card>
 
       {/* Kurbanlık Bedelleri ve Son Hareketler */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-4 grid-cols-2">
         {/* Recent Activities */}
-        <Card className="col-span-3 shadow-none">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Son Hareketler</CardTitle>
           </CardHeader>
@@ -636,6 +636,44 @@ export default function GeneralOverviewPage() {
                 ))}
                 {(!activityLogs || activityLogs.length === 0) && (
                   <p className="text-sm text-muted-foreground">Henüz hareket bulunmuyor.</p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* Recent Payments */}
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>Son Ödemeler</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="relative space-y-6">
+                {activityLogs?.filter(log => log.column_name === "Ödenen Tutar").slice(0, 10).map((log, index, array) => (
+                  <div key={log.event_id} className="relative">
+                    <div className="flex items-start gap-6">
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-14 h-14 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0 z-10">
+                          <i className="bi bi-wallet2 text-[#00B074] text-2xl" />
+                        </div>
+                        {index < array.length - 1 && (
+                          <div className="w-[2px] h-12 bg-[#DBDDE1] mt-4 mb-4" />
+                        )}
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-sm text-muted-foreground font-heading">
+                          {format(new Date(log.changed_at), "dd.MM.yyyy - HH:mm", { locale: tr })}
+                        </p>
+                        <p className="font-medium font-heading">
+                          {getCustomDescription(log, parseInt(log.new_value))}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!activityLogs?.filter(log => log.column_name === "Ödenen Tutar").length) && (
+                  <p className="text-sm text-muted-foreground">Henüz ödeme bulunmuyor.</p>
                 )}
               </div>
             </ScrollArea>

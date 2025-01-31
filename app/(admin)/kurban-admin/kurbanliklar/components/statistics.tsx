@@ -35,6 +35,8 @@ interface SacrificeStats {
     bekliyor: number;
   };
   completedSacrifices: number;
+  fullyPaidSacrifices: number;
+  activeSacrificesCount: number;
 }
 
 const COLORS = {
@@ -63,6 +65,8 @@ export function SacrificeStatistics() {
       bekliyor: 0,
     },
     completedSacrifices: 0,
+    fullyPaidSacrifices: 0,
+    activeSacrificesCount: 0,
   });
 
   useEffect(() => {
@@ -110,6 +114,45 @@ export function SacrificeStatistics() {
           (s) => s.empty_share === 0
         ).length || 0;
 
+        // Calculate fully paid sacrifices
+        const sacrificePayments = new Map();
+        
+        // First, get all sacrifices with at least one share taken
+        const activeSacrifices = sacrifices?.filter(s => s.empty_share < 7) || [];
+        
+        interface ShareholderPayment {
+          totalAmount: number;
+          paidAmount: number;
+          remainingPayment: number;
+        }
+        
+        // Group shareholders by sacrifice_id and calculate payments
+        shareholders?.forEach(shareholder => {
+          const sacrificeId = shareholder.sacrifice_id;
+          if (!activeSacrifices.find(s => s.sacrifice_id === sacrificeId)) return;
+          
+          const currentPayment = sacrificePayments.get(sacrificeId) || {
+            shareholders: [] as ShareholderPayment[]
+          };
+          
+          currentPayment.shareholders.push({
+            totalAmount: shareholder.total_amount,
+            paidAmount: shareholder.paid_amount,
+            remainingPayment: shareholder.remaining_payment
+          });
+          
+          sacrificePayments.set(sacrificeId, currentPayment);
+        });
+
+        const fullyPaidSacrifices = Array.from(sacrificePayments.entries()).filter(
+          ([sacrificeId, payment]) => {
+            // Check if all shareholders of this sacrifice have completed their payments
+            return payment.shareholders.every(
+              (shareholder: ShareholderPayment) => shareholder.remainingPayment === 0
+            );
+          }
+        ).length;
+
         // Teslimat noktalarına göre dağılım
         const deliveryLocationStats = shareholders.reduce((acc, curr) => {
           const location = curr.delivery_location
@@ -149,6 +192,8 @@ export function SacrificeStatistics() {
           deliveryStats,
           consentStats,
           completedSacrifices,
+          activeSacrificesCount: activeSacrifices.length,
+          fullyPaidSacrifices,
         });
       } catch (error) {
         console.error("Error fetching sacrifice statistics:", error);
@@ -167,7 +212,7 @@ export function SacrificeStatistics() {
   ];
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-16 md:grid-cols-2">
       <div>
         <StatCard
           title="Kalan Kurbanlıklar"
@@ -178,6 +223,14 @@ export function SacrificeStatistics() {
             text: "Tümünü göster",
             href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
           }}
+        />
+      </div>
+      <div>
+        <StatCard
+          title="Ödemesi Tamamlanan Kurbanlıklar"
+          value={stats.fullyPaidSacrifices}
+          maxValue={stats.activeSacrificesCount}
+          displayValue={stats.activeSacrificesCount - stats.fullyPaidSacrifices}
         />
       </div>
     </div>

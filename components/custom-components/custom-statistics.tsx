@@ -31,7 +31,7 @@ export function CustomStatistics({ stats, recentActivities }: StatisticsProps) {
   return (
     <div className="grid gap-8">
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-16 md:grid-cols-2">
         <div>
           <StatCard
             title="Eksik Kaporalar"
@@ -52,20 +52,6 @@ export function CustomStatistics({ stats, recentActivities }: StatisticsProps) {
               text: "Tümünü göster",
               href: "/kurban-admin/odeme-analizi?tab=eksik-odeme",
             }}
-          />
-        </div>
-        <div>
-          <StatCard
-            title="Vekalet Alındı"
-            value={stats.consentStats.verildi}
-            maxValue={stats.totalShareholders}
-          />
-        </div>
-        <div>
-          <StatCard
-            title="Vekalet Alınmadı"
-            value={stats.consentStats.bekliyor}
-            maxValue={stats.totalShareholders}
           />
         </div>
       </div>

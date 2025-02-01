@@ -26,7 +26,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
     accessorKey: "shareholder_name",
     header: "İsim Soyisim",
     cell: ({ row }) => (
-      <div className="text-center py-2 text-sm font-medium">
+      <div className="text-center py-2 text-sm">
         {row.getValue("shareholder_name")}
       </div>
     ),
@@ -37,7 +37,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
     cell: ({ row }) => {
       const phone = row.getValue("phone_number") as string;
       return (
-        <div className="text-center py-2 text-sm font-medium">
+        <div className="text-center py-2 text-sm">
           {phone.replace("+90", "0")}
         </div>
       );
@@ -53,43 +53,49 @@ export const columns: ColumnDef<ShareholderType>[] = [
         currency: "TRY",
       }).format(amount);
 
-      return <div className="text-center py-2 text-sm font-medium">{formatted}</div>;
+      return <div className="text-center py-2 text-sm">{formatted}</div>;
     },
   },
   {
     accessorKey: "payment_ratio",
     header: "Ödeme Oranı",
     accessorFn: (row) => {
-      const paidAmount = row.paid_amount;
-      const totalAmount = row.total_amount;
+      const paidAmount = parseFloat(row.paid_amount.toString());
+      const totalAmount = parseFloat(row.total_amount.toString());
       return (paidAmount / totalAmount) * 100;
     },
     cell: ({ row }) => {
-      const paidAmount = parseFloat(row.original.paid_amount);
-      const totalAmount = parseFloat(row.original.total_amount);
-      const ratio = (paidAmount / totalAmount) * 100;
+      const ratio = row.getValue("payment_ratio") as number;
+      const ratioForDisplay = Math.floor(ratio);
+      const ratioString = ratioForDisplay.toString();
 
       return (
-        <div className="flex items-center justify-center gap-4">
-          <Progress
-            value={ratio}
-            className="w-[60%]"
-            style={
-              {
-                ["--progress-background" as string]:
-                  ratio < 50 ? "rgb(220 38 38 / 0.2)" : ratio < 100 ? "rgb(202 138 4 / 0.2)" : "rgb(22 163 74 / 0.2)",
-                ["--progress-foreground" as string]:
-                  ratio < 50 ? "rgb(220 38 38)" : ratio < 100 ? "rgb(202 138 4)" : "rgb(22 163 74)",
-              } as React.CSSProperties
-            }
-          />
-          <div
-            className={cn(
-              "text-sm tabular-nums",
-              ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-green-600",
-            )}
-          >
-            %{ratio.toFixed(0)}
+        <div className="flex justify-center py-2">
+          <div className="flex items-center gap-4">
+            <Progress
+              value={ratioForDisplay}
+              className="min-w-[100px]"
+              style={{
+                ["--progress-background" as string]: ratio < 50 
+                  ? "rgb(220 38 38 / 0.2)" 
+                  : ratio < 100 
+                    ? "rgb(202 138 4 / 0.2)" 
+                    : "rgb(22 163 74 / 0.2)",
+                ["--progress-foreground" as string]: ratio < 50 
+                  ? "rgb(220 38 38)" 
+                  : ratio < 100 
+                    ? "rgb(202 138 4)" 
+                    : "rgb(22 163 74)",
+              } as React.CSSProperties}
+            />
+            <div
+              className={cn(
+                "text-sm tabular-nums w-[50px] text-left",
+                ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-green-600",
+              )}
+            >
+              %{ratioString.padStart(3)}
+            </div>
           </div>
         </div>
       );
@@ -109,7 +115,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
       }
       
       return (
-        <div className="text-center py-2 text-sm font-medium">
+        <div className="text-center py-2 text-sm">
           {displayLocation}
         </div>
       );
@@ -125,7 +131,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
       const sacrifice_consent = row.getValue("sacrifice_consent");
 
       return (
-        <div className="text-center py-2 text-sm font-medium">
+        <div className="text-center py-2 text-sm">
           <div className={cn(
             "inline-flex items-center justify-center rounded-md px-2 py-1 min-w-[80px]",
             sacrifice_consent 
@@ -151,7 +157,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+            className="hover:bg-[#E8F7EF] hover:text-[#09B850]"
             onClick={() => {
               // TODO: Implement view functionality
             }}

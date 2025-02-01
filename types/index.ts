@@ -41,6 +41,14 @@ export interface shareholderSchema {
   notes: string | null;
 }
 
+export interface ShareholderDetails {
+  shareholder_name: string;
+  phone_number: string;
+  paid_amount: number;
+  total_amount: number;
+  delivery_location: string;
+}
+
 export interface sacrificeSchema {
   sacrifice_id: string;
   sacrifice_no: number;
@@ -51,6 +59,7 @@ export interface sacrificeSchema {
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
+  shareholders?: ShareholderDetails[];
 }
 
 export interface ShareholderType {

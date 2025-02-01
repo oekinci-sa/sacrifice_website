@@ -18,7 +18,7 @@ import { Check } from "lucide-react"
 import { ShareFilters } from "./components/ShareFilters";
 import { ColumnFiltersState } from "@tanstack/react-table";
 
-const TIMEOUT_DURATION = 10; // 3 minutes
+const TIMEOUT_DURATION = 30; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {

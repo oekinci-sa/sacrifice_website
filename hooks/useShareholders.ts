@@ -1,8 +1,6 @@
-"use client"
-
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { supabase } from "@/utils/supabaseClient"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { supabase } from "@/utils/supabaseClient"
 
 interface ShareholderData {
   shareholder_name: string
@@ -11,8 +9,11 @@ interface ShareholderData {
   delivery_fee: number
   share_price: number
   total_amount: number
+  paid_amount: number
+  remaining_payment: number
   sacrifice_consent: boolean
   last_edited_by: string
+  purchased_by: string
   sacrifice_id: string
 }
 
@@ -21,23 +22,25 @@ export const useCreateShareholders = () => {
 
   return useMutation({
     mutationFn: async (shareholders: ShareholderData[]) => {
-      const { data, error } = await supabase
-        .from("shareholders")
-        .insert(shareholders)
-        .select()
+      try {
+        const { data, error } = await supabase
+          .from("shareholders")
+          .insert(shareholders)
+          .select()
 
-      if (error) {
+        if (error) {
+          toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu.")
+          throw error
+        }
+
+        return data
+      } catch (error) {
+        toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu.")
         throw error
       }
-
-      return data
     },
     onSuccess: () => {
-      toast.success("Hissedarlar başarıyla kaydedildi")
       queryClient.invalidateQueries({ queryKey: ["shareholders"] })
-    },
-    onError: (error) => {
-      toast.error("Hissedarlar kaydedilirken bir hata oluştu: " + error.message)
     },
   })
 } 

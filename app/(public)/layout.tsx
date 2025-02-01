@@ -1,48 +1,21 @@
-import "../globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter } from "next/font/google"
+import { Toaster } from "sonner"
+import Header from "./layout/header"
+import Footer from "./layout/footer"
 
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+const inter = Inter({ subsets: ["latin"] })
 
-import { ThemeProvider } from "@/components/common/theme-provider";
-import Header from "./layout/header";
-import Footer from "./layout/footer";
-
-import { Instrument_Sans } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
-const instrumentSans = Instrument_Sans({
-  subsets: ["latin"],
-  variable: "--font-instrument-sans",
-});
-
-export const metadata: Metadata = {
-  title: "Sacrifice Website",
-  description: "Sacrifice Website",
-};
-
-export default function RootLayout({
+export default function PublicLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${instrumentSans.className} font-heading`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Header />
-          {children}
-          <Analytics />
-          <SpeedInsights />
-          <Footer />
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+    <div className={inter.className}>
+      <Header />
+      {children}
+      <Footer />
+      <Toaster />
+    </div>
+  )
 }

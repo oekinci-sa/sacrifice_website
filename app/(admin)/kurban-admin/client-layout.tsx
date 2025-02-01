@@ -22,14 +22,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function UserNav() {
-  const { setTheme, theme } = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -58,14 +56,6 @@ function UserNav() {
           </p>
         </div>
         <Separator className="my-2" />
-        <DropdownMenuItem onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-          {theme === "light" ? (
-            <Moon className="mr-2 h-4 w-4" />
-          ) : (
-            <Sun className="mr-2 h-4 w-4" />
-          )}
-          <span>{theme === "light" ? "Dark" : "Light"} tema</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Çıkış yap</span>

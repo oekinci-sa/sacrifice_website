@@ -7,7 +7,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
-import { useCreateShareholders } from "../hooks/useShareholders"
+import { useCreateShareholders } from "@/hooks/useShareholders"
+import { toast } from "sonner"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -69,45 +70,62 @@ export default function ShareholderSummary({
   const createShareholders = useCreateShareholders()
 
   const handleVerificationComplete = async (verifiedPhone: string) => {
-    // Doğrulama dialogundan gelen numarayı temizle (başındaki +9'u kaldır ve sadece rakamları al)
-    const cleanVerifiedPhone = verifiedPhone.replace(/\D/g, '').replace(/^9/, '')
-    
-    // Debug için numaraları konsola yazdır
-    console.log('Doğrulama dialogundan gelen numara:', cleanVerifiedPhone)
-    
-    const matchingShareholder = shareholders.find(shareholder => {
-      // Hissedarın numarasını temizle (sadece rakamları al ve baştaki 0'ı kaldır)
-      const cleanShareholderPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
-      console.log('Hissedar numarası:', cleanShareholderPhone)
-      
-      return cleanShareholderPhone === cleanVerifiedPhone
-    })
-
-    if (!matchingShareholder) {
-      console.error("Eşleşen hissedar bulunamadı")
-      return
-    }
-
     try {
+      // Doğrulama dialogundan gelen numarayı temizle (başındaki +9'u kaldır ve sadece rakamları al)
+      const cleanVerifiedPhone = verifiedPhone.replace(/\D/g, '').replace(/^9/, '')
+      
+      // Debug için numaraları konsola yazdır
+      console.log('Doğrulama dialogundan gelen numara:', cleanVerifiedPhone)
+      
+      const matchingShareholder = shareholders.find(shareholder => {
+        // Hissedarın numarasını temizle (sadece rakamları al ve baştaki 0'ı kaldır)
+        const cleanShareholderPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
+        console.log('Hissedar numarası:', cleanShareholderPhone)
+        
+        return cleanShareholderPhone === cleanVerifiedPhone
+      })
+
+      if (!matchingShareholder) {
+        console.error("Eşleşen hissedar bulunamadı")
+        toast.error("Eşleşen hissedar bulunamadı. Lütfen telefon numaranızı kontrol edin.")
+        return
+      }
+
+      const deliveryFee = matchingShareholder.delivery_location !== "kesimhane" ? 500 : 0
+      const sharePrice = sacrifice?.share_price || 0
+      const totalAmount = sharePrice + deliveryFee
+
       // Hissedar verilerini hazırla
-      const shareholderDataArray = shareholders.map(shareholder => ({
-        shareholder_name: shareholder.name,
-        phone_number: "+90" + shareholder.phone.replace(/\D/g, '').replace(/^0/, ''),
-        delivery_location: shareholder.delivery_location,
-        delivery_fee: shareholder.delivery_location !== "kesimhane" ? 500 : 0,
-        share_price: sacrifice?.share_price || 0,
-        total_amount: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
+      const shareholderData = {
+        shareholder_name: matchingShareholder.name.trim(),
+        phone_number: "+90" + matchingShareholder.phone.replace(/\D/g, '').replace(/^0/, ''),
+        delivery_location: matchingShareholder.delivery_location,
+        delivery_fee: deliveryFee,
+        share_price: sharePrice,
+        total_amount: totalAmount,
+        paid_amount: 0,
+        remaining_payment: totalAmount,
         sacrifice_consent: false,
-        last_edited_by: matchingShareholder.name,
-        purchased_by: matchingShareholder.name,
+        last_edited_by: matchingShareholder.name.trim(),
+        purchased_by: matchingShareholder.name.trim(),
         sacrifice_id: sacrifice?.sacrifice_id || "",
-      }))
+      }
+
+      console.log("DB'ye gönderilecek veri:", shareholderData)
 
       // Verileri DB'ye kaydet
-      await createShareholders.mutateAsync(shareholderDataArray)
-      onApprove()
+      const result = await createShareholders.mutateAsync([shareholderData])
+      
+      if (result !== null) {
+        // Update state in next tick to avoid render cycle issues
+        setTimeout(() => {
+          setShowVerificationDialog(false)
+          onApprove()
+        }, 0)
+      }
     } catch (error) {
       console.error("Hissedarlar kaydedilirken hata oluştu:", error)
+      toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu. Lütfen tüm bilgilerin eksiksiz olduğunu kontrol edin.")
     }
   }
 
@@ -189,7 +207,6 @@ export default function ShareholderSummary({
         open={showVerificationDialog}
         onOpenChange={setShowVerificationDialog}
         onVerificationComplete={handleVerificationComplete}
-        shareholders={shareholders}
       />
     </div>
   )

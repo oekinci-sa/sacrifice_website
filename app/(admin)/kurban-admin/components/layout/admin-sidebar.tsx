@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -14,8 +13,6 @@ import {
 import {
   ChevronLeft,
   Menu,
-  Sun,
-  Moon,
   LogOut,
   User,
   LayoutDashboard,
@@ -27,36 +24,38 @@ import {
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+type UserRole = "admin" | "editor";
+
 const sidebarNavItems = [
   {
     title: "Genel Bakış",
     href: "/kurban-admin/genel-bakis",
     icon: LayoutDashboard,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor"] as UserRole[],
   },
   {
     title: "Kurbanlıklar",
     href: "/kurban-admin/kurbanliklar",
     icon: Scissors,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor"] as UserRole[],
   },
   {
     title: "Hissedarlar",
     href: "/kurban-admin/hissedarlar",
     icon: Users,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor"] as UserRole[],
   },
   {
     title: "Ödeme Analizi",
     href: "/kurban-admin/odeme-analizi",
     icon: CreditCard,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor"] as UserRole[],
   },
   {
     title: "Kullanıcı Yönetimi",
     href: "/kurban-admin/kullanici-yonetimi",
     icon: UserCog,
-    roles: ["admin"],
+    roles: ["admin"] as UserRole[],
   },
 ] as const;
 
@@ -67,7 +66,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
 
   const toggleCollapsed = () => {
@@ -82,7 +80,7 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
 
   // Filter nav items based on user role
   const authorizedNavItems = sidebarNavItems.filter((item) =>
-    item.roles.includes(session?.user?.role as string)
+    item.roles.includes(session?.user?.role as UserRole)
   );
 
   return (
@@ -139,19 +137,6 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {theme === "dark" ? (
-                <>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>Açık Tema</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>Koyu Tema</span>
-                </>
-              )}
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Çıkış Yap</span>

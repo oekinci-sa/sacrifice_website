@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-
 import "./globals.css";
-
-import { Inter } from "next/font/google";
-import { Instrument_Sans } from "next/font/google";
-
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
+import { Inter, Instrument_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
-import "@/app/globals.css";
-
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
@@ -28,19 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <body className={`${inter.className} ${instrumentSans.className}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Providers>
-            {children}
-            <Toaster />
-          </Providers>
-        </ThemeProvider>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

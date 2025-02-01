@@ -15,17 +15,12 @@ interface PhoneVerificationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onVerificationComplete: (phone: string) => void
-  shareholders: Array<{
-    name: string
-    phone: string
-  }>
 }
 
 export default function PhoneVerificationDialog({
   open,
   onOpenChange,
   onVerificationComplete,
-  shareholders,
 }: PhoneVerificationDialogProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [phone, setPhone] = useState("")
@@ -81,9 +76,7 @@ export default function PhoneVerificationDialog({
       const formattedPhone = "+9" + cleanedPhone
       
       onVerificationComplete(formattedPhone)
-      setStep('phone')
-      setPhone("")
-      setOtp(["", "", "", "", "", ""])
+      handleClose()
     } else {
       setError("Geçersiz doğrulama kodu")
     }
@@ -98,7 +91,7 @@ export default function PhoneVerificationDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>

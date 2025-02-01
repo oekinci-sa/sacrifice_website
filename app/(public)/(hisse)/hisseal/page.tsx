@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Checkout from "./components/Checkout";
 import { columns } from "./components/columns";
 import { ShareSelectDialog } from "./components/share-select-dialog";
@@ -11,14 +11,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { useHisseStore } from "@/store/useHisseStore";
-import { useSacrifices, useUpdateSacrifice, useCreateShareholders } from "@/hooks/useSacrifices";
+import { useSacrifices, useUpdateSacrifice } from "@/hooks/useSacrifices";
+import { useCreateShareholders } from "@/hooks/useShareholders";
 import ShareholderSummary from "./components/shareholder-summary"
 import { supabase } from "@/utils/supabaseClient";
 import { Check } from "lucide-react"
 import { ShareFilters } from "./components/ShareFilters";
 import { ColumnFiltersState } from "@tanstack/react-table";
+import Link from "next/link";
 
-const TIMEOUT_DURATION = 30; // 3 minutes
+const TIMEOUT_DURATION = 10; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {
@@ -29,6 +31,9 @@ const Page = () => {
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
   const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
   const [showWarning, setShowWarning] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "empty_share",
@@ -62,231 +67,147 @@ const Page = () => {
       resetStore();
       goToStep("selection");
     }
-  }, [pathname]);
+  }, [pathname, resetStore, goToStep]);
 
-  // Handle navigation changes
-  useEffect(() => {
-    let isNavigating = false;
+  const handleTimeout = async () => {
+    if (currentStep !== "details" && currentStep !== "confirmation") return;
+    if (!selectedSacrifice || !formData.length) return;
 
-    const handleRouteChange = async (url: string) => {
-      if (isNavigating) return true;
-      
-      // Only handle if we're in details or confirmation step
-      if (currentStep !== "details" && currentStep !== "confirmation") return true;
-      if (!selectedSacrifice || !formData.length) return true;
+    try {
+      // Get current sacrifice info
+      const { data: currentSacrifice, error } = await supabase
+        .from("sacrifice_animals")
+        .select("empty_share")
+        .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+        .single();
 
-      isNavigating = true;
-
-      try {
-        // Get current sacrifice info
-        const { data: currentSacrifice, error } = await supabase
-          .from("sacrifice_animals")
-          .select("empty_share")
-          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-          .single();
-
-        if (error || !currentSacrifice) {
-          toast({
-            variant: "destructive",
-            title: "Hata",
-            description: "Kurbanlık bilgileri alınamadı.",
-          });
-          return false;
-        }
-
-        // Update empty_share in DB
-        await updateSacrifice.mutateAsync({
-          sacrificeId: selectedSacrifice.sacrifice_id,
-          emptyShare: currentSacrifice.empty_share + formData.length,
-        });
-
-        // Reset store after successful update
-        resetStore();
-        goToStep("selection");
-        return true;
-      } catch (error) {
+      if (error || !currentSacrifice) {
         toast({
           variant: "destructive",
           title: "Hata",
-          description: "İşlem sırasında bir hata oluştu.",
+          description: "Kurbanlık bilgileri alınamadı.",
         });
-        return false;
-      } finally {
-        isNavigating = false;
+        return;
       }
-    };
 
-    const handlePopState = async (event: PopStateEvent) => {
-      const result = await handleRouteChange(window.location.href);
-      if (!result) {
-        event.preventDefault();
-        history.pushState(null, '', window.location.href);
-      }
-    };
+      // Update empty_share in DB
+      await updateSacrifice.mutateAsync({
+        sacrificeId: selectedSacrifice.sacrifice_id,
+        emptyShare: currentSacrifice.empty_share + formData.length,
+      });
 
-    // Listen for navigation events
-    window.addEventListener('popstate', handlePopState);
-    
-    // Create a proxy for pushState and replaceState
-    const originalPushState = window.history.pushState;
-    const originalReplaceState = window.history.replaceState;
+      // Reset store after successful update
+      resetStore();
+      goToStep("selection");
+      
+      // Clear timers
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      
+      // Reset states
+      setShowWarning(false);
+      setTimeLeft(TIMEOUT_DURATION);
+      
+      toast({
+        variant: "destructive",
+        title: "Süre Doldu",
+        description: "İşlem süresi dolduğu için form sıfırlandı.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "İşlem sırasında bir hata oluştu.",
+      });
+    }
+  };
 
-    window.history.pushState = function() {
-      const url = arguments[2] as string;
-      const shouldContinue = handleRouteChange(url);
-      if (shouldContinue) {
-        return originalPushState.apply(this, arguments as any);
-      }
-      return undefined;
-    };
-
-    window.history.replaceState = function() {
-      const url = arguments[2] as string;
-      const shouldContinue = handleRouteChange(url);
-      if (shouldContinue) {
-        return originalReplaceState.apply(this, arguments as any);
-      }
-      return undefined;
-    };
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-      window.history.pushState = originalPushState;
-      window.history.replaceState = originalReplaceState;
-    };
-  }, [currentStep, selectedSacrifice, formData, updateSacrifice, resetStore, goToStep]);
-
-  // Handle interaction timeout
+  // Update useEffect for timeout
   useEffect(() => {
-    const checkTimeout = async () => {
-      if (currentStep !== "details" && currentStep !== "confirmation") return;
+    if (currentStep === "details" || currentStep === "confirmation") {
+      // Clear any existing timers
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
 
-      const timePassed = Math.floor((Date.now() - lastInteractionTime) / 1000);
-      const remaining = TIMEOUT_DURATION - timePassed;
+      // Set up new interval for countdown
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - lastInteractionTime) / 1000);
+        const remaining = TIMEOUT_DURATION - elapsed;
 
-      if (remaining <= 0) {
-        try {
-          if (selectedSacrifice) {
-            // Önce güncel kurban bilgisini al
-            const { data: currentSacrifice, error } = await supabase
-              .from("sacrifice_animals")
-              .select("empty_share")
-              .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-              .single();
-
-            if (error || !currentSacrifice) {
-              toast({
-                variant: "destructive",
-                title: "Hata",
-                description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
-              });
-              return;
-            }
-
-            // DB'de empty_share'i form sayısı kadar artır
-            await updateSacrifice.mutateAsync({
-              sacrificeId: selectedSacrifice.sacrifice_id,
-              emptyShare: currentSacrifice.empty_share + formData.length,
-            });
-          }
-        } catch (error) {
-          toast({
-            variant: "destructive",
-            title: "Hata",
-            description: "İşlem sırasında bir hata oluştu.",
-          });
-        } finally {
-          setShowWarning(false);
-          goToStep("selection");
-          resetStore();
-          setTimeLeft(TIMEOUT_DURATION);
-        }
-      } else {
-        setTimeLeft(remaining);
-        
-        // Warning threshold kontrolü
         if (remaining <= WARNING_THRESHOLD && !showWarning) {
           setShowWarning(true);
         }
-      }
-    };
 
-    const timer = setInterval(checkTimeout, 1000);
-    return () => clearInterval(timer);
-  }, [lastInteractionTime, showWarning, currentStep, goToStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
+        if (remaining <= 0) {
+          handleTimeout();
+        } else {
+          setTimeLeft(remaining);
+        }
+      }, 1000) as NodeJS.Timeout;
 
-  // Sayfa seviyesinde etkileşimleri takip et
+      intervalRef.current = interval;
+
+      // Set up timeout
+      const timeout = setTimeout(handleTimeout, TIMEOUT_DURATION * 1000);
+      timeoutRef.current = timeout;
+
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      };
+    }
+  }, [currentStep, lastInteractionTime, showWarning]);
+
+  // Handle user interactions
   useEffect(() => {
     const handleInteraction = () => {
       if (currentStep === "details" || currentStep === "confirmation") {
         setLastInteractionTime(Date.now());
         setShowWarning(false);
-        setTimeLeft(TIMEOUT_DURATION); // Her etkileşimde süreyi sıfırla
+        setTimeLeft(TIMEOUT_DURATION);
       }
     };
 
-    // Mouse tıklamaları
-    const handleMouseInteraction = () => handleInteraction();
-
-    // Klavye etkileşimleri
-    const handleKeyInteraction = () => handleInteraction();
-
-    // Scroll etkileşimleri
-    const handleScrollInteraction = () => handleInteraction();
-
-    // Focus değişiklikleri
-    const handleFocusInteraction = () => handleInteraction();
-
-    if (currentStep === "details" || currentStep === "confirmation") {
-      window.addEventListener('mousedown', handleMouseInteraction);
-      window.addEventListener('keydown', handleKeyInteraction);
-      window.addEventListener('scroll', handleScrollInteraction);
-      window.addEventListener('focus', handleFocusInteraction);
-    }
+    const events = ['mousedown', 'keydown', 'scroll', 'focus'];
+    events.forEach(event => window.addEventListener(event, handleInteraction));
 
     return () => {
-      window.removeEventListener('mousedown', handleMouseInteraction);
-      window.removeEventListener('keydown', handleKeyInteraction);
-      window.removeEventListener('scroll', handleScrollInteraction);
-      window.removeEventListener('focus', handleFocusInteraction);
+      events.forEach(event => window.removeEventListener(event, handleInteraction));
     };
-  }, [currentStep, TIMEOUT_DURATION]);
+  }, [currentStep]);
 
-  // Sayfa kapatma/yenileme durumunda DB güncelleme
+  // Handle page unload
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Sadece 2. ve 3. adımda çalışsın
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      if (isSuccess) return; // Success durumunda uyarı gösterme
       if (currentStep !== "details" && currentStep !== "confirmation") return;
       if (!selectedSacrifice || !formData.length) return;
 
-      // Tarayıcının standart onay mesajını göster
       e.preventDefault();
       e.returnValue = '';
-    };
 
-    const handleUnload = () => {
-      // Sadece 2. ve 3. adımda çalışsın
-      if (currentStep !== "details" && currentStep !== "confirmation") return;
-      if (!selectedSacrifice || !formData.length) return;
+      try {
+        const { data: currentSacrifice } = await supabase
+          .from("sacrifice_animals")
+          .select("empty_share")
+          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+          .single();
 
-      // Beacon API ile güncelleme yap
-      const updateData = {
-        sacrifice_id: selectedSacrifice.sacrifice_id,
-        form_count: formData.length
-      };
-
-      const blob = new Blob([JSON.stringify(updateData)], { type: 'application/json' });
-      navigator.sendBeacon('/api/update-sacrifice', blob);
+        if (currentSacrifice) {
+          await updateSacrifice.mutateAsync({
+            sacrificeId: selectedSacrifice.sacrifice_id,
+            emptyShare: currentSacrifice.empty_share + formData.length,
+          });
+        }
+      } catch (error) {
+        console.error("Error updating sacrifice:", error);
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
-    };
-  }, [currentStep, selectedSacrifice, formData]);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentStep, selectedSacrifice, formData, isSuccess]);
 
   const handleSacrificeSelect = async (sacrifice: any) => {
     setTempSelectedSacrifice(sacrifice);
@@ -317,174 +238,212 @@ const Page = () => {
   };
 
   const handleApprove = async () => {
-    if (!selectedSacrifice || !formData) return;
-
-    // Format phone numbers and prepare data
-    const shareholders = formData.map((data) => ({
-      shareholder_name: data.name,
-      phone_number: data.phone.startsWith("+90")
-        ? data.phone
-        : "+90" + data.phone.replace(/[^0-9]/g, ""),
-      sacrifice_id: selectedSacrifice.sacrifice_id,
-      share_price: selectedSacrifice.share_price,
-      delivery_location: data.delivery_location,
-      delivery_fee: data.delivery_location !== "kesimhane" ? 500 : 0,
-      total_amount: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
-      paid_amount: 0,
-      remaining_payment: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
-      sacrifice_consent: false,
-    }));
+    if (!selectedSacrifice || !formData.length) return;
 
     try {
-      await createShareholders.mutateAsync(shareholders);
-      router.push("/hissesorgula");
+      const shareholders = formData.map((data) => {
+        const deliveryFee = data.delivery_location !== "kesimhane" ? 500 : 0;
+        const sharePrice = selectedSacrifice.share_price;
+        const totalAmount = sharePrice + deliveryFee;
+
+        return {
+          shareholder_name: data.name.trim(),
+          phone_number: "+90" + data.phone.replace(/\D/g, '').replace(/^0/, ''),
+          delivery_location: data.delivery_location,
+          delivery_fee: deliveryFee,
+          share_price: sharePrice,
+          total_amount: totalAmount,
+          paid_amount: 0,
+          remaining_payment: totalAmount,
+          sacrifice_consent: false,
+          last_edited_by: data.name.trim(),
+          purchased_by: data.name.trim(),
+          sacrifice_id: selectedSacrifice.sacrifice_id,
+        };
+      });
+
+      const result = await createShareholders.mutateAsync(shareholders);
+      
+      if (result !== null) {
+        // Clear timers before updating state
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        
+        // Update state in next tick to avoid render cycle issues
+        setTimeout(() => {
+          setIsSuccess(true);
+        }, 0);
+      }
+      
     } catch (error) {
-      // Error is handled in the mutation
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedar bilgileri kaydedilirken bir hata oluştu.",
+      });
     }
   };
 
+  // Return success UI if isSuccess is true
+  if (isSuccess) {
+    return (
+      <div className="container flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+        <div className="w-20 h-20 rounded-full bg-[#F0FBF1] flex items-center justify-center">
+          <Check className="w-10 h-10 text-[#39C645]" />
+        </div>
+        <h1 className="text-4xl font-semibold text-center">Teşekkürler</h1>
+        <p className="text-muted-foreground text-center max-w-md">
+          Hisse kaydınız başarıyla tamamlanmıştır. Hisse bilgilerinizi görüntülemek için 
+          <Link href="/hissesorgula" className="text-primary hover:underline ml-1">
+            Hisse Sorgula
+          </Link> sayfasını ziyaret edebilirsiniz.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="container flex flex-col space-y-8">
-      <Tabs value={tabValue} onValueChange={(value) => {
-        switch (value) {
-          case "tab-1":
-            goToStep("selection");
-            break;
-          case "tab-2":
-            goToStep("details");
-            break;
-          case "tab-3":
-            goToStep("confirmation");
-            break;
-        }
-      }} className="w-full">
-        <div className="relative mt-12 mb-16">
-          <div className="w-full flex justify-between items-start">
-            {/* Step 1 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
-                >
-                  {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
+      {!isSuccess && (
+        <Tabs value={tabValue} onValueChange={(value) => {
+          switch (value) {
+            case "tab-1":
+              goToStep("selection");
+              break;
+            case "tab-2":
+              goToStep("details");
+              break;
+            case "tab-3":
+              goToStep("confirmation");
+              break;
+          }
+        }} className="w-full">
+          <div className="relative mt-12 mb-16">
+            <div className="w-full flex justify-between items-start">
+              {/* Progress steps */}
+              <div className="flex flex-col items-start">
+                <div className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                    ${stepNumber >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
+                  </div>
+                  <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    Hisse Seçimi
+                  </h3>
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Hisse Seçimi
-                </h3>
               </div>
-            </div>
 
-            {/* Step 2 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
-                >
-                  {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
+              <div className="flex flex-col items-start">
+                <div className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                    ${stepNumber >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
+                  </div>
+                  <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    Hissedar Bilgileri
+                  </h3>
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Hissedar Bilgileri
-                </h3>
               </div>
-            </div>
 
-            {/* Step 3 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
-                >
-                  3
+              <div className="flex flex-col items-start">
+                <div className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                    ${stepNumber === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                  >
+                    3
+                  </div>
+                  <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    Hisse Onay
+                  </h3>
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Hisse Onay
-                </h3>
               </div>
             </div>
           </div>
-        </div>
 
-        <TabsContent value="tab-1">
-          <CustomDataTable 
-            data={data} 
-            columns={columns} 
-            meta={{
-              onSacrificeSelect: handleSacrificeSelect
-            }}
-            pageSizeOptions={[10, 20, 50, 100, 150]}
-            filters={({ table, columnFilters, onColumnFiltersChange }) => (
-              <ShareFilters 
-                table={table} 
-                columnFilters={columnFilters}
-                onColumnFiltersChange={onColumnFiltersChange} 
-              />
-            )}
-          />
-        </TabsContent>
-        <TabsContent value="tab-2">
-          <Checkout 
-            sacrifice={selectedSacrifice} 
-            formData={formData} 
-            setFormData={setFormData}
-            onApprove={() => goToStep("confirmation")}
-            resetStore={resetStore}
-            setCurrentStep={goToStep}
-            setLastInteractionTime={setLastInteractionTime}
-            onBack={async (shareCount) => {
-              if (!selectedSacrifice) return;
-              
-              try {
-                // Önce güncel kurban bilgisini al
-                const { data: currentSacrifice, error } = await supabase
-                  .from("sacrifice_animals")
-                  .select("empty_share")
-                  .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-                  .single();
-
-                if (error || !currentSacrifice) {
-                  toast({
-                    variant: "destructive",
-                    title: "Hata",
-                    description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
-                  });
-                  return;
-                }
-
-                // Güncel empty_share değerini kullanarak güncelleme yap
-                await updateSacrifice.mutateAsync({
-                  sacrificeId: selectedSacrifice.sacrifice_id,
-                  emptyShare: currentSacrifice.empty_share + shareCount,
-                });
+          <TabsContent value="tab-1">
+            <CustomDataTable 
+              data={data} 
+              columns={columns} 
+              meta={{
+                onSacrificeSelect: handleSacrificeSelect
+              }}
+              pageSizeOptions={[10, 20, 50, 100, 150]}
+              filters={({ table, columnFilters, onColumnFiltersChange }) => (
+                <ShareFilters 
+                  table={table} 
+                  columnFilters={columnFilters}
+                  onColumnFiltersChange={onColumnFiltersChange} 
+                />
+              )}
+            />
+          </TabsContent>
+          <TabsContent value="tab-2">
+            <Checkout 
+              sacrifice={selectedSacrifice} 
+              formData={formData} 
+              setFormData={setFormData}
+              onApprove={() => goToStep("confirmation")}
+              resetStore={resetStore}
+              setCurrentStep={goToStep}
+              setLastInteractionTime={setLastInteractionTime}
+              onBack={async (shareCount) => {
+                if (!selectedSacrifice) return;
                 
-                // Store'u sıfırla
-                resetStore();
-                // İlk adıma dön
-                goToStep("selection");
-              } catch (error) {
-                // Error is handled in the mutation
-              }
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="tab-3" className="space-y-8">
-          <ShareholderSummary 
-            sacrifice={selectedSacrifice}
-            shareholders={formData}
-            onApprove={handleApprove}
-            setCurrentStep={goToStep}
-            remainingTime={timeLeft}
-            setRemainingTime={setTimeLeft}
-          />
-        </TabsContent>
-      </Tabs>
+                try {
+                  // Önce güncel kurban bilgisini al
+                  const { data: currentSacrifice, error } = await supabase
+                    .from("sacrifice_animals")
+                    .select("empty_share")
+                    .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+                    .single();
 
-      {(currentStep === "details" || currentStep === "confirmation") && (
+                  if (error || !currentSacrifice) {
+                    toast({
+                      variant: "destructive",
+                      title: "Hata",
+                      description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+                    });
+                    return;
+                  }
+
+                  // Güncel empty_share değerini kullanarak güncelleme yap
+                  await updateSacrifice.mutateAsync({
+                    sacrificeId: selectedSacrifice.sacrifice_id,
+                    emptyShare: currentSacrifice.empty_share + shareCount,
+                  });
+                  
+                  // Store'u sıfırla
+                  resetStore();
+                  // İlk adıma dön
+                  goToStep("selection");
+                } catch (error) {
+                  // Error is handled in the mutation
+                }
+              }}
+            />
+          </TabsContent>
+          <TabsContent value="tab-3">
+            <ShareholderSummary 
+              sacrifice={selectedSacrifice}
+              shareholders={formData}
+              onApprove={handleApprove}
+              setCurrentStep={goToStep}
+              remainingTime={timeLeft}
+              setRemainingTime={setTimeLeft}
+            />
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {(currentStep === "details" || currentStep === "confirmation") && !isSuccess && (
         <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
           Kalan Süre: {timeLeft} saniye
         </div>
       )}
 
-      {tempSelectedSacrifice && (
+      {tempSelectedSacrifice && !isSuccess && (
         <ShareSelectDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
@@ -493,7 +452,7 @@ const Page = () => {
         />
       )}
       
-      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+      <AlertDialog open={showWarning && !isSuccess} onOpenChange={setShowWarning}>
         <AlertDialogContent>
           <AlertDialogTitle>Uyarı</AlertDialogTitle>
           <AlertDialogDescription>

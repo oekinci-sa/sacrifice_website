@@ -17,7 +17,7 @@ const Features = () => {
           />
           <div className="flex flex-col justify-between">
             <p className="font-heading text-xl font-bold">{item.header}</p>
-            <p className="text-navlinkColor">{item.description}</p>
+            <p>{item.description}</p>
           </div>
         </div>
       ))}

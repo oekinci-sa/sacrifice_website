@@ -39,7 +39,7 @@ const Prices = () => {
             {/* 1000+ */}
             <div className="flex flex-col items-center justify-center space-y-2 bg-primary text-white rounded-md p-2 w-36 h-36">
               <p className="font-heading text-4xl font-bold">
-                1000<span className="text-buttonBlack">+</span>
+                1000<span>+</span>
               </p>
               <p className="text-xl">Kurban</p>
             </div>
@@ -64,7 +64,7 @@ const Prices = () => {
         {/* Alt bilgi */}
 
         <div className="flex flex-col space-y-4">
-          <p className="text-navlinkColor">
+          <p>
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik
             gösterebilmektedir.
           </p>

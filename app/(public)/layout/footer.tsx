@@ -70,7 +70,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="bg-buttonBlack mt-20 pt-12 pb-6">
+    <div className="mt-20 pt-12 pb-6">
       <div className="container flex justify-between text-white mb-8">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
@@ -127,7 +127,7 @@ const Footer = () => {
                 <div className="flex items-center">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <span className="ml-2 bg-myRed text-white text-[12px] px-2 py-1 rounded-[2px]">
+                    <span className="ml-2 text-white text-[12px] px-2 py-1 rounded-[2px]">
                       Son {totalEmptyShares} Hisse
                     </span>
                   </CustomLink>

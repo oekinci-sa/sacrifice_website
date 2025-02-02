@@ -4,7 +4,7 @@ import { processes } from "../constants";
 
 const Process = () => {
   return (
-    <div className="bg-buttonBlack">
+    <div>
       <p className="font-heading text-4xl font-bold text-center text-white my-20">
         Hisse Alım Sürecimiz
       </p>

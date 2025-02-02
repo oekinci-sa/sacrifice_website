@@ -187,8 +187,8 @@ export default function HisseSorgula() {
               </div>
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2 rounded">
-                    <div className="w-8 h-8 bg-primary/20 rounded" />
+                  <div className="bg-sac-primary/10 p-2 rounded">
+                    <div className="w-8 h-8 bg-sac-primary/20 rounded" />
                   </div>
                   <h1 className="text-2xl font-semibold">
                     Invoice #{shareholderInfo.sacrifice.sacrifice_no}
@@ -196,7 +196,7 @@ export default function HisseSorgula() {
                 </div>
                 <Button
                   variant="outline"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-sac-primary text-primary-foreground hover:bg-sac-primary/90"
                   onClick={handleDownload}
                 >
                   <Download className="h-4 w-4 mr-2" />

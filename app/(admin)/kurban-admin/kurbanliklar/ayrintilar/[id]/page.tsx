@@ -62,9 +62,9 @@ export default function DetailsPage() {
         console.error(error);
       } else if (data) {
         // Add share price to each shareholder
-        const shareholdersWithPrice = data.map(shareholder => ({
+        const shareholdersWithPrice = data.map((shareholder) => ({
           ...shareholder,
-          share_price: sacrifice.share_price
+          share_price: sacrifice.share_price,
         }));
         setShareholders(shareholdersWithPrice);
       }
@@ -114,7 +114,9 @@ export default function DetailsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">Kurban No: {sacrificeNo}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Kurban No: {sacrificeNo}
+          </h2>
         </div>
       </div>
       <Separator />
@@ -131,7 +133,7 @@ export default function DetailsPage() {
                 <TabsTrigger
                   key={index}
                   value={index.toString()}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className="data-[state=active]:bg-sac-primary data-[state=active]:text-primary-foreground"
                 >
                   {index + 1}. Hissedar
                 </TabsTrigger>

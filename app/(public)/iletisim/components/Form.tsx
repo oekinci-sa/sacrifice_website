@@ -12,16 +12,20 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(2, "İsim en az 2 karakter olmalıdır")
     .max(50, "İsim 50 karakterden uzun olamaz")
     .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "İsim sadece harf içerebilir"),
-  phone: z.string()
-    .regex(/^(05)[0-9][0-9][1-9]([0-9]){6}$/, 
-      "Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"),
-  email: z.string()
-    .email("Geçerli bir email adresi giriniz"),
-  message: z.string()
+  phone: z
+    .string()
+    .regex(
+      /^(05)[0-9][0-9][1-9]([0-9]){6}$/,
+      "Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"
+    ),
+  email: z.string().email("Geçerli bir email adresi giriniz"),
+  message: z
+    .string()
     .min(10, "Mesaj en az 10 karakter olmalıdır")
     .max(1000, "Mesaj 1000 karakterden uzun olamaz")
     .trim(),
@@ -105,7 +109,7 @@ const Form = () => {
         {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full bg-primary hover:bg-primary-dark text-white"
+          className="w-full bg-sac-primary hover:bg-primary-dark text-white"
         >
           Send a message
         </Button>

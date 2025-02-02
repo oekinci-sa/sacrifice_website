@@ -1,21 +1,21 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { X, SlidersHorizontal } from "lucide-react"
-import { Table, ColumnFiltersState } from "@tanstack/react-table"
-import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter"
-import { supabase } from "@/utils/supabaseClient"
-import { useEffect, useMemo, useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { X, SlidersHorizontal } from "lucide-react";
+import { Table, ColumnFiltersState } from "@tanstack/react-table";
+import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
+import { supabase } from "@/utils/supabaseClient";
+import { useEffect, useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 interface ToolbarAndFiltersProps {
-  table: Table<any>
-  columnFilters: ColumnFiltersState
-  onColumnFiltersChange: (filters: ColumnFiltersState) => void
+  table: Table<any>;
+  columnFilters: ColumnFiltersState;
+  onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }
 
 // Column header mapping
@@ -24,23 +24,29 @@ const columnHeaderMap: { [key: string]: string } = {
   sacrifice_time: "Kesim Saati",
   share_price: "Hisse Bedeli",
   empty_share: "Boş Hisse",
-  notes: "Notlar"
+  notes: "Notlar",
 };
 
-export function ToolbarAndFilters({ 
+export function ToolbarAndFilters({
   table,
   columnFilters,
-  onColumnFiltersChange
+  onColumnFiltersChange,
 }: ToolbarAndFiltersProps) {
-  const [sharePrices, setSharePrices] = useState<{ label: string; value: string }[]>([])
-  const [sacrificeNos, setSacrificeNos] = useState<{ label: string; value: string }[]>([])
+  const [sharePrices, setSharePrices] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [sacrificeNos, setSacrificeNos] = useState<
+    { label: string; value: string }[]
+  >([]);
 
-  const emptyShares = useMemo(() => 
-    Array.from({ length: 8 }, (_, i) => ({
-      label: i.toString(),
-      value: i.toString()
-    }))
-  , []);
+  const emptyShares = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        label: i.toString(),
+        value: i.toString(),
+      })),
+    []
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,11 +57,13 @@ export function ToolbarAndFilters({
         .order("share_price", { ascending: true });
 
       if (prices) {
-        const uniquePrices = Array.from(new Set(prices.map((p) => p.share_price)));
+        const uniquePrices = Array.from(
+          new Set(prices.map((p) => p.share_price))
+        );
         const priceOptions = uniquePrices.map((price) => ({
-          label: `${new Intl.NumberFormat('tr-TR', { 
-            style: 'decimal',
-            maximumFractionDigits: 0 
+          label: `${new Intl.NumberFormat("tr-TR", {
+            style: "decimal",
+            maximumFractionDigits: 0,
           }).format(price)} ₺`,
           value: price.toString(),
         }));
@@ -94,9 +102,13 @@ export function ToolbarAndFilters({
       />
       <div className="flex items-center gap-4">
         <div className="relative">
-          {(table.getColumn("sacrifice_no")?.getFilterValue() as string[])?.length > 0 && (
-            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              {(table.getColumn("sacrifice_no")?.getFilterValue() as string[])?.length}
+          {(table.getColumn("sacrifice_no")?.getFilterValue() as string[])
+            ?.length > 0 && (
+            <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {
+                (table.getColumn("sacrifice_no")?.getFilterValue() as string[])
+                  ?.length
+              }
             </div>
           )}
           <DataTableFacetedFilter
@@ -106,9 +118,13 @@ export function ToolbarAndFilters({
           />
         </div>
         <div className="relative">
-          {(table.getColumn("share_price")?.getFilterValue() as string[])?.length > 0 && (
-            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              {(table.getColumn("share_price")?.getFilterValue() as string[])?.length}
+          {(table.getColumn("share_price")?.getFilterValue() as string[])
+            ?.length > 0 && (
+            <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {
+                (table.getColumn("share_price")?.getFilterValue() as string[])
+                  ?.length
+              }
             </div>
           )}
           <DataTableFacetedFilter
@@ -118,9 +134,13 @@ export function ToolbarAndFilters({
           />
         </div>
         <div className="relative">
-          {(table.getColumn("empty_share")?.getFilterValue() as string[])?.length > 0 && (
-            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              {(table.getColumn("empty_share")?.getFilterValue() as string[])?.length}
+          {(table.getColumn("empty_share")?.getFilterValue() as string[])
+            ?.length > 0 && (
+            <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              {
+                (table.getColumn("empty_share")?.getFilterValue() as string[])
+                  ?.length
+              }
             </div>
           )}
           <DataTableFacetedFilter
@@ -133,8 +153,8 @@ export function ToolbarAndFilters({
           <Button
             variant="ghost"
             onClick={() => {
-              table.resetColumnFilters()
-              onColumnFiltersChange([])
+              table.resetColumnFilters();
+              onColumnFiltersChange([]);
             }}
             className="h-8 px-2 lg:px-3 flex items-center gap-2 text-sm"
           >
@@ -142,40 +162,39 @@ export function ToolbarAndFilters({
             <X className="h-4 w-4" />
           </Button>
         )}
-
       </div>
       <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 flex items-center gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Sütunlar
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(
-                (column) =>
-                  typeof column.accessorFn !== "undefined" && column.getCanHide()
-              )
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {columnHeaderMap[column.id] || column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Sütunlar
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {table
+            .getAllColumns()
+            .filter(
+              (column) =>
+                typeof column.accessorFn !== "undefined" && column.getCanHide()
+            )
+            .map((column) => {
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {columnHeaderMap[column.id] || column.id}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-  )
-} 
+  );
+}

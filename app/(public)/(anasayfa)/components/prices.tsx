@@ -37,7 +37,7 @@ const Prices = () => {
               <p className="text-xl">Tecrübe</p>
             </div>
             {/* 1000+ */}
-            <div className="flex flex-col items-center justify-center space-y-2 bg-primary text-white rounded-md p-2 w-36 h-36">
+            <div className="flex flex-col items-center justify-center space-y-2 bg-sac-primary text-white rounded-md p-2 w-36 h-36">
               <p className="font-heading text-4xl font-bold">
                 1000<span>+</span>
               </p>

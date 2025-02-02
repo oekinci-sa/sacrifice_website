@@ -55,15 +55,18 @@ interface Shareholder {
 interface ShareholderFormData {
   name: string;
   phone: string;
-  delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
+  delivery_location:
+    | "kesimhane"
+    | "yenimahalle-pazar-yeri"
+    | "kecioren-otoparki";
   notes?: string;
 }
 
 // Helper function to format time without seconds
 const formatTime = (time: string) => {
-  if (!time) return '-';
-  const [hours, minutes] = time.split(':');
-  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  if (!time) return "-";
+  const [hours, minutes] = time.split(":");
+  return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
 };
 
 // Helper function to format location name
@@ -81,7 +84,10 @@ const formatLocationName = (location: string) => {
 };
 
 // Helper function to get custom description
-const getCustomDescription = (log: Shareholder['logs'][0], totalAmount: number) => {
+const getCustomDescription = (
+  log: Shareholder["logs"][0],
+  totalAmount: number
+) => {
   if (log.change_type === "Ekleme") {
     return "Hisse alımı gerçekleştirildi";
   }
@@ -91,7 +97,9 @@ const getCustomDescription = (log: Shareholder['logs'][0], totalAmount: number) 
     if (newValue === totalAmount) {
       return "Tüm ödemeler tamamlandı.";
     }
-    return `Yapılan ödeme miktarı ${parseInt(log.old_value).toLocaleString('tr-TR')} TL'den ${newValue.toLocaleString('tr-TR')} TL'ye yükseldi.`;
+    return `Yapılan ödeme miktarı ${parseInt(log.old_value).toLocaleString(
+      "tr-TR"
+    )} TL'den ${newValue.toLocaleString("tr-TR")} TL'ye yükseldi.`;
   }
 
   if (log.column_name === "Teslimat Noktası") {
@@ -165,14 +173,14 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
     // Real-time subscription
     const subscription = supabase
-      .channel('shareholders_changes')
+      .channel("shareholders_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'shareholders',
-          filter: `shareholder_id=eq.${params.id}`
+          event: "*",
+          schema: "public",
+          table: "shareholders",
+          filter: `shareholder_id=eq.${params.id}`,
         },
         async (payload) => {
           // When a change occurs, fetch the updated data with the sacrifice relationship
@@ -214,7 +222,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     const opt = {
       margin: 0.5,
       filename: `hissedar-${shareholder?.shareholder_id}.pdf`,
-      html2canvas: { 
+      html2canvas: {
         scale: 2,
         useCORS: true,
       },
@@ -234,8 +242,13 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         : "+90" + formData.phone.replace(/[^0-9]/g, ""),
       delivery_location: formData.delivery_location,
       delivery_fee: formData.delivery_location !== "kesimhane" ? 500 : 0,
-      total_amount: shareholder.sacrifice.share_price + (formData.delivery_location !== "kesimhane" ? 500 : 0),
-      remaining_payment: shareholder.sacrifice.share_price + (formData.delivery_location !== "kesimhane" ? 500 : 0) - shareholder.paid_amount,
+      total_amount:
+        shareholder.sacrifice.share_price +
+        (formData.delivery_location !== "kesimhane" ? 500 : 0),
+      remaining_payment:
+        shareholder.sacrifice.share_price +
+        (formData.delivery_location !== "kesimhane" ? 500 : 0) -
+        shareholder.paid_amount,
       notes: formData.notes || null,
     };
 
@@ -293,9 +306,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           Hissedar Ayrıntıları
         </h1>
         {!isEditing ? (
-          <Button 
-            variant="default" 
-            className="bg-primary hover:bg-primary/90"
+          <Button
+            variant="default"
+            className="bg-sac-primary hover:bg-sac-primary/90"
             onClick={generatePDF}
           >
             <Download className="mr-2 h-4 w-4" />
@@ -504,16 +517,18 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
                 </h3>
                 <hr className="border-gray-200 mt-4 mb-6" />
                 <div className="relative space-y-6">
-                  {shareholder?.logs?.filter(log => 
-                    log.change_type === "Ekleme" || 
-                    log.column_name === "Ödenen Tutar" || 
-                    log.column_name === "Teslimat Noktası"
+                  {shareholder?.logs?.filter(
+                    (log) =>
+                      log.change_type === "Ekleme" ||
+                      log.column_name === "Ödenen Tutar" ||
+                      log.column_name === "Teslimat Noktası"
                   ).length ? (
                     shareholder.logs
-                      .filter(log => 
-                        log.change_type === "Ekleme" || 
-                        log.column_name === "Ödenen Tutar" || 
-                        log.column_name === "Teslimat Noktası"
+                      .filter(
+                        (log) =>
+                          log.change_type === "Ekleme" ||
+                          log.column_name === "Ödenen Tutar" ||
+                          log.column_name === "Teslimat Noktası"
                       )
                       .map((log, index, array) => (
                         <div key={log.event_id} className="relative">
@@ -536,17 +551,26 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
                             </div>
                             <div className="pt-2">
                               <p className="text-sm text-muted-foreground font-heading">
-                                {format(new Date(log.changed_at), "dd.MM.yyyy - HH:mm", { locale: tr })}
+                                {format(
+                                  new Date(log.changed_at),
+                                  "dd.MM.yyyy - HH:mm",
+                                  { locale: tr }
+                                )}
                               </p>
                               <p className="font-medium font-heading">
-                                {getCustomDescription(log, shareholder.total_amount)}
+                                {getCustomDescription(
+                                  log,
+                                  shareholder.total_amount
+                                )}
                               </p>
                             </div>
                           </div>
                         </div>
                       ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">Kullanıcı geçmişi bulunamadı.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Kullanıcı geçmişi bulunamadı.
+                    </p>
                   )}
                 </div>
               </div>
@@ -615,7 +639,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <Button
                     variant="default"
-                    className="bg-primary hover:bg-primary/90 text-white font-heading h-12"
+                    className="bg-sac-primary hover:bg-sac-primary/90 text-white font-heading h-12"
                   >
                     Kaydet
                   </Button>

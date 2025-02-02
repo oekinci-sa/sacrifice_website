@@ -6,15 +6,24 @@ import Checkout from "./components/Checkout";
 import { columns } from "./components/columns";
 import { ShareSelectDialog } from "./components/share-select-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useRouter, usePathname } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { useHisseStore } from "@/store/useHisseStore";
-import { useSacrifices, useUpdateSacrifice, useCreateShareholders } from "@/hooks/useSacrifices";
-import ShareholderSummary from "./components/shareholder-summary"
+import {
+  useSacrifices,
+  useUpdateSacrifice,
+  useCreateShareholders,
+} from "@/hooks/useSacrifices";
+import ShareholderSummary from "./components/shareholder-summary";
 import { supabase } from "@/utils/supabaseClient";
-import { Check } from "lucide-react"
+import { Check } from "lucide-react";
 import { ShareFilters } from "./components/ShareFilters";
 import { ColumnFiltersState } from "@tanstack/react-table";
 
@@ -32,8 +41,8 @@ const Page = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "empty_share",
-      value: ["1", "2", "3", "4", "5", "6", "7"]
-    }
+      value: ["1", "2", "3", "4", "5", "6", "7"],
+    },
   ]);
 
   // Zustand store
@@ -70,9 +79,10 @@ const Page = () => {
 
     const handleRouteChange = async (url: string) => {
       if (isNavigating) return true;
-      
+
       // Only handle if we're in details or confirmation step
-      if (currentStep !== "details" && currentStep !== "confirmation") return true;
+      if (currentStep !== "details" && currentStep !== "confirmation")
+        return true;
       if (!selectedSacrifice || !formData.length) return true;
 
       isNavigating = true;
@@ -120,18 +130,18 @@ const Page = () => {
       const result = await handleRouteChange(window.location.href);
       if (!result) {
         event.preventDefault();
-        history.pushState(null, '', window.location.href);
+        history.pushState(null, "", window.location.href);
       }
     };
 
     // Listen for navigation events
-    window.addEventListener('popstate', handlePopState);
-    
+    window.addEventListener("popstate", handlePopState);
+
     // Create a proxy for pushState and replaceState
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
 
-    window.history.pushState = function() {
+    window.history.pushState = function () {
       const url = arguments[2] as string;
       const shouldContinue = handleRouteChange(url);
       if (shouldContinue) {
@@ -140,7 +150,7 @@ const Page = () => {
       return undefined;
     };
 
-    window.history.replaceState = function() {
+    window.history.replaceState = function () {
       const url = arguments[2] as string;
       const shouldContinue = handleRouteChange(url);
       if (shouldContinue) {
@@ -150,11 +160,18 @@ const Page = () => {
     };
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
     };
-  }, [currentStep, selectedSacrifice, formData, updateSacrifice, resetStore, goToStep]);
+  }, [
+    currentStep,
+    selectedSacrifice,
+    formData,
+    updateSacrifice,
+    resetStore,
+    goToStep,
+  ]);
 
   // Handle interaction timeout
   useEffect(() => {
@@ -178,7 +195,8 @@ const Page = () => {
               toast({
                 variant: "destructive",
                 title: "Hata",
-                description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+                description:
+                  "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
               });
               return;
             }
@@ -203,7 +221,7 @@ const Page = () => {
         }
       } else {
         setTimeLeft(remaining);
-        
+
         // Warning threshold kontrolü
         if (remaining <= WARNING_THRESHOLD && !showWarning) {
           setShowWarning(true);
@@ -213,7 +231,16 @@ const Page = () => {
 
     const timer = setInterval(checkTimeout, 1000);
     return () => clearInterval(timer);
-  }, [lastInteractionTime, showWarning, currentStep, goToStep, resetStore, selectedSacrifice, formData.length, updateSacrifice]);
+  }, [
+    lastInteractionTime,
+    showWarning,
+    currentStep,
+    goToStep,
+    resetStore,
+    selectedSacrifice,
+    formData.length,
+    updateSacrifice,
+  ]);
 
   // Sayfa seviyesinde etkileşimleri takip et
   useEffect(() => {
@@ -238,17 +265,17 @@ const Page = () => {
     const handleFocusInteraction = () => handleInteraction();
 
     if (currentStep === "details" || currentStep === "confirmation") {
-      window.addEventListener('mousedown', handleMouseInteraction);
-      window.addEventListener('keydown', handleKeyInteraction);
-      window.addEventListener('scroll', handleScrollInteraction);
-      window.addEventListener('focus', handleFocusInteraction);
+      window.addEventListener("mousedown", handleMouseInteraction);
+      window.addEventListener("keydown", handleKeyInteraction);
+      window.addEventListener("scroll", handleScrollInteraction);
+      window.addEventListener("focus", handleFocusInteraction);
     }
 
     return () => {
-      window.removeEventListener('mousedown', handleMouseInteraction);
-      window.removeEventListener('keydown', handleKeyInteraction);
-      window.removeEventListener('scroll', handleScrollInteraction);
-      window.removeEventListener('focus', handleFocusInteraction);
+      window.removeEventListener("mousedown", handleMouseInteraction);
+      window.removeEventListener("keydown", handleKeyInteraction);
+      window.removeEventListener("scroll", handleScrollInteraction);
+      window.removeEventListener("focus", handleFocusInteraction);
     };
   }, [currentStep, TIMEOUT_DURATION]);
 
@@ -261,7 +288,7 @@ const Page = () => {
 
       // Tarayıcının standart onay mesajını göster
       e.preventDefault();
-      e.returnValue = '';
+      e.returnValue = "";
     };
 
     const handleUnload = () => {
@@ -272,19 +299,21 @@ const Page = () => {
       // Beacon API ile güncelleme yap
       const updateData = {
         sacrifice_id: selectedSacrifice.sacrifice_id,
-        form_count: formData.length
+        form_count: formData.length,
       };
 
-      const blob = new Blob([JSON.stringify(updateData)], { type: 'application/json' });
-      navigator.sendBeacon('/api/update-sacrifice', blob);
+      const blob = new Blob([JSON.stringify(updateData)], {
+        type: "application/json",
+      });
+      navigator.sendBeacon("/api/update-sacrifice", blob);
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
-    
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("unload", handleUnload);
+
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("unload", handleUnload);
     };
   }, [currentStep, selectedSacrifice, formData]);
 
@@ -303,11 +332,13 @@ const Page = () => {
       });
 
       setSelectedSacrifice(tempSelectedSacrifice);
-      setFormData(Array(shareCount).fill({
-        name: "",
-        phone: "",
-        delivery_location: "",
-      }));
+      setFormData(
+        Array(shareCount).fill({
+          name: "",
+          phone: "",
+          delivery_location: "",
+        })
+      );
       goToStep("details");
       setIsDialogOpen(false);
       setLastInteractionTime(Date.now());
@@ -329,9 +360,13 @@ const Page = () => {
       share_price: selectedSacrifice.share_price,
       delivery_location: data.delivery_location,
       delivery_fee: data.delivery_location !== "kesimhane" ? 500 : 0,
-      total_amount: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
+      total_amount:
+        selectedSacrifice.share_price +
+        (data.delivery_location !== "kesimhane" ? 500 : 0),
       paid_amount: 0,
-      remaining_payment: selectedSacrifice.share_price + (data.delivery_location !== "kesimhane" ? 500 : 0),
+      remaining_payment:
+        selectedSacrifice.share_price +
+        (data.delivery_location !== "kesimhane" ? 500 : 0),
       sacrifice_consent: false,
     }));
 
@@ -345,30 +380,45 @@ const Page = () => {
 
   return (
     <div className="container flex flex-col space-y-8">
-      <Tabs value={tabValue} onValueChange={(value) => {
-        switch (value) {
-          case "tab-1":
-            goToStep("selection");
-            break;
-          case "tab-2":
-            goToStep("details");
-            break;
-          case "tab-3":
-            goToStep("confirmation");
-            break;
-        }
-      }} className="w-full">
+      <Tabs
+        value={tabValue}
+        onValueChange={(value) => {
+          switch (value) {
+            case "tab-1":
+              goToStep("selection");
+              break;
+            case "tab-2":
+              goToStep("details");
+              break;
+            case "tab-3":
+              goToStep("confirmation");
+              break;
+          }
+        }}
+        className="w-full"
+      >
         <div className="relative mt-12 mb-16">
           <div className="w-full flex justify-between items-start">
             {/* Step 1 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${
+                    stepNumber >= 1
+                      ? "bg-sac-primary text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
                   {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <h3
+                  className={`ml-3 text-lg font-semibold ${
+                    stepNumber >= 1
+                      ? "text-sac-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
                   Hisse Seçimi
                 </h3>
               </div>
@@ -377,12 +427,23 @@ const Page = () => {
             {/* Step 2 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber >= 2 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${
+                    stepNumber >= 2
+                      ? "bg-sac-primary text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
                   {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <h3
+                  className={`ml-3 text-lg font-semibold ${
+                    stepNumber >= 2
+                      ? "text-sac-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
                   Hissedar Bilgileri
                 </h3>
               </div>
@@ -391,12 +452,23 @@ const Page = () => {
             {/* Step 3 */}
             <div className="flex flex-col items-start">
               <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${stepNumber === 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                  ${
+                    stepNumber === 3
+                      ? "bg-sac-primary text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
                   3
                 </div>
-                <h3 className={`ml-3 text-lg font-semibold ${stepNumber >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <h3
+                  className={`ml-3 text-lg font-semibold ${
+                    stepNumber >= 3
+                      ? "text-sac-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
                   Hisse Onay
                 </h3>
               </div>
@@ -405,26 +477,26 @@ const Page = () => {
         </div>
 
         <TabsContent value="tab-1">
-          <CustomDataTable 
-            data={data} 
-            columns={columns} 
+          <CustomDataTable
+            data={data}
+            columns={columns}
             meta={{
-              onSacrificeSelect: handleSacrificeSelect
+              onSacrificeSelect: handleSacrificeSelect,
             }}
             pageSizeOptions={[10, 20, 50, 100, 150]}
             filters={({ table, columnFilters, onColumnFiltersChange }) => (
-              <ShareFilters 
-                table={table} 
+              <ShareFilters
+                table={table}
                 columnFilters={columnFilters}
-                onColumnFiltersChange={onColumnFiltersChange} 
+                onColumnFiltersChange={onColumnFiltersChange}
               />
             )}
           />
         </TabsContent>
         <TabsContent value="tab-2">
-          <Checkout 
-            sacrifice={selectedSacrifice} 
-            formData={formData} 
+          <Checkout
+            sacrifice={selectedSacrifice}
+            formData={formData}
             setFormData={setFormData}
             onApprove={() => goToStep("confirmation")}
             resetStore={resetStore}
@@ -432,7 +504,7 @@ const Page = () => {
             setLastInteractionTime={setLastInteractionTime}
             onBack={async (shareCount) => {
               if (!selectedSacrifice) return;
-              
+
               try {
                 // Önce güncel kurban bilgisini al
                 const { data: currentSacrifice, error } = await supabase
@@ -445,7 +517,8 @@ const Page = () => {
                   toast({
                     variant: "destructive",
                     title: "Hata",
-                    description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+                    description:
+                      "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
                   });
                   return;
                 }
@@ -455,7 +528,7 @@ const Page = () => {
                   sacrificeId: selectedSacrifice.sacrifice_id,
                   emptyShare: currentSacrifice.empty_share + shareCount,
                 });
-                
+
                 // Store'u sıfırla
                 resetStore();
                 // İlk adıma dön
@@ -467,7 +540,7 @@ const Page = () => {
           />
         </TabsContent>
         <TabsContent value="tab-3" className="space-y-8">
-          <ShareholderSummary 
+          <ShareholderSummary
             sacrifice={selectedSacrifice}
             shareholders={formData}
             onApprove={handleApprove}
@@ -492,12 +565,13 @@ const Page = () => {
           onSelect={handleShareCountSelect}
         />
       )}
-      
+
       <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
         <AlertDialogContent>
           <AlertDialogTitle>Uyarı</AlertDialogTitle>
           <AlertDialogDescription>
-            {timeLeft} saniye içerisinde işlem yapmazsanız hisse seçim sayfasına yönlendirileceksiniz.
+            {timeLeft} saniye içerisinde işlem yapmazsanız hisse seçim sayfasına
+            yönlendirileceksiniz.
           </AlertDialogDescription>
         </AlertDialogContent>
       </AlertDialog>

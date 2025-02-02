@@ -28,7 +28,7 @@ const config: Config = {
       },
       colors: {
         // My Colors
-        "sac-primary": "#33cc66",
+        "sac-primary": "#22c55e",
         // icon background
         "sac-primary-more-lighter": "#e5f8ed",
         // buton with icon background
@@ -47,6 +47,8 @@ const config: Config = {
         "sac-graph-green-tone-light": "#1DC355",
         "sac-graph-green-tone-dark": "#3A9E5F",
         "sac-graph-green-tone-darkest": "#125427",
+
+        "sac-section-background": "#202124",
 
         // Shadcn Colors
         background: "hsl(var(--background))",

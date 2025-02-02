@@ -28,7 +28,8 @@ export default function HisseSorgula() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [shareholderInfo, setShareholderInfo] = useState<ShareholderInfo | null>(null);
+  const [shareholderInfo, setShareholderInfo] =
+    useState<ShareholderInfo | null>(null);
 
   const handleSearch = async () => {
     if (!phone) {
@@ -43,18 +44,18 @@ export default function HisseSorgula() {
     try {
       // Telefon numarasını formatlama
       let formattedPhone = phone;
-      
+
       // Başındaki 0'ı kaldır
       if (formattedPhone.startsWith("0")) {
         formattedPhone = formattedPhone.substring(1);
       }
-      
+
       // +90 veya 90'ı kaldır
       formattedPhone = formattedPhone.replace(/^(\+90|90)/, "");
-      
+
       // Sadece rakamları al
       formattedPhone = formattedPhone.replace(/\D/g, "");
-      
+
       // Final format: +90 ile başlayan 12 haneli numara
       formattedPhone = `+90${formattedPhone}`;
 
@@ -63,16 +64,18 @@ export default function HisseSorgula() {
       // Önce tüm kayıtları al ve purchase_time'a göre sırala
       const { data, error: queryError } = await supabase
         .from("shareholders")
-        .select(`
+        .select(
+          `
           *,
           sacrifice:sacrifice_animals (
             sacrifice_no,
             sacrifice_time,
             share_price
           )
-        `)
+        `
+        )
         .eq("phone_number", formattedPhone)
-        .order('purchase_time', { ascending: false });
+        .order("purchase_time", { ascending: false });
 
       if (queryError) throw queryError;
       if (!data || data.length === 0) {
@@ -82,12 +85,13 @@ export default function HisseSorgula() {
 
       // En son kaydı al
       setShareholderInfo(data[0] as ShareholderInfo);
-      
+
       // Eğer birden fazla kayıt varsa bilgilendirme yap
       if (data.length > 1) {
-        console.log(`Bu telefon numarasına ait ${data.length} kayıt bulundu. En son kayıt gösteriliyor.`);
+        console.log(
+          `Bu telefon numarasına ait ${data.length} kayıt bulundu. En son kayıt gösteriliyor.`
+        );
       }
-
     } catch (err) {
       console.error("Error fetching shareholder:", err);
       setError("Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
@@ -135,14 +139,12 @@ export default function HisseSorgula() {
             Sorgula
           </Button>
         </div>
-        {error && (
-          <p className="text-destructive mt-2 text-sm">{error}</p>
-        )}
+        {error && <p className="text-destructive mt-2 text-sm">{error}</p>}
 
         {/* Üçlü Bilgi Alanı */}
         <div className="grid grid-cols-3 gap-8">
           <div>
-            <h3 className="font-heading text-xl font-bold text-primary mb-4">
+            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
               Kapora Adresi
             </h3>
             <div className="space-y-2 text-muted-foreground">
@@ -152,7 +154,7 @@ export default function HisseSorgula() {
             </div>
           </div>
           <div>
-            <h3 className="font-heading text-xl font-bold text-primary mb-4">
+            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
               Kapora
             </h3>
             <div className="space-y-2 text-muted-foreground">
@@ -161,11 +163,13 @@ export default function HisseSorgula() {
             </div>
           </div>
           <div>
-            <h3 className="font-heading text-xl font-bold text-primary mb-4">
+            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
               Tüm Ödemeler
             </h3>
             <div className="space-y-2 text-muted-foreground">
-              <p>Tüm ödemeler en geç kurban kesim gününe kadar tamamlanmalıdır.</p>
+              <p>
+                Tüm ödemeler en geç kurban kesim gününe kadar tamamlanmalıdır.
+              </p>
               <p>Kesim günü nakit ödeme kabul edilmeyecektir.</p>
             </div>
           </div>
@@ -186,9 +190,15 @@ export default function HisseSorgula() {
                   <div className="bg-primary/10 p-2 rounded">
                     <div className="w-8 h-8 bg-primary/20 rounded" />
                   </div>
-                  <h1 className="text-2xl font-semibold">Invoice #{shareholderInfo.sacrifice.sacrifice_no}</h1>
+                  <h1 className="text-2xl font-semibold">
+                    Invoice #{shareholderInfo.sacrifice.sacrifice_no}
+                  </h1>
                 </div>
-                <Button variant="outline" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleDownload}>
+                <Button
+                  variant="outline"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={handleDownload}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
@@ -199,7 +209,7 @@ export default function HisseSorgula() {
             <div className="grid grid-cols-3 gap-8">
               {/* Sol Kolon - Hissedar Bilgileri */}
               <div>
-                <h3 className="font-heading text-xl font-bold text-primary mb-4">
+                <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
                   Hissedar Bilgileri
                 </h3>
                 <div className="space-y-4">
@@ -213,14 +223,18 @@ export default function HisseSorgula() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <p className="font-semibold">Teslim Yeri:</p>
-                    <p>{getDeliveryLocationText(shareholderInfo.delivery_location)}</p>
+                    <p>
+                      {getDeliveryLocationText(
+                        shareholderInfo.delivery_location
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Orta Kolon - Ödeme Bilgileri */}
               <div>
-                <h3 className="font-heading text-xl font-bold text-primary mb-4">
+                <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
                   Ödeme Bilgileri
                 </h3>
                 <div className="space-y-4">
@@ -266,7 +280,7 @@ export default function HisseSorgula() {
 
               {/* Sağ Kolon - Kurbanlık Bilgileri */}
               <div>
-                <h3 className="font-heading text-xl font-bold text-primary mb-4">
+                <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
                   Kurbanlık Bilgileri
                 </h3>
                 <div className="space-y-4">
@@ -286,7 +300,9 @@ export default function HisseSorgula() {
                   <div className="grid grid-cols-2 gap-2">
                     <p className="font-semibold">Kesim Saati:</p>
                     <p>
-                      {new Date(shareholderInfo.sacrifice.sacrifice_time).toLocaleTimeString("tr-TR", {
+                      {new Date(
+                        shareholderInfo.sacrifice.sacrifice_time
+                      ).toLocaleTimeString("tr-TR", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -295,7 +311,9 @@ export default function HisseSorgula() {
                   <div className="grid grid-cols-2 gap-2">
                     <p className="font-semibold">Hisse Alım Tarihi:</p>
                     <p>
-                      {new Date(shareholderInfo.purchase_time).toLocaleDateString("tr-TR")}
+                      {new Date(
+                        shareholderInfo.purchase_time
+                      ).toLocaleDateString("tr-TR")}
                     </p>
                   </div>
                 </div>
@@ -307,19 +325,25 @@ export default function HisseSorgula() {
             {/* Alt Bilgiler */}
             <div className="grid grid-cols-3 gap-8">
               <div>
-                <h3 className="font-heading text-lg font-semibold mb-2">Önemli Bilgiler</h3>
+                <h3 className="font-heading text-lg font-semibold mb-2">
+                  Önemli Bilgiler
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Kurban kesim yerimiz, Kahramankazan'a bağlı Ciğir köyündedir.
                 </p>
               </div>
               <div>
-                <h3 className="font-heading text-lg font-semibold mb-2">Hatırlatmalar</h3>
+                <h3 className="font-heading text-lg font-semibold mb-2">
+                  Hatırlatmalar
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Kesim günü geldiğinde size SMS ile bilgilendirme yapılacaktır.
                 </p>
               </div>
               <div>
-                <h3 className="font-heading text-lg font-semibold mb-2">İletişim</h3>
+                <h3 className="font-heading text-lg font-semibold mb-2">
+                  İletişim
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Herhangi bir sorunuz olursa lütfen bizimle iletişime geçin.
                 </p>

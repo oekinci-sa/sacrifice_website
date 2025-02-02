@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
@@ -23,20 +23,23 @@ const Footer = () => {
   const fetchTotalEmptyShares = async () => {
     try {
       const { data, error } = await supabase
-        .from('sacrifice_animals')
-        .select('empty_share');
+        .from("sacrifice_animals")
+        .select("empty_share");
 
       if (error) {
-        console.error('Error fetching empty shares:', error);
+        console.error("Error fetching empty shares:", error);
         return;
       }
 
       if (data) {
-        const total = data.reduce((sum, item) => sum + (item.empty_share || 0), 0);
+        const total = data.reduce(
+          (sum, item) => sum + (item.empty_share || 0),
+          0
+        );
         setTotalEmptyShares(total);
       }
     } catch (error) {
-      console.error('Error in fetchTotalEmptyShares:', error);
+      console.error("Error in fetchTotalEmptyShares:", error);
     }
   };
 
@@ -46,21 +49,21 @@ const Footer = () => {
 
     // Real-time subscription
     const channel = supabase
-      .channel('sacrifice_animals_changes')
+      .channel("sacrifice_animals_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'sacrifice_animals'
+          event: "*",
+          schema: "public",
+          table: "sacrifice_animals",
         },
         (payload) => {
-          console.log('Change received!', payload);
+          console.log("Change received!", payload);
           fetchTotalEmptyShares();
         }
       )
       .subscribe((status) => {
-        console.log('Subscription status:', status);
+        console.log("Subscription status:", status);
       });
 
     // Cleanup subscription
@@ -70,7 +73,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="mt-20 pt-12 pb-6">
+    <div className="mt-20 pt-12 pb-6 bg-sac-section-background">
       <div className="container flex justify-between text-white mb-8">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
@@ -144,7 +147,7 @@ const Footer = () => {
             <div className="flex flex-col gap-3 text-white/75">
               {/* Location */}
               <div className="flex gap-3">
-                <i className="bi bi-geo-alt text-primary"></i>
+                <i className="bi bi-geo-alt text-sac-primary"></i>
                 <p className="font-normal">
                   Hacı Bayram, Ulus, Adliye Sk. No:1
                   <br />
@@ -153,15 +156,15 @@ const Footer = () => {
               </div>
               {/* Phone */}
               <div className="flex gap-3">
-                <i className="bi bi-telephone text-primary"></i>
+                <i className="bi bi-telephone text-sac-primary"></i>
                 <p className="font-normal">
-                  0312 312 44 64 <span className="text-primary">/</span> 0552
-                  652 90 00
+                  0312 312 44 64 <span className="text-sac-primary">/</span>{" "}
+                  0552 652 90 00
                 </p>
               </div>
               {/* Mail */}
               <div className="flex gap-3">
-                <i className="bi bi-envelope text-primary"></i>
+                <i className="bi bi-envelope text-sac-primary"></i>
                 <p className="font-normal">
                   Hacı Bayram, Ulus, Adliye Sk. No:1
                   <br />

@@ -32,7 +32,7 @@ const Prices = () => {
             {/* 7 Yıl+ */}
             <div className="flex flex-col items-center justify-center space-y-2 bg-black text-white rounded-md p-2 w-36 h-36">
               <p className="font-heading text-4xl font-bold">
-                7 Yıl<span className="text-primary">+</span>
+                7 Yıl<span className="text-sac-primary">+</span>
               </p>
               <p className="text-xl">Tecrübe</p>
             </div>
@@ -80,7 +80,7 @@ const Prices = () => {
               <br />
               <Link
                 href="#"
-                className="text-primary hover:underline hover:text-primary-dark"
+                className="text-sac-primary hover:underline hover:text-primary-dark"
               >
                 Konum için tıklayınız.
               </Link>

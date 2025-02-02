@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import React from 'react'
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import React from "react";
 
 const Banner = () => {
   return (
@@ -12,7 +12,7 @@ const Banner = () => {
           <p className="text-6xl font-heading font-bold mb-2">
             Kurban ibadetini
           </p>
-          <p className="text-6xl font-heading font-bold text-primary">
+          <p className="text-6xl font-heading font-bold text-sac-primary">
             birlikte gerçekleştirelim.
           </p>
         </div>
@@ -40,6 +40,6 @@ const Banner = () => {
       {/* <img className="w-4/12" src={Cow1} /> */}
     </div>
   );
-}
+};
 
-export default Banner
+export default Banner;

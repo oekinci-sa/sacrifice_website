@@ -3,6 +3,7 @@ import { supabase } from "@/utils/supabaseClient"
 import { sacrificeSchema } from "@/types"
 import { toast } from "sonner"
 import { useEffect } from "react"
+import { useCreateShareholders } from "./useShareholders"
 
 // Fetch all sacrifices
 export const useSacrifices = () => {
@@ -75,3 +76,5 @@ export const useUpdateSacrifice = () => {
     },
   })
 }
+
+export { useCreateShareholders } 

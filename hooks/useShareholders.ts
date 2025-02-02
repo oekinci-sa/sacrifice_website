@@ -1,46 +1,49 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { supabase } from "@/utils/supabaseClient"
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/utils/supabaseClient";
+import { toast } from "sonner";
 
 interface ShareholderData {
-  shareholder_name: string
-  phone_number: string
-  delivery_location: string
-  delivery_fee: number
-  share_price: number
-  total_amount: number
-  paid_amount: number
-  remaining_payment: number
-  sacrifice_consent: boolean
-  last_edited_by: string
-  purchased_by: string
-  sacrifice_id: string
+  shareholder_name: string;
+  phone_number: string;
+  sacrifice_id: string;
+  share_price: number;
+  delivery_location: string;
+  delivery_fee: number;
+  total_amount: number;
+  paid_amount: number;
+  remaining_payment: number;
+  sacrifice_consent: boolean;
+  last_edited_by?: string;
+  purchased_by?: string;
 }
 
 export const useCreateShareholders = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (shareholders: ShareholderData[]) => {
-      try {
-        const { data, error } = await supabase
-          .from("shareholders")
-          .insert(shareholders)
-          .select()
+      const { data, error } = await supabase
+        .from("shareholders")
+        .insert(shareholders)
+        .select();
 
-        if (error) {
-          toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu.")
-          throw error
-        }
-
-        return data
-      } catch (error) {
-        toast.error("Hissedar bilgileri kaydedilirken bir hata oluştu.")
-        throw error
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
       }
+
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] });
+      toast.success("Hissedarlar başarıyla kaydedildi.");
     },
-  })
-} 
+    onError: (error: any) => {
+      toast.error(
+        error.message === "value too long for type character varying(13)"
+          ? "Telefon numarası formatı hatalı."
+          : "Hissedarlar kaydedilirken bir hata oluştu."
+      );
+    },
+  });
+}; 

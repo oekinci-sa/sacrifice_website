@@ -15,12 +15,17 @@ interface PhoneVerificationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onVerificationComplete: (phone: string) => void
+  shareholders: Array<{
+    name: string
+    phone: string
+  }>
 }
 
 export default function PhoneVerificationDialog({
   open,
   onOpenChange,
   onVerificationComplete,
+  shareholders,
 }: PhoneVerificationDialogProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [phone, setPhone] = useState("")
@@ -73,10 +78,13 @@ export default function PhoneVerificationDialog({
     if (otpValue === "111111") {
       // Telefon numarasını temizle ve formatla
       const cleanedPhone = phone.replace(/\D/g, '').replace(/^0/, '')
-      const formattedPhone = "+9" + cleanedPhone
+      const formattedPhone = "+9" + cleanedPhone.slice(-10)
       
       onVerificationComplete(formattedPhone)
-      handleClose()
+      setStep('phone')
+      setPhone("")
+      setOtp(["", "", "", "", "", ""])
+      onOpenChange(false)
     } else {
       setError("Geçersiz doğrulama kodu")
     }
@@ -91,7 +99,7 @@ export default function PhoneVerificationDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>

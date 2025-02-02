@@ -8,8 +8,7 @@ const Logo = () => {
   return (
     <div>
       <Link href="/">
-        <Image className="dark:hidden" src={websiteLogo} alt="Logo" width={200} />
-        <Image className="hidden dark:block" src={websiteLogoWhite} alt="Logo" width={200} />
+        <Image src={websiteLogo} alt="Logo" width={200} />
       </Link>
     </div>
   );

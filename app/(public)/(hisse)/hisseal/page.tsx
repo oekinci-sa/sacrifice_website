@@ -12,6 +12,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { useHisseStore } from "@/stores/useHisseStore";
@@ -580,6 +581,23 @@ const Page = () => {
           <p className="text-muted-foreground text-center">
             Hisse kaydınız başarıyla oluşturulmuştur.
           </p>
+          <div className="flex gap-4 mt-8">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => router.push('/hissesorgula')}
+            >
+              <i className="bi bi-search"></i>
+              Hisse Sorgula
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+            >
+              <i className="bi bi-cloud-download"></i>
+              PDF İndir
+            </Button>
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
+import { useRouter } from "next/navigation"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -73,6 +74,7 @@ export default function ShareholderSummary({
 }: ShareholderSummaryProps) {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const createShareholders = useCreateShareholders()
+  const router = useRouter()
 
   const handleVerificationComplete = async (phone: string) => {
     console.log("Doğrulama dialogundan gelen numara:", phone)
@@ -80,11 +82,10 @@ export default function ShareholderSummary({
     console.log("Formatlanmış numara:", formattedPhone)
     
     const matchingShareholder = shareholders.find(shareholder => {
-      // Hissedarın numarasını temizle (sadece rakamları al ve baştaki 0'ı kaldır)
-      const cleanShareholderPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
-      console.log('Hissedar numarası:', cleanShareholderPhone)
+      const shareholderFormattedPhone = formatPhoneNumber(shareholder.phone)
+      console.log('Hissedar numarası:', shareholderFormattedPhone)
       
-      return cleanShareholderPhone === formattedPhone
+      return shareholderFormattedPhone === formattedPhone
     })
 
     if (!matchingShareholder) {
@@ -96,7 +97,7 @@ export default function ShareholderSummary({
       // Hissedar verilerini hazırla
       const shareholderDataArray = shareholders.map(shareholder => ({
         shareholder_name: shareholder.name,
-        phone_number: "+90" + shareholder.phone.replace(/\D/g, '').replace(/^0/, ''),
+        phone_number: formatPhoneNumber(shareholder.phone),
         delivery_location: shareholder.delivery_location,
         delivery_fee: shareholder.delivery_location !== "kesimhane" ? 500 : 0,
         share_price: sacrifice?.share_price || 0,
@@ -105,6 +106,8 @@ export default function ShareholderSummary({
         last_edited_by: matchingShareholder.name,
         purchased_by: matchingShareholder.name,
         sacrifice_id: sacrifice?.sacrifice_id || "",
+        paid_amount: 0,
+        remaining_payment: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
       }))
 
       // Verileri DB'ye kaydet

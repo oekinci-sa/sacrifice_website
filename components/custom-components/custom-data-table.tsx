@@ -189,9 +189,8 @@ export function CustomDataTable<TData, TValue>({
                     >
                       {header.isPlaceholder ? null : (
                         <div className="flex justify-center">
-                          <Button
-                            variant="ghost"
-                            className="h-8 px-2 flex items-center gap-2 hover:bg-muted"
+                          <div
+                            className="flex h-8 px-2 items-center gap-2 hover:bg-muted cursor-pointer"
                             onClick={header.column.getToggleSortingHandler()}
                           >
                             {typeof header.column.columnDef.header === "string" ? (
@@ -213,7 +212,7 @@ export function CustomDataTable<TData, TValue>({
                                 header.getContext()
                               )
                             )}
-                          </Button>
+                          </div>
                         </div>
                       )}
                     </TableHead>

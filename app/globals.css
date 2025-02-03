@@ -65,6 +65,25 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* My Colors */
+    --sac-primary: hsl(140, 60%, 50%);
+    --sac-primary-more-lighter: hsl(140, 60%, 50%);
+    --sac-green-lightest: #F0FBF1;
+
+    --sac-red: #D22D2D;
+    --sac-red-light: #FCEFEF;
+
+    --sac-yellow: #F9BC06;
+    --sac-yellow-light: #FFFAEC;
+
+    --sac-blue: #367CFE;
+    --sac-blue-light: #E6EAF2;
+
+    /* For Graphs */
+    --sac-graph-green-tone-light: #1DC355;
+    --sac-graph-green-tone-dark: #3A9E5F;
+    --sac-graph-green-tone-darkest: #125427;
   }
 
   * {

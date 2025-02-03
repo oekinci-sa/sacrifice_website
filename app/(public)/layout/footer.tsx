@@ -130,7 +130,7 @@ const Footer = () => {
                 <div className="flex items-center">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <span className="ml-2 text-white text-[12px] px-2 py-1 rounded-[2px]">
+                    <span className="bg-destructive ml-2 text-white text-[12px] px-2 py-1 rounded-[2px]">
                       Son {totalEmptyShares} Hisse
                     </span>
                   </CustomLink>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -14,8 +13,6 @@ import {
 import {
   ChevronLeft,
   Menu,
-  Sun,
-  Moon,
   LogOut,
   User,
   LayoutDashboard,
@@ -67,7 +64,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
 
   const toggleCollapsed = () => {
@@ -139,19 +135,6 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {theme === "dark" ? (
-                <>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>Açık Tema</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>Koyu Tema</span>
-                </>
-              )}
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Çıkış Yap</span>

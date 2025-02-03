@@ -1,4 +1,3 @@
-import { ModeToggle } from "@/components/layout/public/Header/mode-toggle";
 import Logo from "@/components/layout/public/Header/logo";
 import Navigation from "@/components/layout/public/Header/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ const Header = () => {
       <Navigation></Navigation>
       <div className="flex justify-end gap-4">
         {/* <i className="bi bi-brightness-high"></i> */}
-        <ModeToggle></ModeToggle>
         <Button>
           <Link href="/hisseal">Hemen al</Link>
         </Button>

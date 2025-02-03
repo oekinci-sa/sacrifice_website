@@ -5,7 +5,6 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { Instrument_Sans } from "next/font/google";
 
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "./providers";
 
@@ -30,17 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} ${instrumentSans.className}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Providers>
-            {children}
-            <Toaster />
-          </Providers>
-        </ThemeProvider>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

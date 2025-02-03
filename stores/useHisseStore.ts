@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { sacrificeSchema } from '@/types'
+import { SacrificeType } from "@/types";
 
 export interface FormData {
   name: string
@@ -8,7 +9,7 @@ export interface FormData {
   delivery_location: string
 }
 
-export type Step = "selection" | "details" | "confirmation"
+export type Step = "selection" | "details" | "confirmation" | "success"
 
 export const STEP_MAPPING = {
   selection: { number: 1, value: "tab-1" },
@@ -17,17 +18,19 @@ export const STEP_MAPPING = {
 } as const;
 
 interface HisseState {
-  selectedSacrifice: sacrificeSchema | null
-  tempSelectedSacrifice: sacrificeSchema | null
+  selectedSacrifice: SacrificeType | null
+  tempSelectedSacrifice: SacrificeType | null
   formData: FormData[]
   currentStep: Step
   stepNumber: number
   tabValue: string
-  setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
-  setTempSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
+  isSuccess: boolean
+  setSelectedSacrifice: (sacrifice: SacrificeType | null) => void
+  setTempSelectedSacrifice: (sacrifice: SacrificeType | null) => void
   setFormData: (data: FormData[]) => void
   resetStore: () => void
   goToStep: (step: Step) => void
+  setSuccess: (value: boolean) => void
 }
 
 const initialState = {
@@ -37,6 +40,7 @@ const initialState = {
   currentStep: "selection" as Step,
   stepNumber: 1,
   tabValue: "tab-1",
+  isSuccess: false,
 }
 
 export const useHisseStore = create<HisseState>()(
@@ -48,11 +52,32 @@ export const useHisseStore = create<HisseState>()(
       setTempSelectedSacrifice: (sacrifice) => set({ tempSelectedSacrifice: sacrifice }),
       setFormData: (data) => set({ formData: data }),
       resetStore: () => set(initialState),
-      goToStep: (step) => set({
-        currentStep: step,
-        stepNumber: STEP_MAPPING[step].number,
-        tabValue: STEP_MAPPING[step].value
-      }),
+      goToStep: (step) => {
+        let stepNumber = 1;
+        let tabValue = "tab-1";
+
+        switch (step) {
+          case "selection":
+            stepNumber = 1;
+            tabValue = "tab-1";
+            break;
+          case "details":
+            stepNumber = 2;
+            tabValue = "tab-2";
+            break;
+          case "confirmation":
+            stepNumber = 3;
+            tabValue = "tab-3";
+            break;
+          case "success":
+            stepNumber = 3;
+            tabValue = "tab-3";
+            break;
+        }
+
+        set({ currentStep: step, stepNumber, tabValue });
+      },
+      setSuccess: (value) => set({ isSuccess: value }),
     }),
     { name: 'hisse-store' }
   )

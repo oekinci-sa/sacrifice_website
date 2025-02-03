@@ -1,25 +1,22 @@
 import type { Metadata } from "next";
-
+import { Inter, Instrument_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-
-import { Inter } from "next/font/google";
-import { Instrument_Sans } from "next/font/google";
-
+import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
-import Providers from "./providers";
 
-
-const inter = Inter({ subsets: ["latin"] });
-import "@/app/globals.css";
-
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
 });
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair-display",
+});
 
 export const metadata: Metadata = {
   title: "Sacrifice Website",
-  description: "A website for managing sacrificial rituals",
+  description: "Sacrifice Website",
 };
 
 export default function RootLayout({
@@ -28,8 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${instrumentSans.className}`}>
+    <html lang="tr">
+      <body
+        className={`${inter.variable} ${instrumentSans.variable} ${playfairDisplay.variable}`}
+      >
         <Providers>
           {children}
           <Toaster />

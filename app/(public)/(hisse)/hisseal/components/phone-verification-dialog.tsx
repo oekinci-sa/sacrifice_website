@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useHisseStore } from "@/stores/useHisseStore"
+import { useToast } from "@/hooks/use-toast"
 
 interface PhoneVerificationDialogProps {
   open: boolean
@@ -31,6 +33,9 @@ export default function PhoneVerificationDialog({
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+  const { setSuccess, goToStep } = useHisseStore()
   const inputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -73,19 +78,43 @@ export default function PhoneVerificationDialog({
     }
   }
 
-  const handleOtpSubmit = () => {
-    const otpValue = otp.join("")
-    if (otpValue === "111111") {
-      // Telefon numarasını temizle ve formatla
-      const cleanedPhone = phone.replace(/\D/g, '').replace(/^0/, '')
-      const formattedPhone = "+9" + cleanedPhone
-      
-      onVerificationComplete(formattedPhone)
-      setStep('phone')
-      setPhone("")
-      setOtp(["", "", "", "", "", ""])
-    } else {
-      setError("Geçersiz doğrulama kodu")
+  const handleOtpSubmit = async () => {
+    setIsLoading(true)
+    try {
+      const otpValue = otp.join("")
+      if (otpValue === "111111") {
+        // Telefon numarasını temizle ve formatla
+        const cleanedPhone = phone.replace(/\D/g, '')
+          .replace(/^0/, '') // Baştaki 0'ı kaldır
+        
+        // Formatlanmış telefon numarası
+        const formattedPhone = "+90" + cleanedPhone
+        
+        console.log("Doğrulama tamamlandı, telefon:", formattedPhone)
+        
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        
+        toast({
+          title: "Başarılı",
+          description: "Telefon numaranız doğrulandı.",
+        })
+        onVerificationComplete(formattedPhone)
+        setSuccess(true)
+        goToStep("success")
+        setStep('phone')
+        setPhone("")
+        setOtp(["", "", "", "", "", ""])
+      } else {
+        setError("Geçersiz doğrulama kodu")
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Doğrulama sırasında bir hata oluştu.",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -146,7 +175,7 @@ export default function PhoneVerificationDialog({
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <div className="flex justify-end">
-                <Button onClick={handleOtpSubmit}>
+                <Button onClick={handleOtpSubmit} disabled={isLoading}>
                   Doğrula
                 </Button>
               </div>

@@ -42,13 +42,14 @@ export const useCreateShareholders = () => {
 
       // Validate phone numbers and required fields
       const validatedShareholders = shareholders.map(shareholder => {
-        if (!shareholder.phone_number.startsWith('+90') || shareholder.phone_number.length !== 13) {
-          throw new Error(`Invalid phone number format for ${shareholder.shareholder_name}`)
+        // Telefon numarası kontrolü
+        if (!shareholder.phone_number.startsWith('+90') || shareholder.phone_number.length !== 12) {
+          throw new Error(`Geçersiz telefon numarası formatı: ${shareholder.phone_number}`)
         }
         
-        // Ensure all required fields are present
+        // Zorunlu alanların kontrolü
         if (!shareholder.shareholder_name || !shareholder.sacrifice_id || !shareholder.share_price) {
-          throw new Error('Missing required fields')
+          throw new Error('Zorunlu alanlar eksik')
         }
 
         return {

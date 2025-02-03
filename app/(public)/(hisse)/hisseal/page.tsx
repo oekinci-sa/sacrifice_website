@@ -52,11 +52,13 @@ const Page = () => {
     currentStep,
     stepNumber,
     tabValue,
+    isSuccess,
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
     goToStep,
     resetStore,
+    setSuccess,
   } = useHisseStore();
 
   // React Query hooks
@@ -78,6 +80,7 @@ const Page = () => {
 
     const handleRouteChange = async (url: string) => {
       if (isNavigating) return true;
+      if (isSuccess) return true; // Allow navigation if in success state
 
       // Only handle if we're in details or confirmation step
       if (currentStep !== "details" && currentStep !== "confirmation")
@@ -170,10 +173,13 @@ const Page = () => {
     updateSacrifice,
     resetStore,
     goToStep,
+    isSuccess,
   ]);
 
   // Handle interaction timeout
   useEffect(() => {
+    if (isSuccess) return; // Disable timeout in success state
+
     const checkTimeout = async () => {
       if (currentStep !== "details" && currentStep !== "confirmation") return;
 
@@ -239,6 +245,7 @@ const Page = () => {
     selectedSacrifice,
     formData.length,
     updateSacrifice,
+    isSuccess,
   ]);
 
   // Sayfa seviyesinde etkileşimleri takip et
@@ -349,7 +356,6 @@ const Page = () => {
   const handleApprove = async () => {
     if (!selectedSacrifice || !formData) return;
 
-    // Format phone numbers and prepare data
     const shareholders = formData.map((data) => ({
       shareholder_name: data.name,
       phone_number: data.phone.startsWith("+90")
@@ -374,7 +380,8 @@ const Page = () => {
     try {
       const result = await createShareholders.mutateAsync(shareholders);
       if (result !== null) {
-        router.push("/hissesorgula");
+        setSuccess(true);
+        goToStep("success");
       }
     } catch (error) {
       // Error is handled in the mutation
@@ -383,180 +390,196 @@ const Page = () => {
 
   return (
     <div className="container flex flex-col space-y-8">
-      <Tabs
-        value={tabValue}
-        onValueChange={(value) => {
-          switch (value) {
-            case "tab-1":
-              goToStep("selection");
-              break;
-            case "tab-2":
-              goToStep("details");
-              break;
-            case "tab-3":
-              goToStep("confirmation");
-              break;
-          }
-        }}
-        className="w-full"
-      >
-        <div className="relative mt-12 mb-16">
-          <div className="w-full flex justify-between items-start">
-            {/* Step 1 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${
-                    stepNumber >= 1
-                      ? "bg-sac-primary text-white"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
-                </div>
-                <h3
-                  className={`ml-3 text-lg font-semibold ${
-                    stepNumber >= 1
-                      ? "text-sac-primary"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Hisse Seçimi
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${
-                    stepNumber >= 2
-                      ? "bg-sac-primary text-white"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
-                </div>
-                <h3
-                  className={`ml-3 text-lg font-semibold ${
-                    stepNumber >= 2
-                      ? "text-sac-primary"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Hissedar Bilgileri
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex flex-col items-start">
-              <div className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                  ${
-                    stepNumber === 3
-                      ? "bg-sac-primary text-white"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  3
-                </div>
-                <h3
-                  className={`ml-3 text-lg font-semibold ${
-                    stepNumber >= 3
-                      ? "text-sac-primary"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Hisse Onay
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <TabsContent value="tab-1">
-          <CustomDataTable
-            data={data}
-            columns={columns}
-            meta={{
-              onSacrificeSelect: handleSacrificeSelect,
-            }}
-            pageSizeOptions={[10, 20, 50, 100, 150]}
-            filters={({ table, columnFilters, onColumnFiltersChange }) => (
-              <ShareFilters
-                table={table}
-                columnFilters={columnFilters}
-                onColumnFiltersChange={onColumnFiltersChange}
-              />
-            )}
-          />
-        </TabsContent>
-        <TabsContent value="tab-2">
-          <Checkout
-            sacrifice={selectedSacrifice}
-            formData={formData}
-            setFormData={setFormData}
-            onApprove={() => goToStep("confirmation")}
-            resetStore={resetStore}
-            setCurrentStep={goToStep}
-            setLastInteractionTime={setLastInteractionTime}
-            onBack={async (shareCount) => {
-              if (!selectedSacrifice) return;
-
-              try {
-                // Önce güncel kurban bilgisini al
-                const { data: currentSacrifice, error } = await supabase
-                  .from("sacrifice_animals")
-                  .select("empty_share")
-                  .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-                  .single();
-
-                if (error || !currentSacrifice) {
-                  toast({
-                    variant: "destructive",
-                    title: "Hata",
-                    description:
-                      "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
-                  });
-                  return;
-                }
-
-                // Güncel empty_share değerini kullanarak güncelleme yap
-                await updateSacrifice.mutateAsync({
-                  sacrificeId: selectedSacrifice.sacrifice_id,
-                  emptyShare: currentSacrifice.empty_share + shareCount,
-                });
-
-                // Store'u sıfırla
-                resetStore();
-                // İlk adıma dön
-                goToStep("selection");
-              } catch (error) {
-                // Error is handled in the mutation
+      {!isSuccess ? (
+        <>
+          <Tabs
+            value={tabValue}
+            onValueChange={(value) => {
+              switch (value) {
+                case "tab-1":
+                  goToStep("selection");
+                  break;
+                case "tab-2":
+                  goToStep("details");
+                  break;
+                case "tab-3":
+                  goToStep("confirmation");
+                  break;
               }
             }}
-          />
-        </TabsContent>
-        <TabsContent value="tab-3" className="space-y-8">
-          <ShareholderSummary
-            sacrifice={selectedSacrifice}
-            shareholders={formData}
-            onApprove={handleApprove}
-            setCurrentStep={goToStep}
-            remainingTime={timeLeft}
-            setRemainingTime={setTimeLeft}
-          />
-        </TabsContent>
-      </Tabs>
+            className="w-full"
+          >
+            <div className="relative mt-12 mb-16">
+              <div className="w-full flex justify-between items-start">
+                {/* Step 1 */}
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                      ${
+                        stepNumber >= 1
+                          ? "bg-sac-primary text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
+                    </div>
+                    <h3
+                      className={`ml-3 text-lg font-semibold ${
+                        stepNumber >= 1
+                          ? "text-sac-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Hisse Seçimi
+                    </h3>
+                  </div>
+                </div>
 
-      {(currentStep === "details" || currentStep === "confirmation") && (
-        <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
-          Kalan Süre: {timeLeft} saniye
+                {/* Step 2 */}
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                      ${
+                        stepNumber >= 2
+                          ? "bg-sac-primary text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
+                    </div>
+                    <h3
+                      className={`ml-3 text-lg font-semibold ${
+                        stepNumber >= 2
+                          ? "text-sac-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Hissedar Bilgileri
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
+                      ${
+                        stepNumber === 3
+                          ? "bg-sac-primary text-white"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      3
+                    </div>
+                    <h3
+                      className={`ml-3 text-lg font-semibold ${
+                        stepNumber >= 3
+                          ? "text-sac-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Hisse Onay
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <TabsContent value="tab-1">
+              <CustomDataTable
+                data={data}
+                columns={columns}
+                meta={{
+                  onSacrificeSelect: handleSacrificeSelect,
+                }}
+                pageSizeOptions={[10, 20, 50, 100, 150]}
+                filters={({ table, columnFilters, onColumnFiltersChange }) => (
+                  <ShareFilters
+                    table={table}
+                    columnFilters={columnFilters}
+                    onColumnFiltersChange={onColumnFiltersChange}
+                  />
+                )}
+              />
+            </TabsContent>
+            <TabsContent value="tab-2">
+              <Checkout
+                sacrifice={selectedSacrifice}
+                formData={formData}
+                setFormData={setFormData}
+                onApprove={() => goToStep("confirmation")}
+                resetStore={resetStore}
+                setCurrentStep={goToStep}
+                setLastInteractionTime={setLastInteractionTime}
+                onBack={async (shareCount) => {
+                  if (!selectedSacrifice) return;
+
+                  try {
+                    // Önce güncel kurban bilgisini al
+                    const { data: currentSacrifice, error } = await supabase
+                      .from("sacrifice_animals")
+                      .select("empty_share")
+                      .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
+                      .single();
+
+                    if (error || !currentSacrifice) {
+                      toast({
+                        variant: "destructive",
+                        title: "Hata",
+                        description:
+                          "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+                      });
+                      return;
+                    }
+
+                    // Güncel empty_share değerini kullanarak güncelleme yap
+                    await updateSacrifice.mutateAsync({
+                      sacrificeId: selectedSacrifice.sacrifice_id,
+                      emptyShare: currentSacrifice.empty_share + shareCount,
+                    });
+
+                    // Store'u sıfırla
+                    resetStore();
+                    // İlk adıma dön
+                    goToStep("selection");
+                  } catch (error) {
+                    // Error is handled in the mutation
+                  }
+                }}
+              />
+            </TabsContent>
+            <TabsContent value="tab-3" className="space-y-8">
+              <ShareholderSummary
+                sacrifice={selectedSacrifice}
+                shareholders={formData}
+                onApprove={handleApprove}
+                setCurrentStep={goToStep}
+                remainingTime={timeLeft}
+                setRemainingTime={setTimeLeft}
+              />
+            </TabsContent>
+          </Tabs>
+
+          {(currentStep === "details" || currentStep === "confirmation") && (
+            <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
+              Kalan Süre: {timeLeft} saniye
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 space-y-6">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-sac-icon-bg-green flex items-center justify-center">
+              <i className="bi bi-patch-check-fill text-4xl text-sac-primary"></i>
+            </div>
+          </div>
+          <h1 className="text-4xl font-semibold">Teşekkürler</h1>
+          <p className="text-muted-foreground text-center">
+            Hisse kaydınız başarıyla oluşturulmuştur.
+          </p>
         </div>
       )}
 
@@ -569,7 +592,7 @@ const Page = () => {
         />
       )}
 
-      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+      <AlertDialog open={showWarning && !isSuccess} onOpenChange={setShowWarning}>
         <AlertDialogContent>
           <AlertDialogTitle>Uyarı</AlertDialogTitle>
           <AlertDialogDescription>

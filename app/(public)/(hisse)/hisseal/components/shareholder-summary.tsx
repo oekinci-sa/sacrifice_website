@@ -24,10 +24,17 @@ interface ShareholderSummaryProps {
 }
 
 const formatPhoneNumber = (phone: string) => {
-  // Remove all non-digits and ensure starts with 0
-  const cleaned = phone.replace(/\D/g, '').replace(/^0?/, '0')
-  // Format as 0XXX XXX XX XX
-  return cleaned.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4')
+  // Önce tüm non-digit karakterleri kaldır
+  const cleaned = phone.replace(/\D/g, '')
+  
+  // Eğer +90 ile başlıyorsa, onu kaldır
+  const withoutPrefix = cleaned.replace(/^90/, '')
+  
+  // Baştaki 0'ı kaldır
+  const withoutZero = withoutPrefix.replace(/^0/, '')
+  
+  // +90 ile başlayan formata çevir
+  return "+90" + withoutZero
 }
 
 const getDeliveryLocationText = (location: string) => {
@@ -67,19 +74,17 @@ export default function ShareholderSummary({
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const createShareholders = useCreateShareholders()
 
-  const handleVerificationComplete = async (verifiedPhone: string) => {
-    // Doğrulama dialogundan gelen numarayı temizle (başındaki +9'u kaldır ve sadece rakamları al)
-    const cleanVerifiedPhone = verifiedPhone.replace(/\D/g, '').replace(/^9/, '')
-    
-    // Debug için numaraları konsola yazdır
-    console.log('Doğrulama dialogundan gelen numara:', cleanVerifiedPhone)
+  const handleVerificationComplete = async (phone: string) => {
+    console.log("Doğrulama dialogundan gelen numara:", phone)
+    const formattedPhone = formatPhoneNumber(phone)
+    console.log("Formatlanmış numara:", formattedPhone)
     
     const matchingShareholder = shareholders.find(shareholder => {
       // Hissedarın numarasını temizle (sadece rakamları al ve baştaki 0'ı kaldır)
       const cleanShareholderPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
       console.log('Hissedar numarası:', cleanShareholderPhone)
       
-      return cleanShareholderPhone === cleanVerifiedPhone
+      return cleanShareholderPhone === formattedPhone
     })
 
     if (!matchingShareholder) {

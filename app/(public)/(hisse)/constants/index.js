@@ -14,6 +14,6 @@ export const reminders = [
     src: "exclamation.svg",
     header: "Tüm Ödemeler",
     description:
-      "Kalan ödemeler 31 Mayıs Cumartesi<br/>gününe kadar tamamlanmalıdır.",
+      "Tüm ödemeler 31 Mayıs Cumartesi<br/>gününe kadar tamamlanmalıdır.",
   },
 ];

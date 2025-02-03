@@ -26,8 +26,9 @@ import { supabase } from "@/utils/supabaseClient";
 import { Check } from "lucide-react";
 import { ShareFilters } from "./components/ShareFilters";
 import { ColumnFiltersState } from "@tanstack/react-table";
+import { TripleInfo } from "@/app/(public)/components/triple-info"
 
-const TIMEOUT_DURATION = 10; // 3 minutes
+const TIMEOUT_DURATION = 1000; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {
@@ -417,20 +418,18 @@ const Page = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${
-                        stepNumber >= 1
+                      ${stepNumber >= 1
                           ? "bg-sac-primary text-white"
                           : "bg-muted text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
                     </div>
                     <h3
-                      className={`ml-3 text-lg font-semibold ${
-                        stepNumber >= 1
-                          ? "text-sac-primary"
-                          : "text-muted-foreground"
-                      }`}
+                      className={`ml-3 text-lg font-semibold ${stepNumber >= 1
+                        ? "text-sac-primary"
+                        : "text-muted-foreground"
+                        }`}
                     >
                       Hisse Seçimi
                     </h3>
@@ -442,20 +441,18 @@ const Page = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${
-                        stepNumber >= 2
+                      ${stepNumber >= 2
                           ? "bg-sac-primary text-white"
                           : "bg-muted text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
                     </div>
                     <h3
-                      className={`ml-3 text-lg font-semibold ${
-                        stepNumber >= 2
-                          ? "text-sac-primary"
-                          : "text-muted-foreground"
-                      }`}
+                      className={`ml-3 text-lg font-semibold ${stepNumber >= 2
+                        ? "text-sac-primary"
+                        : "text-muted-foreground"
+                        }`}
                     >
                       Hissedar Bilgileri
                     </h3>
@@ -467,20 +464,18 @@ const Page = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${
-                        stepNumber === 3
+                      ${stepNumber === 3
                           ? "bg-sac-primary text-white"
                           : "bg-muted text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       3
                     </div>
                     <h3
-                      className={`ml-3 text-lg font-semibold ${
-                        stepNumber >= 3
-                          ? "text-sac-primary"
-                          : "text-muted-foreground"
-                      }`}
+                      className={`ml-3 text-lg font-semibold ${stepNumber >= 3
+                        ? "text-sac-primary"
+                        : "text-muted-foreground"
+                        }`}
                     >
                       Hisse Onay
                     </h3>
@@ -571,33 +566,37 @@ const Page = () => {
           )}
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 space-y-6">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-sac-icon-bg-green flex items-center justify-center">
-              <i className="bi bi-patch-check-fill text-4xl text-sac-primary"></i>
+        <div className="flex flex-col items-center justify-center py-16 space-y-16">
+          <div className="flex flex-col items-center justify-center space-y-6">
+            {/* Icon */}
+            <div className="rounded-full flex items-center justify-center">
+              <i className="bi bi-patch-check-fill text-8xl text-sac-primary"></i>
+            </div>
+            <div>
+              <h1 className="text-4xl text-center font-bold mb-4">Teşekkürler...</h1>
+              <p className="text-muted-foreground text-center text-lg">
+                Hisse kaydınız başarıyla oluşturulmuştur.
+              </p>
+              {/* Buttons */}
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <Button
+                  className="flex items-center justify-center gap-2 bg-black hover:bg-black/90 text-white px-4 py-3 h-auto text-lg"
+                  onClick={() => router.push('/hissesorgula')}
+                >
+                  <i className="bi bi-search text-xl"></i>
+                  Hisse Sorgula
+                </Button>
+                <Button
+                  className="flex items-center justify-center gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-4 py-3 h-auto text-lg"
+                >
+                  <i className="bi bi-cloud-download text-xl"></i>
+                  PDF İndir
+                </Button>
+              </div>
             </div>
           </div>
-          <h1 className="text-4xl font-semibold">Teşekkürler</h1>
-          <p className="text-muted-foreground text-center">
-            Hisse kaydınız başarıyla oluşturulmuştur.
-          </p>
-          <div className="flex gap-4 mt-8">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => router.push('/hissesorgula')}
-            >
-              <i className="bi bi-search"></i>
-              Hisse Sorgula
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-            >
-              <i className="bi bi-cloud-download"></i>
-              PDF İndir
-            </Button>
-          </div>
+
+          <TripleInfo />
         </div>
       )}
 

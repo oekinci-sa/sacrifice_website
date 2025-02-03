@@ -1,5 +1,5 @@
-import Logo from "@/components/layout/public/Header/logo";
-import Navigation from "@/components/layout/public/Header/navigation";
+import Logo from "@/components/layout/Header/logo";
+import Navigation from "@/components/layout/Header/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

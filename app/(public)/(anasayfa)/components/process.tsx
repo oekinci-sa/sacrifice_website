@@ -4,7 +4,7 @@ import { processes } from "../constants";
 
 const Process = () => {
   return (
-    <div>
+    <div className="bg-sac-section-background">
       <p className="font-heading text-4xl font-bold text-center text-white my-20">
         Hisse Alım Sürecimiz
       </p>
@@ -23,7 +23,7 @@ const Process = () => {
             <p className="font-heading text-2xl font-bold text-white">
               {item.header}
             </p>
-            <p className="text-white ">{item.description}</p>
+            <p className="text-white">{item.description}</p>
           </div>
         ))}
       </div>

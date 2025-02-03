@@ -8,6 +8,7 @@ import { Download, Search } from "lucide-react";
 import { supabase } from "@/utils/supabaseClient";
 import { formatPhoneForDisplay } from "@/utils/formatters";
 import { useToast } from "@/hooks/use-toast";
+import { TripleInfo } from "@/app/(public)/components/triple-info";
 
 interface ShareholderInfo {
   shareholder_name: string;
@@ -136,63 +137,41 @@ export default function HisseSorgula() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="space-y-8">
-        {/* Title */}
-        <div className="font-heading font-bold text-4xl text-center mb-4">
-          Hisse Sorgula
+    <div className="container py-8 space-y-8">
+      <div className="flex flex-col items-center justify-center max-w-xl mx-auto space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-semibold">Hisse Sorgula</h1>
+          <p className="text-muted-foreground">
+            Hisse bilgilerinizi sorgulamak için telefon numaranızı giriniz.
+          </p>
         </div>
 
-        {/* Arama Alanı */}
-        <div className="flex gap-4">
+        <div className="w-full space-y-4">
           <Input
-            placeholder="Telefon numaranızı girin (05555555555)"
+            type="tel"
+            placeholder="05555555555"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="flex-1"
+            className="text-center text-lg"
           />
-          <Button onClick={handleSearch} disabled={loading}>
-            <Search className="h-4 w-4 mr-2" />
-            Sorgula
+          <Button
+            onClick={handleSearch}
+            className="w-full"
+            disabled={!phone || loading}
+          >
+            {loading ? (
+              "Yükleniyor..."
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Sorgula
+              </>
+            )}
           </Button>
         </div>
+
         {error && <p className="text-destructive mt-2 text-sm">{error}</p>}
 
-        {/* Üçlü Bilgi Alanı */}
-        <div className="grid grid-cols-3 gap-8">
-          <div>
-            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
-              Kapora Adresi
-            </h3>
-            <div className="space-y-2 text-muted-foreground">
-              <p>Kahramankazan Ciğir Köyü</p>
-              <p>Kesimhane Binası</p>
-              <p>No: 123</p>
-            </div>
-          </div>
-          <div>
-            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
-              Kapora
-            </h3>
-            <div className="space-y-2 text-muted-foreground">
-              <p>Minimum kapora tutarı: 2.000₺</p>
-              <p>Kapora ödemesi yapılmayan hisseler iptal edilecektir.</p>
-            </div>
-          </div>
-          <div>
-            <h3 className="font-heading text-xl font-bold text-sac-primary mb-4">
-              Tüm Ödemeler
-            </h3>
-            <div className="space-y-2 text-muted-foreground">
-              <p>
-                Tüm ödemeler en geç kurban kesim gününe kadar tamamlanmalıdır.
-              </p>
-              <p>Kesim günü nakit ödeme kabul edilmeyecektir.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Sonuç Alanı */}
         {shareholderInfo && (
           <div className="space-y-8">
             {/* Üst Navigasyon ve Başlık */}
@@ -369,6 +348,8 @@ export default function HisseSorgula() {
           </div>
         )}
       </div>
+
+      <TripleInfo />
     </div>
   );
 }

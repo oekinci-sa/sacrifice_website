@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { sacrificeSchema } from "@/types"
 import SacrificeInfo from "./sacrifice-info"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"

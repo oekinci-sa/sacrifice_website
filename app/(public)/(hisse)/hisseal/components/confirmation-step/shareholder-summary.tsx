@@ -2,9 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { sacrificeSchema } from "@/types"
-import SacrificeInfo from "./sacrifice-info"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
 import { useRouter } from "next/navigation"
@@ -43,25 +42,54 @@ const getDeliveryLocationText = (location: string) => {
     case "kesimhane":
       return "Kesimhanede Teslim"
     case "yenimahalle-pazar-yeri":
-      return "Yenimahalle Pazar Yeri"
+      return "Yenimahalle Pazar Yeri (+500₺)"
     case "kecioren-otoparki":
-      return "Keçiören Otoparkı"
+      return "Keçiören Otoparkı (+500₺)"
     default:
       return location
   }
 }
 
 const getGridClass = (shareholderCount: number) => {
-  if (shareholderCount <= 2 || shareholderCount === 4) {
-    return "grid-cols-2" // 2 columns for 1-2 or 4 shareholders
+  switch (shareholderCount) {
+    case 1:
+      return "grid grid-cols-1 [&>*]:w-1/2 [&>*]:mx-auto" // Tek kart, yarı genişlikte ve ortada
+    case 2:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İki kart, tam genişlikte yan yana
+    case 3:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
+    case 4:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli iki satır, tam genişlikte
+    case 5:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
+    case 6:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli üç satır, tam genişlikte
+    case 7:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
+    default:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // Varsayılan olarak tam genişlikte
   }
-  return "grid-cols-3" // 3 columns for 3, 5, 6, or 7 shareholders
 }
 
-const calculateTotalAmount = (sacrifice: sacrificeSchema | null, delivery_location: string) => {
-  if (!sacrifice) return 0
-  const deliveryFee = delivery_location !== "kesimhane" ? 500 : 0
-  return sacrifice.share_price + deliveryFee
+const formatSacrificeTime = (timeString: string | null) => {
+  if (!timeString) return '-';
+  try {
+    // ISO string'e çeviriyoruz
+    const date = new Date(timeString);
+    if (isNaN(date.getTime())) {
+      // Eğer geçerli bir tarih değilse, direkt string'i parse edelim
+      const [hours, minutes] = timeString.split(':');
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    }
+    return date.toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch (error) {
+    console.error('Tarih formatlanırken hata oluştu:', error);
+    return timeString; // Hata durumunda orijinal string'i gösterelim
+  }
 }
 
 export default function ShareholderSummary({
@@ -112,7 +140,6 @@ export default function ShareholderSummary({
 
       // Verileri DB'ye kaydet
       await createShareholders.mutateAsync(shareholderDataArray)
-      onApprove()
     } catch (error) {
       console.error("Hissedarlar kaydedilirken hata oluştu:", error)
     }
@@ -120,49 +147,70 @@ export default function ShareholderSummary({
 
   return (
     <div className="space-y-8">
-      <SacrificeInfo sacrifice={sacrifice} />
-
-      <div className={`grid ${getGridClass(shareholders.length)} gap-12`}>
+      <div className={getGridClass(shareholders.length)}>
         {shareholders.map((shareholder, index) => (
           <div
             key={index}
-            className="bg-[#F7F7F8] rounded-lg p-6 space-y-4"
+            className="bg-[#fcfcfa] rounded-lg border border-dashed border-[#c7ddcd] p-6"
           >
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">
-                {index + 1}. Hissedar
-              </h3>
+            <h3 className="text-lg font-semibold text-center mb-6">
+              {index + 1}. Hissedar Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-2 gap-8">
+              {/* Sol Sütun */}
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[#5b725e] block">Ad Soyad</span>
+                  <span className="text-black text-lg">{shareholder.name}</span>
+                </div>
+                <div>
+                  <span className="text-[#5b725e] block">Teslimat Tercihi</span>
+                  <span className="text-black text-lg">
+                    {getDeliveryLocationText(shareholder.delivery_location)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sağ Sütun */}
+              <div>
+                <span className="text-[#5b725e] block">Telefon</span>
+                <span className="text-black text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex">
-                <span className="text-muted-foreground w-24">Ad Soyad:</span>
-                <span>{shareholder.name}</span>
-              </div>
-              <div className="flex">
-                <span className="text-muted-foreground w-24">Telefon:</span>
-                <span>{formatPhoneNumber(shareholder.phone)}</span>
-              </div>
-              <div className="flex">
-                <span className="text-muted-foreground w-24">Teslimat:</span>
-                <span>{getDeliveryLocationText(shareholder.delivery_location)}</span>
-              </div>
-              <div className="pt-2 border-t">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Hisse Bedeli:</span>
-                  <span>{sacrifice?.share_price} ₺</span>
+            <div className="my-6 border-t border-dashed border-[#c7ddcd]" />
+
+            {/* Alt Bilgiler */}
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[#5b725e] block">Kurbanlık No</span>
+                  <span className="text-black text-lg">{sacrifice?.sacrifice_no}</span>
                 </div>
-                {shareholder.delivery_location !== "kesimhane" && (
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-muted-foreground">Teslimat Ücreti:</span>
-                    <span>{500} ₺</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-muted-foreground">Toplam:</span>
-                  <span>{calculateTotalAmount(sacrifice, shareholder.delivery_location)} ₺</span>
+                <div>
+                  <span className="text-[#5b725e] block">Hisse Bedeli</span>
+                  <span className="text-black text-lg">{sacrifice?.share_price} ₺</span>
                 </div>
               </div>
+
+              <div>
+                <span className="text-[#5b725e] block">Kesim Saati</span>
+                <span className="text-black text-lg">
+                  {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
+                </span>
+              </div>
+            </div>
+
+            <div className="my-6 border-t border-dashed border-[#c7ddcd]" />
+
+            <div className="flex justify-between items-center">
+              <span className="text-[#5b725e]">Toplam Ücret</span>
+              <span className="text-black text-lg font-medium">
+                {shareholder.delivery_location !== "kesimhane"
+                  ? (sacrifice?.share_price || 0) + 500
+                  : sacrifice?.share_price} ₺
+              </span>
             </div>
           </div>
         ))}

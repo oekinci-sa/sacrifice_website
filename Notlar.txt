@@ -19,6 +19,8 @@ Browser geri tuşu ile dönme
 Sayfayı kapatma
 Navigasyon butonlarından başka sayfaya geçmek
 
+2. adımda devam et denilince çıkan bazı uyarılara gerek yok zorunludur gibi.
+
 ------------------------
 Genel Bkış
 ------------------------

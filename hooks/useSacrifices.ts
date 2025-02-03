@@ -81,10 +81,6 @@ export const useUpdateSacrifice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-      toast({
-        title: "Başarılı",
-        description: "Kurbanlık bilgileri güncellendi."
-      })
     },
   })
 } 

@@ -2,9 +2,9 @@
 
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import React, { useState, useEffect } from "react";
-import Checkout from "./components/Checkout";
-import { columns } from "./components/columns";
-import { ShareSelectDialog } from "./components/share-select-dialog";
+import Checkout from "./components/shareholder-info-step/checkout";
+import { columns } from "./components/table-step/columns";
+import { ShareSelectDialog } from "./components/table-step/share-select-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -21,12 +21,13 @@ import {
   useUpdateSacrifice,
 } from "@/hooks/useSacrifices";
 import { useCreateShareholders } from "@/hooks/useShareholders";
-import ShareholderSummary from "./components/shareholder-summary";
+import ShareholderSummary from "./components/confirmation-step/shareholder-summary";
 import { supabase } from "@/utils/supabaseClient";
-import { Check } from "lucide-react";
-import { ShareFilters } from "./components/ShareFilters";
+import { ShareFilters } from "./components/table-step/ShareFilters";
 import { ColumnFiltersState } from "@tanstack/react-table";
 import { TripleInfo } from "@/app/(public)/components/triple-info"
+import ProgressBar from "./components/common/progress-bar";
+import { Check } from "lucide-react";
 
 const TIMEOUT_DURATION = 1000; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
@@ -80,11 +81,10 @@ const Page = () => {
   useEffect(() => {
     let isNavigating = false;
 
-    const handleRouteChange = async (url: string) => {
+    const handleRouteChange = async (url: string): Promise<boolean> => {
       if (isNavigating) return true;
-      if (isSuccess) return true; // Allow navigation if in success state
+      if (isSuccess) return true;
 
-      // Only handle if we're in details or confirmation step
       if (currentStep !== "details" && currentStep !== "confirmation")
         return true;
       if (!selectedSacrifice || !formData.length) return true;
@@ -92,7 +92,6 @@ const Page = () => {
       isNavigating = true;
 
       try {
-        // Get current sacrifice info
         const { data: currentSacrifice, error } = await supabase
           .from("sacrifice_animals")
           .select("empty_share")
@@ -108,13 +107,11 @@ const Page = () => {
           return false;
         }
 
-        // Update empty_share in DB
         await updateSacrifice.mutateAsync({
           sacrificeId: selectedSacrifice.sacrifice_id,
           emptyShare: currentSacrifice.empty_share + formData.length,
         });
 
-        // Reset store after successful update
         resetStore();
         goToStep("selection");
         return true;
@@ -138,30 +135,26 @@ const Page = () => {
       }
     };
 
-    // Listen for navigation events
     window.addEventListener("popstate", handlePopState);
 
-    // Create a proxy for pushState and replaceState
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
 
-    window.history.pushState = function () {
-      const url = arguments[2] as string;
-      const shouldContinue = handleRouteChange(url);
-      if (shouldContinue) {
-        return originalPushState.apply(this, arguments as any);
-      }
-      return undefined;
-    };
+    function createHistoryStateHandler(originalFn: Function) {
+      return function(this: typeof window.history, data: any, unused: string, url?: string) {
+        const args: [any, string, string?] = [data, unused, url];
+        if (url) {
+          handleRouteChange(url).then((shouldContinue) => {
+            if (shouldContinue) {
+              originalFn.apply(this, args);
+            }
+          });
+        }
+      };
+    }
 
-    window.history.replaceState = function () {
-      const url = arguments[2] as string;
-      const shouldContinue = handleRouteChange(url);
-      if (shouldContinue) {
-        return originalReplaceState.apply(this, arguments as any);
-      }
-      return undefined;
-    };
+    window.history.pushState = createHistoryStateHandler(originalPushState);
+    window.history.replaceState = createHistoryStateHandler(originalReplaceState);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
@@ -411,78 +404,7 @@ const Page = () => {
             }}
             className="w-full"
           >
-            <div className="relative mt-12 mb-16">
-              <div className="w-full flex justify-between items-start">
-                {/* Step 1 */}
-                <div className="flex flex-col items-start">
-                  <div className="flex items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${stepNumber >= 1
-                          ? "bg-sac-primary text-white"
-                          : "bg-muted text-muted-foreground"
-                        }`}
-                    >
-                      {stepNumber > 1 ? <Check className="h-5 w-5" /> : "1"}
-                    </div>
-                    <h3
-                      className={`ml-3 text-lg font-semibold ${stepNumber >= 1
-                        ? "text-sac-primary"
-                        : "text-muted-foreground"
-                        }`}
-                    >
-                      Hisse Seçimi
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="flex flex-col items-start">
-                  <div className="flex items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${stepNumber >= 2
-                          ? "bg-sac-primary text-white"
-                          : "bg-muted text-muted-foreground"
-                        }`}
-                    >
-                      {stepNumber > 2 ? <Check className="h-5 w-5" /> : "2"}
-                    </div>
-                    <h3
-                      className={`ml-3 text-lg font-semibold ${stepNumber >= 2
-                        ? "text-sac-primary"
-                        : "text-muted-foreground"
-                        }`}
-                    >
-                      Hissedar Bilgileri
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="flex flex-col items-start">
-                  <div className="flex items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium transition-all duration-300
-                      ${stepNumber === 3
-                          ? "bg-sac-primary text-white"
-                          : "bg-muted text-muted-foreground"
-                        }`}
-                    >
-                      3
-                    </div>
-                    <h3
-                      className={`ml-3 text-lg font-semibold ${stepNumber >= 3
-                        ? "text-sac-primary"
-                        : "text-muted-foreground"
-                        }`}
-                    >
-                      Hisse Onay
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProgressBar currentStep={currentStep} />
 
             <TabsContent value="tab-1">
               <CustomDataTable

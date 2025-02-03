@@ -1,16 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectSeparator,
-} from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,16 +12,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { sacrificeSchema } from "@/types"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useToast } from "@/hooks/use-toast"
-import { X, ArrowLeft, ArrowRight, Plus } from "lucide-react"
 import { supabase } from "@/utils/supabaseClient"
 import { useUpdateSacrifice } from "@/hooks/useSacrifices"
 import SacrificeInfo from "./sacrifice-info"
 import { useSacrifices } from "@/hooks/useSacrifices"
+import ShareholderForm from "./shareholder-form"
+import TripleButtons from "../common/triple-buttons"
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
@@ -60,11 +47,31 @@ interface CheckoutProps {
   setLastInteractionTime: (time: number) => void
 }
 
+type FormErrors = {
+  name?: string[]
+  phone?: string[]
+  delivery_location?: string[]
+}
+
 const getGridClass = (shareholderCount: number) => {
-  if (shareholderCount <= 2 || shareholderCount === 4) {
-    return "grid-cols-2" // 2 columns for 1-2 or 4 shareholders
+  switch (shareholderCount) {
+    case 1:
+      return "grid grid-cols-1 [&>*]:w-1/2 [&>*]:mx-auto" // Tek div, yarı genişlikte ve ortada
+    case 2:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İki div, tam genişlikte yan yana
+    case 3:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
+    case 4:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli iki satır, tam genişlikte
+    case 5:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
+    case 6:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli üç satır, tam genişlikte
+    case 7:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
+    default:
+      return "grid grid-cols-2 gap-12 [&>*]:w-full" // Varsayılan olarak tam genişlikte
   }
-  return "grid-cols-3" // 3 columns for 3, 5, 6, or 7 shareholders
 }
 
 export default function Checkout({
@@ -78,7 +85,7 @@ export default function Checkout({
   setLastInteractionTime,
 }: CheckoutProps) {
   const [showBackDialog, setShowBackDialog] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>[]>([])
+  const [errors, setErrors] = useState<FormErrors[]>([])
   const [userAction, setUserAction] = useState<"confirm" | "cancel" | null>(null)
   const [showLastShareDialog, setShowLastShareDialog] = useState(false)
   const [shareToRemove, setShareToRemove] = useState<number | null>(null)
@@ -107,7 +114,7 @@ export default function Checkout({
         if (!newErrors[index]) {
           newErrors[index] = {}
         }
-        newErrors[index][field] = error.errors[0].message
+        newErrors[index][field] = [error.errors[0].message]
         setErrors(newErrors)
       }
     }
@@ -138,13 +145,13 @@ export default function Checkout({
     if (!value) {
       switch (field) {
         case "name":
-          newErrors[index].name = "Ad soyad zorunludur"
+          newErrors[index].name = ["Ad soyad zorunludur"]
           break
         case "phone":
-          newErrors[index].phone = "Telefon numarası zorunludur"
+          newErrors[index].phone = ["Telefon numarası zorunludur"]
           break
         case "delivery_location":
-          newErrors[index].delivery_location = "Teslimat noktası seçiniz"
+          newErrors[index].delivery_location = ["Teslimat noktası seçiniz"]
           break
       }
       setErrors(newErrors)
@@ -154,9 +161,9 @@ export default function Checkout({
     // Telefon numarası için özel kontroller
     if (field === "phone") {
       if (!/^0/.test(value)) {
-        newErrors[index].phone = "Telefon numarası 0 ile başlamalıdır"
+        newErrors[index].phone = ["Telefon numarası 0 ile başlamalıdır"]
       } else if (value.replace(/\D/g, '').length !== 11) {
-        newErrors[index].phone = "Telefon numarası 11 haneli olmalıdır"
+        newErrors[index].phone = ["Telefon numarası 11 haneli olmalıdır"]
       } else {
         delete newErrors[index].phone
       }
@@ -172,17 +179,24 @@ export default function Checkout({
       setErrors(newErrors)
     } catch (error) {
       if (error instanceof z.ZodError) {
-        newErrors[index][field] = error.errors[0].message
+        newErrors[index][field] = [error.errors[0].message]
         setErrors(newErrors)
       }
     }
   }
 
   // Select değişikliğini yakalayalım
-  const handleSelectChange = (index: number, value: string) => {
+  const handleSelectChange = (index: number, field: keyof FormData, value: string) => {
+    console.log('handleSelectChange called with:', { index, field, value });
     setLastInteractionTime(Date.now()); // Reset timeout
-    handleInputChange(index, "delivery_location", value);
-    handleInputBlur(index, "delivery_location", value);
+    const newFormData = [...formData];
+    newFormData[index] = {
+      ...newFormData[index],
+      [field]: value,
+    };
+    console.log('Updated form data:', newFormData);
+    setFormData(newFormData);
+    handleInputBlur(index, field, value);
   }
 
   const handleAddShareholder = async () => {
@@ -232,13 +246,6 @@ export default function Checkout({
         emptyShare: currentSacrifice.empty_share - 1,
       });
 
-      // Son hisse eklendiyse toast göster
-      if (currentSacrifice.empty_share === 1) {
-        toast({
-          title: "Başarılı",
-          description: "Bu Kurbanlık Tamamlandı!",
-        });
-      }
     } catch (error) {
       // Hata durumunda form state'ini geri al
       const newFormData = [...formData];
@@ -372,50 +379,45 @@ export default function Checkout({
   }, [userAction, onBack, formData])
 
   const handleContinue = () => {
-    let hasErrors = false
-    const newErrors = [...errors]
+    let hasErrors = false;
+    const newErrors: FormErrors[] = formData.map(() => ({}));
 
     // Tüm formları validate et
     formData.forEach((data, index) => {
-      if (!newErrors[index]) newErrors[index] = {}
-
-      // Her alan için boş kontrol
-      if (!data.name) {
-        newErrors[index].name = "Ad soyad zorunludur"
-        hasErrors = true
+      // Zod validasyonu
+      try {
+        formSchema.parse(data);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          error.errors.forEach((err) => {
+            if (err.path[0]) {
+              const field = err.path[0] as keyof FormErrors;
+              if (!newErrors[index][field]) {
+                newErrors[index][field] = [];
+              }
+              newErrors[index][field] = [err.message];
+              hasErrors = true;
+            }
+          });
+        }
       }
-
-      if (!data.phone) {
-        newErrors[index].phone = "Telefon numarası zorunludur"
-        hasErrors = true
-      } else if (!/^0/.test(data.phone)) {
-        newErrors[index].phone = "Telefon numarası 0 ile başlamalıdır"
-        hasErrors = true
-      } else if (data.phone.replace(/\D/g, '').length !== 11) {
-        newErrors[index].phone = "Telefon numarası 11 haneli olmalıdır"
-        hasErrors = true
-      }
-
-      if (!data.delivery_location) {
-        newErrors[index].delivery_location = "Teslimat noktası seçiniz"
-        hasErrors = true
-      }
-    })
+    });
 
     // Hataları state'e kaydet
-    setErrors(newErrors)
+    setErrors(newErrors);
 
     if (hasErrors) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Lütfen tüm alanları doldurunuz",
+        description: "Lütfen tüm alanları doğru şekilde doldurunuz",
       });
-      return
+      return;
     }
 
-    onApprove()
-  }
+    // Hata yoksa devam et
+    setCurrentStep("confirmation");
+  };
 
   return (
     <div className="space-y-8">
@@ -424,116 +426,32 @@ export default function Checkout({
           <SacrificeInfo sacrifice={sacrifice} />
         </div>
       </div>
-      <div className="flex justify-end items-center bg-white">
-        {currentSacrifice && currentSacrifice.empty_share > 0 && (
-          <div className="flex justify-end">
-            <Button
-              onClick={handleAddShareholder}
-              className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300"
-              disabled={formData.length >= 7 || isAddingShare || updateSacrifice.isPending}
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Yeni Hissedar Ekle
-            </Button>
-          </div>
-        )}
-      </div>
 
       <div className={`grid ${getGridClass(formData.length)} gap-12 mt-8`}>
         {formData.map((data, index) => (
-          <div key={index} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                {index + 1}. Hissedar
-              </h3>
-              <Button
-                variant="ghost"
-                className="flex items-center justify-center gap-2 bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300"
-                onClick={() => handleRemoveShareholder(index)}
-              >
-                <span className="text-lg flex items-center">×</span>
-                <span>Hisseyi sil</span>
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="relative pb-8">
-                <Input
-                  placeholder="Ad Soyad"
-                  value={data.name}
-                  onChange={(e) => handleInputChange(index, "name", e.target.value)}
-                  onBlur={(e) => handleInputBlur(index, "name", e.target.value)}
-                  className="bg-[#F7F7F8] border-0 text-[#4B5675] focus:bg-[#F7F7F8] focus-visible:ring-0 h-11"
-                  style={{ fontSize: '1.125rem' }}
-                />
-                {errors[index]?.name && (
-                  <p className="text-sm text-destructive absolute -bottom-1 left-0">{errors[index].name}</p>
-                )}
-              </div>
-              <div className="relative pb-8">
-                <Input
-                  placeholder="Telefon (05XX XXX XX XX)"
-                  value={data.phone}
-                  onChange={(e) => handleInputChange(index, "phone", e.target.value)}
-                  onBlur={(e) => handleInputBlur(index, "phone", e.target.value)}
-                  className="bg-[#F7F7F8] border-0 text-[#4B5675] focus:bg-[#F7F7F8] focus-visible:ring-0 h-11"
-                  style={{ fontSize: '1.125rem' }}
-                />
-                {errors[index]?.phone && (
-                  <p className="text-sm text-destructive absolute -bottom-1 left-0">{errors[index].phone}</p>
-                )}
-              </div>
-              <div className="relative pb-8">
-                <Select
-                  value={data.delivery_location}
-                  onValueChange={(value) => {
-                    handleSelectChange(index, value)
-                  }}
-                >
-                  <SelectTrigger
-                    className="bg-[#F7F7F8] border-0 text-[#4B5675] focus:bg-[#F7F7F8] focus-visible:ring-0 h-11"
-                    style={{ fontSize: '1.125rem' }}
-                  >
-                    <SelectValue placeholder="Teslimat Noktası" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kesimhane" className="text-lg">Kesimhanede Teslim</SelectItem>
-                    <SelectItem value="yenimahalle-pazar-yeri" className="text-lg">Yenimahalle Pazar Yeri (+500₺)</SelectItem>
-                    <SelectItem value="kecioren-otoparki" className="text-lg">Keçiören Otoparkı (+500₺)</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors[index]?.delivery_location && (
-                  <p className="text-sm text-destructive absolute -bottom-1 left-0">{errors[index].delivery_location}</p>
-                )}
-              </div>
-            </div>
+          <div key={index}>
+            <ShareholderForm
+              data={data}
+              index={index}
+              errors={errors[index] || {}}
+              onInputChange={handleInputChange}
+              onInputBlur={handleInputBlur}
+              onSelectChange={(index, field, value) => handleSelectChange(index, field, value)}
+              onRemove={handleRemoveShareholder}
+            />
           </div>
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-4 pt-6">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">Geri Dön</span>
-          <Button
-            variant="ghost"
-            className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 w-10 rounded-full"
-            onClick={() => setShowBackDialog(true)}
-          >
-            <ArrowLeft className="h-12 w-12" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 w-10 rounded-full"
-            onClick={handleContinue}
-          >
-            <ArrowRight className="h-12 w-12" />
-          </Button>
-          <span className="text-lg">Devam Et</span>
-        </div>
-      </div>
+      <TripleButtons
+        onBack={() => setShowBackDialog(true)}
+        onContinue={handleContinue}
+        onAddShareholder={handleAddShareholder}
+        canAddShareholder={Boolean(currentSacrifice?.empty_share && currentSacrifice.empty_share > 0)}
+        isAddingShare={isAddingShare}
+        isUpdatePending={updateSacrifice.isPending}
+        maxShareholderReached={formData.length >= 7}
+      />
 
       <AlertDialog
         open={showBackDialog}

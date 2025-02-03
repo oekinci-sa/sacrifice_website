@@ -98,12 +98,11 @@ export default function PhoneVerificationDialog({
           title: "Başarılı",
           description: "Telefon numaranız doğrulandı.",
         })
+
         onVerificationComplete(formattedPhone)
         setSuccess(true)
         goToStep("success")
-        setStep('phone')
-        setPhone("")
-        setOtp(["", "", "", "", "", ""])
+        handleClose()
       } else {
         setError("Geçersiz doğrulama kodu")
       }

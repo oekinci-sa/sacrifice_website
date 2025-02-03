@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -30,6 +30,7 @@ export default function DetailsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("0");
   const [sacrificeNo, setSacrificeNo] = useState<string>("");
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
@@ -44,7 +45,11 @@ export default function DetailsPage() {
         .single();
 
       if (sacrificeError) {
-        toast.error("Kurbanlık bilgileri yüklenirken hata oluştu");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri yüklenirken bir hata oluştu.",
+        });
         console.error(sacrificeError);
         setLoading(false);
         return;
@@ -58,7 +63,11 @@ export default function DetailsPage() {
         .eq("sacrifice_id", id);
 
       if (error) {
-        toast.error("Veri yüklenirken hata oluştu");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Veri yüklenirken bir hata oluştu.",
+        });
         console.error(error);
       } else if (data) {
         // Add share price to each shareholder
@@ -90,9 +99,16 @@ export default function DetailsPage() {
         .eq("shareholder_id", shareholderId);
 
       if (error) throw error;
-      toast.success("Bilgiler başarıyla güncellendi");
+      toast({
+        title: "Başarılı",
+        description: "Kurbanlık bilgileri güncellendi.",
+      });
     } catch (error) {
-      toast.error("Güncelleme sırasında bir hata oluştu");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Güncelleme sırasında bir hata oluştu.",
+      });
       console.error(error);
     }
   }

@@ -10,7 +10,7 @@ import Image from "next/image";
 import html2pdf from "html2pdf.js";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 interface PageProps {
@@ -117,6 +117,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchShareholder = async () => {
@@ -164,6 +165,11 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       } catch (err) {
         console.error("Error fetching shareholder:", err);
         setError("Hissedar bilgileri yüklenirken bir hata oluştu");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedar bilgileri yüklenirken bir hata oluştu",
+        });
       } finally {
         setLoading(false);
       }
@@ -212,7 +218,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [params.id]);
+  }, [params.id, toast]);
 
   const generatePDF = () => {
     const pdfContent = document.getElementById("pdf-content");
@@ -249,22 +255,28 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         shareholder.sacrifice.share_price +
         (formData.delivery_location !== "kesimhane" ? 500 : 0) -
         shareholder.paid_amount,
-      notes: formData.notes || null,
+      notes: formData.notes,
     };
 
     try {
       const { error } = await supabase
         .from("shareholders")
         .update(updatedData)
-        .eq("shareholder_id", shareholder.shareholder_id);
+        .eq("shareholder_id", params.id);
 
       if (error) throw error;
 
-      toast.success("Güncelleme başarılı");
-      router.refresh();
+      toast({
+        title: "Başarılı",
+        description: "Hissedar bilgileri güncellendi.",
+      });
+      setIsEditing(false);
     } catch (error) {
-      console.error("Error updating shareholder:", error);
-      toast.error("Güncelleme başarısız");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Bilgiler güncellenirken bir hata oluştu.",
+      });
     }
   };
 

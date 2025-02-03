@@ -8,6 +8,7 @@ import { Instrument_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "./providers";
 
+
 const inter = Inter({ subsets: ["latin"] });
 import "@/app/globals.css";
 

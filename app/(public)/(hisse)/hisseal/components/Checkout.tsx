@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { X, ArrowLeft, ArrowRight, Plus } from "lucide-react"
 import { supabase } from "@/utils/supabaseClient"
 import { useUpdateSacrifice } from "@/hooks/useSacrifices"
@@ -88,6 +88,8 @@ export default function Checkout({
   // React Query ile güncel sacrifice verisini al
   const { data: sacrifices } = useSacrifices()
   const currentSacrifice = sacrifices?.find(s => s.sacrifice_id === sacrifice?.sacrifice_id)
+
+  const { toast } = useToast()
 
   const validateField = (index: number, field: keyof FormData, value: string) => {
     try {
@@ -198,13 +200,21 @@ export default function Checkout({
         .single();
 
       if (error || !latestSacrifice) {
-        toast.error("Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+        });
         return;
       }
 
       // Eğer empty_share değeri değiştiyse işlemi iptal et
       if (latestSacrifice.empty_share !== currentSacrifice.empty_share) {
-        toast.error("Kurbanlık bilgileri değişti. Lütfen sayfayı yenileyiniz.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri değişti. Lütfen sayfayı yenileyiniz.",
+        });
         return;
       }
 
@@ -224,9 +234,9 @@ export default function Checkout({
 
       // Son hisse eklendiyse toast göster
       if (currentSacrifice.empty_share === 1) {
-        toast.success("Bu Kurbanlık Tamamlandı!", {
-          description: "Bu kurbanlıktaki son hisseyi eklediniz.",
-          duration: 5000,
+        toast({
+          title: "Başarılı",
+          description: "Bu Kurbanlık Tamamlandı!",
         });
       }
     } catch (error) {
@@ -239,7 +249,11 @@ export default function Checkout({
       newErrors.pop();
       setErrors(newErrors);
 
-      toast.error("Yeni hisse eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Yeni hisse eklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+      });
     } finally {
       setIsAddingShare(false);
     }
@@ -263,7 +277,11 @@ export default function Checkout({
         .single();
 
       if (error || !currentSacrifice) {
-        toast.error("Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+        });
         return;
       }
 
@@ -282,7 +300,11 @@ export default function Checkout({
       newErrors.splice(index, 1);
       setErrors(newErrors);
     } catch (error) {
-      toast.error("Hisse silinirken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hisse silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+      });
     }
   }
 
@@ -297,7 +319,11 @@ export default function Checkout({
           .single();
 
         if (error || !currentSacrifice) {
-          toast.error("Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.");
+          toast({
+            variant: "destructive",
+            title: "Hata",
+            description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+          });
           return;
         }
 
@@ -311,7 +337,11 @@ export default function Checkout({
         resetStore();
         setCurrentStep("selection");
       } catch (error) {
-        toast.error("İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+        });
       }
     }
 
@@ -376,7 +406,11 @@ export default function Checkout({
     setErrors(newErrors)
 
     if (hasErrors) {
-      toast.error("Lütfen tüm alanları doldurunuz")
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen tüm alanları doldurunuz",
+      });
       return
     }
 

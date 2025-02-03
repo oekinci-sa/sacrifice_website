@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/utils/supabaseClient"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { cn, formatCurrency } from "@/lib/utils"
 
 const baseColumns: ColumnDef<ShareholderType>[] = [
@@ -211,11 +211,18 @@ const actionsColumn: ColumnDef<ShareholderType> = {
         .eq("shareholder_id", row.original.shareholder_id)
 
       if (error) {
-        toast.error("Hissedar silinirken bir hata oluştu")
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedar silinirken bir hata oluştu.",
+        })
         return
       }
 
-      toast.success("Hissedar başarıyla silindi")
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi.",
+      })
       router.refresh()
     }
 

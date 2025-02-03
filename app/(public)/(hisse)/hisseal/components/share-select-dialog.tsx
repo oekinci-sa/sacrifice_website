@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { sacrificeSchema } from "@/types";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 

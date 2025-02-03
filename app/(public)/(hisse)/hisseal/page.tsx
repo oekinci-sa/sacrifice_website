@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Checkout from "./components/Checkout";
 import { columns } from "./components/columns";
 import { ShareSelectDialog } from "./components/share-select-dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter, usePathname } from "next/navigation";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { Button } from "@/components/ui/button";
-import { useHisseStore } from "@/store/useHisseStore";
+import { useHisseStore } from "@/stores/useHisseStore";
 import {
   useSacrifices,
   useUpdateSacrifice,

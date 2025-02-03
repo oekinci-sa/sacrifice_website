@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 interface ShareholderData {
   shareholder_name: string
@@ -18,6 +18,7 @@ interface ShareholderData {
 
 export const useCreateShareholders = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (shareholders: ShareholderData[]) => {
@@ -33,11 +34,18 @@ export const useCreateShareholders = () => {
       return data
     },
     onSuccess: () => {
-      toast.success("Hissedarlar başarıyla kaydedildi")
+      toast({
+        title: "Başarılı",
+        description: "Hissedarlar başarıyla kaydedildi",
+      })
       queryClient.invalidateQueries({ queryKey: ["shareholders"] })
     },
     onError: (error) => {
-      toast.error("Hissedarlar kaydedilirken bir hata oluştu: " + error.message)
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedarlar kaydedilirken bir hata oluştu: " + error.message,
+      })
     },
   })
 } 

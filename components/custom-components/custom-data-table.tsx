@@ -55,7 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter"
 import { supabase } from "@/utils/supabaseClient"
@@ -140,6 +140,8 @@ export function CustomDataTable<TData, TValue>({
 
   const sharePriceFacets = table.getColumn("share_price")?.getFacetedUniqueValues();
   const emptyShareFacets = table.getColumn("empty_share")?.getFacetedUniqueValues();
+
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const fetchSharePrices = async () => {

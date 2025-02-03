@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Download, Search } from "lucide-react";
 import { supabase } from "@/utils/supabaseClient";
 import { formatPhoneForDisplay } from "@/utils/formatters";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShareholderInfo {
   shareholder_name: string;
@@ -31,9 +31,15 @@ export default function HisseSorgula() {
   const [shareholderInfo, setShareholderInfo] =
     useState<ShareholderInfo | null>(null);
 
+  const { toast } = useToast();
+
   const handleSearch = async () => {
     if (!phone) {
-      toast.error("Lütfen bir telefon numarası girin");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen bir telefon numarası girin",
+      });
       return;
     }
 
@@ -92,9 +98,20 @@ export default function HisseSorgula() {
           `Bu telefon numarasına ait ${data.length} kayıt bulundu. En son kayıt gösteriliyor.`
         );
       }
+
+      toast({
+        title: "Başarılı",
+        description: "Hissedar bilgileri güncellendi.",
+      });
     } catch (err) {
       console.error("Error fetching shareholder:", err);
       setError("Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+      });
     } finally {
       setLoading(false);
     }

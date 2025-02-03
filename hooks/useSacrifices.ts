@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
 import { sacrificeSchema } from "@/types"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { useEffect } from "react"
 
 // Fetch all sacrifices
 export const useSacrifices = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   useEffect(() => {
     const channel = supabase.channel('db-changes')
@@ -18,7 +19,6 @@ export const useSacrifices = () => {
           table: 'sacrifice_animals'
         },
         () => {
-          // Invalidate and refetch
           queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
         }
       )
@@ -38,7 +38,11 @@ export const useSacrifices = () => {
         .order("sacrifice_no", { ascending: true })
 
       if (error) {
-        toast.error("Veri yüklenirken bir hata oluştu: " + error.message)
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Veri yüklenirken bir hata oluştu: " + error.message
+        })
         throw error
       }
 
@@ -51,6 +55,7 @@ export const useSacrifices = () => {
 // Update sacrifice empty_share
 export const useUpdateSacrifice = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({
@@ -66,12 +71,20 @@ export const useUpdateSacrifice = () => {
         .eq("sacrifice_id", sacrificeId)
 
       if (error) {
-        toast.error("Hisse seçimi yapılırken bir hata oluştu: " + error.message)
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hisse seçimi yapılırken bir hata oluştu: " + error.message
+        })
         throw error
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
+      toast({
+        title: "Başarılı",
+        description: "Kurbanlık bilgileri güncellendi."
+      })
     },
   })
 }
@@ -79,6 +92,7 @@ export const useUpdateSacrifice = () => {
 // Create shareholders
 export const useCreateShareholders = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   let hasCalled = false
 
   return useMutation({
@@ -106,7 +120,11 @@ export const useCreateShareholders = () => {
 
       if (error) {
         console.error("Supabase error details:", error)
-        toast.error(`Hissedar bilgileri kaydedilirken bir hata oluştu: ${error.message}`)
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: `Hissedar bilgileri kaydedilirken bir hata oluştu: ${error.message}`
+        })
         throw error
       }
 

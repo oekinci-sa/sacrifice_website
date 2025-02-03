@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { supabase } from '@/utils/supabaseClient'
-import { toast } from 'sonner'
 
 interface Shareholder {
   shareholder_name: string
@@ -70,14 +69,11 @@ export const useShareholderStore = create<ShareholderStore>((set, get) => ({
 
       if (error) {
         console.error("Supabase error details:", error)
-        toast.error(`Hissedar bilgileri kaydedilirken bir hata oluştu: ${error.message}`)
         throw error
       }
 
-      toast.success("Hissedar bilgileri başarıyla kaydedildi")
       return data
     } catch (error) {
-      // Error is already handled above
       throw error
     } finally {
       set({ isLoading: false })

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { ShareholderType } from "@/types";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -151,6 +151,7 @@ export const columns: ColumnDef<ShareholderType>[] = [
     id: "actions",
     cell: ({ row }) => {
       const router = useRouter();
+      const { toast } = useToast();
       
       return (
         <div className="flex justify-center items-center gap-2">
@@ -204,11 +205,18 @@ export const columns: ColumnDef<ShareholderType>[] = [
                       .eq("shareholder_id", row.original.shareholder_id);
 
                     if (error) {
-                      toast.error("Hissedar silinirken bir hata oluştu");
+                      toast({
+                        variant: "destructive",
+                        title: "Hata",
+                        description: "Hissedar silinirken bir hata oluştu.",
+                      });
                       return;
                     }
 
-                    toast.success("Hissedar başarıyla silindi");
+                    toast({
+                      title: "Başarılı",
+                      description: "Hissedar başarıyla silindi.",
+                    });
                     window.location.reload();
                   }}
                   className="bg-destructive hover:bg-destructive/90"

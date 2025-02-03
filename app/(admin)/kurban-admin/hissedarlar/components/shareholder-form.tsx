@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -80,6 +80,8 @@ export function ShareholderForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { toast } = useToast();
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -119,17 +121,17 @@ export function ShareholderForm({
 
       if (error) {
         console.error("Supabase update error:", error);
-        toast.error("Güncelleme başarısız", {
-          description:
-            "Hissedar bilgileri güncellenirken bir hata oluştu. Lütfen tekrar deneyin.",
-          duration: 3000,
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
         });
         throw error;
       }
 
-      toast.success("Güncelleme başarılı", {
-        description: "Hissedar bilgileri başarıyla güncellendi.",
-        duration: 3000,
+      toast({
+        title: "Başarılı",
+        description: "Hissedar bilgileri güncellendi.",
       });
       router.refresh();
     } catch (error) {
@@ -153,18 +155,18 @@ export function ShareholderForm({
 
       if (error) {
         console.error("Supabase deletion error:", error);
-        toast.error("Silme işlemi başarısız", {
-          description:
-            "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
-          duration: 3000,
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
         });
         throw error;
       }
 
       console.log("Shareholder deleted successfully");
-      toast.success("Silme işlemi başarılı", {
+      toast({
+        title: "Başarılı",
         description: `${shareholder.shareholder_name} isimli hissedar başarıyla silindi.`,
-        duration: 3000,
       });
 
       setShowDeleteDialog(false);
@@ -273,14 +275,14 @@ export function ShareholderForm({
         <Label htmlFor="sacrifice_consent" className="text-base">Vekalet</Label>
         <Select
           name="sacrifice_consent"
-          defaultValue={shareholder.sacrifice_consent}
+          defaultValue={shareholder.sacrifice_consent ? "true" : "false"}
         >
           <SelectTrigger className="bg-[#F7F7F8] border-0 text-base">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="verildi" className="text-base">Verildi</SelectItem>
-            <SelectItem value="bekleniyor" className="text-base">Bekleniyor</SelectItem>
+            <SelectItem value="true" className="text-base">Verildi</SelectItem>
+            <SelectItem value="false" className="text-base">Bekleniyor</SelectItem>
           </SelectContent>
         </Select>
       </div>

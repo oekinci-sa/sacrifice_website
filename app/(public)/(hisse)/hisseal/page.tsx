@@ -18,8 +18,8 @@ import { useHisseStore } from "@/stores/useHisseStore";
 import {
   useSacrifices,
   useUpdateSacrifice,
-  useCreateShareholders,
 } from "@/hooks/useSacrifices";
+import { useCreateShareholders } from "@/hooks/useShareholders";
 import ShareholderSummary from "./components/shareholder-summary";
 import { supabase } from "@/utils/supabaseClient";
 import { Check } from "lucide-react";
@@ -367,11 +367,15 @@ const Page = () => {
         selectedSacrifice.share_price +
         (data.delivery_location !== "kesimhane" ? 500 : 0),
       sacrifice_consent: false,
+      last_edited_by: data.name,
+      purchased_by: data.name
     }));
 
     try {
-      await createShareholders.mutateAsync(shareholders);
-      router.push("/hissesorgula");
+      const result = await createShareholders.mutateAsync(shareholders);
+      if (result !== null) {
+        router.push("/hissesorgula");
+      }
     } catch (error) {
       // Error is handled in the mutation
     }

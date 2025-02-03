@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
-import { useCreateShareholders } from "../hooks/useShareholders"
+import { useCreateShareholders } from "@/hooks/useShareholders"
 
 type Step = "selection" | "details" | "confirmation"
 

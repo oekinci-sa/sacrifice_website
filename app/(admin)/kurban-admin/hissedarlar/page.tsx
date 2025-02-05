@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import { CustomStatistics } from "@/components/custom-components/custom-statistics";
 import { supabase } from "@/utils/supabaseClient";
-import { shareholderSchema } from "@/types";
+
+interface RecentActivity {
+  event_id: number;
+  table_name: string;
+  row_id: string;
+  column_name: string;
+  old_value: string | null;
+  new_value: string | null;
+  change_type: string;
+  description: string;
+  change_owner: string;
+  changed_at: string;
+}
 
 interface ShareholderStats {
   missingDeposits: number;
@@ -25,7 +37,7 @@ export default function HissedarlarPage() {
     },
     totalShareholders: 0,
   });
-  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -69,6 +81,17 @@ export default function HissedarlarPage() {
     fetchData();
   }, []);
 
+  // Format activities for CustomStatistics
+  const formattedActivities = recentActivities.map(activity => ({
+    event_id: activity.event_id.toString(),
+    changed_at: activity.changed_at,
+    description: activity.description,
+    change_type: activity.change_type as "Ekleme" | "Güncelleme" | "Silme",
+    column_name: activity.column_name,
+    old_value: activity.old_value || "",
+    new_value: activity.new_value || "",
+  }));
+
   return (
     <div className="space-y-8">
       <div>
@@ -77,7 +100,7 @@ export default function HissedarlarPage() {
           Hissedarların genel durumu ve detayları
         </p>
       </div>
-      <CustomStatistics stats={stats} recentActivities={recentActivities} />
+      <CustomStatistics stats={stats} recentActivities={formattedActivities} />
     </div>
   );
 } 

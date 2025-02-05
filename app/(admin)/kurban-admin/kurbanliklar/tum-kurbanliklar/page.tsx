@@ -6,11 +6,9 @@ import { columns } from "../components/columns";
 import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema, ShareholderDetails } from "@/types";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
-import { ColumnFiltersState } from "@tanstack/react-table";
 
 export default function TumKurbanliklarPage() {
   const [data, setData] = useState<sacrificeSchema[]>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
     async function fetchData() {

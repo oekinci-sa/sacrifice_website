@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useRef, KeyboardEvent } from "react"
-import { X } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { useHisseStore } from "@/stores/useHisseStore"
 import { useToast } from "@/hooks/use-toast"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 
 interface PhoneVerificationDialogProps {
   open: boolean
@@ -27,7 +27,6 @@ export default function PhoneVerificationDialog({
   open,
   onOpenChange,
   onVerificationComplete,
-  shareholders,
 }: PhoneVerificationDialogProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [phone, setPhone] = useState("")
@@ -36,14 +35,6 @@ export default function PhoneVerificationDialog({
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
   const { setSuccess, goToStep } = useHisseStore()
-  const inputRefs = [
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-  ]
 
   const handlePhoneSubmit = () => {
     // Telefon numarasını temizle ve formatla
@@ -57,24 +48,11 @@ export default function PhoneVerificationDialog({
     setStep('otp')
   }
 
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return // Sadece tek karakter
-
-    const newOtp = [...otp]
-    newOtp[index] = value
-
-    setOtp(newOtp)
-
-    // Sonraki input'a geç
-    if (value !== "" && index < 5) {
-      inputRefs[index + 1].current?.focus()
-    }
-  }
-
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    // Backspace tuşuna basıldığında ve input boşsa, önceki input'a git
-    if (e.key === "Backspace" && otp[index] === "" && index > 0) {
-      inputRefs[index - 1].current?.focus()
+  const handleOtpChange = (value: string) => {
+    setOtp(value.split(''))
+    
+    if (value.length === 6) {
+      handleOtpSubmit()
     }
   }
 
@@ -106,11 +84,11 @@ export default function PhoneVerificationDialog({
       } else {
         setError("Geçersiz doğrulama kodu")
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Doğrulama sırasında bir hata oluştu.",
+        description: "Doğrulama kodu gönderilirken bir hata oluştu.",
       })
     } finally {
       setIsLoading(false)
@@ -158,19 +136,18 @@ export default function PhoneVerificationDialog({
               <p className="text-sm text-muted-foreground">
                 Lütfen telefonunuza gönderilen 6 haneli doğrulama kodunu giriniz.
               </p>
-              <div className="flex justify-center gap-2">
-                {otp.map((digit, index) => (
-                  <Input
-                    key={index}
-                    ref={inputRefs[index]}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-10 h-12 text-center text-lg"
-                  />
-                ))}
+              <div className="flex justify-center">
+                <InputOTP
+                  value={otp.join("")}
+                  onChange={handleOtpChange}
+                  maxLength={6}
+                >
+                  <InputOTPGroup>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <InputOTPSlot key={i} index={i} />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <div className="flex justify-end">

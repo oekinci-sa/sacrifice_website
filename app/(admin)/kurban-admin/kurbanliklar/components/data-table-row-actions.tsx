@@ -11,6 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 
+interface SacrificeAnimal {
+  sacrifice_id: string;
+  sacrifice_no: string;
+  empty_share: number;
+  share_price: number;
+  total_price: number;
+  last_edited_time: string;
+  last_edited_by: string;
+  notes?: string;
+}
+
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
@@ -19,7 +30,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const router = useRouter();
-  const sacrifice = row.original as any;
+  const sacrifice = row.original as SacrificeAnimal;
 
   return (
     <DropdownMenu>

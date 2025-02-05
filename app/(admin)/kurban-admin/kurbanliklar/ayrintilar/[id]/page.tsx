@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShareholderFormValues, shareholderFormSchema } from "@/types";
+import { ShareholderFormValues } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import { ShareholderForm } from "./shareholder-form";
 
@@ -25,7 +22,6 @@ interface Shareholder extends ShareholderFormValues {
 
 export default function DetailsPage() {
   const { id } = useParams();
-  const router = useRouter();
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("0");
@@ -81,7 +77,7 @@ export default function DetailsPage() {
     }
 
     fetchData();
-  }, [id]);
+  }, [id, toast]);
 
   async function onSubmit(
     values: ShareholderFormValues,

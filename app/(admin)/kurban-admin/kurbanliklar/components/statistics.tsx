@@ -1,22 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
 import { supabase } from "@/utils/supabaseClient";
-import { StatCard } from "@/components/ui/stat-card";
+import { CustomStatistics } from "@/components/custom-components/custom-statistics";
 
 interface SacrificeStats {
   totalSacrifices: number;
@@ -39,13 +25,11 @@ interface SacrificeStats {
   activeSacrificesCount: number;
 }
 
-const COLORS = {
-  green: "#22c55e",
-  yellow: "#eab308",
-  red: "#ef4444",
-  blue: "#3b82f6",
-  purple: "#a855f7",
-};
+interface ShareholderPayment {
+  totalAmount: number;
+  paidAmount: number;
+  remainingPayment: number;
+}
 
 export function SacrificeStatistics() {
   const [stats, setStats] = useState<SacrificeStats>({
@@ -88,7 +72,7 @@ export function SacrificeStatistics() {
 
         // Calculate basic statistics
         const totalSacrifices = sacrifices?.length || 0;
-        const totalShares = sacrifices?.reduce((acc, curr) => acc + 7, 0) || 0;
+        const totalShares = sacrifices?.reduce((acc) => acc + 7, 0) || 0;
         const emptyShares = sacrifices?.reduce((acc, curr) => acc + (curr.empty_share || 0), 0) || 0;
 
         // Calculate financial statistics
@@ -120,12 +104,6 @@ export function SacrificeStatistics() {
         // First, get all sacrifices with at least one share taken
         const activeSacrifices = sacrifices?.filter(s => s.empty_share < 7) || [];
         
-        interface ShareholderPayment {
-          totalAmount: number;
-          paidAmount: number;
-          remainingPayment: number;
-        }
-        
         // Group shareholders by sacrifice_id and calculate payments
         shareholders?.forEach(shareholder => {
           const sacrificeId = shareholder.sacrifice_id;
@@ -145,41 +123,13 @@ export function SacrificeStatistics() {
         });
 
         const fullyPaidSacrifices = Array.from(sacrificePayments.entries()).filter(
-          ([sacrificeId, payment]) => {
+          ([, payment]) => {
             // Check if all shareholders of this sacrifice have completed their payments
             return payment.shareholders.every(
               (shareholder: ShareholderPayment) => shareholder.remainingPayment === 0
             );
           }
         ).length;
-
-        // Teslimat noktalarına göre dağılım
-        const deliveryLocationStats = shareholders.reduce((acc, curr) => {
-          const location = curr.delivery_location
-          acc[location] = (acc[location] || 0) + 1
-          return acc
-        }, {} as Record<string, number>)
-
-        const deliveryLocationData = {
-          labels: Object.keys(deliveryLocationStats).map(location => {
-            switch (location) {
-              case "kesimhane":
-                return "Kesimhanede Teslim"
-              case "yenimahalle-pazar-yeri":
-                return "Yenimahalle Pazar Yeri"
-              case "kecioren-otoparki":
-                return "Keçiören Otoparkı"
-              default:
-                return location
-            }
-          }),
-          datasets: [
-            {
-              label: "Hissedar Sayısı",
-              data: Object.values(deliveryLocationStats),
-            },
-          ],
-        }
 
         setStats({
           totalSacrifices,
@@ -201,20 +151,12 @@ export function SacrificeStatistics() {
     }
 
     fetchStats();
-  }, []);
-
-  const paymentData = [
-    {
-      name: "Ödemeler",
-      "Toplanan": stats.collectedAmount,
-      "Kalan": stats.remainingAmount,
-    }
-  ];
+  }, []); // Boş dependency array ile sadece bir kez çalışacak
 
   return (
     <div className="grid gap-16 md:grid-cols-2">
       <div>
-        <StatCard
+        <CustomStatistics
           title="Kalan Kurbanlıklar"
           value={stats.totalSacrifices - stats.completedSacrifices}
           maxValue={stats.totalSacrifices}
@@ -226,7 +168,7 @@ export function SacrificeStatistics() {
         />
       </div>
       <div>
-        <StatCard
+        <CustomStatistics
           title="Ödemesi Tamamlanan Kurbanlıklar"
           value={stats.fullyPaidSacrifices}
           maxValue={stats.activeSacrificesCount}

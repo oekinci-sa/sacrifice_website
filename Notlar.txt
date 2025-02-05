@@ -21,6 +21,8 @@ Navigasyon butonlarından başka sayfaya geçmek
 
 2. adımda devam et denilince çıkan bazı uyarılara gerek yok zorunludur gibi.
 
+hisseyi sil butonu da silme işlemi yapmadan asla başka hisseyi silmeye izin vermeyecek
+
 ------------------------
 Genel Bkış
 ------------------------
@@ -74,3 +76,6 @@ Gene lBakış sayfasında card'lar statistics.tsx dosyasından oluşturulmuştu.
 Ödeme oranı sütunundaki hücrelerin genişliği aynı olmalı. Progess bar sola yaslı ve yüzde ifadesi de sol yaslı olmalı.
 
 Ne kadar ödeme yapıldığı kısmında, hissedarın toplam borcundan daha fazla ödeme yapılamamlı. 
+
+
+Otantike olan kullanıcının belirli bir süre sonra timeout olması

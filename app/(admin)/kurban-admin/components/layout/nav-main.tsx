@@ -15,7 +15,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
 
 interface NavItem {
   title: string
@@ -37,7 +36,6 @@ export function NavMain({ items, subMenusOpen }: NavMainProps) {
     <SidebarGroup className="mt-4">
       <SidebarMenu className="flex flex-col gap-1">
         {items.map((item) => {
-          const isActive = pathname === item.url
           const hasSubItems = item.items && item.items.length > 0
 
           return (

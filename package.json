@@ -47,6 +47,7 @@
     "dropdown-menu": "^0.1.1",
     "html2pdf.js": "^0.10.2",
     "input": "^1.0.1",
+    "input-otp": "^1.4.2",
     "lucide-react": "^0.469.0",
     "next": "14.2.21",
     "next-auth": "^4.24.11",

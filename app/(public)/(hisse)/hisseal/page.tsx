@@ -24,13 +24,25 @@ import { useCreateShareholders } from "@/hooks/useShareholders";
 import ShareholderSummary from "./components/confirmation-step/shareholder-summary";
 import { supabase } from "@/utils/supabaseClient";
 import { ShareFilters } from "./components/table-step/ShareFilters";
-import { ColumnFiltersState } from "@tanstack/react-table";
 import { TripleInfo } from "@/app/(public)/components/triple-info"
 import ProgressBar from "./components/common/progress-bar";
-import { Check } from "lucide-react";
+import { ShareholderDetails } from "@/types";
 
-const TIMEOUT_DURATION = 1000; // 3 minutes
+const TIMEOUT_DURATION = 10; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
+
+interface Sacrifice {
+  sacrifice_id: string;
+  sacrifice_no: number;
+  sacrifice_time: string | null;
+  share_price: number;
+  total_price: number;
+  empty_share: number;
+  last_edited_time: string | null;
+  last_edited_by: string | null;
+  notes: string | null;
+  shareholders?: ShareholderDetails[];
+}
 
 const Page = () => {
   const { toast } = useToast();
@@ -40,12 +52,6 @@ const Page = () => {
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
   const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
   const [showWarning, setShowWarning] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    {
-      id: "empty_share",
-      value: ["1", "2", "3", "4", "5", "6", "7"],
-    },
-  ]);
 
   // Zustand store
   const {
@@ -53,7 +59,6 @@ const Page = () => {
     tempSelectedSacrifice,
     formData,
     currentStep,
-    stepNumber,
     tabValue,
     isSuccess,
     setSelectedSacrifice,
@@ -75,13 +80,13 @@ const Page = () => {
       resetStore();
       goToStep("selection");
     }
-  }, [pathname]);
+  }, [pathname, resetStore, goToStep]);
 
   // Handle navigation changes
   useEffect(() => {
     let isNavigating = false;
 
-    const handleRouteChange = async (url: string): Promise<boolean> => {
+    const handleRouteChange = async (): Promise<boolean> => {
       if (isNavigating) return true;
       if (isSuccess) return true;
 
@@ -92,13 +97,13 @@ const Page = () => {
       isNavigating = true;
 
       try {
-        const { data: currentSacrifice, error } = await supabase
+        const { data: currentSacrifice, error: fetchError } = await supabase
           .from("sacrifice_animals")
           .select("empty_share")
           .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
           .single();
 
-        if (error || !currentSacrifice) {
+        if (fetchError || !currentSacrifice) {
           toast({
             variant: "destructive",
             title: "Hata",
@@ -115,7 +120,8 @@ const Page = () => {
         resetStore();
         goToStep("selection");
         return true;
-      } catch (error) {
+      } catch (err) {
+        console.error('Error handling route change:', err);
         toast({
           variant: "destructive",
           title: "Hata",
@@ -128,7 +134,7 @@ const Page = () => {
     };
 
     const handlePopState = async (event: PopStateEvent) => {
-      const result = await handleRouteChange(window.location.href);
+      const result = await handleRouteChange();
       if (!result) {
         event.preventDefault();
         history.pushState(null, "", window.location.href);
@@ -140,13 +146,12 @@ const Page = () => {
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
 
-    function createHistoryStateHandler(originalFn: Function) {
-      return function(this: typeof window.history, data: any, unused: string, url?: string) {
-        const args: [any, string, string?] = [data, unused, url];
+    function createHistoryStateHandler(originalFn: (data: unknown, unused: string, url?: string | URL | null) => void) {
+      return function(this: History, data: unknown, unused: string, url?: string | URL | null) {
         if (url) {
-          handleRouteChange(url).then((shouldContinue) => {
+          handleRouteChange().then((shouldContinue) => {
             if (shouldContinue) {
-              originalFn.apply(this, args);
+              originalFn.apply(this, [data, unused, url] as [unknown, string, string | URL | null]);
             }
           });
         }
@@ -169,11 +174,12 @@ const Page = () => {
     resetStore,
     goToStep,
     isSuccess,
+    toast,
   ]);
 
   // Handle interaction timeout
   useEffect(() => {
-    if (isSuccess) return; // Disable timeout in success state
+    if (isSuccess) return;
 
     const checkTimeout = async () => {
       if (currentStep !== "details" && currentStep !== "confirmation") return;
@@ -184,14 +190,13 @@ const Page = () => {
       if (remaining <= 0) {
         try {
           if (selectedSacrifice) {
-            // Önce güncel kurban bilgisini al
-            const { data: currentSacrifice, error } = await supabase
+            const { data: currentSacrifice, error: fetchError } = await supabase
               .from("sacrifice_animals")
               .select("empty_share")
               .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
               .single();
 
-            if (error || !currentSacrifice) {
+            if (fetchError || !currentSacrifice) {
               toast({
                 variant: "destructive",
                 title: "Hata",
@@ -201,13 +206,13 @@ const Page = () => {
               return;
             }
 
-            // DB'de empty_share'i form sayısı kadar artır
             await updateSacrifice.mutateAsync({
               sacrificeId: selectedSacrifice.sacrifice_id,
               emptyShare: currentSacrifice.empty_share + formData.length,
             });
           }
-        } catch (error) {
+        } catch (err) {
+          console.error('Error handling timeout:', err);
           toast({
             variant: "destructive",
             title: "Hata",
@@ -222,9 +227,12 @@ const Page = () => {
       } else {
         setTimeLeft(remaining);
 
-        // Warning threshold kontrolü
         if (remaining <= WARNING_THRESHOLD && !showWarning) {
           setShowWarning(true);
+          toast({
+            title: "Uyarı",
+            description: "Oturumunuz 1 dakika içinde sonlanacak.",
+          });
         }
       }
     };
@@ -235,12 +243,13 @@ const Page = () => {
     lastInteractionTime,
     showWarning,
     currentStep,
-    goToStep,
-    resetStore,
     selectedSacrifice,
     formData.length,
     updateSacrifice,
+    goToStep,
+    resetStore,
     isSuccess,
+    toast,
   ]);
 
   // Sayfa seviyesinde etkileşimleri takip et
@@ -278,7 +287,7 @@ const Page = () => {
       window.removeEventListener("scroll", handleScrollInteraction);
       window.removeEventListener("focus", handleFocusInteraction);
     };
-  }, [currentStep, TIMEOUT_DURATION]);
+  }, [currentStep]);
 
   // Sayfa kapatma/yenileme durumunda DB güncelleme
   useEffect(() => {
@@ -318,18 +327,40 @@ const Page = () => {
     };
   }, [currentStep, selectedSacrifice, formData]);
 
-  const handleSacrificeSelect = async (sacrifice: any) => {
+  const handleSacrificeSelect = async (sacrifice: Sacrifice) => {
     setTempSelectedSacrifice(sacrifice);
     setIsDialogOpen(true);
   };
 
   const handleShareCountSelect = async (shareCount: number) => {
-    if (!tempSelectedSacrifice) return;
-
     try {
+      if (!tempSelectedSacrifice) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık seçimi yapılmadı.",
+        });
+        return;
+      }
+
+      const { data: currentSacrifice } = await supabase
+        .from("sacrifice_animals")
+        .select("empty_share")
+        .eq("sacrifice_id", tempSelectedSacrifice.sacrifice_id)
+        .single();
+
+      if (!currentSacrifice) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri alınamadı.",
+        });
+        return;
+      }
+
       await updateSacrifice.mutateAsync({
         sacrificeId: tempSelectedSacrifice.sacrifice_id,
-        emptyShare: tempSelectedSacrifice.empty_share - shareCount,
+        emptyShare: currentSacrifice.empty_share - shareCount,
       });
 
       setSelectedSacrifice(tempSelectedSacrifice);
@@ -343,8 +374,13 @@ const Page = () => {
       goToStep("details");
       setIsDialogOpen(false);
       setLastInteractionTime(Date.now());
-    } catch (error) {
-      // Error is handled in the mutation
+    } catch (err) {
+      console.error('Error selecting share count:', err);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "İşlem sırasında bir hata oluştu.",
+      });
     }
   };
 
@@ -378,8 +414,13 @@ const Page = () => {
         setSuccess(true);
         goToStep("success");
       }
-    } catch (error) {
-      // Error is handled in the mutation
+    } catch (err) {
+      console.error('Error approving shares:', err);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "İşlem sırasında bir hata oluştu.",
+      });
     }
   };
 
@@ -437,13 +478,13 @@ const Page = () => {
 
                   try {
                     // Önce güncel kurban bilgisini al
-                    const { data: currentSacrifice, error } = await supabase
+                    const { data: currentSacrifice, error: fetchError } = await supabase
                       .from("sacrifice_animals")
                       .select("empty_share")
                       .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
                       .single();
 
-                    if (error || !currentSacrifice) {
+                    if (fetchError || !currentSacrifice) {
                       toast({
                         variant: "destructive",
                         title: "Hata",
@@ -463,8 +504,13 @@ const Page = () => {
                     resetStore();
                     // İlk adıma dön
                     goToStep("selection");
-                  } catch (error) {
-                    // Error is handled in the mutation
+                  } catch (err) {
+                    console.error('Error handling back action:', err);
+                    toast({
+                      variant: "destructive",
+                      title: "Hata",
+                      description: "İşlem sırasında bir hata oluştu.",
+                    });
                   }
                 }}
               />

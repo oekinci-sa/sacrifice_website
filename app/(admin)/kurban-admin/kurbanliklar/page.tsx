@@ -64,10 +64,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function KurbanliklarPage() {
+  const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("today");
   const [chartData, setChartData] = useState<SharesData[]>([]);
   const [priceChartData, setPriceChartData] = useState<ChartData[]>([]);
   const [sacrificeSharesData, setSacrificeSharesData] = useState<SacrificeSharesData[]>([]);
-  const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("shares");
   const [chartTotals, setChartTotals] = useState({
     today: 0,
     week: 0,
@@ -76,263 +76,159 @@ export default function KurbanliklarPage() {
     shares: 0,
   });
 
-  // Fetch price chart data
   useEffect(() => {
-    async function fetchPriceChartData() {
-      const { data: sacrifices, error } = await supabase
-        .from('sacrifice_animals')
-        .select('share_price, empty_share');
-
-      if (error) {
-        console.error('Error fetching chart data:', error);
-        return;
-      }
-
-      const chartData = sacrifices?.reduce((acc: ChartData[], sacrifice) => {
-        const { share_price, empty_share } = sacrifice;
-        const existingEntry = acc.find((entry) => entry.sharePrice === share_price);
-
-        if (existingEntry) {
-          existingEntry.totalAnimals++;
-          if (empty_share === 0) {
-            existingEntry.completedAnimals++;
-          } else {
-            existingEntry.emptyShares++;
-          }
-        } else {
-          acc.push({
-            sharePrice: share_price,
-            completedAnimals: empty_share === 0 ? 1 : 0,
-            totalAnimals: 1,
-            emptyShares: empty_share > 0 ? 1 : 0,
-          });
-        }
-
-        return acc;
-      }, []);
-
-      // Sort by sharePrice
-      chartData?.sort((a, b) => a.sharePrice - b.sharePrice);
-      setPriceChartData(chartData || []);
-    }
-
-    fetchPriceChartData();
-  }, []);
-
-  // Fetch shares distribution data
-  useEffect(() => {
-    async function fetchSacrificeShares() {
-      const { data: sacrifices, error: sacrificesError } = await supabase
-        .from('sacrifice_animals')
-        .select('sacrifice_id, sacrifice_no')
-        .order('sacrifice_no');
-
-      if (sacrificesError) {
-        console.error('Error fetching sacrifices:', sacrificesError);
-        return;
-      }
-
-      const { data: shareholders, error: shareholdersError } = await supabase
-        .from('shareholders')
-        .select('sacrifice_id, total_amount, paid_amount');
-
-      if (shareholdersError) {
-        console.error('Error fetching shareholders:', shareholdersError);
-        return;
-      }
-
-      // Calculate payment status for each sacrifice
-      const sharesData = sacrifices.map(sacrifice => {
-        const sacrificeHolders = shareholders.filter(s => s.sacrifice_id === sacrifice.sacrifice_id);
-        
-        const fullPayment = sacrificeHolders.filter(s => s.paid_amount >= s.total_amount).length;
-        const noPayment = sacrificeHolders.filter(s => s.paid_amount === 0).length;
-        const partialPayment = sacrificeHolders.filter(s => s.paid_amount > 0 && s.paid_amount < s.total_amount).length;
-
-        return {
-          sacrifice_no: sacrifice.sacrifice_no,
-          full_payment: fullPayment,
-          partial_payment: partialPayment,
-          no_payment: noPayment
-        };
-      });
-
-      setSacrificeSharesData(sharesData);
-      setChartTotals(prev => ({
-        ...prev,
-        shares: sacrifices.length
-      }));
-    }
-
-    fetchSacrificeShares();
-  }, []);
-
-  useEffect(() => {
-    async function fetchChartData() {
+    async function fetchAllData() {
       try {
-        // Fetch shareholders data for chart
-        const { data: shareholdersDataForChart, error: shareholdersErrorForChart } = await supabase
-          .from("shareholders")
-          .select("purchase_time")
-          .order("purchase_time", { ascending: true });
+        // Fetch sacrifices data
+        const { data: sacrifices, error: sacrificesError } = await supabase
+          .from('sacrifice_animals')
+          .select('*')
+          .order('sacrifice_no');
 
-        if (shareholdersErrorForChart) throw shareholdersErrorForChart;
-
-        // Calculate totals for each tab
-        const totals = {
-          ...chartTotals,
-          today: 0,
-          week: 0,
-          month: 0,
-          all: 0,
-        };
-
-        // Today's total
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayEnd = new Date(today);
-        todayEnd.setHours(23, 59, 59, 999);
-        totals.today = shareholdersDataForChart.filter((s) => {
-          const purchaseDate = new Date(s.purchase_time);
-          return purchaseDate >= today && purchaseDate <= todayEnd;
-        }).length;
-
-        // Last 2 weeks total
-        const twoWeeksAgo = subDays(today, 14);
-        totals.week = shareholdersDataForChart.filter((s) => {
-          const purchaseDate = new Date(s.purchase_time);
-          return purchaseDate >= twoWeeksAgo;
-        }).length;
-
-        // Last month total  
-        const oneMonthAgo = subDays(today, 30);
-        totals.month = shareholdersDataForChart.filter((s) => {
-          const purchaseDate = new Date(s.purchase_time);
-          return purchaseDate >= oneMonthAgo;
-        }).length;
-
-        // All time total
-        totals.all = shareholdersDataForChart.length;
-
-        setChartTotals(totals);
-
-        // Calculate date ranges based on active chart
-        const todayDate = new Date();
-        todayDate.setHours(0, 0, 0, 0);
-        
-        let dailySharesData;
-
-        if (activeChart === "today" || activeChart === "shares") {
-          // Create array of 24 hours for today
-          dailySharesData = Array.from({ length: 24 }, (_, hour) => {
-            const hourStart = new Date(todayDate);
-            hourStart.setHours(hour, 0, 0, 0);
-            const hourEnd = new Date(todayDate);
-            hourEnd.setHours(hour, 59, 59, 999);
-
-            const count = shareholdersDataForChart.filter((s) => {
-              const purchaseDate = new Date(s.purchase_time);
-              return purchaseDate >= hourStart && purchaseDate <= hourEnd;
-            }).length;
-
-            return {
-              date: `${hour.toString().padStart(2, '0')}:00`,
-              count,
-            };
-          });
-        } else {
-          let startDate;
-          let endDate = todayDate;
-
-          switch (activeChart) {
-            case "week":
-              startDate = subDays(todayDate, 14);
-              break;
-            case "month":
-              startDate = subDays(todayDate, 30);
-              break;
-            case "all":
-              // Find the earliest and latest purchase dates
-              const dates = shareholdersDataForChart.map(s => new Date(s.purchase_time).getTime());
-              startDate = new Date(Math.min(...dates));
-              endDate = new Date(Math.max(...dates));
-              break;
-          }
-
-          const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
-          
-          dailySharesData = dateRange.map((date) => {
-            const dayStart = new Date(date);
-            dayStart.setHours(0, 0, 0, 0);
-            const dayEnd = new Date(date);
-            dayEnd.setHours(23, 59, 59, 999);
-
-            const count = shareholdersDataForChart.filter((s) => {
-              const purchaseDate = new Date(s.purchase_time);
-              return purchaseDate >= dayStart && purchaseDate <= dayEnd;
-            }).length;
-
-            return {
-              date: format(date, "dd MMM", { locale: tr }),
-              count,
-            };
-          });
+        if (sacrificesError) {
+          console.error('Error fetching sacrifices:', sacrificesError);
+          return;
         }
+
+        // Fetch shareholders data
+        const { data: shareholders, error: shareholdersError } = await supabase
+          .from('shareholders')
+          .select('*');
+
+        if (shareholdersError) {
+          console.error('Error fetching shareholders:', shareholdersError);
+          return;
+        }
+
+        // Calculate shares distribution data
+        const sharesData = sacrifices.map(sacrifice => {
+          const sacrificeHolders = shareholders.filter(s => s.sacrifice_id === sacrifice.sacrifice_id);
+          
+          const fullPayment = sacrificeHolders.filter(s => s.paid_amount >= s.total_amount).length;
+          const noPayment = sacrificeHolders.filter(s => s.paid_amount === 0).length;
+          const partialPayment = sacrificeHolders.filter(s => s.paid_amount > 0 && s.paid_amount < s.total_amount).length;
+
+          return {
+            sacrifice_no: sacrifice.sacrifice_no,
+            full_payment: fullPayment,
+            partial_payment: partialPayment,
+            no_payment: noPayment
+          };
+        });
+
+        setSacrificeSharesData(sharesData);
+        setChartTotals(prev => ({
+          ...prev,
+          shares: sacrifices.length
+        }));
+
+        // Calculate price chart data
+        const priceData = sacrifices.reduce((acc: Record<number, ChartData>, sacrifice) => {
+          const sharePrice = sacrifice.share_price;
+          if (!acc[sharePrice]) {
+            acc[sharePrice] = {
+              sharePrice,
+              completedAnimals: 0,
+              emptyShares: 0,
+              totalAnimals: 0,
+            };
+          }
+          acc[sharePrice].totalAnimals++;
+          if (sacrifice.empty_share === 0) {
+            acc[sharePrice].completedAnimals++;
+          }
+          acc[sharePrice].emptyShares += sacrifice.empty_share;
+          return acc;
+        }, {});
+
+        setPriceChartData(Object.values(priceData).sort((a, b) => a.sharePrice - b.sharePrice));
+
+        // Calculate daily shares data based on active chart
+        const today = new Date();
+        let startDate = today;
+        let dateFormat = "HH:mm";
+        let dates: Date[] = [];
+
+        switch (activeChart) {
+          case "today": {
+            // Bugünün başlangıcı (00:00)
+            startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            // 24 saatlik veriyi oluştur
+            dates = Array.from({ length: 24 }, (_, i) => {
+              const date = new Date(startDate);
+              date.setHours(i);
+              return date;
+            });
+            break;
+          }
+          case "week":
+            startDate = subDays(today, 14);
+            dateFormat = "dd MMM";
+            dates = eachDayOfInterval({ start: startDate, end: today });
+            break;
+          case "month":
+            startDate = subDays(today, 30);
+            dateFormat = "dd MMM";
+            dates = eachDayOfInterval({ start: startDate, end: today });
+            break;
+          case "all": {
+            const allDates = shareholders.map(s => new Date(s.purchase_time).getTime());
+            if (allDates.length > 0) {
+              startDate = new Date(Math.min(...allDates));
+              dateFormat = "dd MMM";
+              dates = eachDayOfInterval({ start: startDate, end: today });
+            }
+            break;
+          }
+        }
+
+        const dailySharesData = dates.map(date => {
+          const formattedDate = format(date, dateFormat, { locale: tr });
+          const count = shareholders.filter(s => {
+            const purchaseDate = new Date(s.purchase_time);
+            if (activeChart === "today") {
+              // Saat bazında kontrol
+              return format(purchaseDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd") &&
+                     purchaseDate.getHours() === date.getHours();
+            }
+            // Gün bazında kontrol
+            return format(purchaseDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+          }).length;
+
+          return {
+            date: formattedDate,
+            count,
+          };
+        });
 
         setChartData(dailySharesData);
+
+        // Calculate chart totals
+        const todayStr = format(today, "yyyy-MM-dd");
+        const weekAgoStr = format(subDays(today, 14), "yyyy-MM-dd");
+        const monthAgoStr = format(subDays(today, 30), "yyyy-MM-dd");
+
+        setChartTotals(prev => ({
+          ...prev,
+          today: shareholders.filter(s => format(new Date(s.purchase_time), "yyyy-MM-dd") === todayStr).length,
+          week: shareholders.filter(s => {
+            const purchaseDate = format(new Date(s.purchase_time), "yyyy-MM-dd");
+            return purchaseDate >= weekAgoStr && purchaseDate <= todayStr;
+          }).length,
+          month: shareholders.filter(s => {
+            const purchaseDate = format(new Date(s.purchase_time), "yyyy-MM-dd");
+            return purchaseDate >= monthAgoStr && purchaseDate <= todayStr;
+          }).length,
+          all: shareholders.length,
+        }));
+
       } catch (error) {
-        console.error("Error fetching chart data:", error);
+        console.error("Error fetching data:", error);
       }
     }
 
-    if (activeChart !== 'shares') {
-      fetchChartData();
-    }
-  }, [activeChart]);
-
-  // Initial data load for all tabs
-  useEffect(() => {
-    async function fetchInitialData() {
-      try {
-        const { data: shareholdersDataForChart, error: shareholdersErrorForChart } = await supabase
-          .from("shareholders")
-          .select("purchase_time")
-          .order("purchase_time", { ascending: true });
-
-        if (shareholdersErrorForChart) throw shareholdersErrorForChart;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayEnd = new Date(today);
-        todayEnd.setHours(23, 59, 59, 999);
-        const twoWeeksAgo = subDays(today, 14);
-        const oneMonthAgo = subDays(today, 30);
-
-        const totals = {
-          today: shareholdersDataForChart.filter((s) => {
-            const purchaseDate = new Date(s.purchase_time);
-            return purchaseDate >= today && purchaseDate <= todayEnd;
-          }).length,
-          week: shareholdersDataForChart.filter((s) => {
-            const purchaseDate = new Date(s.purchase_time);
-            return purchaseDate >= twoWeeksAgo;
-          }).length,
-          month: shareholdersDataForChart.filter((s) => {
-            const purchaseDate = new Date(s.purchase_time);
-            return purchaseDate >= oneMonthAgo;
-          }).length,
-          all: shareholdersDataForChart.length,
-          shares: chartTotals.shares,
-        };
-
-        setChartTotals(totals);
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-      }
-    }
-
-    fetchInitialData();
-  }, []);
+    fetchAllData();
+  }, [activeChart]); // activeChart değiştiğinde yeniden çalışacak
 
   const renderChart = () => {
     if (activeChart === 'shares') {

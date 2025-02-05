@@ -5,9 +5,10 @@ import { Table, ColumnFiltersState } from "@tanstack/react-table";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import { supabase } from "@/utils/supabaseClient";
 import { useEffect, useMemo, useState } from "react";
+import { sacrificeSchema } from "@/types";
 
 interface ShareFiltersProps {
-  table: Table<any>;
+  table: Table<sacrificeSchema>;
   columnFilters: ColumnFiltersState;
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }

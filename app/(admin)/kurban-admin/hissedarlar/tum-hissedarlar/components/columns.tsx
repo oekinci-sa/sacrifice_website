@@ -1,9 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Pencil, X } from "lucide-react";
+import { Eye, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShareholderType } from "@/types";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,94 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+// Create a separate component for the cell content
+const ActionCellContent = ({ row }: { row: Row<ShareholderType> }) => {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("shareholders")
+        .delete()
+        .eq("shareholder_id", row.original.shareholder_id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi.",
+      });
+      window.location.reload();
+    } catch (err) {
+      console.error('Error deleting shareholder:', err);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedar silinirken bir hata oluştu.",
+      });
+    }
+  };
+  
+  return (
+    <div className="flex justify-center items-center gap-2">
+      <Button 
+        variant="ghost"
+        size="icon"
+        className="hover:bg-[#E8F7EF] hover:text-[#09B850]"
+        onClick={() => {
+          // TODO: Implement view functionality
+        }}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+        onClick={() =>
+          router.push(
+            `/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`
+          )
+        }
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="hover:bg-destructive/10 hover:text-destructive"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
 
 export const columns: ColumnDef<ShareholderType>[] = [
   {
@@ -149,85 +237,6 @@ export const columns: ColumnDef<ShareholderType>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const router = useRouter();
-      const { toast } = useToast();
-      
-      return (
-        <div className="flex justify-center items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-[#E8F7EF] hover:text-[#09B850]"
-            onClick={() => {
-              // TODO: Implement view functionality
-            }}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
-            onClick={() => {
-              router.push(
-                `/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`
-              );
-            }}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>İptal</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={async () => {
-                    const { error } = await supabase
-                      .from("shareholders")
-                      .delete()
-                      .eq("shareholder_id", row.original.shareholder_id);
-
-                    if (error) {
-                      toast({
-                        variant: "destructive",
-                        title: "Hata",
-                        description: "Hissedar silinirken bir hata oluştu.",
-                      });
-                      return;
-                    }
-
-                    toast({
-                      title: "Başarılı",
-                      description: "Hissedar başarıyla silindi.",
-                    });
-                    window.location.reload();
-                  }}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Sil
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      );
-    },
+    cell: ({ row }) => <ActionCellContent row={row} />,
   },
-]; 
+];

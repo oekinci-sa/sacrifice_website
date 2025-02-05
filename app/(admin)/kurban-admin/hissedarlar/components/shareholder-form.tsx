@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/utils/supabaseClient";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,30 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { formatPhoneForDisplay } from "@/utils/formatters";
 
 interface ShareholderFormProps {
   shareholder: {
@@ -57,127 +30,10 @@ interface ShareholderFormProps {
   section: "personal" | "payment" | "delivery" | "other";
 }
 
-const formSchema = z.object({
-  name: z.string().min(1, "Ad soyad zorunludur"),
-  phone: z.string()
-    .regex(/^0/, "Telefon numarası 0 ile başlamalıdır")
-    .refine(
-      (val) => val.replace(/\s/g, '').length === 11,
-      "Telefon numarası 11 haneli olmalıdır"
-    ),
-  delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
-  notes: z.string().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
-
 export function ShareholderForm({
   shareholder,
   section,
 }: ShareholderFormProps) {
-  const router = useRouter();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const { toast } = useToast();
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: shareholder.shareholder_name,
-      phone: shareholder.phone_number.startsWith("+90")
-        ? "0" + shareholder.phone_number.slice(3)
-        : shareholder.phone_number,
-      delivery_location: shareholder.delivery_location,
-      notes: shareholder.notes || "",
-    },
-  })
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const updatedData = {
-        shareholder_name: formData.get("shareholder_name"),
-        phone_number: formatPhoneForDB(formData.get("phone_number") as string),
-        total_amount: Number(formData.get("total_amount")),
-        paid_amount: Number(formData.get("paid_amount")),
-        remaining_payment: Number(formData.get("remaining_payment")),
-        payment_status: formData.get("payment_status"),
-        delivery_fee: Number(formData.get("delivery_fee")) || null,
-        delivery_type: formData.get("delivery_type") || null,
-        delivery_location: formData.get("delivery_location") || null,
-        sacrifice_consent: formData.get("sacrifice_consent"),
-        notes: formData.get("notes") || null,
-      };
-
-      const { error } = await supabase
-        .from("shareholders")
-        .update(updatedData)
-        .eq("shareholder_id", shareholder.shareholder_id);
-
-      if (error) {
-        console.error("Supabase update error:", error);
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
-        });
-        throw error;
-      }
-
-      toast({
-        title: "Başarılı",
-        description: "Hissedar bilgileri güncellendi.",
-      });
-      router.refresh();
-    } catch (error) {
-      console.error("Error updating shareholder:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      console.log(
-        `Attempting to delete shareholder with ID: ${shareholder.shareholder_id}`
-      );
-
-      const { error } = await supabase
-        .from("shareholders")
-        .delete()
-        .eq("shareholder_id", shareholder.shareholder_id);
-
-      if (error) {
-        console.error("Supabase deletion error:", error);
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
-        });
-        throw error;
-      }
-
-      console.log("Shareholder deleted successfully");
-      toast({
-        title: "Başarılı",
-        description: `${shareholder.shareholder_name} isimli hissedar başarıyla silindi.`,
-      });
-
-      setShowDeleteDialog(false);
-      router.refresh();
-      router.push("/kurban-admin/hissedarlar");
-    } catch (error) {
-      console.error("Detailed deletion error:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const renderPersonalSection = () => (
     <div className="grid grid-cols-2 gap-4">

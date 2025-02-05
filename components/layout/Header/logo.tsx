@@ -1,7 +1,6 @@
 import React from 'react'
 import Image from "next/image";
 import websiteLogo from "@/public/website-logo.svg";
-import websiteLogoWhite from "@/public/website-logo-white.svg";
 import Link from 'next/link';
 
 const Logo = () => {

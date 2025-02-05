@@ -6,7 +6,6 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
-import { useRouter } from "next/navigation"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -95,14 +94,10 @@ const formatSacrificeTime = (timeString: string | null) => {
 export default function ShareholderSummary({
   sacrifice,
   shareholders,
-  onApprove,
   setCurrentStep,
-  remainingTime,
-  setRemainingTime,
 }: ShareholderSummaryProps) {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const createShareholders = useCreateShareholders()
-  const router = useRouter()
 
   const handleVerificationComplete = async (phone: string) => {
     console.log("Doğrulama dialogundan gelen numara:", phone)

@@ -5,13 +5,12 @@ import { supabase } from "@/utils/supabaseClient";
 import { ShareholderForm } from "../../components/shareholder-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download } from "lucide-react";
 import Image from "next/image";
 import html2pdf from "html2pdf.js";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 
 interface PageProps {
   params: {
@@ -50,16 +49,6 @@ interface Shareholder {
     old_value: string;
     new_value: string;
   }[];
-}
-
-interface ShareholderFormData {
-  name: string;
-  phone: string;
-  delivery_location:
-    | "kesimhane"
-    | "yenimahalle-pazar-yeri"
-    | "kecioren-otoparki";
-  notes?: string;
 }
 
 // Helper function to format time without seconds
@@ -116,7 +105,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -188,7 +176,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           table: "shareholders",
           filter: `shareholder_id=eq.${params.id}`,
         },
-        async (payload) => {
+        async () => {
           // When a change occurs, fetch the updated data with the sacrifice relationship
           const { data, error } = await supabase
             .from("shareholders")
@@ -236,48 +224,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     };
 
     html2pdf().set(opt).from(pdfContent).save();
-  };
-
-  const handleApprove = async (formData: ShareholderFormData) => {
-    if (!formData || !shareholder?.sacrifice?.share_price) return;
-
-    const updatedData = {
-      shareholder_name: formData.name,
-      phone_number: formData.phone.startsWith("+90")
-        ? formData.phone
-        : "+90" + formData.phone.replace(/[^0-9]/g, ""),
-      delivery_location: formData.delivery_location,
-      delivery_fee: formData.delivery_location !== "kesimhane" ? 500 : 0,
-      total_amount:
-        shareholder.sacrifice.share_price +
-        (formData.delivery_location !== "kesimhane" ? 500 : 0),
-      remaining_payment:
-        shareholder.sacrifice.share_price +
-        (formData.delivery_location !== "kesimhane" ? 500 : 0) -
-        shareholder.paid_amount,
-      notes: formData.notes,
-    };
-
-    try {
-      const { error } = await supabase
-        .from("shareholders")
-        .update(updatedData)
-        .eq("shareholder_id", params.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Başarılı",
-        description: "Hissedar bilgileri güncellendi.",
-      });
-      setIsEditing(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Bilgiler güncellenirken bir hata oluştu.",
-      });
-    }
   };
 
   if (loading) {

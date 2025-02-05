@@ -96,3 +96,5 @@ export interface changeLogSchema {
   change_owner: string
   changed_at: string
 }
+
+export type UserRole = "admin" | "editor" | null;

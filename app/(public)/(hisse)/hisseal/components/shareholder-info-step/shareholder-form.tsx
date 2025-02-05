@@ -31,19 +31,6 @@ interface ShareholderFormProps {
     onRemove: (index: number) => void
 }
 
-const getDeliveryLocationText = (location: string) => {
-    switch (location) {
-        case "kesimhane":
-            return "Kesimhanede Teslim"
-        case "yenimahalle-pazar-yeri":
-            return "Yenimahalle Pazar Yeri"
-        case "kecioren-otoparki":
-            return "Keçiören Otoparkı"
-        default:
-            return location
-    }
-}
-
 export default function ShareholderForm({
     data,
     index,

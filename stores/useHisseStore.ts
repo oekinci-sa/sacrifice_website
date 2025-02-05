@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { sacrificeSchema } from '@/types'
-import { SacrificeType } from "@/types";
 
 export interface FormData {
   name: string
@@ -18,15 +17,15 @@ export const STEP_MAPPING = {
 } as const;
 
 interface HisseState {
-  selectedSacrifice: SacrificeType | null
-  tempSelectedSacrifice: SacrificeType | null
+  selectedSacrifice: sacrificeSchema | null
+  tempSelectedSacrifice: sacrificeSchema | null
   formData: FormData[]
   currentStep: Step
   stepNumber: number
   tabValue: string
   isSuccess: boolean
-  setSelectedSacrifice: (sacrifice: SacrificeType | null) => void
-  setTempSelectedSacrifice: (sacrifice: SacrificeType | null) => void
+  setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
+  setTempSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setFormData: (data: FormData[]) => void
   resetStore: () => void
   goToStep: (step: Step) => void

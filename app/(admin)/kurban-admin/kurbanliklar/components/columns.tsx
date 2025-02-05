@@ -1,10 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { sacrificeSchema, ShareholderDetails } from "@/types";
 import { Eye, Ban, Pencil, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, isValid, parse } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
@@ -21,10 +20,156 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface ShareholderPayment {
-  paid_amount: number;
-  total_amount: number;
-}
+// Create a separate component for the cell content
+const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
+  const router = useRouter();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [shareholders, setShareholders] = useState<ShareholderDetails[]>([]);
+  const sacrificeId = row.original.sacrifice_id;
+
+  useEffect(() => {
+    const fetchShareholderDetails = async () => {
+      const { data: shareholders } = await supabase
+        .from("shareholders")
+        .select("*")
+        .eq("sacrifice_id", sacrificeId);
+
+      if (shareholders) {
+        setShareholders(shareholders);
+      }
+    };
+
+    if (isDialogOpen) {
+      fetchShareholderDetails();
+    }
+  }, [sacrificeId, isDialogOpen]);
+
+  const formatDeliveryLocation = (location: string) => {
+    switch (location) {
+      case "yenimahalle-pazar-yeri":
+        return "Yenimahalle Pazar Yeri";
+      case "kecioren-otoparki":
+        return "Keçiören Otoparkı";
+      default:
+        return "Kesimhane";
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-center gap-2">
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 hover:bg-[#E8F7EF] hover:text-[#09B850]"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+          onClick={() => {
+            router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
+          }}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 hover:bg-[#FCEFEF] hover:text-[#D22D2D]"
+          onClick={() => {
+            // TODO: Implement delete functionality
+            console.log("Delete clicked", row.original);
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="p-12 max-h-[90vh] w-[600px]">
+          <DialogHeader className="text-center space-y-4">
+            <DialogTitle className="text-2xl text-center font-semibold">Hissedar Bilgileri</DialogTitle>
+            <DialogDescription className="text-md text-center font-medium">
+              Hissedarlar için daha fazla bilgi için
+              <br />
+              <Link 
+                href="/kurban-admin/hissedarlar/tum-hissedarlar" 
+                className="font-semibold hover:text-[#09B850] transition-all duration-300"
+              >
+                Tüm Hissedarlar
+              </Link>{" "}
+              sayfasını ziyaret ediniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[500px] pr-4">
+            <div className="space-y-8 mt-8">
+              {shareholders.map((shareholder, index) => (
+                <div key={index}>
+                  <div className="grid grid-cols-[auto_1fr_1fr] gap-6 items-center">
+                    <div className="flex items-center justify-center bg-[#E8F7EF] rounded-full p-2 w-12 h-12">
+                      <i className="bi bi-person-circle text-[#09B850] text-2xl"></i>
+                    </div>
+
+                    {/* Left */}
+                    <div className="space-y-1">
+                      <div className="text-black font-bold">{shareholder.shareholder_name}</div>
+                      <div className="text-[#698c78] text-sm">
+                        {shareholder.phone_number.replace("+90", "0")}
+                      </div>
+                    </div>
+
+                    {/* Right */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Progress
+                          value={Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100)}
+                          className="flex-1"
+                          style={{
+                            ["--progress-background" as string]: shareholder.paid_amount / shareholder.total_amount < 0.5 
+                              ? "rgb(220 38 38 / 0.2)" 
+                              : shareholder.paid_amount / shareholder.total_amount < 1 
+                                ? "rgb(202 138 4 / 0.2)" 
+                                : "rgb(22 163 74 / 0.2)",
+                            ["--progress-foreground" as string]: shareholder.paid_amount / shareholder.total_amount < 0.5 
+                              ? "rgb(220 38 38)" 
+                              : shareholder.paid_amount / shareholder.total_amount < 1 
+                                ? "rgb(202 138 4)" 
+                                : "rgb(22 163 74)",
+                          } as React.CSSProperties}
+                        />
+                        <span className={cn(
+                          "text-sm tabular-nums",
+                          shareholder.paid_amount / shareholder.total_amount < 0.5 
+                            ? "text-red-600" 
+                            : shareholder.paid_amount / shareholder.total_amount < 1 
+                              ? "text-yellow-600" 
+                              : "text-green-600"
+                        )}>
+                          %{Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100).toString().padStart(3)}
+                        </span>
+                      </div>
+                      <div className="text-[#698c78] text-sm text-right">
+                        {formatDeliveryLocation(shareholder.delivery_location)}
+                      </div>
+                    </div>
+                  </div>
+                  {index < shareholders.length - 1 && (
+                    <div className="my-6 border-t border-dashed border-[#698c78] opacity-50" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
@@ -240,155 +385,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => {
-      const router = useRouter();
-      const [isDialogOpen, setIsDialogOpen] = useState(false);
-      const [shareholders, setShareholders] = useState<ShareholderDetails[]>([]);
-      const sacrificeId = row.original.sacrifice_id;
-
-      useEffect(() => {
-        const fetchShareholderDetails = async () => {
-          const { data: shareholders } = await supabase
-            .from("shareholders")
-            .select("paid_amount, total_amount, shareholder_name, phone_number, delivery_location")
-            .eq("sacrifice_id", sacrificeId);
-
-          if (shareholders?.length) {
-            setShareholders(shareholders);
-          }
-        };
-
-        if (isDialogOpen) {
-          fetchShareholderDetails();
-        }
-      }, [sacrificeId, isDialogOpen]);
-
-      const formatDeliveryLocation = (location: string) => {
-        switch (location) {
-          case "yenimahalle-pazar-yeri":
-            return "Yenimahalle Pazar Yeri";
-          case "kecioren-otoparki":
-            return "Keçiören Otoparkı";
-          default:
-            return "Kesimhane";
-        }
-      };
-
-      return (
-        <>
-          <div className="flex items-center justify-center gap-2">
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-[#E8F7EF] hover:text-[#09B850]"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-[#E6EAF2] hover:text-[#367CFE]"
-              onClick={() => {
-                router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
-              }}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-[#FCEFEF] hover:text-[#D22D2D]"
-              onClick={() => {
-                // TODO: Implement delete functionality
-                console.log("Delete clicked", row.original);
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="p-12 max-h-[90vh] w-[600px]">
-              <DialogHeader className="text-center space-y-4">
-                <DialogTitle className="text-2xl text-center font-semibold">Hissedar Bilgileri</DialogTitle>
-                <DialogDescription className="text-md text-center font-medium">
-                  Hissedarlar için daha fazla bilgi için
-                  <br />
-                  <Link 
-                    href="/kurban-admin/hissedarlar/tum-hissedarlar" 
-                    className="font-semibold hover:text-[#09B850] transition-all duration-300"
-                  >
-                    Tüm Hissedarlar
-                  </Link>{" "}
-                  sayfasını ziyaret ediniz.
-                </DialogDescription>
-              </DialogHeader>
-
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-8 mt-8">
-                  {shareholders.map((shareholder, index) => (
-                    <div key={index}>
-                      <div className="grid grid-cols-[auto_1fr_1fr] gap-6 items-center">
-                        <div className="flex items-center justify-center bg-[#E8F7EF] rounded-full p-2 w-12 h-12">
-                          <i className="bi bi-person-circle text-[#09B850] text-2xl"></i>
-                        </div>
-
-                        {/* Left */}
-                        <div className="space-y-1">
-                          <div className="text-black font-bold">{shareholder.shareholder_name}</div>
-                          <div className="text-[#698c78] text-sm">
-                            {shareholder.phone_number.replace("+90", "0")}
-                          </div>
-                        </div>
-
-                        {/* Right */}
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Progress
-                              value={Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100)}
-                              className="flex-1"
-                              style={{
-                                ["--progress-background" as string]: shareholder.paid_amount / shareholder.total_amount < 0.5 
-                                  ? "rgb(220 38 38 / 0.2)" 
-                                  : shareholder.paid_amount / shareholder.total_amount < 1 
-                                    ? "rgb(202 138 4 / 0.2)" 
-                                    : "rgb(22 163 74 / 0.2)",
-                                ["--progress-foreground" as string]: shareholder.paid_amount / shareholder.total_amount < 0.5 
-                                  ? "rgb(220 38 38)" 
-                                  : shareholder.paid_amount / shareholder.total_amount < 1 
-                                    ? "rgb(202 138 4)" 
-                                    : "rgb(22 163 74)",
-                              } as React.CSSProperties}
-                            />
-                            <span className={cn(
-                              "text-sm tabular-nums",
-                              shareholder.paid_amount / shareholder.total_amount < 0.5 
-                                ? "text-red-600" 
-                                : shareholder.paid_amount / shareholder.total_amount < 1 
-                                  ? "text-yellow-600" 
-                                  : "text-green-600"
-                            )}>
-                              %{Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100).toString().padStart(3)}
-                            </span>
-                          </div>
-                          <div className="text-[#698c78] text-sm text-right">
-                            {formatDeliveryLocation(shareholder.delivery_location)}
-                          </div>
-                        </div>
-                      </div>
-                      {index < shareholders.length - 1 && (
-                        <div className="my-6 border-t border-dashed border-[#698c78] opacity-50" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
-        </>
-      );
-    },
+    cell: ({ row }) => <ActionCellContent row={row} />,
     size: 200,
     enableSorting: false,
   },

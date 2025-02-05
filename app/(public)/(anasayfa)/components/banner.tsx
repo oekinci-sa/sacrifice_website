@@ -30,7 +30,7 @@ const Banner = () => {
               Hisse Al <i className="bi bi-arrow-right py-auto ml-2"></i>
             </Link>
           </Button>
-          <Button variant="dark" size="lg">
+          <Button size="lg">
             <Link href="/hissesorgula">Hisse Sorgula</Link>
           </Button>
         </div>

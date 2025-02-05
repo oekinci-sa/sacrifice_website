@@ -8,10 +8,6 @@ import { supabase } from "@/utils/supabaseClient";
 import { mediaLinks } from "../../(public)/constants";
 import CustomLink from "@/components/common/custom-link";
 
-interface SacrificeAnimal {
-  empty_share: number;
-}
-
 interface MediaLink {
   href: string;
   iconName: string;

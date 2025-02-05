@@ -9,11 +9,9 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  getFacetedUniqueValues,
   useReactTable,
   VisibilityState,
   SortingState,
-  Column,
   Table as TableInstance,
 } from "@tanstack/react-table"
 
@@ -25,17 +23,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Pencil, Eye } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -43,44 +32,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
 
-import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter"
 import { supabase } from "@/utils/supabaseClient"
-import { columnIcon } from "@/app/(admin)/kurban-admin/degisiklik-kayitlari/components/columns"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  meta?: Record<string, any>
+  meta?: Record<string, unknown>
   pageSizeOptions?: number[]
   filters?: (props: { 
     table: TableInstance<TData>;
     columnFilters: ColumnFiltersState;
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
   }) => React.ReactNode | null
-}
-
-interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>;
-  title?: string;
-  options: {
-    label: string;
-    value: string;
-  }[];
-  facets?: Map<any, number>;
 }
 
 export function CustomDataTable<TData, TValue>({
@@ -106,14 +70,6 @@ export function CustomDataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: pageSizeOptions[0],
   })
-  const [sharePrices, setSharePrices] = React.useState<{ label: string; value: string }[]>([])
-
-  const emptyShares = React.useMemo(() => 
-    Array.from({ length: 8 }, (_, i) => ({
-      label: i.toString(),
-      value: i.toString()
-    }))
-  , []);
 
   const table = useReactTable({
     data,
@@ -138,11 +94,6 @@ export function CustomDataTable<TData, TValue>({
     },
   })
 
-  const sharePriceFacets = table.getColumn("share_price")?.getFacetedUniqueValues();
-  const emptyShareFacets = table.getColumn("empty_share")?.getFacetedUniqueValues();
-
-  const { toast } = useToast();
-
   React.useEffect(() => {
     const fetchSharePrices = async () => {
       const { data: prices } = await supabase
@@ -152,21 +103,19 @@ export function CustomDataTable<TData, TValue>({
 
       if (prices) {
         const uniquePrices = Array.from(new Set(prices.map((p) => p.share_price)));
-        const options = uniquePrices.map((price) => ({
+        // Store prices in state if needed for future use
+        uniquePrices.map((price) => ({
           label: `${new Intl.NumberFormat('tr-TR', { 
             style: 'decimal',
             maximumFractionDigits: 0 
           }).format(price)} ₺`,
           value: price.toString(),
         }));
-        setSharePrices(options);
       }
     };
 
     fetchSharePrices();
   }, []);
-
-  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className="mt-8">

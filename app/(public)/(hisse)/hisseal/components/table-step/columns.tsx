@@ -4,7 +4,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { sacrificeSchema } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, ArrowUp, ArrowDown, Plus, Ban } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+interface TableMeta {
+  onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
+}
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
@@ -142,8 +145,9 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     id: "actions",
     header: "",
     cell: ({ row, table }) => {
-      const sacrifice = row.original
-      const emptyShare = sacrifice.empty_share
+      const sacrifice = row.original;
+      const emptyShare = sacrifice.empty_share;
+      const meta = table.options.meta as TableMeta;
 
       if (emptyShare === 0) {
         return (
@@ -153,21 +157,21 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
               Tükendi
             </span>
           </div>
-        )
+        );
       }
 
       return (
         <div className="flex justify-center py-1">
           <Button
             variant="ghost"
-            onClick={() => (table.options.meta as any)?.onSacrificeSelect(sacrifice)}
+            onClick={() => meta?.onSacrificeSelect(sacrifice)}
             className="min-w-[100px] bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white flex items-center justify-center gap-1.5 text-base transition-all duration-300"
           >
             <Plus className="h-4 w-4" />
             Hisse Al
           </Button>
         </div>
-      ) 
+      );
     },
   },
 ]; 

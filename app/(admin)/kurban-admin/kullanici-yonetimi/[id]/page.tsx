@@ -39,7 +39,6 @@ export default function UserProfilePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const isAdmin = session?.user?.role === "admin";
-  const isOwnProfile = session?.user?.email === user?.email;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -111,11 +110,11 @@ export default function UserProfilePage() {
         title: "Başarılı",
         description: "Kullanıcı bilgileri güncellendi.",
       });
-    } catch (error) {
+    } catch {
       toast({
-        variant: "destructive",
         title: "Hata",
-        description: "Bilgiler güncellenirken bir hata oluştu.",
+        description: "Kullanıcı bilgileri güncellenirken bir hata oluştu.",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);

@@ -78,7 +78,6 @@ export default function Checkout({
   sacrifice,
   formData,
   setFormData,
-  onApprove,
   onBack,
   resetStore,
   setCurrentStep,
@@ -88,7 +87,6 @@ export default function Checkout({
   const [errors, setErrors] = useState<FormErrors[]>([])
   const [userAction, setUserAction] = useState<"confirm" | "cancel" | null>(null)
   const [showLastShareDialog, setShowLastShareDialog] = useState(false)
-  const [shareToRemove, setShareToRemove] = useState<number | null>(null)
   const updateSacrifice = useUpdateSacrifice()
   const [isAddingShare, setIsAddingShare] = useState(false)
 
@@ -97,34 +95,6 @@ export default function Checkout({
   const currentSacrifice = sacrifices?.find(s => s.sacrifice_id === sacrifice?.sacrifice_id)
 
   const { toast } = useToast()
-
-  const validateField = (index: number, field: keyof FormData, value: string) => {
-    try {
-      const fieldSchema = formSchema.shape[field]
-      fieldSchema.parse(value)
-      const newErrors = [...errors]
-      if (!newErrors[index]) {
-        newErrors[index] = {}
-      }
-      delete newErrors[index][field]
-      setErrors(newErrors)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors = [...errors]
-        if (!newErrors[index]) {
-          newErrors[index] = {}
-        }
-        newErrors[index][field] = [error.errors[0].message]
-        setErrors(newErrors)
-      }
-    }
-  }
-
-  const validateAllFields = (index: number, data: FormData) => {
-    Object.keys(formSchema.shape).forEach((field) => {
-      validateField(index, field as keyof FormData, data[field as keyof FormData])
-    })
-  }
 
   const handleInputChange = (index: number, field: keyof FormData, value: string) => {
     setLastInteractionTime(Date.now()); // Reset timeout
@@ -247,6 +217,7 @@ export default function Checkout({
       });
 
     } catch (error) {
+      console.error('Error adding shareholder:', error);
       // Hata durumunda form state'ini geri al
       const newFormData = [...formData];
       newFormData.pop();
@@ -259,7 +230,7 @@ export default function Checkout({
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Yeni hisse eklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+        description: "İşlem sırasında bir hata oluştu.",
       });
     } finally {
       setIsAddingShare(false);
@@ -268,7 +239,6 @@ export default function Checkout({
 
   const handleRemoveShareholder = async (index: number) => {
     if (formData.length === 1) {
-      setShareToRemove(index);
       setShowLastShareDialog(true);
       return;
     }
@@ -306,11 +276,11 @@ export default function Checkout({
       const newErrors = [...errors];
       newErrors.splice(index, 1);
       setErrors(newErrors);
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Hisse silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+        description: "İşlem sırasında bir hata oluştu.",
       });
     }
   }
@@ -343,22 +313,17 @@ export default function Checkout({
         // Store'u sıfırla ve selection state'ine dön
         resetStore();
         setCurrentStep("selection");
-      } catch (error) {
+      } catch {
         toast({
           variant: "destructive",
           title: "Hata",
-          description: "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+          description: "İşlem sırasında bir hata oluştu.",
         });
       }
     }
 
     // Her durumda popup'ı kapat
     setShowLastShareDialog(false);
-    setShareToRemove(null);
-  }
-
-  const handleBack = () => {
-    setShowBackDialog(true)
   }
 
   const confirmBack = () => {

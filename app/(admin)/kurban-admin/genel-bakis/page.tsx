@@ -2,33 +2,21 @@
 
 import * as React from "react";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from "recharts";
 import { supabase } from "@/utils/supabaseClient";
-import { ActivityTable } from "./components/activity-table";
-import { ProgressCard } from "@/components/ui/progress-card";
-import { StatCard } from "@/components/ui/stat-card";
+import { CustomStatistics } from "@/components/custom-components/custom-statistics";
 
 import { CartesianGrid } from "recharts";
-import { TrendingUp } from "lucide-react";
 
-import { CardFooter, CardDescription } from "@/components/ui/card";
+import { CardDescription } from "@/components/ui/card";
 
 import {
   ChartConfig,
@@ -55,26 +43,6 @@ const chartConfig = {
   all: {
     label: "Tüm Zamanlar",
     color: "hsl(var(--chart-4))",
-  },
-} satisfies ChartConfig;
-
-const chartDatam = [
-  { date: "2024-07-15", running: 450, swimming: 300 },
-  { date: "2024-07-16", running: 380, swimming: 420 },
-  { date: "2024-07-17", running: 520, swimming: 120 },
-  { date: "2024-07-18", running: 140, swimming: 550 },
-  { date: "2024-07-19", running: 600, swimming: 350 },
-  { date: "2024-07-20", running: 480, swimming: 400 },
-];
-
-const chartConfigm = {
-  running: {
-    label: "Running",
-    color: "hsl(var(--chart-1))",
-  },
-  swimming: {
-    label: "Swimming",
-    color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;
 
@@ -109,20 +77,6 @@ interface ActivityLog {
   old_value: string;
   new_value: string;
 }
-
-interface ChartDataItem {
-  name: string;
-  value: number;
-  color: string;
-}
-
-const COLORS = {
-  green: "#22c55e",
-  red: "#ef4444",
-  blue: "#3b82f6",
-  purple: "#a855f7",
-  yellow: "#eab308",
-} as const;
 
 // Helper function to format location names
 const formatLocationName = (location: string) => {
@@ -213,11 +167,6 @@ export default function GeneralOverviewPage() {
         // Count sacrifices with no empty shares
         const completedSacrifices = sacrificeData.filter(
           (s) => s.empty_share === 0
-        ).length;
-        
-        // Count sacrifices with any empty shares for progress bar
-        const sacrificesWithEmptyShares = sacrificeData.filter(
-          (s) => s.empty_share > 0
         ).length;
 
         // Fetch shareholders data with purchase_time
@@ -385,12 +334,6 @@ export default function GeneralOverviewPage() {
 
         setChartData(dailySharesData);
 
-        // Calculate payment status data
-        const paid = shareholdersData.filter(
-          (s) => s.paid_amount >= s.total_amount
-        ).length;
-        const pending = shareholdersData.length - paid;
-
         // Fetch activity logs
         const { data: logsData, error: logsError } = await supabase
           .from("change_logs")
@@ -431,28 +374,6 @@ export default function GeneralOverviewPage() {
     fetchStats();
   }, [activeChart]);
 
-  // Calculate total for the active period
-  const total = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.count, 0);
-  }, [chartData]);
-
-  // Chart data
-  const paymentStatusData: ChartDataItem[] = [
-    { name: "Tamamlandı", value: stats.totalShareholders - stats.remainingDeposits, color: COLORS.green },
-    { name: "Kapora Bekleniyor", value: stats.remainingDeposits, color: COLORS.red },
-  ];
-
-  const deliveryData: ChartDataItem[] = [
-    { name: "Kesimhane", value: stats.deliveryStats.kesimhane, color: COLORS.blue },
-    { name: "Toplu Teslim", value: stats.deliveryStats.topluTeslimat, color: COLORS.purple },
-  ];
-
-  const locationData: ChartDataItem[] = Object.entries(stats.deliveryLocations).map(([name, value], index) => ({
-    name: formatLocationName(name),
-    value,
-    color: Object.values(COLORS)[index % Object.values(COLORS).length],
-  }));
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
@@ -468,7 +389,7 @@ export default function GeneralOverviewPage() {
       {/* Stats Grid */}
       <div className="grid gap-16 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <StatCard
+          <CustomStatistics
             title="Kalan Kurbanlıklar"
             value={stats.totalSacrifices - stats.completedSacrifices}
             maxValue={stats.totalSacrifices}
@@ -480,7 +401,7 @@ export default function GeneralOverviewPage() {
           />
             </div>
         <div>
-          <StatCard
+          <CustomStatistics
             title="Kalan Hisseler"
             value={stats.emptyShares}
             maxValue={stats.totalShares}
@@ -488,7 +409,7 @@ export default function GeneralOverviewPage() {
           />
             </div>
         <div>
-          <StatCard
+          <CustomStatistics
             title="Eksik Kaporalar"
             value={stats.totalShareholders - stats.remainingDeposits}
             maxValue={stats.totalShareholders}
@@ -499,7 +420,7 @@ export default function GeneralOverviewPage() {
           />
             </div>
         <div>
-          <StatCard
+          <CustomStatistics
             title="Eksik Ödemeler"
             value={stats.shareholdersWithIncompletePayments}
             maxValue={stats.totalShareholders}

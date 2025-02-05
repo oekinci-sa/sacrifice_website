@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Wallet, UserMinus, AlertCircle } from 'lucide-react';
-import { supabase } from '../../../utils/supabaseClient';
-import { StatCard } from '../../components/StatCard';
-import { Card } from '../../components/Card';
+import { supabase } from '@/utils/supabaseClient';
+import { CustomStatistics } from '@/components/custom-components/custom-statistics';
+import { Card } from '@/components/ui/card';
 
-const DashboardStats = {
-  totalShareholders: 0,
-  totalSacrifices: 0,
-  totalShares: 0,
-  emptyShares: 0,
-  missingDeposits: 0,
-  missingPayments: 0,
-};
+interface DashboardStats {
+  totalShareholders: number;
+  totalSacrifices: number;
+  totalShares: number;
+  emptyShares: number;
+  missingDeposits: number;
+  missingPayments: number;
+}
 
 const Statistics: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -63,7 +63,7 @@ const Statistics: React.FC = () => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card className="border shadow-none">
-        <StatCard
+        <CustomStatistics
           title="Toplam Hissedar"
           value={stats.totalShareholders}
           description="Sistemdeki toplam hissedar sayısı"
@@ -71,7 +71,7 @@ const Statistics: React.FC = () => {
         />
       </Card>
       <Card className="border shadow-none">
-        <StatCard
+        <CustomStatistics
           title="Toplam Kurbanlık"
           value={stats.totalSacrifices}
           description="Sistemdeki toplam kurbanlık sayısı"
@@ -79,7 +79,7 @@ const Statistics: React.FC = () => {
         />
       </Card>
       <Card className="border shadow-none">
-        <StatCard
+        <CustomStatistics
           title="Boş Hisse"
           value={stats.emptyShares}
           description="Satın alınmamış hisse sayısı"
@@ -87,7 +87,7 @@ const Statistics: React.FC = () => {
         />
       </Card>
       <Card className="border shadow-none">
-        <StatCard
+        <CustomStatistics
           title="Eksik Kapora"
           value={stats.missingDeposits}
           description="3 gün içinde kapora ödemesi yapmayanlar"
@@ -96,7 +96,7 @@ const Statistics: React.FC = () => {
         />
       </Card>
       <Card className="border shadow-none">
-        <StatCard
+        <CustomStatistics
           title="Eksik Ücretler"
           value={stats.missingPayments}
           description="Tüm ödemesi tamamlanmayanlar"

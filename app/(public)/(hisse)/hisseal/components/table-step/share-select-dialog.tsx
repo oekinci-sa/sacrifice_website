@@ -28,15 +28,21 @@ export function ShareSelectDialog({
   onSelect,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
-  const [currentEmptyShare, setCurrentEmptyShare] = useState(
-    sacrifice.empty_share
-  );
-  const [selectedCount, setSelectedCount] = useState<number | null>(null);
+  const [currentEmptyShare, setCurrentEmptyShare] = useState(sacrifice.empty_share);
+  const [selectedShareCount, setSelectedShareCount] = useState(1);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentEmptyShare(sacrifice.empty_share);
+      setSelectedShareCount(1);
+    }
+  }, [isOpen, sacrifice.empty_share]);
 
   useEffect(() => {
     // Reset selected count when dialog is closed
     if (!isOpen) {
-      setSelectedCount(null);
+      setSelectedShareCount(1);
     }
 
     // Reset current empty share when sacrifice changes
@@ -53,11 +59,11 @@ export function ShareSelectDialog({
             table: "sacrifice_animals",
             filter: `sacrifice_id=eq.${sacrifice.sacrifice_id}`,
           },
-          (payload: any) => {
+          (payload: { new: { empty_share: number } }) => {
             const newEmptyShare = payload.new.empty_share;
             setCurrentEmptyShare(newEmptyShare);
             if (newEmptyShare === 0) {
-              setSelectedCount(null);
+              setSelectedShareCount(1);
             }
           }
         )
@@ -67,7 +73,7 @@ export function ShareSelectDialog({
         channel.unsubscribe();
       };
     }
-  }, [sacrifice.sacrifice_id, isOpen]);
+  }, [sacrifice.sacrifice_id, sacrifice.empty_share, isOpen]);
 
   const shareOptions = Array.from(
     { length: currentEmptyShare },
@@ -75,8 +81,6 @@ export function ShareSelectDialog({
   );
 
   const handleContinue = async () => {
-    if (!selectedCount) return;
-
     // Boş hisse sayısını kontrol et
     const { data: latestSacrifice, error } = await supabase
       .from("sacrifice_animals")
@@ -93,14 +97,14 @@ export function ShareSelectDialog({
       return;
     }
 
-    if (latestSacrifice.empty_share < selectedCount) {
+    if (latestSacrifice.empty_share < selectedShareCount) {
       toast({
         variant: "destructive",
         title: "Uyarı",
         description:
           "Maalesef biraz önce bu kurbanlık ile ilgili yeni bir işlem yapıldı. Lütfen yeniden hisse adedi seçiniz.",
       });
-      setSelectedCount(null);
+      setSelectedShareCount(1);
       return;
     }
 
@@ -113,7 +117,7 @@ export function ShareSelectDialog({
       });
     }, 1000);
 
-    onSelect(selectedCount);
+    onSelect(selectedShareCount);
   };
 
   return (
@@ -142,15 +146,15 @@ export function ShareSelectDialog({
                 <span className="text-sac-primary font-medium">
                   {sacrifice.share_price.toLocaleString("tr-TR")} ₺
                 </span>
-                'lik kurbanlıktan kaç adet hisse almak istersiniz?
+                &apos;lik kurbanlıktan kaç adet hisse almak istersiniz?
               </p>
               <div className="flex flex-wrap gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (
                   <Button
                     key={count}
-                    variant={selectedCount === count ? "default" : "outline"}
+                    variant={selectedShareCount === count ? "default" : "outline"}
                     className="h-12 w-12 text-lg"
-                    onClick={() => setSelectedCount(count)}
+                    onClick={() => setSelectedShareCount(count)}
                   >
                     {count}
                   </Button>
@@ -161,7 +165,7 @@ export function ShareSelectDialog({
                   Hissedar bilgilerini girmek için lütfen devam butonuna
                   basınız.
                 </p>
-                <Button onClick={handleContinue} disabled={!selectedCount}>
+                <Button onClick={handleContinue}>
                   Devam
                 </Button>
               </div>

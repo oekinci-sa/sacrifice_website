@@ -10,16 +10,16 @@ import {
 } from "@/components/ui/tooltip"
 
 interface TripleButtonsProps {
-  onBack: () => void
-  onContinue: () => void
-  onAddShareholder?: () => void
-  canAddShareholder?: boolean
-  isAddingShare?: boolean
-  isUpdatePending?: boolean
-  maxShareholderReached?: boolean
+  onBack: () => void;
+  onContinue: () => void;
+  onAddShareholder?: () => void;
+  canAddShareholder?: boolean;
+  isAddingShare?: boolean;
+  isUpdatePending?: boolean;
+  maxShareholderReached?: boolean;
 }
 
-export default function ProgressNav({
+export default function TripleButtons({
   onBack,
   onContinue,
   onAddShareholder,
@@ -27,7 +27,7 @@ export default function ProgressNav({
   isAddingShare = false,
   isUpdatePending = false,
   maxShareholderReached = false,
-}: ProgressNavProps) {
+}: TripleButtonsProps) {
   return (
     <div className="flex justify-center items-center gap-4 pt-6">
       <div className="flex items-center gap-2">

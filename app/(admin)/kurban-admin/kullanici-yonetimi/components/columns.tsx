@@ -8,7 +8,18 @@ import { DataTableRowActions } from "./data-table-row-actions";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
-export const columns: ColumnDef<any>[] = [
+interface UserType {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  role: "admin" | "editor" | null;
+  status: "pending" | "approved" | "blacklisted";
+  created_at: string;
+  updated_at: string;
+}
+
+export const columns: ColumnDef<UserType>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -20,7 +31,7 @@ export const columns: ColumnDef<any>[] = [
           <Avatar className="h-8 w-8">
             <AvatarImage src={row.original.image || ""} />
             <AvatarFallback>
-              {row.getValue("name")?.[0]?.toUpperCase()}
+              {(row.getValue("name") as string)?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

@@ -17,6 +17,8 @@ interface ShareholderInfo {
   delivery_location: string;
   sacrifice_id: string;
   total_amount: number;
+  paid_amount: number;
+  remaining_payment: number;
   purchase_time: string;
   sacrifice: {
     sacrifice_no: string;
@@ -325,7 +327,7 @@ export default function HisseSorgula() {
                   Önemli Bilgiler
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Kurban kesim yerimiz, Kahramankazan'a bağlı Ciğir köyündedir.
+                  Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
                 </p>
               </div>
               <div>

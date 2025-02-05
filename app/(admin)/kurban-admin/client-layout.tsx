@@ -24,11 +24,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function UserNav() {
-  const router = useRouter();
   const { data: session } = useSession();
 
   const handleLogout = async () => {

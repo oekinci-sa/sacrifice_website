@@ -4,7 +4,7 @@ import * as React from "react";
 import { Bar as RechartsBar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 interface BarProps {
-  data: any[];
+  data: Record<string, number | string>[];
   index: string;
   categories: string[];
   colors?: string[];
@@ -19,7 +19,6 @@ export function Bar({
   index,
   categories,
   colors = ["#0091ff"],
-  title,
   valueFormatter = (value: number) => value.toString(),
   stacked = false,
   className,

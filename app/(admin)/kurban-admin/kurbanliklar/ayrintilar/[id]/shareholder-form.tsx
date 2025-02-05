@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -19,18 +18,27 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ShareholderFormValues, shareholderFormSchema } from "@/types";
-import { formatPhoneForDB, formatPhoneForDisplay } from "@/utils/formatters";
+import { ShareholderFormValues } from "@/types";
+import { formatPhoneForDB } from "@/utils/formatters";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
 
 interface ShareholderFormProps {
-  shareholder: any;
+  shareholder: {
+    shareholder_id: string;
+    shareholder_name: string;
+    phone_number: string;
+    delivery_fee: number;
+    delivery_location: string;
+    sacrifice_consent: boolean;
+    paid_amount: number;
+    total_amount: number;
+    notes?: string;
+    purchase_time?: string;
+    last_edited_by?: string;
+  };
   index: number;
-  onSubmit: (
-    values: ShareholderFormValues,
-    shareholderId: string
-  ) => Promise<void>;
+  onSubmit: (values: ShareholderFormValues, shareholderId: string) => Promise<void>;
 }
 
 const formSchema = z.object({
@@ -49,7 +57,6 @@ type FormData = z.infer<typeof formSchema>;
 
 export function ShareholderForm({
   shareholder,
-  index,
   onSubmit,
 }: ShareholderFormProps) {
   const form = useForm<FormData>({
@@ -65,9 +72,17 @@ export function ShareholderForm({
   });
 
   const handleSubmit = form.handleSubmit((values) => {
-    const formattedValues = {
-      ...values,
+    const formattedValues: ShareholderFormValues = {
+      shareholder_name: values.name,
       phone_number: formatPhoneForDB(values.phone),
+      delivery_location: values.delivery_location as "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki",
+      notes: values.notes || "",
+      // Preserve existing values from the shareholder
+      total_amount: shareholder.total_amount,
+      paid_amount: shareholder.paid_amount,
+      remaining_payment: shareholder.total_amount - shareholder.paid_amount,
+      delivery_fee: values.delivery_location === "kesimhane" ? 0 : 500,
+      sacrifice_consent: shareholder.sacrifice_consent
     };
     onSubmit(formattedValues, shareholder.shareholder_id);
   });
@@ -84,10 +99,10 @@ export function ShareholderForm({
                   Hissedar Bilgileri
                 </h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Kayıt Tarihi: {new Date(shareholder.purchase_time || "").toLocaleString("tr-TR")}
+                  Kayıt Tarihi: {shareholder.purchase_time ? new Date(shareholder.purchase_time).toLocaleString("tr-TR") : "-"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Son düzenleyen: {shareholder.last_edited_by}
+                  Son düzenleyen: {shareholder.last_edited_by || "-"}
                 </p>
               </div>
               <div className="col-span-9 grid grid-cols-2 gap-6">

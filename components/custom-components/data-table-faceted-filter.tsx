@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Column } from "@tanstack/react-table";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: any;
+  column?: Column<TData, TValue>;
   title?: string;
   options: {
     label: string;

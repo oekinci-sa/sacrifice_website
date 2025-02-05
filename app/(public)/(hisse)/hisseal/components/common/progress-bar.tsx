@@ -27,7 +27,6 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
         <div className="relative flex justify-between">
           {steps.map((step, index) => {
             const isActive = index <= stepIndex
-            const isCurrentStep = index === stepIndex
             const isCompleted = index < stepIndex
 
             return (

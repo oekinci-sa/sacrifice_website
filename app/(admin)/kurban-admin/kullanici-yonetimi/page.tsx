@@ -17,6 +17,7 @@ interface User {
   status: "pending" | "approved" | "blacklisted";
   created_at: string;
   image: string | null;
+  updated_at: string;
 }
 
 export default function UserManagementPage() {

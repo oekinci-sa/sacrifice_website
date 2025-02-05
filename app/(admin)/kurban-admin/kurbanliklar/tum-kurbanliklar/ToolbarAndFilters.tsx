@@ -11,9 +11,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { sacrificeSchema } from "@/types";
 
 interface ToolbarAndFiltersProps {
-  table: Table<any>;
+  table: Table<sacrificeSchema>;
   columnFilters: ColumnFiltersState;
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }

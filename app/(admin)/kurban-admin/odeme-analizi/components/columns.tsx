@@ -1,15 +1,14 @@
 "use client"
 
 import { ColumnDef, Row } from "@tanstack/react-table"
-import { ArrowUpDown, Pencil, X, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react"
+import { Pencil, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { useRouter } from "next/navigation"
-import { shareholderSchema } from "@/types"
 import { Progress } from "@/components/ui/progress"
 import { ShareholderType } from "@/types"
+import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/utils/supabaseClient"
-import { useToast } from "@/hooks/use-toast"
-import { cn, formatCurrency } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 const baseColumns: ColumnDef<ShareholderType>[] = [
   {
@@ -120,7 +118,7 @@ const remainingPaymentColumn = {
   },
 }
 
-const calculateRatio = (row: any) => {
+const calculateRatio = (row: Row<ShareholderType>) => {
   const paidAmount = row.getValue("paid_amount") as number;
   const totalAmount = row.getValue("total_amount") as number;
   return (paidAmount / totalAmount) * 100;
@@ -129,7 +127,7 @@ const calculateRatio = (row: any) => {
 const paymentRatioColumn = {
   accessorKey: "payment_ratio",
   header: "Ödeme Oranı",
-  accessorFn: (row) => {
+  accessorFn: (row: ShareholderType) => {
     const paidAmount = row.paid_amount;
     const totalAmount = row.total_amount;
     return (paidAmount / totalAmount) * 100;
@@ -164,114 +162,81 @@ const paymentRatioColumn = {
   },
 }
 
-const statusColumn = {
-  id: "status",
-  header: "Durum",
-  cell: ({ row }: { row: Row<ShareholderType> }) => {
-    const purchaseDate = new Date(row.getValue("purchase_time"))
-    const threeDaysAfterPurchase = new Date(purchaseDate.getTime() + (3 * 24 * 60 * 60 * 1000))
-    const paidAmount = row.getValue("paid_amount") as number
-    const remainingPayment = row.getValue("remaining_payment") as number
+const ActionCell = ({ row }: { row: Row<ShareholderType> }) => {
+  const router = useRouter();
+  const { toast } = useToast();
 
-    if (paidAmount < 2000 && new Date() > threeDaysAfterPurchase) {
-      return (
-        <div className="flex justify-center ">
-          <Badge variant="destructive">Kapora Gecikmiş</Badge>
-        </div>
-      )
-    }
-
-    if (remainingPayment > 0) {
-      return (
-        <div className="flex justify-center ">
-          <Badge variant="secondary">Kalan Ödeme Bekleniyor</Badge>
-        </div>
-      )
-    }
-
-    return (
-      <div className="flex justify-center ">
-        <Badge variant="default">Tamamlandı</Badge>
-      </div>
-    )
-  },
-}
-
-const actionsColumn: ColumnDef<ShareholderType> = {
-  id: "actions",
-  header: " ",
-  enableSorting: false,
-  cell: ({ row }) => {
-    const router = useRouter()
-
-    const handleDelete = async () => {
+  const handleDelete = async () => {
+    try {
       const { error } = await supabase
         .from("shareholders")
         .delete()
-        .eq("shareholder_id", row.original.shareholder_id)
+        .eq("shareholder_id", row.original.shareholder_id);
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Hissedar silinirken bir hata oluştu.",
-        })
-        return
+        throw error;
       }
 
       toast({
         title: "Başarılı",
         description: "Hissedar başarıyla silindi.",
-      })
-      router.refresh()
+      });
+      router.refresh();
+    } catch (err) {
+      console.error('Error deleting shareholder:', err);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedar silinirken bir hata oluştu.",
+      });
     }
+  };
 
-    return (
-      <div className="flex justify-center items-center gap-2 ">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
-          onClick={() =>
-            router.push(
-              `/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`
-            )
-          }
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+  return (
+    <div className="flex justify-center items-center gap-2 ">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+        onClick={() =>
+          router.push(
+            `/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`
+          )
+        }
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="hover:bg-destructive/10 hover:text-destructive"
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="hover:bg-destructive/10 hover:text-destructive"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
-              <AlertDialogDescription>
-                Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>İptal</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDelete}
-                className="bg-destructive hover:bg-destructive/90"
-              >
-                Sil
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    )
-  },
+              Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
 }
 
 export const overdueDepositsColumns: ColumnDef<ShareholderType>[] = [
@@ -279,7 +244,12 @@ export const overdueDepositsColumns: ColumnDef<ShareholderType>[] = [
   paidAmountColumn,
   totalAmountColumn,
   paymentRatioColumn,
-  actionsColumn,
+  {
+    id: "actions",
+    header: " ",
+    enableSorting: false,
+    cell: ({ row }) => <ActionCell row={row} />
+  },
 ]
 
 export const pendingPaymentsColumns: ColumnDef<ShareholderType>[] = [
@@ -288,11 +258,21 @@ export const pendingPaymentsColumns: ColumnDef<ShareholderType>[] = [
   totalAmountColumn,
   remainingPaymentColumn,
   paymentRatioColumn,
-  actionsColumn,
+  {
+    id: "actions",
+    header: " ",
+    enableSorting: false,
+    cell: ({ row }) => <ActionCell row={row} />
+  },
 ]
 
 export const completedPaymentsColumns: ColumnDef<ShareholderType>[] = [
   ...baseColumns,
   totalAmountColumn,
-  actionsColumn,
+  {
+    id: "actions",
+    header: " ",
+    enableSorting: false,
+    cell: ({ row }) => <ActionCell row={row} />
+  },
 ] 

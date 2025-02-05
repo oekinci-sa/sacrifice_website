@@ -20,11 +20,20 @@ import {
   Users,
   CreditCard,
   UserCog,
+  LucideIcon
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserRole } from "@/types";
 
-const sidebarNavItems = [
+type NavItem = {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  roles: Exclude<UserRole, null>[];
+};
+
+const sidebarNavItems: NavItem[] = [
   {
     title: "Genel Bakış",
     href: "/kurban-admin/genel-bakis",
@@ -55,7 +64,7 @@ const sidebarNavItems = [
     icon: UserCog,
     roles: ["admin"],
   },
-] as const;
+];
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -78,7 +87,7 @@ export function AdminSidebar({ isCollapsed, onCollapsedChange }: AdminSidebarPro
 
   // Filter nav items based on user role
   const authorizedNavItems = sidebarNavItems.filter((item) =>
-    item.roles.includes(session?.user?.role as string)
+    session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>)
   );
 
   return (

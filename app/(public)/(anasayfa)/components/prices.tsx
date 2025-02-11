@@ -1,28 +1,34 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const Prices = () => {
+  const router = useRouter();
+  const priceItems = Array.from({ length: 9 }, (_, i) => ({
+    kg: 26 + (i * 4),
+    price: 30000 + (i * 6000)
+  }));
+
   return (
     <div className="container flex space-x-16">
       {/* Sol kısım */}
       <div className="flex items-start space-x-4">
-        <div className="relative w-80 h-96 bg-gray-200">
+        <div className="relative w-80 h-96">
           <Image
-            src="https://picsum.photos/320/480"
-            alt="Placeholder"
-            width={320}
-            height={480}
-            priority={true} // İlk yüklemede optimize edilmesi için
-            className="rounded-md"
+            src="/images/left-image.jpg"
+            alt="Left Side Image"
+            fill
+            priority
+            className="object-cover rounded-md"
           />
           <Image
             src="/icons/birds.svg"
-            alt="Placeholder"
+            alt="Birds Icon"
             width={96}
             height={96}
-            priority={true} // İlk yüklemede optimize edilmesi için
-            className="absolute right-12 top-[465px]"
+            priority
+            className="absolute right-12 top-[350px]"
           />
         </div>
 
@@ -44,26 +50,45 @@ const Prices = () => {
               <p className="text-xl">Kurban</p>
             </div>
           </div>
-          <Image
-            src="https://picsum.photos/320/480"
-            alt="Placeholder"
-            width={320}
-            height={480}
-            priority={true} // İlk yüklemede optimize edilmesi için
-            className="rounded-md"
-          />
+          <div className="relative w-80 h-96">
+            <Image
+              src="/images/right-image.jpg"
+              alt="Right Side Image"
+              fill
+              priority
+              className="object-cover rounded-md"
+            />
+          </div>
         </div>
       </div>
 
       {/* Sağ kısım */}
       <div className="flex flex-col justify-between">
-        <p className="font-heading text-6xl font-bold">
-          Bu seneki <br /> hisse bedellerimiz
-        </p>
+        <div className="space-y-8">
+          <p className="font-heading text-6xl font-bold">
+            Bu seneki <br /> hisse bedellerimiz
+          </p>
+
+          <div className="grid grid-cols-3 gap-4">
+            {priceItems.map((item, index) => (
+              <div 
+                key={index} 
+                className="flex flex-col items-center justify-center bg-white rounded-lg p-4 hover:scale-105 transition-all duration-300 cursor-pointer" 
+                onClick={() => router.push('/hisseal')}
+              >
+                <div className="flex items-center justify-center bg-black text-white text-md font-medium px-2 py-1 rounded-md">
+                  {item.kg} KG
+                </div>
+                <div className="text-lg font-semibold bg-sac-primary text-white px-2 py-1 rounded-md">
+                  {item.price.toLocaleString('tr-TR')} TL
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Alt bilgi */}
-
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-4 mt-8">
           <p>
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik
             gösterebilmektedir.
@@ -71,12 +96,12 @@ const Prices = () => {
           <div className="flex space-x-4">
             <Image
               src="/icons/location.svg"
-              alt="Example SVG"
+              alt="Location Icon"
               width={24}
-              height={24} // Genişlik ve yükseklik değerlerini ayarlayın
+              height={24}
             />
             <p>
-              Kurban kesim yerimiz, Kahramankazan’a bağlı Ciğir köyündedir.
+              Kurban kesim yerimiz, Kahramankazan'a bağlı Ciğir köyündedir.
               <br />
               <Link
                 href="#"

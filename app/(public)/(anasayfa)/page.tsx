@@ -1,21 +1,73 @@
 "use client";
-import Ayah from "./components/ayah";
+import { useEffect, useState } from "react";
 import Banner from "./components/banner";
 import Faq from "./components/faq";
 import Features from "./components/features";
 import Prices from "./components/prices";
 import Process from "./components/process";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { ChevronUp } from "lucide-react";
 
 export default function Home() {
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Process komponenti yaklaşık olarak sayfanın yarısında olacağı için
+      // window yüksekliğinin yarısını threshold olarak kullanıyoruz
+      const threshold = window.innerHeight / 2;
+      setShowScrollButton(window.scrollY > threshold);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <div className="flex flex-col space-y-20">
-      <Ayah></Ayah>
-      <Banner></Banner>
-      <Features></Features>
-      <Prices></Prices>
-      <Process></Process>
-      <Faq></Faq>
+    <div className="flex flex-col space-y-16 relative">
+      {/* Pattern - Triangle (Sol üst) */}
+      <div className="absolute -left-10 -top-20 -z-10">
+        <Image
+          src="/patterns/pattern-triangle.svg"
+          alt="Triangle Pattern"
+          width={250}
+          height={250}
+          className="opacity-100"
+        />
+      </div>
+
+      {/* Pattern - Spiral (Sağ üst) */}
+      <div className="absolute -right-10 -top-12 -z-10">
+        <Image
+          src="/patterns/pattern-spiral.svg"
+          alt="Spiral Pattern"
+          width={500}
+          height={500}
+          className="opacity-20"
+        />
+      </div>
+
+      <Banner />
+      <Features />
+      <Prices />
+      <Process />
+      <Faq />
+
+      {/* Scroll to Top Button */}
+      {showScrollButton && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 w-12 h-12 rounded-lg bg-sac-primary hover:bg-sac-primary/90 p-0 shadow-lg"
+          size="icon"
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+      )}
     </div>
   );
 }

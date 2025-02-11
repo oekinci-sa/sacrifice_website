@@ -4,7 +4,7 @@ import CustomLink from '@/components/common/custom-link';
   
 const Navigation = () => {
   return (
-    <nav className="flex gap-8 items-center justify-between">
+    <nav className="flex gap-10 items-center justify-between">
         <CustomLink href="/">
           Anasayfa
         </CustomLink>

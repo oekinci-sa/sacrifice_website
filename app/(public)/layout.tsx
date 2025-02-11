@@ -1,6 +1,6 @@
 import "../globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Instrument_Sans, Playfair_Display } from 'next/font/google';
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -8,13 +8,22 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Header from "./layout/header";
 import Footer from "./layout/footer";
 
-import { Instrument_Sans } from "next/font/google";
+// Fonts
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter"
+});
 
-const inter = Inter({ subsets: ["latin"] });
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
 });
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair-display",
+});
+
 
 export const metadata: Metadata = {
   title: "Sacrifice Website",
@@ -28,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} ${instrumentSans.className} font-heading`}>
+      <body className={`${inter.variable} ${playfairDisplay.variable} ${instrumentSans.variable} font-heading`}>
         <Header />
         {children}
         <Analytics />

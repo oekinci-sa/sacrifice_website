@@ -17,7 +17,7 @@ const Process = () => {
             className="flex flex-col w-80 items-center gap-4 text-center" // Textler ortalanıyor
           >
             {/* Numaralandırma */}
-            <p className="flex items-center justify-center rounded-sm bg-tertiary text-sac-primary w-20 h-20 font-heading text-4xl font-semibold">
+            <p className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-sac-primary w-20 h-20 font-heading text-4xl font-semibold">
               {item.number}
             </p>
             <p className="font-heading text-2xl font-bold text-white">

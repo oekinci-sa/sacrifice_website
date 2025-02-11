@@ -13,8 +13,8 @@ import { faq_items } from "../constants";
 
 const Faq = () => {
   return (
-    <div className="container w-1/2 space-y-12">
-      <h2 className="font-heading font-bold text-4xl text-center">
+    <div className="container w-full lg:w-1/2 space-y-8 md:space-y-12">
+      <h2 className="font-heading font-bold text-3xl md:text-4xl text-center">
         Sıkça Sorulan Sorular
       </h2>
       <Accordion type="single" collapsible className="w-full" defaultValue="1">
@@ -25,7 +25,7 @@ const Faq = () => {
             className={`${index !== faq_items.length - 1 ? 'border-b' : ''} py-2`}
           >
             <AccordionPrimitive.Header className="flex">
-              <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-2 font-heading text-left text-xl font-bold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180">
+              <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-2 font-heading text-left text-base md:text-xl font-bold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180">
                 {item.title}
                 <Plus
                   size={16}
@@ -35,7 +35,7 @@ const Faq = () => {
                 />
               </AccordionPrimitive.Trigger>
             </AccordionPrimitive.Header>
-            <AccordionContent className="text-lg text-muted-foreground">
+            <AccordionContent className="text-base md:text-lg text-muted-foreground">
               {item.content}
             </AccordionContent>
           </AccordionItem>

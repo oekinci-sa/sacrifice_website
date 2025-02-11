@@ -70,7 +70,7 @@ const Footer = () => {
 
   return (
     <div className="mt-20 pt-12 pb-6 bg-sac-section-background">
-      <div className="container flex justify-between text-white mb-8">
+      <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-8 md:space-y-0">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
           <CustomLink href="/">
@@ -78,13 +78,14 @@ const Footer = () => {
               src={websiteLogoWhite}
               width={200}
               alt="Website Logo"
-            ></Image>
+              className="w-[180px] md:w-[200px]"
+            />
           </CustomLink>
 
           <div className="text-sm text-white/75">
             <p>
               İnsan ve Medeniyet Hareketi Ankara&apos;nın
-              <br />
+              <br className="hidden md:block" />
               katkılarıyla düzenlenmektedir.
             </p>
           </div>
@@ -109,13 +110,13 @@ const Footer = () => {
         </div>
 
         {/* Right Side */}
-        <div className="flex gap-24">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-24">
           {/* Hızlı Linkler */}
           <div>
-            <p className="font-heading text-xl font-semibold mb-4">
+            <p className="font-heading text-lg md:text-xl font-semibold mb-4">
               Hızlı Linkler
             </p>
-            <div className="font-normal text-white/75 flex gap-8">
+            <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
@@ -123,10 +124,10 @@ const Footer = () => {
               </div>
 
               <div className="flex flex-col gap-3 relative">
-                <div className="flex items-center">
+                <div className="flex items-center flex-wrap">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <span className="bg-sac-red ml-2 text-white text-[12px] px-2 py-1 rounded-[2px]">
+                    <span className="bg-sac-red ml-2 text-white text-[12px] px-2 py-1 rounded-[2px] whitespace-nowrap">
                       Son {totalEmptyShares} Hisse
                     </span>
                   </CustomLink>
@@ -138,16 +139,16 @@ const Footer = () => {
           </div>
 
           {/* İletişim */}
-          <div>
-            <p className="font-heading text-xl font-semibold mb-4">İletişim</p>
-            <div className="flex flex-col gap-3 text-white/75">
+          <div className="mt-8 md:mt-0">
+            <p className="font-heading text-lg md:text-xl font-semibold mb-4">İletişim</p>
+            <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
               {/* Location */}
               <div className="flex gap-3">
                 <i className="bi bi-geo-alt text-sac-primary"></i>
                 <p className="font-normal">
-                  Hacı Bayram, Ulus, Adliye Sk. No:1
-                  <br />
-                  Altındağ/Ankara (09.00 - 18.00)
+                  Hacı Bayram, Ulus, Adliye Sk. No:1 
+                  <br className="hidden md:block" />
+                   Altındağ/Ankara (09.00 - 18.00)
                 </p>
               </div>
               {/* Phone */}
@@ -162,9 +163,7 @@ const Footer = () => {
               <div className="flex gap-3">
                 <i className="bi bi-envelope text-sac-primary"></i>
                 <p className="font-normal">
-                  Hacı Bayram, Ulus, Adliye Sk. No:1
-                  <br />
-                  Altındağ/Ankara (09.00 - 18.00)
+                  imhankara@gmail.com
                 </p>
               </div>
             </div>
@@ -172,7 +171,7 @@ const Footer = () => {
         </div>
       </div>
       <hr className="container border border-white/10 border-1 mb-6" />
-      <p className="container text-sm text-white/75">
+      <p className="container text-xs md:text-sm text-white/75 text-center md:text-left">
         Tüm hakları saklıdır. © 2025 İnsan ve Medeniyet Hareketi Ankara
       </p>
     </div>

@@ -28,7 +28,7 @@ const Features = () => {
 
   return (
     <motion.div 
-      className="container flex flex-wrap justify-between"
+      className="container grid grid-cols-2 sm:grid-cols-4 items-start lg:flex lg:flex-wrap lg:justify-between gap-8"
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -37,7 +37,7 @@ const Features = () => {
       {features.map((feature, index) => (
         <motion.div 
           key={feature.src} 
-          className="flex flex-col flex-center w-80"
+          className="flex items-start gap-4 w-full sm:max-w-[300px]"
           variants={item}
         >
           <Image
@@ -45,11 +45,11 @@ const Features = () => {
             alt={feature.header}
             width={24}
             height={24}
-            className="min-h-16"
+            className="mt-1"
           />
-          <div className="flex flex-col justify-between">
-            <p className="font-heading text-xl font-bold">{feature.header}</p>
-            <p>{feature.description}</p>
+          <div className="flex flex-col gap-2">
+            <p className="font-heading text-lg md:text-xl font-bold">{feature.header}</p>
+            <p className="text-sm md:text-base">{feature.description}</p>
           </div>
         </motion.div>
       ))}

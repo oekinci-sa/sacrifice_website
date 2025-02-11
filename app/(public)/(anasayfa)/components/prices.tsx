@@ -140,7 +140,7 @@ const Prices = () => {
               height={24}
             />
             <p className="text-sm sm:text-base">
-              Kurban kesim yerimiz, Kahramankazan'a bağlı Ciğir köyündedir.
+              Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
               <br />
               <Link
                 href="#"

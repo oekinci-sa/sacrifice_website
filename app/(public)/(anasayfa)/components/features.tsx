@@ -34,7 +34,7 @@ const Features = () => {
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
     >
-      {features.map((feature, index) => (
+      {features.map((feature) => (
         <motion.div 
           key={feature.src} 
           className="flex items-start gap-4 w-full sm:max-w-[300px]"

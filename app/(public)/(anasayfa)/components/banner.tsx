@@ -37,6 +37,7 @@ const Banner = () => {
       <motion.div variants={item} className="container flex flex-col space-y-4 text-md -mt-8 md:-mt-4 mb-8 md:text-2xl text-center">
         <p className="font-medium">
           Şüphesiz kurbanlarınızın,{" "}
+          <br className="block md:hidden" />
           <span className="text-sac-primary font-semibold">
             ne etleri ne de kanları
           </span>{" "}

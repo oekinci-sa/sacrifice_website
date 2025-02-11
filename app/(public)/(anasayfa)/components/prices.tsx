@@ -1,8 +1,52 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useRef } from "react";
+import { motion, useInView, useAnimation } from "framer-motion";
+
+interface CounterProps {
+  from: number;
+  to: number;
+  duration?: number;
+}
+
+const Counter = ({ from, to, duration = 1.5 }: CounterProps) => {
+  const [count, setCount] = useState(from);
+  const controls = useAnimation();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let startTime: number | null = null;
+    let animationFrame: number | null = null;
+
+    const updateCount = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = (timestamp - startTime) / (duration * 1000);
+
+      if (progress < 1) {
+        setCount(Math.floor(from + (to - from) * progress));
+        animationFrame = requestAnimationFrame(updateCount);
+      } else {
+        setCount(to);
+      }
+    };
+
+    controls.start({ opacity: 1 }).then(() => {
+      animationFrame = requestAnimationFrame(updateCount);
+    });
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [from, to, duration, controls, isInView]);
+
+  return <span ref={ref}>{count}</span>;
+};
 
 const Prices = () => {
   const router = useRouter();
@@ -35,7 +79,7 @@ const Prices = () => {
   };
 
   return (
-    <div className="container flex flex-col lg:flex-row lg:space-x-16 space-y-8 lg:space-y-0">
+    <div className="container flex flex-col lg:flex-row lg:space-x-16 space-y-16 lg:space-y-0">
       {/* Sol kısım */}
       <motion.div 
         className="flex items-start space-x-4 w-full lg:w-auto"
@@ -68,19 +112,31 @@ const Prices = () => {
           {/* İkili */}
           <div className="flex sm:flex-row justify-between sm:gap-4 w-full">
             {/* 7 Yıl+ */}
-            <div className="flex flex-col items-center justify-center bg-black text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36">
+            <motion.div 
+              className="flex flex-col items-center justify-center bg-black text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
               <p className="text-base sm:text-4xl font-bold">
-                7 Yıl<span className="text-sac-primary">+</span>
+                <Counter from={0} to={7} duration={1.5} />
+                &nbsp;Yıl<span className="text-sac-primary">+</span>
               </p>
               <p className="text-base sm:text-3xl">Tecrübe</p>
-            </div>
+            </motion.div>
             {/* 1000+ */}
-            <div className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36">
+            <motion.div 
+              className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
               <p className="text-base sm:text-4xl font-bold">
-                1000<span>+</span>
+                <Counter from={0} to={1000} duration={1.5} />
+                <span>+</span>
               </p>
               <p className="text-base sm:text-3xl">Kurban</p>
-            </div>
+            </motion.div>
           </div>
           <div className="relative w-full sm:w-80 aspect-[4/5] md:aspect-[3/4]">
             <Image

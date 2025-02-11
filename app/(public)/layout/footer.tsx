@@ -70,7 +70,7 @@ const Footer = () => {
 
   return (
     <div className="mt-20 pt-12 pb-6 bg-sac-section-background">
-      <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-8 md:space-y-0">
+      <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-12 md:space-y-0">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
           <CustomLink href="/">
@@ -110,7 +110,7 @@ const Footer = () => {
         </div>
 
         {/* Right Side */}
-        <div className="flex flex-col md:flex-row gap-8 md:gap-24">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-24">
           {/* Hızlı Linkler */}
           <div>
             <p className="font-heading text-lg md:text-xl font-semibold mb-4">

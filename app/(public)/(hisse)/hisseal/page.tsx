@@ -28,8 +28,8 @@ import { TripleInfo } from "@/app/(public)/components/triple-info"
 import ProgressBar from "./components/common/progress-bar";
 import { ShareholderDetails } from "@/types";
 
-const TIMEOUT_DURATION = 10; // 3 minutes
-const WARNING_THRESHOLD = 5; // Show warning at 1 minute
+const TIMEOUT_DURATION = 60; // 3 minutes
+const WARNING_THRESHOLD = 30; // Show warning at 1 minute
 
 interface Sacrifice {
   sacrifice_id: string;

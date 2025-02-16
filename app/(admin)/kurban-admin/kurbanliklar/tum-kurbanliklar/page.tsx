@@ -67,11 +67,9 @@ export default function TumKurbanliklarPage() {
       <CustomDataTable 
         data={data} 
         columns={columns} 
-        filters={({ table, columnFilters, onColumnFiltersChange }) => (
+        filters={({ table }) => (
           <ToolbarAndFilters 
-            table={table} 
-            columnFilters={columnFilters}
-            onColumnFiltersChange={onColumnFiltersChange} 
+            table={table}
           />
         )}
       />

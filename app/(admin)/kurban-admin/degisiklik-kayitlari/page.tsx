@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { columns, type ChangeLog } from "./components/columns";
+import { columns } from "./components/columns";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
 
 export default function ChangeLogsPage() {

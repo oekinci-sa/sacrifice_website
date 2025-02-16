@@ -20,14 +20,20 @@ import SacrificeInfo from "./sacrifice-info"
 import { useSacrifices } from "@/hooks/useSacrifices"
 import ShareholderForm from "./shareholder-form"
 import TripleButtons from "../common/triple-buttons"
+import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
   phone: z.string()
-    .regex(/^0/, "Telefon numarası 0 ile başlamalıdır")
     .refine(
-      (val) => val.replace(/\D/g, '').length === 11,
-      "Telefon numarası 11 haneli olmalıdır"
+      (val) => {
+        const digitsOnly = val.replace(/\D/g, '');
+        if (val.startsWith('05')) {
+          return digitsOnly.length === 11;
+        }
+        return val.startsWith('5') && digitsOnly.length === 10;
+      },
+      "Lütfen telefon numaranızı kontrol ediniz"
     ),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
 })
@@ -51,27 +57,6 @@ type FormErrors = {
   name?: string[]
   phone?: string[]
   delivery_location?: string[]
-}
-
-const getGridClass = (shareholderCount: number) => {
-  switch (shareholderCount) {
-    case 1:
-      return "grid grid-cols-1 [&>*]:w-1/2 [&>*]:mx-auto" // Tek div, yarı genişlikte ve ortada
-    case 2:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İki div, tam genişlikte yan yana
-    case 3:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
-    case 4:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli iki satır, tam genişlikte
-    case 5:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
-    case 6:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli üç satır, tam genişlikte
-    case 7:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son div ortada ve yarı genişlikte
-    default:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // Varsayılan olarak tam genişlikte
-  }
 }
 
 export default function Checkout({
@@ -130,10 +115,13 @@ export default function Checkout({
 
     // Telefon numarası için özel kontroller
     if (field === "phone") {
-      if (!/^0/.test(value)) {
-        newErrors[index].phone = ["Telefon numarası 0 ile başlamalıdır"]
-      } else if (value.replace(/\D/g, '').length !== 11) {
-        newErrors[index].phone = ["Telefon numarası 11 haneli olmalıdır"]
+      const digitsOnly = value.replace(/\D/g, '');
+      if (!value.startsWith('05') && !value.startsWith('5')) {
+        newErrors[index].phone = ["Telefon numarası 05XX veya 5XX ile başlamalıdır"]
+      } else if (value.startsWith('05') && digitsOnly.length !== 11) {
+        newErrors[index].phone = ["Lütfen telefon numaranızı kontrol ediniz"]
+      } else if (value.startsWith('5') && digitsOnly.length !== 10) {
+        newErrors[index].phone = ["Lütfen telefon numaranızı kontrol ediniz"]
       } else {
         delete newErrors[index].phone
       }
@@ -392,9 +380,13 @@ export default function Checkout({
         </div>
       </div>
 
-      <div className={`grid ${getGridClass(formData.length)} gap-12 mt-8`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto mt-8">
         {formData.map((data, index) => (
-          <div key={index}>
+          <div key={index} className={cn(
+            "w-full",
+            formData.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
+            formData.length % 2 === 1 && index === formData.length - 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : ""
+          )}>
             <ShareholderForm
               data={data}
               index={index}

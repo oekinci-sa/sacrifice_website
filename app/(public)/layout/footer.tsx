@@ -146,7 +146,7 @@ const Footer = () => {
               <div className="flex gap-3">
                 <i className="bi bi-geo-alt text-sac-primary"></i>
                 <p className="font-normal">
-                  Hacı Bayram, Ulus, Adliye Sk. No:1 
+                  Hacı Bayram, Ulus, Adliye Sk. No:1 &nbsp;
                   <br className="hidden md:block" />
                    Altındağ/Ankara (09.00 - 18.00)
                 </p>

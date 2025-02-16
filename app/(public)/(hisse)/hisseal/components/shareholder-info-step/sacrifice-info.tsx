@@ -19,25 +19,25 @@ export default function SacrificeInfo({ sacrifice }: SacrificeInfoProps) {
   if (!sacrifice) return null
 
   return (
-    <div className="flex items-center justify-between px-4 py-6 overflow-x-auto min-w-full whitespace-nowrap">
+    <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between px-4 py-6 overflow-x-auto min-w-full whitespace-nowrap gap-4 sm:gap-0">
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground">Kurban No:</span>
-        <span className="ml-2 font-medium">{sacrifice.sacrifice_no}</span>
+        <span className="text-muted-foreground text-xs sm:text-base">Kurbanlık Sırası:</span>
+        <span className="ml-2 font-medium text-xs sm:text-base">{sacrifice.sacrifice_no}</span>
       </div>
-      <div className="w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+      <div className="hidden sm:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground">Kesim Saati:</span>
-        <span className="ml-2 font-medium">{formatTime(sacrifice.sacrifice_time)}</span>
+        <span className="text-muted-foreground text-xs sm:text-base">Kesim Saati:</span>
+        <span className="ml-2 font-medium text-xs sm:text-base">{formatTime(sacrifice.sacrifice_time)}</span>
       </div>
-      <div className="w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+      <div className="hidden sm:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground">Hisse Bedeli:</span>
-        <span className="ml-2 font-medium">{sacrifice.share_price} ₺</span>
+        <span className="text-muted-foreground text-xs sm:text-base">Hisse Bedeli:</span>
+        <span className="ml-2 font-medium text-xs sm:text-base">{sacrifice.share_price} ₺</span>
       </div>
-      <div className="w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+      <div className="hidden sm:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground">Kalan Hisse:</span>
-        <span className="ml-2 font-medium">{currentSacrifice?.empty_share ?? sacrifice.empty_share}</span>
+        <span className="text-muted-foreground text-xs sm:text-base">Kalan Hisse:</span>
+        <span className="ml-2 font-medium text-xs sm:text-base">{currentSacrifice?.empty_share ?? sacrifice.empty_share}</span>
       </div>
     </div>
   )

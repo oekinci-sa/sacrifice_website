@@ -30,6 +30,7 @@ export function ShareSelectDialog({
   const { toast } = useToast();
   const [currentEmptyShare, setCurrentEmptyShare] = useState(sacrifice.empty_share);
   const [selectedShareCount, setSelectedShareCount] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -64,6 +65,8 @@ export function ShareSelectDialog({
             setCurrentEmptyShare(newEmptyShare);
             if (newEmptyShare === 0) {
               setSelectedShareCount(1);
+            } else if (selectedShareCount > newEmptyShare) {
+              setSelectedShareCount(newEmptyShare);
             }
           }
         )
@@ -73,7 +76,7 @@ export function ShareSelectDialog({
         channel.unsubscribe();
       };
     }
-  }, [sacrifice.sacrifice_id, sacrifice.empty_share, isOpen]);
+  }, [sacrifice.sacrifice_id, sacrifice.empty_share, isOpen, selectedShareCount]);
 
   const shareOptions = Array.from(
     { length: currentEmptyShare },
@@ -81,6 +84,7 @@ export function ShareSelectDialog({
   );
 
   const handleContinue = async () => {
+    setIsLoading(true);
     // Boş hisse sayısını kontrol et
     const { data: latestSacrifice, error } = await supabase
       .from("sacrifice_animals")
@@ -94,6 +98,7 @@ export function ShareSelectDialog({
         title: "Hata",
         description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
       });
+      setIsLoading(false);
       return;
     }
 
@@ -105,6 +110,7 @@ export function ShareSelectDialog({
           "Maalesef biraz önce bu kurbanlık ile ilgili yeni bir işlem yapıldı. Lütfen yeniden hisse adedi seçiniz.",
       });
       setSelectedShareCount(1);
+      setIsLoading(false);
       return;
     }
 
@@ -122,51 +128,56 @@ export function ShareSelectDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl sm:mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-center">Hisse Adedi Seçimi</DialogTitle>
+          <DialogTitle className="text-center text-base sm:text-lg">Hisse Adedi Seçimi</DialogTitle>
         </DialogHeader>
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {currentEmptyShare === 0 ? (
             <div
               className={cn(
-                "flex items-center gap-2 rounded-lg border p-4",
+                "flex items-center gap-2 rounded-lg border p-3 sm:p-4",
                 "bg-destructive/15 text-destructive border-destructive/50"
               )}
             >
-              <AlertCircle className="h-4 w-4" />
-              <p className="text-sm">
+              <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <p className="text-xs sm:text-sm">
                 Üzgünüz, şu anda bu kurbanlıkta boş hisse kalmadı.
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-muted-foreground">
+              <p className="text-center text-muted-foreground text-xs sm:text-sm">
                 Seçmiş olduğunuz{" "}
                 <span className="text-sac-primary font-medium">
                   {sacrifice.share_price.toLocaleString("tr-TR")} ₺
                 </span>
                 &apos;lik kurbanlıktan kaç adet hisse almak istersiniz?
               </p>
-              <div className="flex flex-wrap gap-4 justify-center items-center max-w-[500px] mx-auto">
+              <div className="flex flex-wrap gap-2 sm:gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (
                   <Button
                     key={count}
                     variant={selectedShareCount === count ? "default" : "outline"}
-                    className="h-12 w-12 text-lg"
+                    className="h-8 w-8 sm:h-12 sm:w-12 text-sm sm:text-lg"
                     onClick={() => setSelectedShareCount(count)}
                   >
                     {count}
                   </Button>
                 ))}
               </div>
+              
               <div className="flex items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground flex-1">
                   Hissedar bilgilerini girmek için lütfen devam butonuna
                   basınız.
                 </p>
-                <Button onClick={handleContinue}>
-                  Devam
+                <Button 
+                  onClick={handleContinue}
+                  disabled={isLoading}
+                  className="h-8 sm:h-10 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  {isLoading ? "İşleminiz Yapılıyor..." : "Devam"}
                 </Button>
               </div>
             </>

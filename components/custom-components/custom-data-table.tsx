@@ -57,12 +57,7 @@ export function CustomDataTable<TData, TValue>({
   const tableColumns = React.useMemo(() => columns, [columns])
   
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([
-    {
-      id: "empty_share",
-      value: ["1", "2", "3", "4", "5", "6", "7"]
-    }
-  ])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     notes: false,
   })
@@ -70,6 +65,11 @@ export function CustomDataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: pageSizeOptions[0],
   })
+
+  // Reset page index when page size changes
+  React.useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }, [pageSize])
 
   const table = useReactTable({
     data,
@@ -247,7 +247,7 @@ export function CustomDataTable<TData, TValue>({
             </div>
             <Button
               variant="outline"
-              size="sm"  
+              size="sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               className="h-8 w-8 p-0"

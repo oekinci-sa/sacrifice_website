@@ -94,7 +94,7 @@
     @apply font-heading border-border;
   }
   body {
-    @apply bg-background text-foreground overflow-y-scroll;
+    @apply bg-background text-foreground;
   }
 }
 

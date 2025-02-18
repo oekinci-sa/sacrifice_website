@@ -1,0 +1,9 @@
+
+
+Bir de prices bölümünden hisse al sayfasına /hisseal?price=30000 şeklinde bir yönlendre yapılıyor fakat /hisseal sayfasında bu paraöetre ile işlem yapılmadığında tablo filtreli şekilde gelmiyor. Bunu çözer misin?
+
+"purchased_by alanı, telefon doğrulaması yapılan kişinin adını içermelidir. Kullanıcı, "Telefon Numaraı Doğrulama" ekranında bir telefon numarası seçtiğinde, bu telefon numarası kime ait ise hissedarlar veri tabanına gönderilirken tüm hissedarların last_edited_by ve purchased_by alanında o kişinin ismi olmalıdır.
+
+Örneğin, eğer hissedarlar Ömer ve Ahmet ise ve kullanıcı, doğrulama için Ömer'in telefon numarasını seçerse, Ahmet'in veritabanı kaydındaki purchased_by alanı Ömer olarak güncellenmelidir.
+
+Bu mantığa uygun olarak kodu yeniden düzenle."

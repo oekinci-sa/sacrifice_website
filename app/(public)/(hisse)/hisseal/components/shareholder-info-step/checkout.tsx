@@ -415,23 +415,23 @@ export default function Checkout({
         onOpenChange={setShowBackDialog}
       >
         <AlertDialogContent className="max-w-2xl">
-          <AlertDialogHeader className="space-y-6">
-            <AlertDialogTitle className="text-xl font-semibold">
+          <AlertDialogHeader className="space-y-4 sm:space-y-6">
+            <AlertDialogTitle className="text-base sm:text-xl font-semibold">
               Emin misiniz?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-base leading-relaxed">
+            <AlertDialogDescription className="text-xs sm:text-base leading-relaxed">
               Eğer geri dönerseniz, yaptığınız değişiklikler kaybolacaktır. Ayrıca, daha önce seçmiş olduğunuz hisseler başkaları tarafından seçilebilir hale gelecektir. Devam etmek istediğinize emin misiniz?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex space-x-4 pt-6">
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6">
             <AlertDialogAction
-              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 sm:h-10 text-xs sm:text-base"
               onClick={confirmBack}
             >
               Evet, geri dönmek istiyorum
             </AlertDialogAction>
             <AlertDialogCancel
-              className="flex-1"
+              className="flex-1 h-8 sm:h-10 text-xs sm:text-base"
               onClick={cancelBack}
             >
               Hayır, bu sayfada kalmak istiyorum

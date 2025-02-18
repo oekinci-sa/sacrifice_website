@@ -170,7 +170,7 @@ const Prices = () => {
             <div 
               key={index}
               className="flex flex-col items-center justify-between hover:scale-105 transition-all duration-300 cursor-pointer"
-              onClick={() => router.push('/hisseal')}
+              onClick={() => router.push(`/hisseal?price=${item.price}`)}
             >
               <div className="flex items-center justify-center bg-black text-white text-base sm:text-lg font-medium px-2 py-1 rounded-md">
                 {item.kg} KG

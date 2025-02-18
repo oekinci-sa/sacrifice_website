@@ -6,6 +6,8 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
+import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -29,11 +31,13 @@ const formatPhoneNumber = (phone: string) => {
   // Eğer +90 ile başlıyorsa, onu kaldır
   const withoutPrefix = cleaned.replace(/^90/, '')
   
-  // Baştaki 0'ı kaldır
+  // Baştaki 0'ı kaldır ve tekrar ekle
   const withoutZero = withoutPrefix.replace(/^0/, '')
+  const withZero = '0' + withoutZero
   
-  // +90 ile başlayan formata çevir
-  return "+90" + withoutZero
+  // Formatı ayarla: 05XX XXX XX XX
+  const formatted = withZero.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4')
+  return formatted
 }
 
 const getDeliveryLocationText = (location: string) => {
@@ -49,26 +53,6 @@ const getDeliveryLocationText = (location: string) => {
   }
 }
 
-const getGridClass = (shareholderCount: number) => {
-  switch (shareholderCount) {
-    case 1:
-      return "grid grid-cols-1 [&>*]:w-1/2 [&>*]:mx-auto" // Tek kart, yarı genişlikte ve ortada
-    case 2:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İki kart, tam genişlikte yan yana
-    case 3:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
-    case 4:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli iki satır, tam genişlikte
-    case 5:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
-    case 6:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // İkişerli üç satır, tam genişlikte
-    case 7:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full [&>*:last-child]:col-span-2 [&>*:last-child]:w-1/2 [&>*:last-child]:mx-auto" // Son kart ortada ve yarı genişlikte
-    default:
-      return "grid grid-cols-2 gap-12 [&>*]:w-full" // Varsayılan olarak tam genişlikte
-  }
-}
 
 const formatSacrificeTime = (timeString: string | null) => {
   if (!timeString) return '-';
@@ -98,17 +82,20 @@ export default function ShareholderSummary({
 }: ShareholderSummaryProps) {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const createShareholders = useCreateShareholders()
+  const { toast } = useToast()
 
-  const handleVerificationComplete = async (phone: string) => {
+  const handleVerificationComplete = async (phone: string, verifiedShareholderName: string) => {
     console.log("Doğrulama dialogundan gelen numara:", phone)
-    const formattedPhone = formatPhoneNumber(phone)
-    console.log("Formatlanmış numara:", formattedPhone)
     
     const matchingShareholder = shareholders.find(shareholder => {
-      const shareholderFormattedPhone = formatPhoneNumber(shareholder.phone)
-      console.log('Hissedar numarası:', shareholderFormattedPhone)
+      // Telefon numaralarını aynı formata getirip karşılaştır
+      const shareholderPhone = shareholder.phone.replace(/\D/g, '')
+        .replace(/^0/, '') // Baştaki 0'ı kaldır
+      const verificationPhone = phone.replace(/\D/g, '')
+        .replace(/^\+/, '') // Baştaki + işaretini kaldır
+        .replace(/^90/, '') // Baştaki 90'ı kaldır
       
-      return shareholderFormattedPhone === formattedPhone
+      return shareholderPhone === verificationPhone
     })
 
     if (!matchingShareholder) {
@@ -118,50 +105,68 @@ export default function ShareholderSummary({
 
     try {
       // Hissedar verilerini hazırla
-      const shareholderDataArray = shareholders.map(shareholder => ({
-        shareholder_name: shareholder.name,
-        phone_number: formatPhoneNumber(shareholder.phone),
-        delivery_location: shareholder.delivery_location,
-        delivery_fee: shareholder.delivery_location !== "kesimhane" ? 500 : 0,
-        share_price: sacrifice?.share_price || 0,
-        total_amount: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
-        sacrifice_consent: false,
-        last_edited_by: matchingShareholder.name,
-        purchased_by: matchingShareholder.name,
-        sacrifice_id: sacrifice?.sacrifice_id || "",
-        paid_amount: 0,
-        remaining_payment: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
-      }))
+      const shareholderDataArray = shareholders.map(shareholder => {
+        // Telefon numarasını DB formatına çevir
+        const cleanedPhone = shareholder.phone.replace(/\D/g, '')
+          .replace(/^0/, '') // Baştaki 0'ı kaldır
+        const formattedPhone = cleanedPhone.startsWith('90') 
+          ? '+' + cleanedPhone 
+          : '+90' + cleanedPhone
+
+        return {
+          shareholder_name: shareholder.name,
+          phone_number: formattedPhone,
+          delivery_location: shareholder.delivery_location,
+          delivery_fee: shareholder.delivery_location !== "kesimhane" ? 500 : 0,
+          share_price: sacrifice?.share_price || 0,
+          total_amount: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
+          sacrifice_consent: false,
+          last_edited_by: verifiedShareholderName,
+          purchased_by: verifiedShareholderName,
+          sacrifice_id: sacrifice?.sacrifice_id || "",
+          paid_amount: 0,
+          remaining_payment: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
+        }
+      })
 
       // Verileri DB'ye kaydet
       await createShareholders.mutateAsync(shareholderDataArray)
     } catch (error) {
       console.error("Hissedarlar kaydedilirken hata oluştu:", error)
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedarlar kaydedilirken bir hata oluştu.",
+      })
     }
   }
 
   return (
     <div className="space-y-8">
-      <div className={getGridClass(shareholders.length)}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto">
         {shareholders.map((shareholder, index) => (
           <div
             key={index}
-            className="bg-[#fcfcfa] rounded-lg border border-dashed border-[#c7ddcd] p-6"
+            className={cn(
+              "bg-[#fcfcfa] rounded-lg border border-dashed border-[#c7ddcd] p-4 sm:p-6 w-full",
+              shareholders.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
+              shareholders.length % 2 === 1 && index === shareholders.length - 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : ""
+            )}
           >
-            <h3 className="text-lg font-semibold text-center mb-6">
+            <h3 className="text-sm sm:text-lg font-semibold text-center mb-4 sm:mb-6">
               {index + 1}. Hissedar Bilgileri
             </h3>
 
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-4 sm:gap-8">
               {/* Sol Sütun */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <span className="text-[#5b725e] block">Ad Soyad</span>
-                  <span className="text-black text-lg">{shareholder.name}</span>
+                  <span className="text-[#5b725e] block text-xs sm:text-base">Ad Soyad</span>
+                  <span className="text-black text-sm sm:text-lg">{shareholder.name}</span>
                 </div>
                 <div>
-                  <span className="text-[#5b725e] block">Teslimat Tercihi</span>
-                  <span className="text-black text-lg">
+                  <span className="text-[#5b725e] block text-xs sm:text-base">Teslimat Tercihi</span>
+                  <span className="text-black text-sm sm:text-lg">
                     {getDeliveryLocationText(shareholder.delivery_location)}
                   </span>
                 </div>
@@ -169,70 +174,70 @@ export default function ShareholderSummary({
 
               {/* Sağ Sütun */}
               <div>
-                <span className="text-[#5b725e] block">Telefon</span>
-                <span className="text-black text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+                <span className="text-[#5b725e] block text-xs sm:text-base">Telefon</span>
+                <span className="text-black text-sm sm:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
               </div>
             </div>
 
-            <div className="my-6 border-t border-dashed border-[#c7ddcd]" />
+            <div className="my-4 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
 
             {/* Alt Bilgiler */}
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-8">
+              <div className="space-y-2 sm:space-y-4">
                 <div>
-                  <span className="text-[#5b725e] block">Kurbanlık No</span>
-                  <span className="text-black text-lg">{sacrifice?.sacrifice_no}</span>
+                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Kurbanlık No</span>
+                  <span className="text-black text-xs sm:text-lg">{sacrifice?.sacrifice_no}</span>
                 </div>
                 <div>
-                  <span className="text-[#5b725e] block">Hisse Bedeli</span>
-                  <span className="text-black text-lg">{sacrifice?.share_price} ₺</span>
+                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Hisse Bedeli</span>
+                  <span className="text-black text-xs sm:text-lg">{sacrifice?.share_price} TL</span>
                 </div>
               </div>
 
-              <div>
-                <span className="text-[#5b725e] block">Kesim Saati</span>
-                <span className="text-black text-lg">
-                  {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
-                </span>
+              <div className="space-y-2 sm:space-y-4">
+                <div>
+                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Kesim Saati</span>
+                  <span className="text-black text-xs sm:text-lg">
+                    {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="my-6 border-t border-dashed border-[#c7ddcd]" />
+            <div className="my-3 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
 
-            <div className="flex justify-between items-center">
-              <span className="text-[#5b725e]">Toplam Ücret</span>
-              <span className="text-black text-lg font-medium">
-                {shareholder.delivery_location !== "kesimhane"
-                  ? (sacrifice?.share_price || 0) + 500
-                  : sacrifice?.share_price} ₺
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <span className="text-[#5b725e] text-[10px] sm:text-base">Toplam Ücret</span>
+              <span className="text-black text-xs sm:text-lg font-medium text-right">
+                {new Intl.NumberFormat('tr-TR').format(
+                  shareholder.delivery_location !== "kesimhane"
+                    ? (sacrifice?.share_price || 0) + 500
+                    : (sacrifice?.share_price || 0)
+                )} TL
               </span>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-4 pt-6">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">Hissedar Bilgileri</span>
-          <Button
-            variant="ghost"
-            className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 w-10 rounded-full"
-            onClick={() => setCurrentStep("details")}
-          >
-            <ArrowLeft className="h-12 w-12" />
-          </Button>
-        </div>
+      <div className="flex justify-between items-center gap-4 w-full max-w-2xl mx-auto">
+        <Button
+          variant="ghost"
+          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
+          onClick={() => setCurrentStep("details")}
+        >
+          <ArrowLeft className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-2" />
+          <span className="text-xs sm:text-base">Hissedar Bilgileri</span>
+        </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 w-10 rounded-full"
-            onClick={() => setShowVerificationDialog(true)}
-          >
-            <ArrowRight className="h-12 w-12" />
-          </Button>
-          <span className="text-lg">Hisseleri Onayla</span>
-        </div>
+        <Button
+          variant="ghost"
+          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
+          onClick={() => setShowVerificationDialog(true)}
+        >
+          <span className="text-xs sm:text-base">Hisseleri Onayla</span>
+          <ArrowRight className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ml-0.5 sm:ml-2" />
+        </Button>
       </div>
 
       <PhoneVerificationDialog

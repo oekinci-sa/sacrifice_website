@@ -116,7 +116,7 @@ const Footer = () => {
             <p className="font-heading text-lg md:text-xl font-semibold mb-4">
               Hızlı Linkler
             </p>
-            <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75">
+            <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75 text-sm md:text-base">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
@@ -127,7 +127,7 @@ const Footer = () => {
                 <div className="flex items-center flex-wrap">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <span className="bg-sac-red ml-2 text-white text-[12px] px-2 py-1 rounded-[2px] whitespace-nowrap">
+                    <span className="bg-sac-red ml-2 text-white text-xs sm:text-xs px-2 py-1 rounded-[2px] whitespace-nowrap">
                       Son {totalEmptyShares} Hisse
                     </span>
                   </CustomLink>

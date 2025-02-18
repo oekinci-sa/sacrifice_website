@@ -72,7 +72,7 @@ export default function TripleButtons({
               className="rounded-full bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 h-8 sm:h-10 px-4 sm:px-4 sm:min-w-[140px] text-xs sm:text-base whitespace-nowrap"
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="sm:hidden">Yeni</span>
+              <span className="sm:hidden">Yeni Ekle</span>
               <span className="hidden sm:inline">Yeni Hissedar Ekle</span>
             </Button>
           )}

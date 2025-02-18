@@ -42,7 +42,7 @@ export function DataTableFacetedFilter<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 sm:h-10 w-full border-dashed text-xs sm:text-sm whitespace-normal sm:whitespace-nowrap"
+          className="h-8 sm:h-10 w-full border-[1.95px] sm:border-[2px] border-dashed text-xs sm:text-sm whitespace-normal sm:whitespace-nowrap"
         >
           <PlusCircle className="mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
           {title}

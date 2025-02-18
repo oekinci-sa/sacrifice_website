@@ -8,9 +8,9 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ currentStep }: ProgressBarProps) {
   const steps = [
-    { id: "selection", label: "Hisse Seçimi", number: 1 },
-    { id: "details", label: "Hissedar Bilgileri", number: 2 },
-    { id: "confirmation", label: "Onay", number: 3 },
+    { id: "selection", label: "Hisse\nSeçimi", number: 1 },
+    { id: "details", label: "Hissedar\nBilgileri", number: 2 },
+    { id: "confirmation", label: "Hisse\nOnay", number: 3 },
   ]
 
   const getCurrentStepIndex = () => {
@@ -32,11 +32,14 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
             return (
               <div key={step.id} className="flex flex-col items-center">
                 <span
-                  className={`text-sm sm:text-base font-medium mb-2 sm:mb-3 transition-colors duration-300 ${
+                  className={`text-xs sm:text-base font-medium mb-2 sm:mb-3 transition-colors duration-300 ${
                     isActive ? "text-black" : "text-gray-400"
                   }`}
                 >
-                  {step.label}
+                  {step.label.split('\n').map((line, i) => (
+                    <span key={i} className="sm:hidden block text-center">{line}</span>
+                  ))}
+                  <span className="hidden sm:block">{step.label.replace('\n', ' ')}</span>
                 </span>
                 <div
                   className={`w-10 h-10 sm:w-15 sm:h-15 rounded-full flex items-center justify-center text-sm sm:text-base font-medium transition-all duration-300 ${
@@ -46,9 +49,9 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
                   }`}
                 >
                   {isCompleted ? (
-                    <Check className="h-4 w-4 sm:h-6 sm:w-6" />
+                    <Check className="h-5 w-5 sm:h-6 sm:w-6" />
                   ) : (
-                    <span className="text-base sm:text-xl">{step.number}</span>
+                    <span className="text-sm sm:text-xl">{step.number}</span>
                   )}
                 </div>
               </div>

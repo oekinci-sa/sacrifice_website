@@ -1,4 +1,6 @@
+bir de 111111 yazınca nedense geçersiz doğrulam kodu alıyorum SMS doğrulama dalogunda. Bunu çözer misin?
 
+Bir de taaa en baştaki resimlerin olduığu anasayfada nedense sağa sola kaydırma scroll'u çıkıyor nedne? Bunu istemiyorum. Buna sebep olan ne ise çözer misin?
 
 Bir de prices bölümünden hisse al sayfasına /hisseal?price=30000 şeklinde bir yönlendre yapılıyor fakat /hisseal sayfasında bu paraöetre ile işlem yapılmadığında tablo filtreli şekilde gelmiyor. Bunu çözer misin?
 

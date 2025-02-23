@@ -2,15 +2,25 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
 import { sacrificeSchema } from "@/types"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
 
 // Fetch all sacrifices
 export const useSacrifices = () => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const pathname = usePathname()
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  useEffect(() => {
-    const channel = supabase.channel('db-changes')
+  // Function to setup Supabase subscription
+  const setupSubscription = () => {
+    // Clean up existing subscription if any
+    if (channelRef.current) {
+      channelRef.current.unsubscribe()
+    }
+
+    // Create new subscription
+    channelRef.current = supabase.channel('sacrifice-changes-' + Date.now())
       .on(
         'postgres_changes',
         {
@@ -18,20 +28,48 @@ export const useSacrifices = () => {
           schema: 'public',
           table: 'sacrifice_animals'
         },
-        () => {
+        (payload) => {
+          console.log('Realtime update received:', payload)
           queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+      })
+  }
 
+  // Setup subscription on mount and pathname change
+  useEffect(() => {
+    setupSubscription()
+    // Force immediate refetch when pathname changes
+    queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
+
+    // Cleanup on unmount
     return () => {
-      channel.unsubscribe()
+      if (channelRef.current) {
+        console.log('Unsubscribing from channel')
+        channelRef.current.unsubscribe()
+        channelRef.current = null
+      }
     }
-  }, [queryClient])
+  }, [pathname, queryClient]) // Add pathname as dependency
+
+  // Monitor subscription status
+  useEffect(() => {
+    const checkSubscription = setInterval(() => {
+      if (!channelRef.current) {
+        console.log('Reestablishing lost subscription')
+        setupSubscription()
+      }
+    }, 5000) // Check every 5 seconds
+
+    return () => clearInterval(checkSubscription)
+  }, [])
 
   return useQuery({
     queryKey: ["sacrifices"],
     queryFn: async () => {
+      console.log('Fetching sacrifices data')
       const { data, error } = await supabase
         .from("sacrifice_animals")
         .select("*")
@@ -48,7 +86,11 @@ export const useSacrifices = () => {
 
       return data as sacrificeSchema[]
     },
-    staleTime: 0, // Disable stale time since we're using realtime
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 1000, // Give a small stale time to prevent excessive refetches
+    retry: 3
   })
 }
 

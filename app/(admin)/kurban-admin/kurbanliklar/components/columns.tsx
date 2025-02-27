@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { sacrificeSchema, ShareholderDetails } from "@/types";
+import { sacrificeSchema, shareholderSchema } from "@/types";
 import { Eye, Ban, Pencil, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -24,7 +24,7 @@ import {
 const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [shareholders, setShareholders] = useState<ShareholderDetails[]>([]);
+  const [shareholders, setShareholders] = useState<shareholderSchema[]>([]);
   const sacrificeId = row.original.sacrifice_id;
 
   useEffect(() => {

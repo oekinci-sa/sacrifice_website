@@ -16,72 +16,57 @@ export const shareholderFormSchema = z.object({
 // Form için tip
 export type ShareholderFormValues = z.infer<typeof shareholderFormSchema>;
 
-// Statik alanlar için tip
-export interface StaticShareholderFields {
-  purchase_time: string;
-  sacrifice_no: number;
-  last_edited_by: string;
-}
-
 export interface shareholderSchema {
+  // Temel alanlar
   shareholder_id: string;
   shareholder_name: string;
   phone_number: string;
   purchase_time: string;
   sacrifice_id: string;
-  delivery_location: string;
+  
+  // Ödeme ile ilgili alanlar
   delivery_fee: number;
   share_price: number;
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;
+  
+  // Teslimat ve onay
+  delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
   sacrifice_consent: boolean;
+  
+  // Düzenleme bilgileri
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
-}
-
-export interface ShareholderDetails {
-  shareholder_name: string;
-  phone_number: string;
-  paid_amount: number;
-  total_amount: number;
-  delivery_location: string;
+  
+  // İlişkili kurban bilgileri (opsiyonel)
+  sacrifice?: {
+    sacrifice_id: string;
+    sacrifice_no: string;
+    sacrifice_time?: string;
+    share_price?: number;
+  };
 }
 
 export interface sacrificeSchema {
+  // Temel alanlar
   sacrifice_id: string;
   sacrifice_no: number;
   sacrifice_time: string | null;
+  
+  // Hisse bilgileri
   share_price: number;
-  total_price: number;
+  share_weight: number;
   empty_share: number;
+  
+  // Düzenleme bilgileri
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
-  shareholders?: ShareholderDetails[];
-}
-
-export interface ShareholderType {
-  shareholder_id: string
-  shareholder_name: string
-  phone_number: string
-  purchase_time: string
-  sacrifice_id: string
-  delivery_fee: number
-  share_price: number
-  total_amount: number
-  paid_amount: number
-  remaining_payment: number
-  delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki"
-  sacrifice_consent: boolean
-  last_edited_time: string
-  last_edited_by: string
-  notes?: string
-  sacrifice?: {
-    sacrifice_id: string
-    sacrifice_no: string
-  }
+  
+  // İlişkili hissedar bilgileri (opsiyonel)
+  shareholders?: Partial<shareholderSchema>[];
 }
 
 export interface changeLogSchema {

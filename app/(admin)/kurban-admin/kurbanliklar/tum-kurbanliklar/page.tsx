@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { columns } from "../components/columns";
 import { supabase } from "@/utils/supabaseClient";
-import { sacrificeSchema, ShareholderDetails } from "@/types";
+import { sacrificeSchema, shareholderSchema } from "@/types";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
 
 export default function TumKurbanliklarPage() {
@@ -42,7 +42,7 @@ export default function TumKurbanliklarPage() {
         }
         acc[shareholder.sacrifice_id].push(shareholder);
         return acc;
-      }, {} as Record<string, ShareholderDetails[]>);
+      }, {} as Record<string, shareholderSchema[]>);
 
       // Combine sacrifices with their shareholders
       const sacrificesWithShareholders = sacrifices.map(sacrifice => ({

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Eye, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ShareholderType } from "@/types";
+import { shareholderSchema } from "@/types";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 // Create a separate component for the cell content
-const ActionCellContent = ({ row }: { row: Row<ShareholderType> }) => {
+const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -109,7 +109,7 @@ const ActionCellContent = ({ row }: { row: Row<ShareholderType> }) => {
   );
 };
 
-export const columns: ColumnDef<ShareholderType>[] = [
+export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "shareholder_name",
     header: "İsim Soyisim",

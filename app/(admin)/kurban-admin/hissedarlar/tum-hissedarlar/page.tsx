@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { columns } from "./components/columns";
 import { supabase } from "@/utils/supabaseClient";
-import { ShareholderType } from "@/types";
+import { shareholderSchema } from "@/types";
 
 export default function TumHissedarlarPage() {
-  const [data, setData] = useState<ShareholderType[]>([]);
+  const [data, setData] = useState<shareholderSchema[]>([]);
 
   useEffect(() => {
     async function fetchData() {

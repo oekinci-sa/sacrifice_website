@@ -7,7 +7,7 @@ import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { useRouter } from "next/navigation"
 import { Progress } from "@/components/ui/progress"
-import { ShareholderType } from "@/types"
+import { shareholderSchema } from "@/types"
 import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
@@ -23,11 +23,11 @@ import {
 import { supabase } from "@/utils/supabaseClient"
 import { cn } from "@/lib/utils"
 
-const baseColumns: ColumnDef<ShareholderType>[] = [
+const baseColumns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "shareholder_name",
     header: "İsim Soyisim",
-    cell: ({ row }: { row: Row<ShareholderType> }) => (
+    cell: ({ row }: { row: Row<shareholderSchema> }) => (
       <div className="flex justify-center ">
         {row.getValue("shareholder_name")}
       </div>
@@ -41,7 +41,7 @@ const baseColumns: ColumnDef<ShareholderType>[] = [
   {
     accessorKey: "phone_number",
     header: "Telefon",
-    cell: ({ row }: { row: Row<ShareholderType> }) => {
+    cell: ({ row }: { row: Row<shareholderSchema> }) => {
       const phone = row.getValue("phone_number") as string;
       return (
         <div className="flex justify-center ">
@@ -53,7 +53,7 @@ const baseColumns: ColumnDef<ShareholderType>[] = [
   {
     accessorKey: "purchase_time",
     header: "Kayıt Tarihi",
-    cell: ({ row }: { row: Row<ShareholderType> }) => {
+    cell: ({ row }: { row: Row<shareholderSchema> }) => {
       const date = new Date(row.getValue("purchase_time"));
       return (
         <div className="flex justify-center ">
@@ -65,7 +65,7 @@ const baseColumns: ColumnDef<ShareholderType>[] = [
   {
     accessorKey: "sacrifice.sacrifice_no",
     header: "Kurban No",
-    cell: ({ row }: { row: Row<ShareholderType> }) => (
+    cell: ({ row }: { row: Row<shareholderSchema> }) => (
       <div className="flex justify-center ">
         {row.original.sacrifice?.sacrifice_no}
       </div>
@@ -76,7 +76,7 @@ const baseColumns: ColumnDef<ShareholderType>[] = [
 const totalAmountColumn = {
   accessorKey: "total_amount",
   header: "Toplam Tutar",
-  cell: ({ row }: { row: Row<ShareholderType> }) => {
+  cell: ({ row }: { row: Row<shareholderSchema> }) => {
     const amount = row.getValue("total_amount") as number;
     return (
       <div className="flex justify-center ">
@@ -91,7 +91,7 @@ const totalAmountColumn = {
 const paidAmountColumn = {
   accessorKey: "paid_amount",
   header: "Ödenen Tutar",
-  cell: ({ row }: { row: Row<ShareholderType> }) => {
+  cell: ({ row }: { row: Row<shareholderSchema> }) => {
     const amount = row.getValue("paid_amount") as number;
     return (
       <div className="flex justify-center ">
@@ -106,7 +106,7 @@ const paidAmountColumn = {
 const remainingPaymentColumn = {
   accessorKey: "remaining_payment",
   header: "Kalan Tutar",
-  cell: ({ row }: { row: Row<ShareholderType> }) => {
+  cell: ({ row }: { row: Row<shareholderSchema> }) => {
     const amount = row.getValue("remaining_payment") as number;
     return (
       <div className="flex justify-center ">
@@ -118,7 +118,7 @@ const remainingPaymentColumn = {
   },
 }
 
-const calculateRatio = (row: Row<ShareholderType>) => {
+const calculateRatio = (row: Row<shareholderSchema>) => {
   const paidAmount = row.getValue("paid_amount") as number;
   const totalAmount = row.getValue("total_amount") as number;
   return (paidAmount / totalAmount) * 100;
@@ -127,12 +127,12 @@ const calculateRatio = (row: Row<ShareholderType>) => {
 const paymentRatioColumn = {
   accessorKey: "payment_ratio",
   header: "Ödeme Oranı",
-  accessorFn: (row: ShareholderType) => {
+  accessorFn: (row: shareholderSchema) => {
     const paidAmount = row.paid_amount;
     const totalAmount = row.total_amount;
     return (paidAmount / totalAmount) * 100;
   },
-  cell: ({ row }: { row: Row<ShareholderType> }) => {
+  cell: ({ row }: { row: Row<shareholderSchema> }) => {
     const ratio = calculateRatio(row);
 
     return (
@@ -162,7 +162,7 @@ const paymentRatioColumn = {
   },
 }
 
-const ActionCell = ({ row }: { row: Row<ShareholderType> }) => {
+const ActionCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -239,7 +239,7 @@ const ActionCell = ({ row }: { row: Row<ShareholderType> }) => {
   )
 }
 
-export const overdueDepositsColumns: ColumnDef<ShareholderType>[] = [
+export const overdueDepositsColumns: ColumnDef<shareholderSchema>[] = [
   ...baseColumns,
   paidAmountColumn,
   totalAmountColumn,
@@ -252,7 +252,7 @@ export const overdueDepositsColumns: ColumnDef<ShareholderType>[] = [
   },
 ]
 
-export const pendingPaymentsColumns: ColumnDef<ShareholderType>[] = [
+export const pendingPaymentsColumns: ColumnDef<shareholderSchema>[] = [
   ...baseColumns,
   paidAmountColumn,
   totalAmountColumn,
@@ -266,7 +266,7 @@ export const pendingPaymentsColumns: ColumnDef<ShareholderType>[] = [
   },
 ]
 
-export const completedPaymentsColumns: ColumnDef<ShareholderType>[] = [
+export const completedPaymentsColumns: ColumnDef<shareholderSchema>[] = [
   ...baseColumns,
   totalAmountColumn,
   {

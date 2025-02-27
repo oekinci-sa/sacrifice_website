@@ -8,25 +8,10 @@ import { Separator } from "@/components/ui/separator";
 import { ProgressBar } from "./ProgressBar";
 import { addDays, format } from "date-fns";
 import Image from "next/image";
-
-interface ShareholderInfo {
-  shareholder_name: string;
-  phone_number: string;
-  delivery_location: string;
-  sacrifice_consent: boolean;
-  total_amount: number;
-  paid_amount: number;
-  remaining_payment: number;
-  purchase_time: string;
-  sacrifice: {
-    sacrifice_no: string;
-    sacrifice_time: string;
-    share_price: number;
-  };
-}
+import { shareholderSchema } from "@/types";
 
 interface ShareholderDetailsProps {
-  shareholderInfo: ShareholderInfo;
+  shareholderInfo: shareholderSchema;
 }
 
 const getDeliveryLocationText = (location: string) => {
@@ -51,7 +36,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
   const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
 
-  const formatSacrificeTime = (timeString: string | null) => {
+  const formatSacrificeTime = (timeString: string | null | undefined) => {
     if (!timeString) return "Henüz belirlenmedi";
     try {
       return format(new Date(timeString), 'HH:mm');
@@ -105,7 +90,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
             <div className="space-y-4">
               <div>
                 <p className="text-xs md:text-sm text-slate-600 font-medium mb-1">Kurbanlık No</p>
-                <p className="font-medium text-sm md:text-lg">{shareholderInfo.sacrifice.sacrifice_no}</p>
+                <p className="font-medium text-sm md:text-lg">{shareholderInfo.sacrifice?.sacrifice_no}</p>
               </div>
               <div>
                 <p className="text-xs md:text-sm text-slate-600 font-medium mb-1">Hisse Bedeli</p>
@@ -115,7 +100,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
                     currency: "TRY",
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
-                  }).format(shareholderInfo.sacrifice.share_price)}
+                  }).format(shareholderInfo.sacrifice?.share_price || 0)}
                 </p>
               </div>
             </div>
@@ -123,7 +108,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               <div>
                 <p className="text-xs md:text-sm text-slate-600 font-medium mb-1">Kesim Saati</p>
                 <p className="font-medium text-sm md:text-lg">
-                  {formatSacrificeTime(shareholderInfo.sacrifice.sacrifice_time)}
+                  {formatSacrificeTime(shareholderInfo.sacrifice?.sacrifice_time)}
                 </p>
               </div>
               <div>

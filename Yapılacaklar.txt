@@ -23,6 +23,9 @@ Buton işlevlerine, tipine ikonlara filan karışma aman sakın. Sadece UI günc
 MObil görünümdeki hisse bedeline göre filtrele ve boş hisse sayısına göre filtrele butonları buton içinde ortalı olmalılar ve tıklanınca açılan menülerin içindeki arama butonu içinde 
 
 
+Hise sorgula sayfasında kullanıcını kilogramı şu anda 26 kg'de sabit. Bu dinmaik olmalı.
+
+
 Teşekkürler sorun çözüldü. Şİmdi başka bir sorundan daha bahesedeyim.
 
 Problem Tanımı:

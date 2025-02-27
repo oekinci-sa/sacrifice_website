@@ -26,7 +26,7 @@ import { supabase } from "@/utils/supabaseClient";
 import { ShareFilters } from "./components/table-step/ShareFilters";
 import { TripleInfo } from "@/app/(public)/components/triple-info"
 import ProgressBar from "./components/common/progress-bar";
-import { ShareholderDetails } from "@/types";
+import { shareholderSchema } from "@/types";
 
 const TIMEOUT_DURATION = 60; // 3 minutes
 const WARNING_THRESHOLD = 30; // Show warning at 1 minute
@@ -41,7 +41,7 @@ interface Sacrifice {
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
-  shareholders?: ShareholderDetails[];
+  shareholders?: shareholderSchema[];
 }
 
 const Page = () => {

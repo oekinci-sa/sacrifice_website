@@ -6,7 +6,7 @@ import { CustomStatistics } from "@/components/custom-components/custom-statisti
 import { CustomTabs } from "@/components/custom-components/custom-tabs";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { overdueDepositsColumns, pendingPaymentsColumns, completedPaymentsColumns } from "./components/columns";
-import { ShareholderType } from "@/types";
+import { shareholderSchema } from "@/types";
 
 interface PaymentStats {
   totalAmount: number;
@@ -27,9 +27,9 @@ export default function PaymentAnalysisPage() {
     completedPayments: 0,
   });
 
-  const [overdueDeposits, setOverdueDeposits] = useState<ShareholderType[]>([]);
-  const [pendingPayments, setPendingPayments] = useState<ShareholderType[]>([]);
-  const [completedPayments, setCompletedPayments] = useState<ShareholderType[]>([]);
+  const [overdueDeposits, setOverdueDeposits] = useState<shareholderSchema[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<shareholderSchema[]>([]);
+  const [completedPayments, setCompletedPayments] = useState<shareholderSchema[]>([]);
 
   useEffect(() => {
     async function fetchData() {

@@ -39,14 +39,14 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
           <nav className="flex flex-col gap-2 mt-8">
             <Link 
               href="/" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Anasayfa
             </Link>
             <Link 
               href="#"
-              className="p-2 hover:bg-accent rounded-md transition-colors text-left"
+              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
               onClick={(e) => {
                 e.preventDefault();
                 handleScrollClick('prices');
@@ -56,7 +56,7 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
             </Link>
             <Link 
               href="#"
-              className="p-2 hover:bg-accent rounded-md transition-colors text-left"
+              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
               onClick={(e) => {
                 e.preventDefault();
                 handleScrollClick('process');
@@ -66,7 +66,7 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
             </Link>
             <Link 
               href="#"
-              className="p-2 hover:bg-accent rounded-md transition-colors text-left"
+              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
               onClick={(e) => {
                 e.preventDefault();
                 handleScrollClick('faq');
@@ -76,35 +76,35 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
             </Link>
             <Link 
               href="/hakkimizda" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/hakkimizda" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hakkimizda" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Hakkımızda
             </Link>
             <Link 
               href="/hisseal" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/hisseal" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hisseal" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Hisse Al
             </Link>
             <Link 
               href="/hissesorgula" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/hissesorgula" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hissesorgula" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Hisse Sorgula
             </Link>
             <Link 
               href="/yazilar" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/yazilar" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/yazilar" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Yazılar
             </Link>
             <Link 
               href="/iletisim" 
-              className={`p-2 hover:bg-accent rounded-md transition-colors ${pathname === "/iletisim" ? "text-sac-primary font-medium" : ""}`}
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/iletisim" ? "text-sac-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               İletişim

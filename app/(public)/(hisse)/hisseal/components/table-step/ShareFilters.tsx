@@ -263,7 +263,7 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
 
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
-      <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
         {[
           { 
             column: "share_price", 

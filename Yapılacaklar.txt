@@ -9,3 +9,65 @@ Bir de prices bölümünden hisse al sayfasına /hisseal?price=30000 şeklinde b
 Örneğin, eğer hissedarlar Ömer ve Ahmet ise ve kullanıcı, doğrulama için Ömer'in telefon numarasını seçerse, Ahmet'in veritabanı kaydındaki purchased_by alanı Ömer olarak güncellenmelidir.
 
 Bu mantığa uygun olarak kodu yeniden düzenle."
+
+
+Hisseal sayfasındaki hisse bedeline göre filtrele ve boş hisse sayısına göre filtrele butonlarının etrafındaki border kesikli değil düz bir border olsun.
+Desktop ve mobil görünümünde bu iki butonun büyüklükleri sabit kalsın mobil görünümüde bu iki buton tüm genişliğe uzanmalı. 
+
+Ayrıca butonların sağ üstünde çıkan yeşil renkteki daire componeneti desktop görünümde kaldırılmalı.
+Onun yerine ilk başta 2 adet filtreye kadar 30.000 32000, 34000 şeklinde badge olarak göstersin boş hisse bedeline göre filtrele butonunda. Sonrasında 4 seçili, 5 seçili olarak göstersin.
+Boş Hisse sayısına göre göster butonunda 1, 2, ,3, 4, diye hepsini göstersin. Şu kadar filtre seçili diye kısaltma yapmasın.
+
+Buton işlevlerine, tipine ikonlara filan karışma aman sakın. Sadece UI güncellemesi istiyorum.
+
+MObil görünümdeki hisse bedeline göre filtrele ve boş hisse sayısına göre filtrele butonları buton içinde ortalı olmalılar ve tıklanınca açılan menülerin içindeki arama butonu içinde 
+
+
+Teşekkürler sorun çözüldü. Şİmdi başka bir sorundan daha bahesedeyim.
+
+Problem Tanımı:
+Kullanıcılar bir hayvandan hisse seçtikten sonra "Devam" butonuna basarak form doldurma ekranına geçiyor.
+Eğer iki kullanıcı aynı anda "Devam" butonuna basarsa, hisse yeterli olmasa bile her ikisi de form ekranına geçebiliyor.
+Hedef: Yeterli hisse yoksa, sadece ilk basan kullanıcı form ekranına geçebilsin. Diğeri hata mesajı alsın.
+Kısıtlar:
+Popup içindeki butonlu hisse adedi seçme yapısı değiştirilmeyecek.
+Kullanıcı ilk tıklayan olduğu sürece devam edebilmelidir.
+
+Çözüm Yöntemi:
+Supabase'de Atomic Transaction Kullanımı (UPDATE ... WHERE empty_share > 0)
+
+Kullanıcı "Devam" butonuna bastığında, empty_share'i kontrol etmeden değil, güvenli bir şekilde azaltarak güncellemeliyiz.
+Eğer hisse yoksa, güncelleme başarısız olmalı ve kullanıcı form ekranına geçememeli.
+SQL Query:
+sql
+Kopyala
+Düzenle
+UPDATE sacrifice_animals
+SET empty_share = empty_share - 1
+WHERE sacrifice_id = 'xxx'
+AND empty_share > 0
+RETURNING empty_share;
+Çalışma Prensibi:
+
+empty_share > 0 koşulu, hisse bitmişse güncellemenin başarısız olmasını sağlar.
+RETURNING empty_share sayesinde güncellenen değeri geri döndürerek başarıyı teyit ederiz.
+Eğer sorgu hiçbir satır döndürmezse, hisse tükenmiştir ve kullanıcıya hata gösterilir.
+React Query ile Kullanımı:
+tsx
+Kopyala
+Düzenle
+const reserveShare = async (sacrificeId: string) => {
+  const { data, error } = await supabase
+    .from("sacrifice_animals")
+    .update({ empty_share: supabase.raw("empty_share - 1") }) // Atomic update
+    .eq("sacrifice_id", sacrificeId)
+    .gt("empty_share", 0) // Sadece hisse varsa güncelle
+    .select("empty_share")
+    .single();
+
+  if (error || !data) {
+    throw new Error("Bu hisse artık mevcut değil!");
+  }
+
+  return data;
+};

@@ -79,7 +79,7 @@ const Prices = () => {
   };
 
   return (
-    <div className="container flex flex-col lg:flex-row lg:space-x-16 space-y-16 lg:space-y-0">
+    <div id="prices" className="container flex flex-col lg:flex-row lg:space-x-16 space-y-16 lg:space-y-0 scroll-mt-20">
       {/* Sol kısım */}
       <motion.div 
         className="flex items-start space-x-4 w-full lg:w-auto"

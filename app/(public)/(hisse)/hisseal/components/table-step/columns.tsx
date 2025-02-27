@@ -79,37 +79,23 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "share_price",
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
+    header: "Hisse Bedeli",
+    cell: ({ row }) => {
+      const share_price = row.getValue("share_price") as number;
+      const share_weight = row.original.share_weight;
+
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-6 sm:h-8 px-1 sm:px-2 flex items-center gap-1 sm:gap-2 hover:bg-muted text-xs sm:text-base"
-        >
-          <span className="whitespace-normal sm:whitespace-nowrap">
-            Hisse<br className="sm:hidden" /> Bedeli
-          </span>
-          {isSorted === "asc" ? (
-            <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : isSorted === "desc" ? (
-            <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : (
-            <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          )}
-        </Button>
+        <div className="text-center text-xs sm:text-base py-0.5 sm:py-1 whitespace-nowrap">
+          {new Intl.NumberFormat("tr-TR", {
+            style: "decimal",
+            maximumFractionDigits: 0,
+          }).format(share_price)}{" "}
+          TL ({share_weight} Kg.)
+        </div>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">
-        {new Intl.NumberFormat('tr-TR', { 
-          style: 'decimal',
-          maximumFractionDigits: 0 
-        }).format(row.getValue("share_price"))} ₺
-      </div>
-    ),
     filterFn: (row, id, value) => {
-      return value.includes((row.getValue(id) as number).toString());
+      return value.includes(row.getValue(id));
     },
   },
   {

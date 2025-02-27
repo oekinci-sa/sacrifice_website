@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
-      <body className={`${inter.variable} ${playfairDisplay.variable} ${instrumentSans.variable} font-heading`}>
+      <body className={`${inter.variable} ${playfairDisplay.variable} ${instrumentSans.variable} font-heading min-h-screen overflow-x-hidden`}>
         <Header />
         {children}
         <Analytics />

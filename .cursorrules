@@ -95,8 +95,8 @@ Table 1: sacrifice_animals and its fields are:
   - sacrifice_id: Primary key (a unique identifier). 
   - sacrifice_no: Sacrifice number (a unique identifier). 
   - sacrifice_time: The time of the sacrifice operation. 
+  - share_weight: The weight of a share. 
   - share_price: The price of a share. 
-  - total_price: The price of a sacrifice animal. (share_price * 7)
   - empty_share: The number of remaining empty shares. Maximum number is 7 and minimum number is 0.
   - last_edited_time: The date and time when the sacrifice information was last edited. There is a trigger in the database that updates this field when the sacrifice information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).

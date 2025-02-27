@@ -31,18 +31,18 @@ export default function Home() {
   return (
     <div className="flex flex-col space-y-16 md:space-y-24 relative">
       {/* Pattern - Triangle (Sol üst) */}
-      <div className="absolute -left-10 -top-20 -z-10 hidden md:block">
+      <div className="absolute -left-10 -top-50 -z-10 hidden md:block">
         <Image
           src="/patterns/pattern-triangle.svg"
           alt="Triangle Pattern"
-          width={250}
-          height={250}
+          width={200}
+          height={200}
           className="opacity-100"
         />
       </div>
 
       {/* Pattern - Spiral (Sağ üst) */}
-      <div className="absolute -right-10 -top-12 -z-10 hidden md:block">
+      <div className="absolute -right-12 -top-14 -z-10 hidden md:block">
         <Image
           src="/patterns/pattern-spiral.svg"
           alt="Spiral Pattern"

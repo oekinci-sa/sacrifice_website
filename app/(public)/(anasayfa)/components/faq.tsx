@@ -13,7 +13,7 @@ import { faq_items } from "../constants";
 
 const Faq = () => {
   return (
-    <div className="container w-full lg:w-1/2 space-y-8 md:space-y-12">
+    <div id="faq" className="container w-full lg:w-1/2 space-y-8 md:space-y-12 scroll-mt-20">
       <h2 className="font-heading font-bold text-3xl md:text-4xl text-center">
         Sıkça Sorulan Sorular
       </h2>

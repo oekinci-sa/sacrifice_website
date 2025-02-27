@@ -42,7 +42,7 @@ const Process = () => {
   };
 
   return (
-    <div className="bg-sac-section-background">
+    <div id="process" className="bg-sac-section-background scroll-mt-20">
       <motion.p 
         className="font-heading text-3xl md:text-4xl font-bold text-center text-white my-12 md:my-20"
         variants={item}

@@ -400,3 +400,154 @@ Siteni geliştirmeye başlarken şu sırayı takip edebilirsin:
 4️⃣ **Hosting maliyetlerini optimize et ve daha fazla veri analizi yap.**  
 
 Bu adımları uygulayarak web siteni sürekli olarak geliştirebilirsin! 📈 Eğer detaylı bir konu hakkında yardım istersen bana sorabilirsin. 😊🚀
+
+
+
+
+
+Bir kurban sitem var. Daha önce anlatmışımdır belki. Burada kişiler yeni hissedar ekle deyince direk sacrifice_animals tablosundaki değer düşüyor ve tüm kullancılara Supabase realtimeile yansıyor. Buı çok güzel fakat kötü niyetli bir hacket sistemi de bir otomasyon yazıp bir çok hissede boş hisse yokmuş gibi bir hale de getirebilir. Bu durumu nasıl çözebilriiz?
+
+Evet, kurban hissedar yönetim sistemi yaptığını hatırlıyorum. Supabase Realtime kullanarak hisse ekleme/değiştirme işlemlerini **anlık olarak** yansıttığını söylemiştin. Ancak, kötü niyetli kullanıcıların bu işlemi kötüye kullanarak otomasyon yazıp hızla hisse tüketmesi bir güvenlik açığı oluşturabilir.  
+
+Bu durumu önlemek için aşağıdaki **koruma mekanizmalarını** kullanabilirsin:  
+
+---
+
+## **1. Rate Limiting (İstek Sınırlama)**
+Kullanıcıların belirli bir süre içinde **çok fazla** hisse ekleyip ekleyemeyeceğini sınırlamak için **Edge Functions** veya **RLS (Row Level Security) + Policies** kullanabilirsin.  
+
+### **Çözüm: Supabase Edge Function ile Rate Limiting**
+1. **Edge Function yaz** ve her kullanıcının **1 dakikada en fazla 3 hisse ekleyebileceğini** belirle.  
+2. Kullanıcıdan gelen her istekte, önce **kendi işlem geçmişine bak**, eğer **son 1 dakika içinde belirli bir limiti aşmışsa** yeni hisse eklemesine izin verme.  
+
+👉 **Edge Function Örneği:**  
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+// Supabase bağlantısı
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+export default async function handleRequest(req) {
+  const { user_id } = req.body;
+
+  // Son 1 dakika içinde kullanıcının kaç hisse eklediğini kontrol et
+  const { count, error } = await supabase
+    .from('hisse_transactions')
+    .select('*', { count: 'exact' })
+    .eq('user_id', user_id)
+    .gte('created_at', new Date(Date.now() - 60 * 1000).toISOString());
+
+  if (error) return new Response(JSON.stringify({ error }), { status: 500 });
+
+  // Limit: 3 hisse ekleyebilir
+  if (count >= 3) {
+    return new Response(JSON.stringify({ error: 'Çok fazla işlem yaptınız, lütfen bekleyin!' }), { status: 429 });
+  }
+
+  // Hisse ekleme işlemi burada yapılabilir
+  return new Response(JSON.stringify({ success: true }), { status: 200 });
+}
+```
+### **Avantajları**  
+✅ Spam ve otomatik saldırıları önler.  
+✅ Kullanıcıları zorlamadan adil bir hisse dağıtımı sağlar.  
+✅ Gerçek kullanıcı deneyimini bozmaz.  
+
+---
+
+## **2. Transaction Lock ile Yarış Koşullarını Engelleme**  
+Eğer birisi **aynı anda çok fazla istek göndererek** hisse sayısını hızla azaltıyorsa, veritabanında **transaction lock (kilit) mekanizması** kullanabilirsin.
+
+### **Çözüm: Supabase SQL Function ile Kilitleme**
+Supabase'de **PostgreSQL** kullanıldığı için **transaction ve locking mekanizmalarını** kullanabilirsin.  
+
+```sql
+CREATE OR REPLACE FUNCTION add_hisse(user_id UUID, sacrifice_id INT) 
+RETURNS VOID AS $$
+DECLARE available_hisse INT;
+BEGIN
+  -- Veritabanında belirli bir hisse için işlem sırasında bir kilit oluştur
+  PERFORM pg_advisory_xact_lock(sacrifice_id);
+
+  -- Mevcut hisseyi kontrol et
+  SELECT hisse_sayisi INTO available_hisse FROM sacrifice_animals WHERE id = sacrifice_id;
+
+  -- Eğer hisse yoksa hata ver
+  IF available_hisse <= 0 THEN
+    RAISE EXCEPTION 'Bu kurbanda boş hisse kalmamış!';
+  END IF;
+
+  -- Hissedar ekle ve hisseyi düşür
+  INSERT INTO hissedarlar (user_id, sacrifice_id) VALUES (user_id, sacrifice_id);
+  UPDATE sacrifice_animals SET hisse_sayisi = hisse_sayisi - 1 WHERE id = sacrifice_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+### **Avantajları**  
+✅ Aynı anda çok fazla istek gelirse bile **yarış koşulunu (race condition)** engeller.  
+✅ Veritabanı bazlı güvenlik sağlar, yani frontend veya backend değişse bile korunur.  
+
+---
+
+## **3. Row Level Security (RLS) ile Yetkilendirme**  
+Supabase'in **RLS (Row Level Security)** özelliği ile, bir kullanıcının **sadece kendisi için hisse ekleyebilmesini** ve **başkalarının hisselerine müdahale edememesini** sağlayabilirsin.  
+
+### **Çözüm: Hisse Eklemeyi Kullanıcıya Özel Yap**  
+**Supabase RLS Policy ile belirli bir kişinin sadece kendi hesapları için hisse eklemesini sağla:**  
+
+```sql
+CREATE POLICY "Sadece kendi hisselerini ekleyebilir"
+ON hissedarlar
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+```
+
+### **Avantajları**  
+✅ Kullanıcılar **başkalarının hisselerine müdahale edemez.**  
+✅ **Yetkisiz işlemleri tamamen engeller.**  
+✅ **Supabase’in native güvenlik özelliği** olduğu için ek yazılım gerektirmez.  
+
+---
+
+## **4. CAPTCHA veya SMS Doğrulaması ile Güvenlik**
+Bazı saldırılar **otomatik botlar veya otomasyonlarla** yapılır. Kullanıcı hisse eklemek istediğinde **Google reCAPTCHA** veya **SMS doğrulaması** ekleyerek kötü niyetli botları engelleyebilirsin.  
+
+### **Çözüm: Google reCAPTCHA Kullanmak**  
+Frontend’de, hisse ekleme butonuna basmadan önce reCAPTCHA doğrulaması ekleyebilirsin.  
+```javascript
+import ReCAPTCHA from "react-google-recaptcha";
+
+const handleHisseEkle = async (captchaValue) => {
+  if (!captchaValue) {
+    alert("Lütfen doğrulamayı tamamlayın!");
+    return;
+  }
+
+  const response = await fetch("/api/add_hisse", {
+    method: "POST",
+    body: JSON.stringify({ captcha: captchaValue }),
+  });
+
+  const result = await response.json();
+  console.log(result);
+};
+
+<ReCAPTCHA sitekey="YOUR_GOOGLE_RECAPTCHA_KEY" onChange={handleHisseEkle} />
+```
+
+### **Avantajları**  
+✅ **Bot saldırılarını engeller.**  
+✅ **Gerçek kullanıcıları korur.**  
+✅ **Sistemin kötüye kullanımını önler.**  
+
+---
+
+## **Sonuç: En Güçlü Koruma İçin Ne Yapılmalı?**
+Bu saldırıyı **tamamen önlemek** için en iyi yöntemleri **birlikte kullanmalısın:**  
+✅ **Edge Function + Rate Limiting** → Kullanıcıların bir dakikada kaç işlem yapabileceğini sınırla.  
+✅ **Transaction Locking** → Aynı anda birden fazla istek geldiğinde yarış koşulunu engelle.  
+✅ **Row Level Security (RLS)** → Kullanıcı sadece kendi işlemlerini yapabilsin.  
+✅ **reCAPTCHA veya SMS Doğrulama** → Botları engelle.  
+
+Bu yöntemleri uygularsan sistemin **daha güvenli ve stabil** olur. **Nasıl bir yöntem tercih etmek istediğini söylersen, o yöntemi daha detaylı geliştirebiliriz.** 🚀

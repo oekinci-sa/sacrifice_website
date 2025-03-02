@@ -121,12 +121,14 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           .select(
             `
             *,
-            sacrifice:sacrifice_animals!sacrifice_id (
+            sacrifice:sacrifice_animals (
+              sacrifice_id,
               sacrifice_no,
               sacrifice_time,
-              empty_share,
               share_price,
-              total_price
+              share_weight,
+              empty_share,
+              notes
             )
           `
           )
@@ -137,7 +139,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         // Fetch change logs for the shareholder
         const searchPattern = `%${data.shareholder_name} (${data.sacrifice_id})%`;
-        console.log("Search pattern:", searchPattern);
 
         const { data: logsData, error: logsError } = await supabase
           .from("change_logs")
@@ -147,7 +148,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         if (logsError) throw logsError;
 
-        console.log("Logs data:", logsData);
 
         setShareholder({ ...data, logs: logsData });
       } catch (err) {
@@ -183,12 +183,14 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
             .select(
               `
               *,
-              sacrifice:sacrifice_animals!sacrifice_id (
+              sacrifice:sacrifice_animals (
+                sacrifice_id,
                 sacrifice_no,
                 sacrifice_time,
-                empty_share,
                 share_price,
-                total_price
+                share_weight,
+                empty_share,
+                notes
               )
             `
             )

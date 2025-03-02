@@ -1,3 +1,6 @@
+Adamın interneti giderse yeni hisse ekle butonlarına filan basamamalı. Çünkü doğrulayamıyor adam güncel durumu?
+
+
 bir de 111111 yazınca nedense geçersiz doğrulam kodu alıyorum SMS doğrulama dalogunda. Bunu çözer misin?
 
 Bir de taaa en baştaki resimlerin olduığu anasayfada nedense sağa sola kaydırma scroll'u çıkıyor nedne? Bunu istemiyorum. Buna sebep olan ne ise çözer misin?

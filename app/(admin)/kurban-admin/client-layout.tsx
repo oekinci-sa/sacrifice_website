@@ -72,9 +72,10 @@ function DynamicBreadcrumb() {
   // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
   const turkishCorrections = (text: string): string => {
     const corrections: Record<string, string> = {
+      "kurban-admin": "Kurban Yönetimi",
       "genel-bakis": "Genel Bakış",
       "kurbanliklar": "Kurbanlıklar",
-      "kurban-admin": "Kurban Yönetimi",
+      "tum-kurbanliklar": "Tüm Kurbanlıklar",
       "hissedarlar": "Hissedarlar",
       "tum-hissedarlar": "Tüm Hissedarlar",
       "ayrintilar": "Ayrıntılar",

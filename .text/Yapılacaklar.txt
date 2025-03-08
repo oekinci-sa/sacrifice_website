@@ -1,3 +1,5 @@
+Hisse sorgula sayfasında UI düzenlemeleri
+
 Adamın interneti giderse yeni hisse ekle butonlarına filan basamamalı. Çünkü doğrulayamıyor adam güncel durumu?
 
 

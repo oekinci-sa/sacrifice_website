@@ -1,60 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { columns } from "../components/columns";
-import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema, shareholderSchema } from "@/types";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
+import { useSacrifices } from "@/hooks/useSacrifices";
+import { useGetShareholders } from "@/hooks/useShareholders";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TumKurbanliklarPage() {
-  const [data, setData] = useState<sacrificeSchema[]>([]);
+  // Fetch sacrifices using React Query
+  const { 
+    data: sacrifices, 
+    isLoading: sacrificesLoading, 
+    error: sacrificesError 
+  } = useSacrifices();
 
-  useEffect(() => {
-    async function fetchData() {
-      // Fetch sacrifices
-      const { data: sacrifices, error: sacrificesError } = await supabase
-        .from("sacrifice_animals")
-        .select("*")
-        .order("sacrifice_no", { ascending: true });
+  // Fetch shareholders using React Query
+  const { 
+    data: shareholders, 
+    isLoading: shareholdersLoading, 
+    error: shareholdersError 
+  } = useGetShareholders();
 
-      if (sacrificesError) {
-        console.error('Error fetching sacrifices:', sacrificesError);
-        return;
+  // Combine sacrifices with their shareholders
+  const sacrificesWithShareholders = useMemo(() => {
+    if (!sacrifices || !shareholders) return [];
+
+    // Group shareholders by sacrifice_id
+    const shareholdersByAnimal = shareholders.reduce((acc, shareholder) => {
+      if (!acc[shareholder.sacrifice_id]) {
+        acc[shareholder.sacrifice_id] = [];
       }
+      acc[shareholder.sacrifice_id].push(shareholder);
+      return acc;
+    }, {} as Record<string, shareholderSchema[]>);
 
-      if (!sacrifices) return;
+    // Combine sacrifices with their shareholders
+    return sacrifices.map(sacrifice => ({
+      ...sacrifice,
+      shareholders: shareholdersByAnimal[sacrifice.sacrifice_id] || []
+    }));
+  }, [sacrifices, shareholders]);
 
-      // Fetch shareholders for all sacrifices
-      const { data: shareholders, error: shareholdersError } = await supabase
-        .from("shareholders")
-        .select("shareholder_name, phone_number, paid_amount, total_amount, delivery_location, sacrifice_id");
-
-      if (shareholdersError) {
-        console.error('Error fetching shareholders:', shareholdersError);
-        return;
-      }
-
-      // Group shareholders by sacrifice_id
-      const shareholdersByAnimal = shareholders?.reduce((acc, shareholder) => {
-        if (!acc[shareholder.sacrifice_id]) {
-          acc[shareholder.sacrifice_id] = [];
-        }
-        acc[shareholder.sacrifice_id].push(shareholder);
-        return acc;
-      }, {} as Record<string, shareholderSchema[]>);
-
-      // Combine sacrifices with their shareholders
-      const sacrificesWithShareholders = sacrifices.map(sacrifice => ({
-        ...sacrifice,
-        shareholders: shareholdersByAnimal[sacrifice.sacrifice_id] || []
-      }));
-
-      setData(sacrificesWithShareholders);
-    }
-
-    fetchData();
-  }, []);
+  // Show loading state when either data is loading
+  const isLoading = sacrificesLoading || shareholdersLoading;
+  
+  // Show error state if there's an error fetching data
+  if (sacrificesError || shareholdersError) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tüm Kurbanlıklar</h1>
+          <p className="text-muted-foreground">
+            Tüm kurbanlıkların listesi
+          </p>
+        </div>
+        <div className="bg-red-50 p-4 rounded-md text-red-500">
+          Veri yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -64,15 +72,26 @@ export default function TumKurbanliklarPage() {
           Tüm kurbanlıkların listesi
         </p>
       </div>
-      <CustomDataTable 
-        data={data} 
-        columns={columns} 
-        filters={({ table }) => (
-          <ToolbarAndFilters 
-            table={table}
-          />
-        )}
-      />
+      
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ) : (
+        <CustomDataTable 
+          data={sacrificesWithShareholders} 
+          columns={columns} 
+          filters={({ table }) => (
+            <ToolbarAndFilters 
+              table={table}
+            />
+          )}
+        />
+      )}
     </div>
   );
 } 

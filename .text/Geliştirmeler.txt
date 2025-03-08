@@ -1,1 +1,41 @@
 Tüm hissedarlar sayfasında mesela 5000'den fazla ödem yapanları göstermek
+
+
+Tooltip arrow'u komple kaldırabilirisn.
+
+
+İşte uygun ve anlaşılır bir prompt:  
+
+---
+
+**Görev:**  
+Tüm hissedarlar tablosunda, kullanıcı yalnızca kolon isimlerine tıkladığında (yanındaki sıralama ikonuna değil), **"Hisse Al"** sayfasında kullanılan **hisse bedeline göre filtreleme butonu** tetiklendiğinde açılan bileşen türünde bir arama menüsü açılmalıdır.
+
+---
+
+### **Filtreleme Mekanizması:**
+- **Açılan Menü:**  
+  - Kullanıcının tıkladığı kolonun mevcut **benzersiz satır değerleri** listelenmelidir.  
+  - "Telefon" kolonundaki değerler **05XX** formatında gösterilmelidir.  
+  - "Ödeme Durumu" kolonundaki değerler **%2, %5 vb. yüzdelik formatta** olmalıdır.  
+
+- **Checkbox ile Filtreleme:**  
+  - Kullanıcı, açılan menüde listedeki satır değerlerinden bir veya birden fazlasını seçebilmelidir.  
+  - Seçilen değerler anında tabloya yansıtılmalı, yalnızca eşleşen satırlar gösterilmelidir.  
+  - Seçimler **dinamik olarak güncellenmeli**, kullanıcı yeni bir seçim yaptığında tablo yeniden filtrelenmelidir.  
+  - Kullanıcı **seçimini temizleyerek** tabloyu varsayılan haline (tüm satırlar görünür) döndürebilmelidir.  
+
+---
+
+### **Teknik Gereksinimler:**
+- **Mevcut Sıralama Mekanizması Bozulmamalıdır:**  
+  - Kolon başlığına tıklama, sadece filtreleme menüsünü açmalıdır.  
+  - **Yanındaki sıralama ikonuna tıklamak, mevcut sıralama fonksiyonunu çalıştırmalıdır (bu özellik korunmalıdır).**  
+
+- **`custom-data-table` bileşeninin importlarına dokunulmamalıdır.**  
+- **Popover tetiklendiğinde `undefined` hatası alınmaması için uygun kontrol mekanizmaları eklenmelidir.**  
+- **Bu işlevsellik, tüm hissedarlar tablosundaki tüm kolonlara uygulanmalıdır.**  
+
+---
+
+Bu prompt, **tam olarak istediğiniz özelliği net ve teknik olarak anlaşılır bir şekilde tarif etmektedir**. 🚀

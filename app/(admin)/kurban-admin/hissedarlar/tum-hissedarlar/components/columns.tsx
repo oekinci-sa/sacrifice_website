@@ -2,13 +2,14 @@
 
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Eye, Pencil, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import MyTooltip from "./my-tooltip";
+import { sortingFunctions } from "@/utils/table-sort-helpers";
 
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
@@ -41,67 +44,42 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
         title: "Başarılı",
         description: "Hissedar başarıyla silindi.",
       });
-      window.location.reload();
-    } catch (err) {
-      console.error('Error deleting shareholder:', err);
+    } catch (error: any) {
       toast({
-        variant: "destructive",
         title: "Hata",
-        description: "Hissedar silinirken bir hata oluştu.",
+        description: error.message,
+        variant: "destructive",
       });
     }
   };
-  
+
   return (
-    <div className="flex justify-center items-center gap-2">
-      <Button 
-        variant="ghost"
-        size="icon"
-        className="hover:bg-[#E8F7EF] hover:text-[#09B850]"
-        onClick={() => {
-          // TODO: Implement view functionality
-        }}
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
+    <div className="flex items-center justify-center space-x-2">
       <Button
         variant="ghost"
         size="icon"
-        className="hover:bg-[#E6EAF2] hover:text-[#367CFE]"
-        onClick={() =>
-          router.push(
-            `/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`
-          )
-        }
+        onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`)}
+        className="h-8 w-8"
       >
         <Pencil className="h-4 w-4" />
       </Button>
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="hover:bg-destructive/10 hover:text-destructive"
-          >
+          <Button variant="ghost" size="icon" className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
+            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu hissedarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              Bu işlem geri alınamaz. Bu, veritabanınızdan bu hissedarı kalıcı olarak silecektir.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Sil
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Sil</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -113,78 +91,110 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "shareholder_name",
     header: "İsim Soyisim",
-    cell: ({ row }) => (
-      <div className="text-center py-2 text-sm">
-        {row.getValue("shareholder_name")}
-      </div>
-    ),
+    enableSorting: true,
+    sortingFn: sortingFunctions.text,
+    cell: ({ row }) => row.getValue("shareholder_name"),
+    filterFn: (row, id, value) => {
+      return row.getValue(id)
+        .toLowerCase()
+        .includes((value as string).toLowerCase())
+    },
+  },
+  {
+    accessorKey: "sacrifice.sacrifice_no",
+    header: "Kur. Sır.",
+    enableSorting: true,
+    sortingFn: sortingFunctions.number,
+    cell: ({ row }) => {
+      const sacrifice = row.original.sacrifice;
+      return sacrifice?.sacrifice_no || "-";
+    },
   },
   {
     accessorKey: "phone_number",
     header: "Telefon",
+    enableSorting: false,
     cell: ({ row }) => {
-      const phone = row.getValue("phone_number") as string;
-      return (
-        <div className="text-center py-2 text-sm">
-          {phone.replace("+90", "0")}
+      const phoneRaw = row.getValue("phone_number") as string;
+      const phoneFormatted = phoneRaw.startsWith("+9") 
+        ? `0${phoneRaw.substring(3)}` 
+        : phoneRaw;
+      
+      return phoneFormatted.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
+    },
+  },
+  {
+    accessorKey: "purchase_time",
+    header: "Kayıt Tarihi",
+    enableSorting: true,
+    sortingFn: sortingFunctions.date,
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("purchase_time"));
+      return format(date, "dd MMM yyyy - HH:mm", { locale: tr });
+    },
+  },
+  {
+    id: "payment_status",
+    header: "Ödeme Durumu",
+    enableSorting: true,
+    accessorFn: (row) => {
+      const paid = parseFloat(row.paid_amount.toString());
+      const total = parseFloat(row.total_amount.toString());
+      return total > 0 ? (paid / total) * 100 : 0;
+    },
+    sortingFn: sortingFunctions.paymentPercentage,
+    cell: ({ row }) => {
+      const paid = parseFloat(row.original.paid_amount.toString());
+      const total = parseFloat(row.original.total_amount.toString());
+      const remaining = parseFloat(row.original.remaining_payment.toString());
+      
+      const ratio = total > 0 ? (paid / total) * 100 : 0;
+      const ratioString = ratio.toFixed(0);
+      
+      let statusText = "";
+      let statusColorClass = "";
+      
+      if (paid < 2000) {
+        statusText = "Kapora Bekleniyor";
+        statusColorClass = "bg-[#FCEFEF] text-[#D22D2D]";
+      } else if (paid < total) {
+        statusText = "Tüm Ödeme Bekleniyor";
+        statusColorClass = "bg-[#FFFAEC] text-[#F9BC06]";
+      } else {
+        statusText = "Tamamlandı";
+        statusColorClass = "bg-[#F0FBF1] text-[#39C645]";
+      }
+      
+      // Tooltip içeriği
+      const tooltipContent = (
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between gap-4">
+            <span className="font-medium">Toplam Tutar:</span>
+            <span>{new Intl.NumberFormat('tr-TR').format(total)} ₺</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="font-medium">Ödenen Tutar:</span>
+            <span>{new Intl.NumberFormat('tr-TR').format(paid)} ₺</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="font-medium">Kalan Tutar:</span>
+            <span>{new Intl.NumberFormat('tr-TR').format(remaining)} ₺</span>
+          </div>
         </div>
       );
-    },
-  },
-  {
-    accessorKey: "remaining_payment",
-    header: "Kalan Tutar",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("remaining_payment"));
-      const formatted = new Intl.NumberFormat("tr-TR", {
-        style: "currency",
-        currency: "TRY",
-      }).format(amount);
-
-      return <div className="text-center py-2 text-sm">{formatted}</div>;
-    },
-  },
-  {
-    accessorKey: "payment_ratio",
-    header: "Ödeme Oranı",
-    accessorFn: (row) => {
-      const paidAmount = parseFloat(row.paid_amount.toString());
-      const totalAmount = parseFloat(row.total_amount.toString());
-      return (paidAmount / totalAmount) * 100;
-    },
-    cell: ({ row }) => {
-      const ratio = row.getValue("payment_ratio") as number;
-      const ratioForDisplay = Math.floor(ratio);
-      const ratioString = ratioForDisplay.toString();
-
+      
       return (
-        <div className="flex justify-center py-2">
-          <div className="flex items-center gap-4">
-            <Progress
-              value={ratioForDisplay}
-              className="min-w-[100px]"
-              style={{
-                ["--progress-background" as string]: ratio < 50 
-                  ? "rgb(220 38 38 / 0.2)" 
-                  : ratio < 100 
-                    ? "rgb(202 138 4 / 0.2)" 
-                    : "rgb(22 163 74 / 0.2)",
-                ["--progress-foreground" as string]: ratio < 50 
-                  ? "rgb(220 38 38)" 
-                  : ratio < 100 
-                    ? "rgb(202 138 4)" 
-                    : "rgb(22 163 74)",
-              } as React.CSSProperties}
-            />
-            <div
-              className={cn(
-                "text-sm tabular-nums w-[50px] text-left",
-                ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-green-600",
-              )}
-            >
-              %{ratioString.padStart(3)}
+        <div className="flex justify-center">
+          <MyTooltip content={tooltipContent}>
+            <div className="flex items-center space-x-2">
+              <span className={`rounded-md px-1 py-1 w-[175px] text-center ${statusColorClass}`}>
+                {statusText}
+              </span>
+              <span className={`rounded-md px-1 py-1 w-[50px] text-center ${statusColorClass}`}>
+                %{ratioString}
+              </span>
             </div>
-          </div>
+          </MyTooltip>
         </div>
       );
     },
@@ -192,51 +202,42 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "delivery_location",
     header: "Teslimat Noktası",
+    enableSorting: false,
     cell: ({ row }) => {
       const location = row.getValue("delivery_location");
-      let displayLocation = "Kesimhane";
       
       if (location === "yenimahalle-pazar-yeri") {
-        displayLocation = "Yenimahalle Pazar Yeri";
+        return "Yenimahalle Pazar Yeri";
       } else if (location === "kecioren-otoparki") {
-        displayLocation = "Keçiören Otoparkı";
+        return "Keçiören Otoparkı";
       }
       
-      return (
-        <div className="text-center py-2 text-sm">
-          {displayLocation}
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return "Kesimhane";
     },
   },
   {
     accessorKey: "sacrifice_consent",
     header: "Vekalet",
+    enableSorting: false,
     cell: ({ row }) => {
       const sacrifice_consent = row.getValue("sacrifice_consent");
-
+      
       return (
-        <div className="text-center py-2 text-sm">
-          <div className={cn(
-            "inline-flex items-center justify-center rounded-md px-2 py-1 min-w-[80px]",
-            sacrifice_consent 
-              ? "bg-[#F0FBF1] text-[#39C645]" 
-              : "bg-[#FCEFEF] text-[#D22D2D]"
-          )}>
-            {sacrifice_consent ? "Alındı" : "Alınmadı"}
-          </div>
-        </div>
+        <span className={cn(
+          "inline-block rounded-md px-2 py-1 min-w-[80px] text-center",
+          sacrifice_consent 
+            ? "bg-[#F0FBF1] text-[#39C645]" 
+            : "bg-[#FCEFEF] text-[#D22D2D]"
+        )}>
+          {sacrifice_consent ? "Alındı" : "Alınmadı"}
+        </span>
       );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
     },
   },
   {
     id: "actions",
+    header: "",
+    enableSorting: false,
     cell: ({ row }) => <ActionCellContent row={row} />,
   },
 ];

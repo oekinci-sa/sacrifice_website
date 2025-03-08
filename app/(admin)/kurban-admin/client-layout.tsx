@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react";
 import { AppSidebar } from "./components/layout/app-sidebar";
 import {
   Breadcrumb,
@@ -25,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 function UserNav() {
   const { data: session } = useSession();
@@ -63,6 +66,79 @@ function UserNav() {
   );
 }
 
+function DynamicBreadcrumb() {
+  const pathname = usePathname();
+  
+  // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
+  const turkishCorrections = (text: string): string => {
+    const corrections: Record<string, string> = {
+      "genel-bakis": "Genel Bakış",
+      "kurbanliklar": "Kurbanlıklar",
+      "kurban-admin": "Kurban Yönetimi",
+      "hissedarlar": "Hissedarlar",
+      "tum-hissedarlar": "Tüm Hissedarlar",
+      "ayrintilar": "Ayrıntılar",
+      "kullanici-yonetimi": "Kullanıcı Yönetimi", 
+      "degisiklik-kayitlari": "Değişiklik Kayıtları",
+      "odeme-analizi": "Ödeme Analizi",
+      "yazilar": "Yazılar",
+      "iletisim": "İletişim",
+      "kecioren": "Keçiören",
+      "yenimahalle": "Yenimahalle"
+    };
+    
+    // Eğer kelime düzeltme sözlüğünde varsa direkt olarak değiştirelim
+    if (corrections[text]) {
+      return corrections[text];
+    }
+    
+    // Yoksa temel formatlama yapalım (boşluklar ve büyük harfler)
+    return text
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+  
+  const breadcrumbs = useMemo(() => {
+    const paths = pathname.split('/').filter(Boolean);
+    
+    const pathItems = paths.map((path, index) => {
+      // Türkçe karakter düzeltmeleri ile formatlama
+      const formattedPath = turkishCorrections(path);
+      
+      const fullPath = `/${paths.slice(0, index + 1).join('/')}`;
+      
+      const isActive = index === paths.length - 1;
+      
+      return {
+        name: formattedPath,
+        path: fullPath,
+        isActive,
+      };
+    });
+    
+    return pathItems;
+  }, [pathname]);
+  
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        {breadcrumbs.map((item, index) => (
+          <React.Fragment key={item.path}>
+            {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+            <BreadcrumbItem className="hidden md:block">
+              {item.isActive ? (
+                <BreadcrumbPage>{item.name}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink href={item.path}>{item.name}</BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+          </React.Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
 export function ClientLayout({
   children,
 }: {
@@ -76,19 +152,7 @@ export function ClientLayout({
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <DynamicBreadcrumb />
           </div>
           <UserNav />
         </header>

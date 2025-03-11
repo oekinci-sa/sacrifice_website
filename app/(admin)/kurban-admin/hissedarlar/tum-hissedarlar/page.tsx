@@ -10,6 +10,7 @@ import { CustomTableHeader } from "@/components/custom-components/custom-table-h
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PaymentAnalytics } from "./components/payment-analytics";
 
 export default function TumHissedarlarPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,17 +66,31 @@ export default function TumHissedarlarPage() {
   }
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Tüm Hissedarlar</h1>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Tüm Hissedarlar</h1>
+        <p className="text-muted-foreground">
+          Sistemde kayıtlı tüm hissedarların listesi
+        </p>
+      </div>
+
+      {/* Payment Analytics */}
+      {!isLoading && allShareholders && (
+        <PaymentAnalytics shareholders={allShareholders} />
+      )}
+
+      {/* Yatay çizgi ekle */}
+      <div className="border-t border-gray-200" />
+
+      <div className="flex items-center justify-between">
+        <ShareholderSearch onSearch={handleSearch} />
+        
         <Button onClick={exportToExcel} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
           Excel'e Aktar
         </Button>
       </div>
       
-      <ShareholderSearch onSearch={handleSearch} />
-
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-8 w-full" />

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
 import { sacrificeSchema } from "@/types"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 
@@ -125,4 +125,55 @@ export const useUpdateSacrifice = () => {
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
     },
   })
+}
+
+// Tek bir kurbanlık için hook - ID'ye göre
+export function useSacrificeById(id: string | undefined) {
+  const queryClient = useQueryClient();
+  
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['sacrifice', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('sacrifice_animals')
+        .select('*')
+        .eq('sacrifice_id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id, // Sadece ID varsa sorguyu çalıştır
+  });
+
+  // Realtime desteği ekleniyor
+  useEffect(() => {
+    if (!id) return;
+    
+    // Kurbanlık değişikliklerini dinle
+    const channel = supabase
+      .channel(`sacrifice_changes:${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sacrifice_animals',
+          filter: `sacrifice_id=eq.${id}`
+        },
+        (payload) => {
+          // Verileri yenile
+          queryClient.invalidateQueries({ queryKey: ['sacrifice', id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, queryClient]);
+
+  return { data, isLoading, error, refetch };
 } 

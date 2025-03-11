@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { useEffect } from "react"
 import { shareholderSchema } from "@/types"
 
@@ -214,4 +214,132 @@ export const useGetShareholders = (searchQuery?: string) => {
   }, [query.isSuccess, queryClient])
 
   return query
-} 
+}
+
+// Update a shareholder
+export const useUpdateShareholder = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async ({
+      shareholderId,
+      data
+    }: {
+      shareholderId: string
+      data: Partial<shareholderSchema>
+    }) => {
+      const { error } = await supabase
+        .from("shareholders")
+        .update(data)
+        .eq("shareholder_id", shareholderId)
+
+      if (error) {
+        throw new Error(`Hissedar güncellenemedi: ${error.message}`)
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+      
+      // Also invalidate the specific shareholder query if it exists
+      queryClient.invalidateQueries({ 
+        queryKey: ["shareholder", variables.shareholderId] 
+      })
+      
+      toast({
+        title: "Başarılı",
+        description: "Hissedar bilgileri başarıyla güncellendi."
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Hissedar güncellenirken bir hata oluştu"
+      })
+    }
+  })
+}
+
+// Delete a shareholder
+export const useDeleteShareholder = () => {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: async (shareholderId: string) => {
+      // First, get the shareholder to obtain the sacrifice_id
+      const { data: shareholder, error: fetchError } = await supabase
+        .from("shareholders")
+        .select("sacrifice_id")
+        .eq("shareholder_id", shareholderId)
+        .single()
+
+      if (fetchError) {
+        throw new Error(`Hissedar bilgisi alınamadı: ${fetchError.message}`)
+      }
+
+      const sacrificeId = shareholder.sacrifice_id
+
+      // Now delete the shareholder
+      const { error: deleteError } = await supabase
+        .from("shareholders")
+        .delete()
+        .eq("shareholder_id", shareholderId)
+
+      if (deleteError) {
+        throw new Error(`Hissedar silinemedi: ${deleteError.message}`)
+      }
+
+      // Finally, update the empty_share value of the sacrifice animal
+      if (sacrificeId) {
+        // First, get the current empty_share value
+        const { data: sacrifice, error: sacrificeError } = await supabase
+          .from("sacrifice_animals")
+          .select("empty_share")
+          .eq("sacrifice_id", sacrificeId)
+          .single()
+
+        if (sacrificeError) {
+          throw new Error(`Kurban bilgisi alınamadı: ${sacrificeError.message}`)
+        }
+
+        // Now increment the empty_share value
+        const { error: updateError } = await supabase
+          .from("sacrifice_animals")
+          .update({
+            empty_share: (sacrifice.empty_share || 0) + 1
+          })
+          .eq("sacrifice_id", sacrificeId)
+
+        if (updateError) {
+          throw new Error(`Kurban boş hisse değeri güncellenemedi: ${updateError.message}`)
+        }
+      }
+
+      return { shareholderId, sacrificeId }
+    },
+    onSuccess: (result) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+      
+      // Also invalidate sacrifice queries since we updated the empty_share
+      if (result.sacrificeId) {
+        queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
+      }
+      
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi ve kurban boş hisse sayısı güncellendi."
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Hissedar silinirken bir hata oluştu"
+      })
+    }
+  })
+}

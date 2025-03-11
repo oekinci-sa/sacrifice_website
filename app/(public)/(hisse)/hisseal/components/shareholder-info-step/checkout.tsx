@@ -13,7 +13,7 @@ import {
 import { sacrificeSchema } from "@/types"
 import { useState, useEffect } from "react"
 import { z } from "zod"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/utils/supabaseClient"
 import { useUpdateSacrifice } from "@/hooks/useSacrifices"
 import SacrificeInfo from "./sacrifice-info"

@@ -1,6 +1,6 @@
 "use client"
 
-import { ClientLayout } from "./client-layout";
+import { ClientLayout } from './client-layout';
 
 export default function Template({ children }: { children: React.ReactNode }) {
   return (

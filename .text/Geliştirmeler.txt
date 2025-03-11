@@ -1,8 +1,11 @@
 Tüm hissedarlar sayfasında mesela 5000'den fazla ödem yapanları göstermek
-
+Hisse sorgula sayfasında son güncelleme tarihi koymak.
 
 Tooltip arrow'u komple kaldırabilirisn.
 
+Hissedarlar bölümünde düzenle moduna girip örneğin vekalet alındıyı alınmadıya çekiiyorum. Sorun yok. Fakat hrmern tekrar edit'e basınca veklaet alındı şeklinde karşıma çıkıyor switch buton.
+
+Zustand ile sidebar state'inin tutulması
 
 İşte uygun ve anlaşılır bir prompt:  
 
@@ -39,3 +42,12 @@ Tüm hissedarlar tablosunda, kullanıcı yalnızca kolon isimlerine tıkladığ�
 ---
 
 Bu prompt, **tam olarak istediğiniz özelliği net ve teknik olarak anlaşılır bir şekilde tarif etmektedir**. 🚀
+
+
+
+Notion'da bir örnek var ödeme durumunu daha da uygun hale getirmek için.
+
+
+Kurban Ayrıntıları yenibir sayfadan ziyade pop up şeklinde açılabilir.
+
+Tüm kurbanlıklar sayfasında henüz bir hissedar almadıysa göz ikonuna basılınca üzügünüz herhanginbir kişi bu hisseyi almadı gibi bir mesaj gördün.

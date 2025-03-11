@@ -5,6 +5,12 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Columns2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type ChangeLog = {
   event_id: string;
@@ -40,10 +46,10 @@ export const columns: ColumnDef<ChangeLog>[] = [
         <div className="text-center">
           <span
             className={cn(
-              "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
-              type === "Ekleme" && "bg-[#F0FBF1] text-[#39C645] ring-[#39C645]/20",
-              type === "Güncelleme" && "bg-[#FFFAEC] text-[#F9BC06] ring-[#F9BC06]/20",
-              type === "Silme" && "bg-[#FCEFEF] text-[#D22D2D] ring-[#D22D2D]/20"
+              "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium min-w-[90px] justify-center",
+              type === "Ekleme" && "bg-[#F0FBF1] text-[#39C645]",
+              type === "Güncelleme" && "bg-[#FFFAEC] text-[#F9BC06]",
+              type === "Silme" && "bg-[#FCEFEF] text-[#D22D2D]"
             )}
           >
             {type}
@@ -76,10 +82,27 @@ export const columns: ColumnDef<ChangeLog>[] = [
     accessorKey: "description",
     header: "Açıklama",
     cell: ({ row }) => {
+      const description = row.getValue("description") as string;
+      
       return (
-        <div className="text-left max-w-md truncate">
-          {row.getValue("description")}
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div 
+                className="text-left line-clamp-1"
+                data-full-text={description}
+                title={description.length > 50 ? description : ""}
+              >
+                {description}
+              </div>
+            </TooltipTrigger>
+            {description.length > 50 && (
+              <TooltipContent className="p-2 max-w-[400px] bg-white">
+                <p className="text-sm break-words">{description}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       );
     },
   },

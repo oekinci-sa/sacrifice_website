@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
-import { ShareholderForm } from "../../components/shareholder-form";
+import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-import Image from "next/image";
-import html2pdf from "html2pdf.js";
+import { ArrowLeft, Edit, Trash2, Check, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { shareholderSchema } from "@/types";
+import { ShareholderDetails } from "../components/shareholder-details";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useGetShareholders, useUpdateShareholder, useDeleteShareholder } from "@/hooks/useShareholders";
+import { useToast } from "@/components/ui/use-toast";
+import Link from "next/link";
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/useUsers";
+import { useSession } from "next-auth/react";
 
 interface PageProps {
   params: {
@@ -18,617 +21,303 @@ interface PageProps {
   };
 }
 
-interface Shareholder {
-  shareholder_id: string;
-  shareholder_name: string;
-  phone_number: string;
-  purchase_time: string;
-  total_amount: number;
-  paid_amount: number;
-  remaining_payment: number;
-  payment_status: "paid" | "pending";
-  delivery_fee?: number;
-  delivery_type?: "kesimhane" | "toplu-teslim-noktasi";
-  delivery_location?: string;
-  sacrifice_consent: boolean;
-  notes?: string;
-  sacrifice_no?: string;
-  sacrifice?: {
-    sacrifice_no: string;
-    sacrifice_time: string;
-    share_price: number;
-    empty_share: number;
-    total_price: number;
-  };
-  logs: {
-    event_id: string;
-    changed_at: string;
-    description: string;
-    change_type: "Ekleme" | "Güncelleme" | "Silme";
-    column_name: string;
-    old_value: string;
-    new_value: string;
-  }[];
-}
-
-// Helper function to format time without seconds
-const formatTime = (time: string) => {
-  if (!time) return "-";
-  const [hours, minutes] = time.split(":");
-  return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
-};
-
-// Helper function to format location name
-const formatLocationName = (location: string) => {
-  switch (location) {
-    case "kesimhane":
-      return "Kesimhane";
-    case "yenimahalle-pazar-yeri":
-      return "Yenimahalle Pazar Yeri";
-    case "kecioren-otoparki":
-      return "Keçiören Otoparkı";
-    default:
-      return location;
-  }
-};
-
-// Helper function to get custom description
-const getCustomDescription = (
-  log: Shareholder["logs"][0],
-  totalAmount: number
-) => {
-  if (log.change_type === "Ekleme") {
-    return "Hisse alımı gerçekleştirildi";
-  }
-
-  if (log.column_name === "Ödenen Tutar") {
-    const newValue = parseInt(log.new_value);
-    if (newValue === totalAmount) {
-      return "Tüm ödemeler tamamlandı.";
-    }
-    return `Yapılan ödeme miktarı ${parseInt(log.old_value).toLocaleString(
-      "tr-TR"
-    )} TL'den ${newValue.toLocaleString("tr-TR")} TL'ye yükseldi.`;
-  }
-
-  if (log.column_name === "Teslimat Noktası") {
-    const oldLocation = formatLocationName(log.old_value);
-    const newLocation = formatLocationName(log.new_value);
-    return `Hisse teslimi ${oldLocation} yerine ${newLocation}'nda yapılacak.`;
-  }
-
-  return log.description;
-};
-
 export default function ShareholderDetailsPage({ params }: PageProps) {
-  const [shareholder, setShareholder] = useState<Shareholder | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
+  // State for the current shareholder
+  const [shareholder, setShareholder] = useState<shareholderSchema | null>(null);
+  // State for delete dialog
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
   const { toast } = useToast();
 
+  // Add form data state for editing
+  const [editFormData, setEditFormData] = useState({
+    shareholder_name: "",
+    phone_number: "",
+    delivery_location: "",
+    sacrifice_consent: false,
+    paid_amount: 0,
+    notes: "",
+    delivery_fee: 0,
+  });
+
+  // Fetch all shareholders
+  const { data: shareholders, isLoading } = useGetShareholders();
+
+  const { data: session } = useSession();
+  const { data: userData } = useUser(session?.user?.email);
+
+  // Find the current shareholder by ID
   useEffect(() => {
-    const fetchShareholder = async () => {
-      try {
-        if (!params.id) {
-          setError("Geçersiz hissedar ID'si");
-          setLoading(false);
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from("shareholders")
-          .select(
-            `
-            *,
-            sacrifice:sacrifice_animals (
-              sacrifice_id,
-              sacrifice_no,
-              sacrifice_time,
-              share_price,
-              share_weight,
-              empty_share,
-              notes
-            )
-          `
-          )
-          .eq("shareholder_id", params.id)
-          .single();
-
-        if (error) throw error;
-
-        // Fetch change logs for the shareholder
-        const searchPattern = `%${data.shareholder_name} (${data.sacrifice_id})%`;
-
-        const { data: logsData, error: logsError } = await supabase
-          .from("change_logs")
-          .select("*")
-          .ilike("row_id", searchPattern)
-          .order("changed_at", { ascending: true });
-
-        if (logsError) throw logsError;
-
-
-        setShareholder({ ...data, logs: logsData });
-      } catch (err) {
-        console.error("Error fetching shareholder:", err);
-        setError("Hissedar bilgileri yüklenirken bir hata oluştu");
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Hissedar bilgileri yüklenirken bir hata oluştu",
+    if (shareholders?.length) {
+      const found = shareholders.find(s => s.shareholder_id === params.id);
+      if (found) {
+        setShareholder(found);
+        
+        // Initialize edit form data
+        setEditFormData({
+          shareholder_name: found.shareholder_name,
+          phone_number: found.phone_number,
+          delivery_location: found.delivery_location,
+          sacrifice_consent: found.sacrifice_consent,
+          paid_amount: found.paid_amount,
+          notes: found.notes || "",
+          delivery_fee: found.delivery_fee || 0,
         });
-      } finally {
-        setLoading(false);
       }
-    };
+    }
+  }, [shareholders, params.id]);
 
-    fetchShareholder();
+  // Update mutation
+  const updateMutation = useUpdateShareholder();
+  // Delete mutation
+  const deleteMutation = useDeleteShareholder();
 
-    // Real-time subscription
-    const subscription = supabase
-      .channel("shareholders_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "shareholders",
-          filter: `shareholder_id=eq.${params.id}`,
-        },
-        async () => {
-          // When a change occurs, fetch the updated data with the sacrifice relationship
-          const { data, error } = await supabase
-            .from("shareholders")
-            .select(
-              `
-              *,
-              sacrifice:sacrifice_animals (
-                sacrifice_id,
-                sacrifice_no,
-                sacrifice_time,
-                share_price,
-                share_weight,
-                empty_share,
-                notes
-              )
-            `
-            )
-            .eq("shareholder_id", params.id)
-            .single();
-
-          if (!error && data) {
-            setShareholder(data);
-          }
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [params.id, toast]);
-
-  const generatePDF = () => {
-    const pdfContent = document.getElementById("pdf-content");
-
-    if (!pdfContent) return;
-
-    const opt = {
-      margin: 0.5,
-      filename: `hissedar-${shareholder?.shareholder_id}.pdf`,
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-      },
-      jsPDF: { unit: "in", format: "a4", orientation: "landscape" },
-    };
-
-    html2pdf().set(opt).from(pdfContent).save();
+  const handleBack = () => {
+    router.back();
   };
 
-  if (loading) {
+  const handleEdit = () => {
+    // Reset form data from current shareholder data whenever edit mode is toggled
+    if (shareholder) {
+      setEditFormData({
+        shareholder_name: shareholder.shareholder_name,
+        phone_number: shareholder.phone_number,
+        delivery_location: shareholder.delivery_location,
+        sacrifice_consent: shareholder.sacrifice_consent,
+        paid_amount: shareholder.paid_amount,
+        notes: shareholder.notes || "",
+        delivery_fee: shareholder.delivery_fee || 0,
+      });
+    }
+    
+    setIsEditing(true);
+  };
+
+  const handleChange = (field: string, value: any) => {
+    // If delivery_location is changing, update delivery_fee as well
+    if (field === 'delivery_location') {
+      const deliveryFee = value !== 'kesimhane' ? 500 : 0;
+      setEditFormData(prev => ({
+        ...prev,
+        [field]: value,
+        delivery_fee: deliveryFee
+      }));
+    } else {
+      setEditFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleSave = () => {
+    // Kullanıcı bilgisi yoksa işlemi engelle
+    if (!userData?.name) {
+      toast({
+        title: "Hata",
+        description: "Kullanıcı bilgisi bulunamadı.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create updated data object including last_edited_by
+    const updatedData = {
+      shareholder_name: editFormData.shareholder_name,
+      phone_number: editFormData.phone_number,
+      delivery_location: editFormData.delivery_location,
+      sacrifice_consent: editFormData.sacrifice_consent,
+      paid_amount: editFormData.paid_amount,
+      notes: editFormData.notes,
+      delivery_fee: editFormData.delivery_fee,
+      last_edited_by: userData.name // Kullanıcı adını ekle
+    };
+
+    updateMutation.mutate({ 
+      shareholderId: params.id, 
+      data: updatedData 
+    }, {
+      onSuccess: (data) => {
+        setShareholder(prevState => {
+          if (!prevState) return prevState;
+          return {
+            ...prevState,
+            ...updatedData
+          };
+        });
+        setIsEditing(false);
+        toast({
+          title: "Başarılı",
+          description: "Hissedar bilgileri güncellendi.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Hata",
+          description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    setIsDeleting(true);
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(params.id, {
+      onSuccess: () => {
+        toast({
+          title: "Başarılı",
+          description: "Hissedar başarıyla silindi.",
+        });
+        router.push("/kurban-admin/hissedarlar/tum-hissedarlar");
+      },
+      onError: (error) => {
+        toast({
+          title: "Hata",
+          description: "Hissedar silinirken bir hata oluştu.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-[200px]" />
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-8">
-            <Skeleton className="h-4 w-[140px]" />
-            <Skeleton className="h-4 w-[160px]" />
-            <Skeleton className="h-4 w-[170px]" />
-          </div>
           <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </div>
+        <Skeleton className="h-12 w-1/2" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
       </div>
     );
   }
 
-  if (error) {
+  if (!shareholder) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-destructive">{error}</p>
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Hissedar Bulunamadı</h1>
+        <p>Bu ID ile eşleşen bir hissedar bulunamadı.</p>
+        <Button onClick={handleBack}>Geri Dön</Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between h-[40px]">
-        <h1 className="text-2xl font-bold font-heading">
-          Hissedar Ayrıntıları
-        </h1>
-        {!isEditing ? (
-          <Button
-            variant="default"
-            className="bg-sac-primary hover:bg-sac-primary/90"
-            onClick={generatePDF}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            PDF İndir
-          </Button>
-        ) : (
-          <div className="w-[116px]"></div>
-        )}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Hissedar Ayrıntıları</h1>
+        
+        {/* Son düzenleyen bilgisi */}
+        <div className="text-sm text-muted-foreground">
+          Son düzenleyen: <span className="font-medium">{shareholder.last_modified_by || "Belirtilmemiş"}</span> - {shareholder.last_modified_at ? format(new Date(shareholder.last_modified_at), "dd.MM.yyyy HH:mm") : ""}
+        </div>
+        
+        <Button asChild>
+          <Link href={`/kurban-admin/hissedarlar/duzenle/${shareholder.shareholder_id}`}>
+            Düzenle
+          </Link>
+        </Button>
       </div>
 
-      {/* Main Content Grid */}
-      <div id="pdf-content" className="grid grid-cols-2 gap-24">
-        {/* Left Column - Profile Image and Info */}
-        <div>
-          <div className="border border-gray-200 rounded-lg">
-            {/* Image Section */}
-            <div className="aspect-[3/1] rounded-t-lg relative overflow-hidden">
-              <Image
-                src="/images/ai-cows.avif"
-                alt="Cow"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-              {/* Profile icon */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white rounded-full p-6 w-32 h-32 flex items-center justify-center">
-                <Image
-                  src="/icons/user-icon2.svg"
-                  alt="User Icon"
-                  width={96}
-                  height={96}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost" 
+            size="icon" 
+            onClick={handleBack}
+            className="h-10 w-10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">Hissedar Ayrıntıları</h1>
+      </div>
 
-            {/* Profile Info Section */}
-            <div className="pt-12 p-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold font-heading">
-                  {shareholder?.shareholder_name}
-                </h2>
-              </div>
-
-              <div className="space-y-6">
-                {/* First Group */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Hisse Alım Tarihi
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.purchase_time
-                        ? new Date(
-                            shareholder.purchase_time
-                          ).toLocaleDateString("tr-TR")
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Telefon
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.phone_number
-                        ? shareholder.phone_number.replace("+90", "0")
-                        : "-"}
-                    </p>
-                  </div>
-                </div>
-
-                <hr className="border-gray-200" />
-
-                {/* Second Group */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Kalan Ödeme
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.remaining_payment === 0
-                        ? "Tüm Ödeme Tamamlandı"
-                        : shareholder?.remaining_payment
-                        ? `${shareholder.remaining_payment.toLocaleString(
-                            "tr-TR"
-                          )} TL`
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Vekalet
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.sacrifice_consent === true
-                        ? "Alındı"
-                        : "Henüz Alınmadı"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">Notlar</p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.notes || "Not yok."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-6 grid grid-cols-2 gap-4">
+        {/* Conditional rendering of buttons based on edit state */}
+        <div className="flex items-center gap-3">
+          {isEditing ? (
+            <>
+              {/* Save/Cancel buttons when in edit mode */}
             <Button
-              variant="ghost"
-              className="bg-[#F8F9FC] hover:bg-[#E5E7F0] text-black font-heading h-12"
-              onClick={() => {
-                setIsEditing(!isEditing);
-              }}
-            >
-              {isEditing ? "Hissedar Ayrıntılarına Dön" : "Hissedarı Düzenle"}
+                variant="outline" 
+                className="gap-2"
+                onClick={handleCancel}
+              >
+                <X className="h-4 w-4" />
+                İptal
             </Button>
             <Button
-              variant="ghost"
-              className="bg-[#D6293E] hover:bg-[#D6293E]/80 text-white hover:text-white font-heading h-12"
+                variant="default" 
+                className="gap-2"
+                onClick={handleSave}
             >
-              Hissedarı Sil
+                <Check className="h-4 w-4" />
+                Kaydet
             </Button>
-          </div>
-        </div>
-
-        {/* Right Column - Information or Form */}
-        <div>
-          {!isEditing ? (
-            <div className="space-y-12">
-              {/* Kurban Bilgileri */}
-              <div>
-                <h3 className="text-lg font-semibold font-heading">
-                  Kurbanlık Bilgileri
-                </h3>
-                <hr className="border-gray-200 mt-4 mb-6" />
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Kurban No
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.sacrifice?.sacrifice_no || "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Kesim Saati
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.sacrifice?.sacrifice_time
-                        ? formatTime(shareholder.sacrifice.sacrifice_time)
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Hisse Bedeli
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.sacrifice?.share_price
-                        ? `${shareholder.sacrifice.share_price.toLocaleString(
-                            "tr-TR"
-                          )} TL`
-                        : "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground font-heading">
-                      Teslimat Türü
-                    </p>
-                    <p className="font-medium font-heading">
-                      {shareholder?.delivery_type === "toplu-teslim-noktasi"
-                        ? "Toplu Kesim Noktası (+500 TL)"
-                        : "Kesimhane"}
-                    </p>
-                  </div>
-                  {shareholder?.delivery_type === "toplu-teslim-noktasi" && (
-                    <div className="flex items-center justify-between">
-                      <p className="text-muted-foreground font-heading">
-                        Teslimat Noktası
-                      </p>
-                      <p className="font-medium font-heading">
-                        {shareholder?.delivery_location ===
-                        "yenimahalle-pazar-yeri"
-                          ? "Yenimahalle Pazar Yeri"
-                          : shareholder?.delivery_location ===
-                            "kecioren-otoparki"
-                          ? "Keçiören Otoparkı"
-                          : "-"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Kullanıcı Geçmişi */}
-              <div>
-                <h3 className="text-lg font-semibold font-heading">
-                  Kullanıcı Geçmişi
-                </h3>
-                <hr className="border-gray-200 mt-4 mb-6" />
-                <div className="relative space-y-6">
-                  {shareholder?.logs?.filter(
-                    (log) =>
-                      log.change_type === "Ekleme" ||
-                      log.column_name === "Ödenen Tutar" ||
-                      log.column_name === "Teslimat Noktası"
-                  ).length ? (
-                    shareholder.logs
-                      .filter(
-                        (log) =>
-                          log.change_type === "Ekleme" ||
-                          log.column_name === "Ödenen Tutar" ||
-                          log.column_name === "Teslimat Noktası"
-                      )
-                      .map((log, index, array) => (
-                        <div key={log.event_id} className="relative">
-                          <div className="flex items-start gap-6">
-                            <div className="flex flex-col items-center">
-                              <div className="relative w-14 h-14 bg-[#00B074]/10 rounded-full flex items-center justify-center shrink-0 z-10">
-                                {log.change_type === "Ekleme" ? (
-                                  <i className="bi bi-person-check-fill text-[#00B074] text-2xl" />
-                                ) : log.column_name === "Ödenen Tutar" ? (
-                                  <i className="bi bi-wallet-fill text-[#00B074] text-2xl" />
-                                ) : log.column_name === "Teslimat Noktası" ? (
-                                  <i className="bi bi-geo-alt-fill text-[#00B074] text-2xl" />
-                                ) : (
-                                  <div className="w-4 h-4 bg-[#00B074] rounded-full" />
-                                )}
-                              </div>
-                              {index < array.length - 1 && (
-                                <div className="w-[2px] h-8 bg-[#DBDDE1] mt-2 -mb-4" />
-                              )}
-                            </div>
-                            <div className="pt-2">
-                              <p className="text-sm text-muted-foreground font-heading">
-                                {format(
-                                  new Date(log.changed_at),
-                                  "dd.MM.yyyy - HH:mm",
-                                  { locale: tr }
-                                )}
-                              </p>
-                              <p className="font-medium font-heading">
-                                {getCustomDescription(
-                                  log,
-                                  shareholder.total_amount
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Kullanıcı geçmişi bulunamadı.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            </>
           ) : (
-            <div>
-              {/* Form Sections in Single Column */}
-              <div className="space-y-12">
-                {/* Kişisel Bilgiler Section */}
-                <div>
-                  <h2 className="text-lg font-semibold font-heading">
-                    Kişisel Bilgiler
-                  </h2>
-                  <hr className="border-gray-200 mt-4 mb-6" />
-                  {shareholder && (
-                    <ShareholderForm
-                      shareholder={shareholder}
-                      section="personal"
-                    />
-                  )}
-                </div>
-
-                {/* Ödeme Bilgileri Section */}
-                <div>
-                  <h2 className="text-lg font-semibold font-heading">
-                    Ödeme Bilgileri
-                  </h2>
-                  <hr className="border-gray-200 mt-4 mb-6" />
-                  {shareholder && (
-                    <ShareholderForm
-                      shareholder={shareholder}
-                      section="payment"
-                    />
-                  )}
-                </div>
-
-                {/* Teslimat Bilgileri Section */}
-                <div>
-                  <h2 className="text-lg font-semibold font-heading">
-                    Teslimat Bilgileri
-                  </h2>
-                  <hr className="border-gray-200 mt-4 mb-6" />
-                  {shareholder && (
-                    <ShareholderForm
-                      shareholder={shareholder}
-                      section="delivery"
-                    />
-                  )}
-                </div>
-
-                {/* Diğer Bilgiler Section */}
-                <div>
-                  <h2 className="text-lg font-semibold font-heading">
-                    Diğer Bilgiler
-                  </h2>
-                  <hr className="border-gray-200 mt-4 mb-6" />
-                  {shareholder && (
-                    <ShareholderForm
-                      shareholder={shareholder}
-                      section="other"
-                    />
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-4 grid grid-cols-2 gap-4">
+            <>
+              {/* Edit/Delete buttons when not in edit mode */}
                   <Button
-                    variant="default"
-                    className="bg-sac-primary hover:bg-sac-primary/90 text-white font-heading h-12"
+                variant="outline" 
+                className="gap-2" 
+                onClick={handleEdit}
                   >
-                    Kaydet
+                <Edit className="h-4 w-4" />
+                Düzenle
                   </Button>
                   <Button
-                    variant="ghost"
-                    className="bg-[#D6293E] hover:bg-[#D6293E]/80 text-white hover:text-white font-heading h-12"
+                variant="destructive" 
+                className="gap-2" 
+                onClick={handleDelete}
                   >
-                    Hissedarı Sil
+                <Trash2 className="h-4 w-4" />
+                Sil
                   </Button>
-                </div>
-              </div>
-            </div>
+            </>
           )}
         </div>
       </div>
 
-      <style jsx>{`
-        #pdf-content {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 6rem;
-        }
+      {/* Shareholder Details */}
+      <ShareholderDetails 
+        shareholderInfo={shareholder} 
+        isEditing={isEditing}
+        editFormData={editFormData}
+        handleChange={handleChange}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
 
-        @media print {
-          #pdf-content {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-      `}</style>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hissedarı Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu işlem geri alınamaz. Bu, hissedar kaydını kalıcı olarak silecektir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

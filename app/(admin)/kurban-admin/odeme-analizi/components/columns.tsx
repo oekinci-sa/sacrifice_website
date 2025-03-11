@@ -8,7 +8,7 @@ import { tr } from "date-fns/locale"
 import { useRouter } from "next/navigation"
 import { Progress } from "@/components/ui/progress"
 import { shareholderSchema } from "@/types"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,

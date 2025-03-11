@@ -115,7 +115,7 @@ const getCustomDescription = (log: ActivityLog, totalAmount: number) => {
   return log.description;
 };
 
-export default function GeneralOverviewPage() {
+export default function GenelBakisPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalShares: 0,
     emptyShares: 0,
@@ -383,8 +383,13 @@ export default function GeneralOverviewPage() {
   }
 
   return (
-    <div className="space-y-12">
-      <h1 className="text-2xl font-bold font-heading">Genel Bakış</h1>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Genel Bakış</h1>
+        <p className="text-muted-foreground">
+          Kurban satış ve dağıtım sürecinin özet bilgilerini görebilirsiniz
+        </p>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid gap-16 md:grid-cols-2 lg:grid-cols-4">

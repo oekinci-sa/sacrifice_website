@@ -7,7 +7,7 @@ import { useState } from "react"
 import PhoneVerificationDialog from "./phone-verification-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
 import { cn } from "@/lib/utils"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 
 type Step = "selection" | "details" | "confirmation"
 

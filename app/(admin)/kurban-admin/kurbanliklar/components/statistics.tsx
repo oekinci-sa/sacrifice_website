@@ -172,7 +172,6 @@ export function SacrificeStatistics() {
           title="Ödemesi Tamamlanan Kurbanlıklar"
           value={stats.fullyPaidSacrifices}
           maxValue={stats.activeSacrificesCount}
-          displayValue={stats.activeSacrificesCount - stats.fullyPaidSacrifices}
         />
       </div>
     </div>

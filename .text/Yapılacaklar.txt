@@ -1,6 +1,14 @@
+Hisse al sayfasında supabase realtime'ından kaynaklı bir güncelleme tetiklenince sayfa yenileniyor neden?
+Hisse al sayfasındaki veirlerde yine react-query'den'dan gelmeli e react query ile güncellenmeli.
+
 Hisse sorgula sayfasında UI düzenlemeleri
 
+Hissedar ayrıntıları kısmında tahimii et ağırlığı başlığı değişmeli ve doğru değer gösteirlmeli.
+
 Adamın interneti giderse yeni hisse ekle butonlarına filan basamamalı. Çünkü doğrulayamıyor adam güncel durumu?
+
+
+tüm değişkliklerde değişiklğiği yapan kullanıcı adı db'ye gönderilmeli.
 
 
 bir de 111111 yazınca nedense geçersiz doğrulam kodu alıyorum SMS doğrulama dalogunda. Bunu çözer misin?

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Checkout from "./components/shareholder-info-step/checkout";
 import { columns } from "./components/table-step/columns";
 import { ShareSelectDialog } from "./components/table-step/share-select-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
   AlertDialogContent,

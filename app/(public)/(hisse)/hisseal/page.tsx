@@ -26,23 +26,13 @@ import { supabase } from "@/utils/supabaseClient";
 import { ShareFilters } from "./components/table-step/ShareFilters";
 import { TripleInfo } from "@/app/(public)/components/triple-info"
 import ProgressBar from "./components/common/progress-bar";
-import { shareholderSchema } from "@/types";
+import { shareholderSchema, sacrificeSchema } from "@/types";
 
 const TIMEOUT_DURATION = 60; // 3 minutes
 const WARNING_THRESHOLD = 30; // Show warning at 1 minute
 
-interface Sacrifice {
-  sacrifice_id: string;
-  sacrifice_no: number;
-  sacrifice_time: string | null;
-  share_price: number;
-  total_price: number;
-  empty_share: number;
-  last_edited_time: string | null;
-  last_edited_by: string | null;
-  notes: string | null;
-  shareholders?: shareholderSchema[];
-}
+// API route'u oluştur
+const RESET_SHARES_API = "/api/reset-shares";
 
 const Page = () => {
   const { toast } = useToast();
@@ -306,16 +296,18 @@ const Page = () => {
       if (currentStep !== "details" && currentStep !== "confirmation") return;
       if (!selectedSacrifice || !formData.length) return;
 
-      // Beacon API ile güncelleme yap
+      // Beacon API ile güncelleme yap - boş hisse sayısını artıralım
       const updateData = {
         sacrifice_id: selectedSacrifice.sacrifice_id,
-        form_count: formData.length,
+        share_count: formData.length, // Kaç hisse ekleneceğini belirt
       };
 
       const blob = new Blob([JSON.stringify(updateData)], {
         type: "application/json",
       });
-      navigator.sendBeacon("/api/update-sacrifice", blob);
+      
+      // sendBeacon API kullan - sayfa kapanırken bile çalışır
+      navigator.sendBeacon(RESET_SHARES_API, blob);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -327,7 +319,7 @@ const Page = () => {
     };
   }, [currentStep, selectedSacrifice, formData]);
 
-  const handleSacrificeSelect = async (sacrifice: Sacrifice) => {
+  const handleSacrificeSelect = async (sacrifice: sacrificeSchema) => {
     setTempSelectedSacrifice(sacrifice);
     setIsDialogOpen(true);
   };

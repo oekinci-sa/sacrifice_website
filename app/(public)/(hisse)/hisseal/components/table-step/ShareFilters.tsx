@@ -1,12 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { X, Check, PlusCircle } from "lucide-react";
-import { Table, ColumnFiltersState, Column } from "@tanstack/react-table";
-import { supabase } from "@/utils/supabaseClient";
-import { useEffect, useMemo, useState } from "react";
-import { sacrificeSchema } from "@/types";
-import { cn } from "@/lib/utils";
 import {
   Command,
   CommandEmpty,
@@ -17,7 +11,13 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { motion, AnimatePresence } from "framer-motion";
+import { useSacrifices } from "@/hooks/useSacrifices";
+import { cn } from "@/lib/utils";
+import { sacrificeSchema } from "@/types";
+import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, PlusCircle, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -233,31 +233,30 @@ interface ShareFiltersProps {
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }
 
-// 🔹 Pay fiyatlarını çekme fonksiyonu
-const fetchSharePrices = async () => {
-  const { data } = await supabase.from("sacrifice_animals").select("share_price").order("share_price", { ascending: true });
-
-  return data
-    ? Array.from(new Set(data.map((p) => p.share_price))).map((price) => ({
-        label: `${new Intl.NumberFormat("tr-TR", { style: "decimal", maximumFractionDigits: 0 }).format(price)} TL`,
-        value: price.toString(),
-      }))
-    : [];
-};
-
 // 🔹 Ana bileşen
 export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: ShareFiltersProps) {
-  const [sharePrices, setSharePrices] = useState<{ label: string; value: string }[]>([]);
+  const { data: sacrifices = [] } = useSacrifices();
+  
+  // Unique share prices'ı hesapla
+  const sharePrices = useMemo(() => {
+    const uniquePrices = Array.from(new Set(sacrifices.map(s => s.share_price)))
+      .sort((a, b) => a - b)
+      .map(price => ({
+        label: `${new Intl.NumberFormat("tr-TR", { 
+          style: "decimal", 
+          maximumFractionDigits: 0 
+        }).format(price)} TL`,
+        value: price.toString(),
+      }));
+    return uniquePrices;
+  }, [sacrifices]);
+
   const [showHideFullOption, setShowHideFullOption] = useState(true);
 
   const emptyShares = useMemo(
     () => Array.from({ length: 8 }, (_, i) => ({ label: i.toString(), value: i.toString() })),
     []
   );
-
-  useEffect(() => {
-    fetchSharePrices().then(setSharePrices);
-  }, []);
 
   const isFiltered = columnFilters.length > 0;
 

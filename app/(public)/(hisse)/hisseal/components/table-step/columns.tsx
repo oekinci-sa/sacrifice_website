@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { sacrificeSchema } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ArrowUp, ArrowDown, Plus, Ban } from "lucide-react";
+import { Plus, Ban, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface TableMeta {
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
@@ -12,59 +12,22 @@ interface TableMeta {
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "sacrifice_no",
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(!isSorted)}
-          className="h-6 sm:h-8 px-1 sm:px-2 flex items-center gap-1 sm:gap-2 hover:bg-muted text-xs sm:text-base"
-        >
-          <span className="whitespace-normal sm:whitespace-nowrap">
-            Kurbanlık<br className="sm:hidden" /> Sırası
-          </span>
-          {isSorted === "asc" ? (
-            <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : isSorted === "desc" ? (
-            <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : (
-            <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: "Kurbanlık Sırası",
     cell: ({ row }) => (
-      <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">{row.getValue("sacrifice_no")}</div>
+      <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">
+        {row.getValue("sacrifice_no")}
+      </div>
     ),
     filterFn: (row, id, value) => {
       const searchValue = value.toLowerCase();
       const cellValue = String(row.getValue(id)).toLowerCase();
       return cellValue.includes(searchValue);
     },
+    enableSorting: true,
   },
   {
     accessorKey: "sacrifice_time",
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(!isSorted)}
-          className="h-6 sm:h-8 px-1 sm:px-2 flex items-center gap-1 sm:gap-2 hover:bg-muted text-xs sm:text-base"
-        >
-          <span className="whitespace-normal sm:whitespace-nowrap">
-            Kesim<br className="sm:hidden" /> Saati
-          </span>
-          {isSorted === "asc" ? (
-            <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : isSorted === "desc" ? (
-            <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : (
-            <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: "Kesim Saati",
     cell: ({ row }) => {
       const time = row.getValue("sacrifice_time") as string;
       if (!time) return <div className="text-center py-0.5 sm:py-1">-</div>;
@@ -76,6 +39,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </div>
       );
     },
+    enableSorting: true,
   },
   {
     accessorKey: "share_price",
@@ -86,41 +50,31 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
 
       return (
         <div className="text-center text-xs sm:text-base py-0.5 sm:py-1 whitespace-nowrap">
-          {new Intl.NumberFormat("tr-TR", {
+          {share_weight} kg. - {new Intl.NumberFormat("tr-TR", {
             style: "decimal",
             maximumFractionDigits: 0,
           }).format(share_price)}{" "}
-          TL ({share_weight} Kg.)
+          TL
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, id, filterValues) => {
+      if (!filterValues || filterValues.length === 0) return true;
+      
+      const rowValue = row.getValue(id) as number;
+      
+      return filterValues.some(filterValue => {
+        const numericFilterValue = typeof filterValue === 'string' 
+          ? parseFloat(filterValue)
+          : filterValue;
+        return rowValue === numericFilterValue;
+      });
     },
+    enableSorting: true,
   },
   {
     accessorKey: "empty_share",
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted();
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-6 sm:h-8 px-1 sm:px-2 flex items-center gap-1 sm:gap-2 hover:bg-muted text-xs sm:text-base"
-        >
-          <span className="whitespace-normal sm:whitespace-nowrap">
-            Boş<br className="sm:hidden" /> Hisse
-          </span>
-          {isSorted === "asc" ? (
-            <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : isSorted === "desc" ? (
-            <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          ) : (
-            <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4" />
-          )}
-        </Button>
-      );
-    },
+    header: "Boş Hisse",
     cell: ({ row }) => {
       const emptyShare = row.getValue("empty_share") as number;
       return (
@@ -134,6 +88,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     filterFn: (row, id, value) => {
       return value.includes((row.getValue(id) as number).toString());
     },
+    enableSorting: true,
   },
   {
     id: "actions",

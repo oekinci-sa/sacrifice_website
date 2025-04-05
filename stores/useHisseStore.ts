@@ -1,14 +1,12 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { sacrificeSchema } from '@/types'
+import { sacrificeSchema, Step } from '@/types'
 
 export interface FormData {
   name: string
   phone: string
   delivery_location: string
 }
-
-export type Step = "selection" | "details" | "confirmation" | "success"
 
 export const STEP_MAPPING = {
   selection: { number: 1, value: "tab-1" },
@@ -52,29 +50,11 @@ export const useHisseStore = create<HisseState>()(
       setFormData: (data) => set({ formData: data }),
       resetStore: () => set(initialState),
       goToStep: (step) => {
-        let stepNumber = 1;
-        let tabValue = "tab-1";
-
-        switch (step) {
-          case "selection":
-            stepNumber = 1;
-            tabValue = "tab-1";
-            break;
-          case "details":
-            stepNumber = 2;
-            tabValue = "tab-2";
-            break;
-          case "confirmation":
-            stepNumber = 3;
-            tabValue = "tab-3";
-            break;
-          case "success":
-            stepNumber = 3;
-            tabValue = "tab-3";
-            break;
-        }
-
-        set({ currentStep: step, stepNumber, tabValue });
+        let tab = "tab-1";
+        if (step === "details") tab = "tab-2";
+        if (step === "confirmation") tab = "tab-3";
+        if (step === "success") tab = "tab-4";
+        set({ currentStep: step, tabValue: tab });
       },
       setSuccess: (value) => set({ isSuccess: value }),
     }),

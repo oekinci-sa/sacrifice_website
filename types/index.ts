@@ -83,3 +83,6 @@ export interface changeLogSchema {
 }
 
 export type UserRole = "admin" | "editor" | null;
+
+// Hisse alma adımlarını temsil eden tip
+export type Step = string;

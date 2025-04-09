@@ -33,27 +33,6 @@ const Banner = () => {
       animate="show"
       variants={container}
     >
-      {/* Ayah */}
-      <motion.div variants={item} className="container flex flex-col space-y-4 text-md -mt-8 md:-mt-4 mb-8 md:text-2xl text-center">
-        <p className="font-medium">
-          Şüphesiz kurbanlarınızın,{" "}
-          <br className="block md:hidden" />
-          <span className="text-sac-primary font-semibold">
-            ne etleri ne de kanları
-          </span>{" "}
-          Allah&apos;a ulaşır.
-          <br />
-          Fakat O&apos;na sizin{" "}
-          <span className="text-sac-primary font-semibold">
-            takvanız{" "}
-          </span>
-          ulaşır.
-        </p>
-        <p className="font-normal text-sm md:text-xl">
-          Hac Suresi, 37. Ayeti Kerime
-        </p>
-      </motion.div>
-
       <div className="container flex flex-col-reverse md:flex-row items-center justify-between gap-8 md:gap-4">
         {/* Image for mobile */}
         <motion.div variants={item} className="w-full md:hidden aspect-square relative">
@@ -79,9 +58,8 @@ const Banner = () => {
           </div>
 
           {/* Açıklama */}
-          <p className="text-lg md:text-2xl text-black/70 font-normal tracking-wide leading-relaxed">
-            Yılları aşkın tecrübemizle binlerce hissedarı <br className="hidden md:block" />
-            bu sene de bir araya getiriyoruz.
+          <p className="text-lg md:text-xl text-black/70 font-normal leading-loose">
+          İMH Ankara Kurban organizasyonu olarak, Allah’a yakınlaşmak ve O’nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
           </p>
 
           {/* Buttons */}

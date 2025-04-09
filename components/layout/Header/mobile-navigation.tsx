@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { scrollToElement } from "@/utils/scrollToElement";
+import { usePathname } from "next/navigation";
 
 interface MobileNavigationProps {
   open: boolean;
@@ -15,17 +14,6 @@ interface MobileNavigationProps {
 
 const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationProps) => {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleScrollClick = async (elementId: string) => {
-    onLinkClick(); // Menüyü kapat
-    if (pathname !== '/') {
-      await router.push('/');
-      setTimeout(() => scrollToElement(elementId), 100);
-    } else {
-      scrollToElement(elementId);
-    }
-  };
 
   return (
     <div className="md:hidden">
@@ -43,36 +31,6 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
               onClick={onLinkClick}
             >
               Anasayfa
-            </Link>
-            <Link 
-              href="#"
-              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
-              onClick={(e) => {
-                e.preventDefault();
-                handleScrollClick('prices');
-              }}
-            >
-              Hisse Bedelleri
-            </Link>
-            <Link 
-              href="#"
-              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
-              onClick={(e) => {
-                e.preventDefault();
-                handleScrollClick('process');
-              }}
-            >
-              Süreç
-            </Link>
-            <Link 
-              href="#"
-              className="p-2 hover:bg-accent text-sm rounded-md transition-colors text-left"
-              onClick={(e) => {
-                e.preventDefault();
-                handleScrollClick('faq');
-              }}
-            >
-              S.S.S
             </Link>
             <Link 
               href="/hakkimizda" 
@@ -94,13 +52,6 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
               onClick={onLinkClick}
             >
               Hisse Sorgula
-            </Link>
-            <Link 
-              href="/yazilar" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/yazilar" ? "text-sac-primary font-medium" : ""}`}
-              onClick={onLinkClick}
-            >
-              Yazılar
             </Link>
             <Link 
               href="/iletisim" 

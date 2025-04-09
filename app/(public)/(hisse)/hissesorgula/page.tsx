@@ -9,12 +9,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ShareholderDetails } from "./components/shareholder-details";
 import { shareholderSchema } from "@/types";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-  InputOTPInput,
-} from "@/components/ui/input-otp";
 
 // Telefon numarası formatlama fonksiyonu
 const formatPhoneNumber = (value: string) => {

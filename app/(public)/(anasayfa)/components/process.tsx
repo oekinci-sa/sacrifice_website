@@ -42,9 +42,10 @@ const Process = () => {
   };
 
   return (
-    <div id="process" className="bg-sac-section-background scroll-mt-20">
+    <div id="process" className="md:bg-transparent bg-sac-section-background">
+      {/* Heading - white on mobile, hidden on desktop */}
       <motion.p 
-        className="font-heading text-3xl md:text-4xl font-bold text-center text-white my-12 md:my-20"
+        className="font-heading text-3xl md:text-4xl font-bold text-center text-white my-12 md:hidden"
         variants={item}
         initial="hidden"
         whileInView="show"
@@ -53,7 +54,6 @@ const Process = () => {
         Hisse Alım Sürecimiz
       </motion.p>
 
-      {/* Grid Düzeni */}
       <motion.div 
         className="container grid grid-cols-1 md:grid-cols-3 gap-x-24 gap-y-12 md:gap-y-16 pb-16 md:pb-20"
         variants={container}
@@ -76,16 +76,18 @@ const Process = () => {
               >
                 {process.number}
               </motion.div>
-              <p className="font-heading text-xl md:text-2xl font-bold text-white">
+              <p className="font-heading text-xl md:text-2xl font-bold text-white md:text-black">
                 {process.header}
               </p>
-              <p className="text-sm md:text-base text-white/90">{process.description}</p>
+              <p className="text-sm md:text-base text-white/90 md:text-black/80">
+                {process.description}
+              </p>
             </motion.div>
           ))}
         </div>
 
-        {/* Son 2 öğe için kapsayıcı */}
-        <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row gap-x-24 gap-y-12 md:gap-y-16 justify-center items-center">
+        {/* Son 3 öğe için kapsayıcı */}
+        <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-x-24 gap-y-12 md:gap-y-16 justify-items-center">
           {processes.slice(3).map((process) => (
             <motion.div
               key={process.number}
@@ -99,10 +101,12 @@ const Process = () => {
               >
                 {process.number}
               </motion.div>
-              <p className="font-heading text-xl md:text-2xl font-bold text-white">
+              <p className="font-heading text-xl md:text-2xl font-bold text-white md:text-black">
                 {process.header}
               </p>
-              <p className="text-sm md:text-base text-white/90">{process.description}</p>
+              <p className="text-sm md:text-base text-white/90 md:text-black/80">
+                {process.description}
+              </p>
             </motion.div>
           ))}
         </div>

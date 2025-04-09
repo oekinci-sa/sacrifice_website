@@ -5,7 +5,7 @@ import Image from "next/image";
 import websiteLogoWhite from "@/public/website-logo-white.svg";
 import { supabase } from "@/utils/supabaseClient";
 
-import { mediaLinks } from "../../(public)/constants";
+import { mediaLinks } from "../../constants";
 import CustomLink from "@/components/common/custom-link";
 
 interface MediaLink {
@@ -69,7 +69,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="mt-20 pt-12 pb-6 bg-sac-section-background">
+    <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
       <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-12 md:space-y-0">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
@@ -85,8 +85,8 @@ const Footer = () => {
           <div className="text-sm text-white/75">
             <p>
               İnsan ve Medeniyet Hareketi Ankara&apos;nın
-              <br className="hidden md:block" />
-              katkılarıyla düzenlenmektedir.
+              <br className="hidden md:block" /> 
+               katkılarıyla düzenlenmektedir.
             </p>
           </div>
 

@@ -113,7 +113,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <div className="flex justify-center py-0.5 sm:py-1">
           <button
             onClick={() => meta?.onSacrificeSelect(sacrifice)}
-            className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-base transition-colors duration-200"
+            className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#F0FBF1] hover:bg-[#22C55E] text-sac-primary font-medium hover:text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-base transition-colors duration-200"
           >
             <Plus className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
             Hisse Al

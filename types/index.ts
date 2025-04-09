@@ -23,6 +23,7 @@ export interface shareholderSchema {
   phone_number: string;
   purchase_time: string;
   sacrifice_id: string;
+  security_code: string; // Veritabanındaki security_code alanı (varchar(6))
   
   // Ödeme ile ilgili alanlar
   delivery_fee: number;

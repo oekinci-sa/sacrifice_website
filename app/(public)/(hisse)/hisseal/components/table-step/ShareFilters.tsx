@@ -17,7 +17,8 @@ import { sacrificeSchema } from "@/types";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -236,19 +237,58 @@ interface ShareFiltersProps {
 // 🔹 Ana bileşen
 export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: ShareFiltersProps) {
   const { data: sacrifices = [] } = useSacrifices();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   
-  // Unique share prices'ı hesapla
+  // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
-    const uniquePrices = Array.from(new Set(sacrifices.map(s => s.share_price)))
-      .sort((a, b) => a - b)
-      .map(price => ({
-        label: `${new Intl.NumberFormat("tr-TR", { 
+    // First, let's log a sample sacrifice to see its structure
+    if (sacrifices.length > 0) {
+      console.log("Sample sacrifice:", sacrifices[0]);
+    }
+    
+    // Create a map to group sacrifices by price
+    const priceGroups = sacrifices.reduce((groups, sacrifice) => {
+      const price = sacrifice.share_price;
+      if (!groups[price]) {
+        groups[price] = [];
+      }
+      
+      // Use the correct property for weight
+      // Replace 'weight_kg' with the actual property name
+      const weight = sacrifice.share_weight; 
+      
+      // Only add unique weights
+      if (!groups[price].includes(weight)) {
+        groups[price].push(weight);
+      }
+      return groups;
+    }, {} as Record<number, number[]>);
+    
+    // Convert to options format with weight and price
+    const priceOptions = Object.entries(priceGroups)
+      .map(([price, weights]) => {
+        const numPrice = Number(price);
+        const formattedPrice = new Intl.NumberFormat("tr-TR", { 
           style: "decimal", 
           maximumFractionDigits: 0 
-        }).format(price)} TL`,
-        value: price.toString(),
-      }));
-    return uniquePrices;
+        }).format(numPrice);
+        
+        // If there are multiple weights for this price, use the min weight
+        // Make sure we have valid weights
+        const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
+        const weight = validWeights.length > 0 
+          ? Math.min(...validWeights) 
+          : 0; // Default to 0 if no valid weights
+        
+        return {
+          label: `${weight} kg. - ${formattedPrice} TL`,
+          value: price.toString(), // Ensure this is a string for consistency
+        };
+      })
+      .sort((a, b) => Number(a.value) - Number(b.value));
+      
+    return priceOptions;
   }, [sacrifices]);
 
   const [showHideFullOption, setShowHideFullOption] = useState(true);
@@ -259,6 +299,40 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
   );
 
   const isFiltered = columnFilters.length > 0;
+
+  // Improved URL filtering handling for price filters
+  useEffect(() => {
+    const handleURLFilters = () => {
+      const priceFilter = searchParams.get('price');
+      
+      if (priceFilter) {
+        try {
+          // Handle both comma-separated values and single values
+          const prices = priceFilter.includes(',') 
+            ? priceFilter.split(',').map(p => p.trim())
+            : [priceFilter.trim()];
+            
+          const priceColumn = table.getColumn('share_price');
+          if (priceColumn) {
+            // Apply the filter directly to the table's state
+            table.setColumnFilters(prev => {
+              // Remove any existing share_price filter
+              const filtered = prev.filter(f => f.id !== 'share_price');
+              // Add the new filter
+              return [...filtered, {
+                id: 'share_price',
+                value: prices
+              }];
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing URL price filter:', error);
+        }
+      }
+    };
+    
+    handleURLFilters();
+  }, [table, searchParams, pathname]);
 
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">

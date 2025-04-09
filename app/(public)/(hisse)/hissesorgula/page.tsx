@@ -8,24 +8,13 @@ import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ShareholderDetails } from "./components/shareholder-details";
-
-interface ShareholderInfo {
-  shareholder_name: string;
-  phone_number: string;
-  delivery_type: string;
-  delivery_location: string;
-  sacrifice_id: string;
-  total_amount: number;
-  paid_amount: number;
-  remaining_payment: number;
-  purchase_time: string;
-  sacrifice_consent: boolean;
-  sacrifice: {
-    sacrifice_no: string;
-    sacrifice_time: string;
-    share_price: number;
-  };
-}
+import { shareholderSchema } from "@/types";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPInput,
+} from "@/components/ui/input-otp";
 
 // Telefon numarası formatlama fonksiyonu
 const formatPhoneNumber = (value: string) => {
@@ -54,7 +43,7 @@ const formatPhoneNumber = (value: string) => {
 // Telefon numarası doğrulama fonksiyonu
 const validatePhoneNumber = (phone: string) => {
   const digitsOnly = phone.replace(/\D/g, '');
-  if (!phone.startsWith('0')) return false;
+  if (!digitsOnly.startsWith('0')) return false;
   if (digitsOnly.length !== 11) return false;
   if (!digitsOnly.startsWith('05')) return false;
   return true;
@@ -62,9 +51,11 @@ const validatePhoneNumber = (phone: string) => {
 
 export default function HisseSorgula() {
   const [phone, setPhone] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [shareholderInfo, setShareholderInfo] = useState<ShareholderInfo | null>(null);
+  const [shareholderInfo, setShareholderInfo] = useState<shareholderSchema | null>(null);
+  const [shareholderInfoList, setShareholderInfoList] = useState<shareholderSchema[]>([]);
   const { toast } = useToast();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,16 +64,47 @@ export default function HisseSorgula() {
     setError(null); // Kullanıcı yazmaya başladığında hata mesajını temizle
   };
 
+  const handleSecurityCodeChange = (value: string) => {
+    setSecurityCode(value);
+    setError(null);
+  };
+
   const handleSearch = async () => {
+    // Telefon numarası kontrolü
+    if (!phone) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen telefon numarası giriniz.",
+      });
+      return;
+    }
+
     // Telefon numarası doğrulama
     if (!validatePhoneNumber(phone)) {
       setError("Lütfen geçerli bir telefon numarası giriniz (05XX XXX XX XX)");
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen geçerli bir telefon numarası giriniz (05XX XXX XX XX)",
+      });
+      return;
+    }
+
+    // Güvenlik kodu kontrolü
+    if (!securityCode || securityCode.length !== 6) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen 6 haneli güvenlik kodunu giriniz.",
+      });
       return;
     }
 
     setLoading(true);
     setError(null);
     setShareholderInfo(null);
+    setShareholderInfoList([]);
 
     try {
       // Telefon numarasını formatlama
@@ -91,7 +113,7 @@ export default function HisseSorgula() {
 
       console.log("Arama yapılan numara:", formattedPhone); // Debug için
 
-      // Önce tüm kayıtları al ve purchase_time'a göre sırala
+      // Tüm kayıtları al ve purchase_time'a göre sırala
       const { data, error: queryError } = await supabase
         .from("shareholders")
         .select(
@@ -110,22 +132,35 @@ export default function HisseSorgula() {
       if (queryError) throw queryError;
       if (!data || data.length === 0) {
         setError("Bu telefon numarasına ait kayıt bulunamadı.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Bu telefon numarasına ait kayıt bulunamadı.",
+        });
         return;
       }
 
-      // En son kaydı al
-      setShareholderInfo(data[0] as ShareholderInfo);
-
-      // Eğer birden fazla kayıt varsa bilgilendirme yap
-      if (data.length > 1) {
-        console.log(
-          `Bu telefon numarasına ait ${data.length} kayıt bulundu. En son kayıt gösteriliyor.`
-        );
+      // En son kaydı al (güvenlik kodu kontrolü için)
+      const latestRecord = data[0] as shareholderSchema;
+      
+      // Güvenlik kodu kontrolü
+      if (latestRecord.security_code !== securityCode) {
+        setError("Güvenlik kodu hatalı. Lütfen tekrar deneyiniz.");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Güvenlik kodu hatalı. Lütfen tekrar deneyiniz.",
+        });
+        return;
       }
+
+      // Güvenlik kodu doğruysa tüm kayıtları göster
+      setShareholderInfoList(data as shareholderSchema[]);
+      setShareholderInfo(latestRecord); // En son kaydı da ayrıca tut
 
       toast({
         title: "Başarılı",
-        description: "Hissedar bilgileri güncellendi.",
+        description: `${data.length} adet hissedar kaydı bulundu.`,
       });
     } catch (err) {
       console.error("Error fetching shareholder:", err);
@@ -148,24 +183,65 @@ export default function HisseSorgula() {
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-semibold">Hisse Sorgula</h1>
             <p className="text-muted-foreground">
-              Hisse bilgilerinizi sorgulamak için telefon numaranızı giriniz.
+              Hisse bilgilerinizi sorgulamak için telefon numaranızı ve güvenlik kodunuzu giriniz.
             </p>
           </div>
 
           <div className="w-full space-y-4">
-            <Input
-              type="tel"
-              placeholder="05XX XXX XX XX"
-              value={phone}
-              onChange={handlePhoneChange}
-              className={cn(
-                "text-center text-sm md:text-lg",
-                error ? "border-destructive focus-visible:ring-destructive" : ""
-              )}
-            />
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-medium">
+                Telefon Numarası
+              </label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="05XX XXX XX XX"
+                value={phone}
+                onChange={handlePhoneChange}
+                className={cn(
+                  "text-center text-sm md:text-lg",
+                  error ? "border-destructive focus-visible:ring-destructive" : ""
+                )}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="securityCode" className="text-sm font-medium">
+                Güvenlik Kodu (6 Haneli)
+              </label>
+              <div className="flex gap-2 justify-center">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Input
+                    key={i}
+                    className="w-10 h-10 text-center"
+                    maxLength={1}
+                    value={securityCode[i] || ''}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      if (/^\d*$/.test(newValue)) {
+                        const newCode = securityCode.split('');
+                        newCode[i] = newValue;
+                        setSecurityCode(newCode.join(''));
+                        
+                        // Auto-focus next input if a digit was entered
+                        if (newValue && i < 5) {
+                          const nextInput = document.querySelector(`input[name="otp-${i+1}"]`);
+                          if (nextInput) {
+                            (nextInput as HTMLInputElement).focus();
+                          }
+                        }
+                      }
+                    }}
+                    name={`otp-${i}`}
+                  />
+                ))}
+              </div>
+            </div>
+            
             {error && (
               <p className="text-destructive text-sm text-center">{error}</p>
             )}
+            
             <Button
               onClick={handleSearch}
               className="w-full"
@@ -183,10 +259,25 @@ export default function HisseSorgula() {
           </div>
         </div>
 
-        {/* Hissedar Detayları */}
-        {shareholderInfo && (
-          <div className="max-w-5xl mx-auto">
-            <ShareholderDetails shareholderInfo={shareholderInfo} />
+        {/* Hissedar Detayları - Tüm kayıtları göster */}
+        {shareholderInfoList.length > 0 && (
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-2xl font-semibold text-center">
+              {shareholderInfoList.length > 1 
+                ? `${shareholderInfoList.length} Adet Hisse Kaydı Bulundu` 
+                : "Hisse Kaydı"}
+            </h2>
+            
+            {shareholderInfoList.map((info, index) => (
+              <div key={info.shareholder_id} className="mb-8">
+                {shareholderInfoList.length > 1 && (
+                  <h3 className="text-xl font-medium mb-4 pb-2 border-b">
+                    Kayıt #{index + 1} - {new Date(info.purchase_time).toLocaleDateString('tr-TR')}
+                  </h3>
+                )}
+                <ShareholderDetails shareholderInfo={info} />
+              </div>
+            ))}
           </div>
         )}
       </div>

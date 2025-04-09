@@ -43,6 +43,7 @@ Table 2: shareholders and its fields are:
         When we receive an input from users regarding a phone_number, we will definitely check it and send it to db as +905555555555, but when we show it to users in the frontend, we should remove the +9 at the beginning and show it as 05555555555.
   - purchase_time: The time of share purchase. Default value is (now() AT TIME ZONE 'Europe/Istanbul'::text) so don't send backend to this column value.
   - purchased_by: This is the name of the user who purchased the share.
+  - security_code: It is used when making inquiries from the "Hisse Sorgula" page.
   - sacrifice_id: The associated sacrifice (foreign key). 
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
   - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.

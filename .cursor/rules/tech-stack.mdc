@@ -43,13 +43,14 @@ Table 2: shareholders and its fields are:
         When we receive an input from users regarding a phone_number, we will definitely check it and send it to db as +905555555555, but when we show it to users in the frontend, we should remove the +9 at the beginning and show it as 05555555555.
   - purchase_time: The time of share purchase. Default value is (now() AT TIME ZONE 'Europe/Istanbul'::text) so don't send backend to this column value.
   - purchased_by: This is the name of the user who purchased the share.
+  - transaction_id: foreign key to reservation_transactions table
   - security_code: It is used when making inquiries from the "Hisse Sorgula" page.
   - sacrifice_id: The associated sacrifice (foreign key). 
   - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
   - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.
-  - total_amount: The total amount to be paid. (share_price + delivery_fee)
+  - total_amount: The total amount to be paid. (share_price + delivery_fee) (cannot be edited manually)
   - paid_amount: The paid amount. (initial value is 0)
-  - remaining_payment: The remaining payment amount. (total_amount - paid_amount)
+  - remaining_payment: The remaining payment amount. (total_amount - paid_amount) (cannot be edited manually)
   - delivery_location: "yenimahalle-pazar-yeri" or "kecioren-otoparki" or "kesimhane".
   - sacrifice_consent: This a boolean value in db. But it is displayed as "vekalet" in UI and in forms, this field is shown in the drop-down menu as "vekalet-alindi" or "vekalet-alinmadi".
   - last_edited_time: The date and time when the shareholder information was last edited. There is a trigger in the database that updates this field when the shareholder information is edited.
@@ -81,5 +82,14 @@ Table 4: users and its fields are:
   - updated_at: Stores the timestamp when the user record was last updated.
   Automatically updated using triggers or ORM-level updates.
 
+Table 5: reservation_transactions and its fields are:
+  - transaction_id (Primary Key 🔑): A unique identifier for each reservation transaction. Used to distinguish each share reservation operation. 16 character
+  - sacrifice_id: Foreign key linking to the sacrifice_animals table. Indicates which animal the reserved shares belong to.
+  - share_count: Number of shares reserved in this transaction. Used to reduce the empty_share in sacrifice_animals.
+  - created_at: Timestamp when the reservation was initially created.
+Typically set to the current time in Istanbul timezone using now() AT TIME ZONE 'Europe/Istanbul'.
+  - expires_at: Timestamp indicating when the reservation expires. This field is 15 minutes ahead of the created_at field.
+  - status: Tracks the current state of the reservation. Values are: "active", "expired", "completed", "canceled".
+  - last_edited_time: Timestamp of the most recent update made to the reservation. Automatically set or updated via triggers to reflect change history.
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.

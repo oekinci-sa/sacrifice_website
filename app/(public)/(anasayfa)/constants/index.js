@@ -168,12 +168,7 @@ export const faq_categories = [
       {
         id: "1",
         title: "Hisse nasıl satın alabilirim?",
-        content: "Hisse almak için web sitemizin 'Hisse Al' bölümünden size uygun kurbanlığı seçebilir ve hisse kaydınızı gerçekleştirebilirsiniz. Seçiminizi yaptıktan sonra kişisel bilgilerinizi girerek işlemi tamamlayabilirsiniz."
-      },
-      {
-        id: "7",
-        title: "Hisse bedelini taksitle ödeyebilir miyim?",
-        content: "Evet, hisse bedelini taksitle ödeyebilirsiniz. İlk etapta minimum 2.000₺ kapora yatırmanız gerekmektedir. Kalan ödemeyi ise kesim gününe kadar tamamlamanız gerekmektedir."
+        content: "Hisse almak için web sitemizin 'Hisse Al' bölümünden size uygun kurbanlığı seçebilir ve bilgilerinizi girerek hisse kaydınızı gerçekleştirebilirsiniz."
       },
       {
         id: "5",
@@ -181,71 +176,29 @@ export const faq_categories = [
         content: "Hisse seçimi yaptıktan sonra 3 dakika içinde işlemi tamamlamanız gerekmektedir. Bu süre içinde işlem tamamlanmazsa seçiminiz iptal olur ve hisse başkaları tarafından alınabilir."
       },
       {
+        id: "7",
+        title: "Kapora var mı, hisse bedelini taksitle ödeyebilir miyim?",
+        content: "İlk etapta minimum 2.000₺ kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 1 Haziran Cuma gününe kadar tamamlamanız gerekmektedir."
+      },
+      {
         id: "9",
         title: "Aynı kurbandan birden fazla hisse alabilir miyim?",
-        content: "Evet, aynı kurbandan birden fazla hisse alabilirsiniz. Ancak bu durumda her hisse için ayrı kayıt oluşturulması gerekmektedir."
+        content: "Evet, aynı kurbandan birden fazla hisse alabilirsiniz. Ancak bu durumda da her hisse için ayrı kayıt oluşturulması gerekmektedir."
       },
       {
         id: "14",
-        title: "Hisse ücretimi iade alabilir miyim?",
+        title: "Hisse ücretimi iade alabilir miyim??????",
         content: "Kesim öncesinde yazılı başvuru yapmanız halinde hisse ücretinizi iade alabilirsiniz. Kesim sonrası iade işlemi yapılamamaktadır."
-      }
-    ]
-  },
-  {
-    id: "kayit-bilgi-sorgulama",
-    title: "Kayıt & Bilgi Sorgulama",
-    items: [
+      },
       {
         id: "3",
         title: "Hisse kaydımı nasıl sorgulayabilirim?",
-        content: "Hisse kaydınızı, telefonunuza gönderilen SMS'teki kod ile web sitemizin 'Hisse Sorgula' bölümünden kontrol edebilirsiniz. Burada hissenizle ilgili tüm detayları görebilir ve gerekli belgeleri indirebilirsiniz."
-      },
-      {
-        id: "10",
-        title: "Hisse kaydımda değişiklik yapabilir miyim?",
-        content: "Evet, hisse kaydınızda kesim gününe kadar değişiklik yapabilirsiniz. Bunun için müşteri hizmetlerimizle iletişime geçmeniz yeterlidir."
-      },
-      {
-        id: "8",
-        title: "Kurbanımın kesim saatini nasıl öğrenebilirim?",
-        content: "Kurbanınızın kesim saati, bayram sabahı SMS yoluyla size bildirilecektir. Ayrıca web sitemizin 'Hisse Sorgula' bölümünden de bu bilgiye ulaşabilirsiniz."
+        content: "Hisse kaydınızı, hisse seçimi yaptıktan sonra oluşturulan telefon numaranız ve güvenlik kodunuz ile 'Hisse Sorgula' bölümünden kontrol edebilirsiniz. Burada hissenizle ilgili tüm detayları görebilirsiniz."
       },
       {
         id: "19",
         title: "İletişim bilgilerimi nasıl güncelleyebilirim?",
-        content: "İletişim bilgilerinizi güncellemek için müşteri hizmetlerimizle iletişime geçebilirsiniz. Özellikle telefon numarası değişikliklerini mutlaka bildirmeniz önemlidir."
-      }
-    ]
-  },
-  {
-    id: "kesim-dagitim-sureci",
-    title: "Kesim & Dağıtım Süreci",
-    items: [
-      {
-        id: "2",
-        title: "Kesim ve dağıtım süreci nasıl işliyor?",
-        content: "Kurbanlar bayramın ilk günü İslami usullere uygun olarak, profesyonel kasaplar tarafından kesilmektedir. Kesim sonrası etler hijyenik ortamda işlenir ve tercih ettiğiniz teslimat şekline göre size ulaştırılır."
-      },
-      {
-        id: "20",
-        title: "Kesim ve dağıtım işlemi ne kadar sürüyor?",
-        content: "Kesim ve dağıtım işlemleri bayramın ilk günü sabah namazından sonra başlar ve aynı gün içinde tamamlanır. Her hissedarımıza tahmini bir teslimat saati verilmektedir."
-      },
-      {
-        id: "11",
-        title: "Kurban etleri nasıl dağıtılıyor?",
-        content: "Kurban etleri, profesyonel kasaplar tarafından eşit olarak paylaştırılır. Tercih ettiğiniz teslimat şekline göre ya kesimhaneden teslim alabilir ya da belirlenen toplama noktalarından alabilirsiniz."
-      },
-      {
-        id: "18",
-        title: "Toplama noktalarında et dağıtım saatleri nedir?",
-        content: "Toplama noktalarındaki et dağıtım saatleri bayramın ilk günü 14:00-20:00 saatleri arasındadır. Size özel belirlenen saatte gelmeniz önemlidir."
-      },
-      {
-        id: "13",
-        title: "Kesim yerine gidip kurbanımı görebilir miyim?",
-        content: "Evet, kesim yerine gelerek kurbanınızı görebilirsiniz. Ancak kesim alanına güvenlik nedeniyle sadece yetkili personel girebilmektedir."
+        content: "İletişim bilgilerinizi güncellemek için bizimle iletişime geçebilirsiniz. Özellikle telefon numarası değişikliklerini bildirmeniz önemlidir."
       }
     ]
   },
@@ -253,6 +206,11 @@ export const faq_categories = [
     id: "kurbanlik-bilgileri",
     title: "Kurbanlık Bilgileri",
     items: [
+      {
+        id: "17",
+        title: "Hisse bedelleri neye göre belirleniyor?",
+        content: "Hisse bedelleri, kurbanlığın ağırlığı ve piyasa koşulları göz önünde bulundurularak belirlenmektedir. Her kurbanlık için hisse bedeli farklılık gösterebilir."
+      },
       {
         id: "4",
         title: "Bir kurbanda kaç hisse bulunmaktadır?",
@@ -264,14 +222,29 @@ export const faq_categories = [
         content: "Kurbanlıklarımız, dini vecibelere uygunluk ve sağlık durumu göz önünde bulundurularak uzman ekibimiz tarafından titizlikle seçilmektedir."
       },
       {
+        id: "13",
+        title: "Kesim yerine gidip kurbanımı görebilir miyim????",
+        content: "Evet, kesim yerine gelerek kurbanınızı görebilirsiniz. Ancak kesim alanına güvenlik nedeniyle sadece yetkili personel girebilmektedir."
+      },
+      {
+        id: "8",
+        title: "Kurbanımın kesim saatini nasıl öğrenebilirim?",
+        content: "Kurbanınızın kesim saati, bayram sabahı SMS yoluyla size bildirilecektir. Ayrıca web sitemizin 'Hisse Sorgula' bölümünden de bu bilgiye ulaşabilirsiniz."
+      },
+      {
+        id: "35",
+        title: "Bir kurbanlık seçtim fakat değiştirmek istiyorum, bu mümkün mü?",
+        content: "Evet, bizimle iletişime geçerek uygun durumda olan başka bir kurbanlığı seçebilir ve yeni kaydınızı birlikte oluşturabiliriz. Ancak bu değişikliğin, kurban kesim tarihinden en az 1 ay önce yapılması gerekmektedir."
+      },
+      {
         id: "16",
-        title: "Kurbanlıkların sağlık kontrolleri yapılıyor mu?",
+        title: "Kurbanlıkların sağlık kontrolleri yapılıyor mu???",
         content: "Evet, tüm kurbanlıklarımız veteriner kontrolünden geçmektedir ve gerekli sağlık belgeleri bulunmaktadır."
       },
       {
-        id: "17",
-        title: "Hisse bedelleri neye göre belirleniyor?",
-        content: "Hisse bedelleri, kurbanlığın ağırlığı ve piyasa koşulları göz önünde bulundurularak belirlenmektedir. Her kurbanlık için hisse bedeli farklılık gösterebilir."
+        id: "6",
+        title: "Vekalet işlemi nasıl gerçekleşiyor?",
+        content: "Vekalet işlemi, kurban kesimi öncesinde hissedarlarımızdan alınmaktadır. Bu işlem, kurbanınızın İslami usullere uygun olarak kesilmesi için gerekli dini prosedürün bir parçasıdır."
       },
       {
         id: "12",
@@ -281,14 +254,29 @@ export const faq_categories = [
     ]
   },
   {
-    id: "dini-usuller-vekalet",
-    title: "Dini Usuller & Vekalet",
+    id: "kesim-dagitim-sureci",
+    title: "Kesim & Dağıtım Süreci",
     items: [
       {
-        id: "6",
-        title: "Vekalet işlemi nasıl gerçekleşiyor?",
-        content: "Vekalet işlemi, kurban kesimi öncesinde hissedarlarımızdan alınmaktadır. Bu işlem, kurbanınızın İslami usullere uygun olarak kesilmesi için gerekli dini prosedürün bir parçasıdır."
-      }
+        id: "2",
+        title: "Kesim ve dağıtım süreci nasıl işliyor?",
+        content: "Kurbanlar bayramın ilk günü İslami usullere uygun olarak, çiftlik kasapları tarafından kesilmektedir. Kesim sonrası etler hijyenik ortamda işlenir ve tercih ettiğiniz teslimat şekline göre size ulaştırılır."
+      },
+      {
+        id: "20",
+        title: "Kesim ve dağıtım işlemi ne kadar sürüyor?",
+        content: "Kesim ve dağıtım işlemleri bayramın ilk günü sabah namazından sonra başlar ve aynı gün içinde tamamlanır. Her hissedarımıza tahmini bir kesim ve teslimat saati verilmektedir."
+      },
+      {
+        id: "11",
+        title: "Kurban etleri nasıl dağıtılıyor????",
+        content: "Kurban etleri, profesyonel kasaplar tarafından eşit olarak paylaştırılır. Tercih ettiğiniz teslimat şekline göre ya kesimhaneden teslim alabilir ya da belirlenen toplama noktalarından alabilirsiniz."
+      },
+      {
+        id: "18",
+        title: "Toplama noktalarında hisselerin dağıtım saatleri nedir???",
+        content: "Toplama noktalarındaki et dağıtım saatleri bayramın ilk günü 14:00-20:00 saatleri arasındadır. Size özel belirlenen saatte gelmeniz önemlidir."
+      },
     ]
   }
 ];

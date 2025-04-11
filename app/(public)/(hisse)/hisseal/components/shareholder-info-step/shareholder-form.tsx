@@ -12,23 +12,29 @@ import {
 } from "@/components/ui/select"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface ShareholderFormProps {
     data: {
         name: string
         phone: string
         delivery_location: string
+        is_purchaser?: boolean
     }
     index: number
     errors: {
         name?: string[]
         phone?: string[]
         delivery_location?: string[]
+        is_purchaser?: string[]
     }
     onInputChange: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
     onInputBlur: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
     onSelectChange: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
     onRemove: (index: number) => void
+    onIsPurchaserChange: (index: number, checked: boolean) => void
+    isOtherPurchaserSelected?: boolean
+    totalForms: number // Toplam form sayısı
 }
 
 const formatPhoneNumber = (value: string) => {
@@ -61,11 +67,17 @@ export default function ShareholderForm({
     onInputBlur,
     onSelectChange,
     onRemove,
+    onIsPurchaserChange,
+    isOtherPurchaserSelected = false,
+    totalForms = 1, // Varsayılan olarak 1 form var
 }: ShareholderFormProps) {
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formattedValue = formatPhoneNumber(e.target.value);
         onInputChange(index, "phone", formattedValue);
     };
+
+    // Checkbox durumu için hesaplama
+    const isCurrentPurchaser = data.is_purchaser === true;
 
     return (
         <div className="rounded-[8px] border border-dashed border-[#c7ddcd] p-4 sm:p-6">
@@ -151,6 +163,46 @@ export default function ShareholderForm({
                             <p className="text-xs sm:text-sm text-destructive mt-1.5 sm:mt-2">{errors.delivery_location.join(', ')}</p>
                         )}
                     </div>
+                    
+                    {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
+                    {totalForms > 1 && (
+                        <div className={cn(
+                            "flex items-center space-x-2 mt-3 pt-2 sm:pt-3",
+                            isOtherPurchaserSelected && !isCurrentPurchaser ? "opacity-70" : ""
+                        )}>
+                            <Checkbox 
+                                id={`is-purchaser-${index}`} 
+                                checked={isCurrentPurchaser}
+                                onCheckedChange={(checked) => {
+                                    // Eğer zaten seçiliyse ve tekrar tıklanırsa, seçimi kaldırabiliriz
+                                    if (isCurrentPurchaser && !checked) {
+                                        onIsPurchaserChange(index, false);
+                                    } else if (checked) {
+                                        onIsPurchaserChange(index, true);
+                                    }
+                                }}
+                                className={cn(
+                                    isCurrentPurchaser 
+                                        ? "border-black bg-primary text-primary-foreground shadow-none" 
+                                        : "border-gray-400 shadow-none",
+                                    "transition-colors duration-200 border"
+                                )}
+                            />
+                            <Label 
+                                htmlFor={`is-purchaser-${index}`}
+                                className={cn(
+                                    "text-xs sm:text-sm cursor-pointer transition-colors duration-200",
+                                    isCurrentPurchaser 
+                                        ? "font-medium" 
+                                        : isOtherPurchaserSelected 
+                                            ? "text-muted-foreground" 
+                                            : ""
+                                )}
+                            >
+                                İşlem bu hissedar tarafından gerçekleştirilmiştir.
+                            </Label>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

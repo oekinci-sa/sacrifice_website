@@ -70,21 +70,22 @@ export const useSacrifices = () => {
     queryKey: ["sacrifices"],
     queryFn: async () => {
       console.log('Fetching sacrifices data')
-      const { data, error } = await supabase
-        .from("sacrifice_animals")
-        .select("*")
-        .order("sacrifice_no", { ascending: true })
-
-      if (error) {
+      
+      // Using the new server-side API endpoint instead of direct Supabase access
+      const response = await fetch('/api/get-sacrifice-animals');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
         toast({
           variant: "destructive",
           title: "Hata",
-          description: "Veri yüklenirken bir hata oluştu: " + error.message
-        })
-        throw error
+          description: "Veri yüklenirken bir hata oluştu: " + (errorData.error || response.statusText)
+        });
+        throw new Error(errorData.error || response.statusText);
       }
-
-      return data as sacrificeSchema[]
+      
+      const data = await response.json();
+      return data as sacrificeSchema[];
     },
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
@@ -107,19 +108,26 @@ export const useUpdateSacrifice = () => {
       sacrificeId: string
       emptyShare: number
     }) => {
-      const { error } = await supabase
-        .from("sacrifice_animals")
-        .update({ empty_share: emptyShare })
-        .eq("sacrifice_id", sacrificeId)
+      // Using the new server-side API endpoint instead of direct Supabase access
+      const response = await fetch('/api/update-sacrifice-share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sacrificeId, emptyShare })
+      });
 
-      if (error) {
+      if (!response.ok) {
+        const errorData = await response.json();
         toast({
           variant: "destructive",
           title: "Hata",
-          description: "Hisse seçimi yapılırken bir hata oluştu: " + error.message
-        })
-        throw error
+          description: "Hisse seçimi yapılırken bir hata oluştu: " + (errorData.error || response.statusText)
+        });
+        throw new Error(errorData.error || response.statusText);
       }
+
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
@@ -136,14 +144,15 @@ export function useSacrificeById(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
       
-      const { data, error } = await supabase
-        .from('sacrifice_animals')
-        .select('*')
-        .eq('sacrifice_id', id)
-        .single();
-
-      if (error) throw error;
-      return data;
+      // Using the new server-side API endpoint instead of direct Supabase access
+      const response = await fetch(`/api/get-sacrifice-by-id?id=${id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || response.statusText);
+      }
+      
+      return await response.json();
     },
     enabled: !!id, // Sadece ID varsa sorguyu çalıştır
   });

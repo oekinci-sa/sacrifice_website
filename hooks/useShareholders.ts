@@ -4,87 +4,88 @@ import { useToast } from "@/components/ui/use-toast"
 import { useEffect } from "react"
 import { shareholderSchema } from "@/types"
 
-// Using the standardized type from types/index.ts
+// Türkiye saati için yardımcı fonksiyon
+function getTurkeyDateTime() {
+  return new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })
+    .replace(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/, function(_, day, month, year, hour, minute, second) {
+      // Formatlı tarih string'i: YYYY-MM-DD HH:MM:SS.ssssss
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000000`;
+    });
+}
+
+// Define the structure for a single shareholder as expected by the API
+interface ShareholderInput {
+  shareholder_name: string;
+  phone_number: string;
+  transaction_id: string;
+  sacrifice_id: string;
+  share_price: number;
+  delivery_fee?: number; // Optional
+  delivery_location: string;
+  security_code: string;
+  purchased_by: string;
+  last_edited_by: string;
+  is_purchaser?: boolean; // Made optional as it's only used locally
+  sacrifice_consent: boolean; // Added this based on schema
+  total_amount: number; // Total amount = share_price + delivery_fee
+  remaining_payment: number; // Remaining payment = total_amount - paid_amount
+}
+
+// Modified hook to use the API endpoint
 export const useCreateShareholders = () => {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  return useMutation({
-    mutationFn: async (shareholders: Partial<shareholderSchema>[]) => {
-      // Prevent empty data
-      if (!shareholders || !shareholders.length) {
-        throw new Error("Hissedar bilgileri boş olamaz")
+  return useMutation<any, Error, ShareholderInput[]>({
+    mutationFn: async (shareholdersData) => {
+      if (!shareholdersData || shareholdersData.length === 0) {
+        throw new Error("Hissedar bilgileri boş olamaz");
       }
 
-      // Validate phone numbers and required fields
-      const validatedShareholders = shareholders.map(shareholder => {
-        // Telefon numarası kontrolü
-        let cleanedNumber = shareholder.phone_number?.trim() || ""
-        
-        // Eğer numara +900 ile başlıyorsa, fazladan 0'ı kaldır
-        if (cleanedNumber.startsWith('+900')) {
-          cleanedNumber = '+90' + cleanedNumber.slice(4)
-        }
+      console.log('[HOOK] Calling /api/create-shareholders with:', shareholdersData);
 
-        if (!cleanedNumber.startsWith('+90') || cleanedNumber.length !== 13) {
-          throw new Error(`Geçersiz telefon numarası formatı: ${cleanedNumber}. Format +90XXXXXXXXXX şeklinde olmalıdır.`)
-        }
-        
-        // Zorunlu alanların kontrolü
-        if (!shareholder.shareholder_name?.trim()) {
-          throw new Error('Hissedar adı boş olamaz')
-        }
-        if (!shareholder.sacrifice_id) {
-          throw new Error('Kurban ID boş olamaz')
-        }
-        if (!shareholder.share_price || shareholder.share_price <= 0) {
-          throw new Error('Geçersiz hisse fiyatı')
-        }
+      const response = await fetch("/api/create-shareholders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(shareholdersData),
+      });
 
-        return {
-          ...shareholder,
-          phone_number: cleanedNumber,
-          paid_amount: 0,
-          remaining_payment: shareholder.total_amount,
-          sacrifice_consent: false,
-          last_edited_by: shareholder.shareholder_name,
-          purchased_by: shareholder.shareholder_name
-        }
-      })
+      const result = await response.json();
 
-      const { data, error } = await supabase
-        .from("shareholders")
-        .insert(validatedShareholders)
-        .select()
-
-      if (error) {
-        throw new Error(error.message)
+      if (!response.ok) {
+        console.error('[HOOK] API Error creating shareholders:', result);
+        throw new Error(result.error || "Hissedarlar oluşturulamadı.");
       }
-
-      return data
+      
+      console.log('[HOOK] API Success creating shareholders:', result);
+      return result.data;
     },
-    onMutate: async (shareholders) => {
+    onMutate: async () => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["shareholders"] })
-      return { shareholders }
+      await queryClient.cancelQueries({ queryKey: ["shareholders"] });
+      // Optionally return snapshot value here if needed for optimistic updates
     },
-    onError: (error: Error) => {
-      console.error("Error in mutation:", error)
+    onError: (error) => {
+      console.error("[HOOK] Error creating shareholders:", error);
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "Hissedar bilgileri kaydedilirken bir hata oluştu"
-      })
+        description: error.message || "Hissedar bilgileri kaydedilirken bir hata oluştu",
+      });
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
-      toast({
-        title: "Başarılı",
-        description: "Hissedarlar başarıyla kaydedildi"
-      })
-    }
-  })
-}
+    onSuccess: () => {
+      // Invalidate cache to refetch the updated list
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] });
+      // We might not need a success toast here if the parent component handles it
+      // toast({
+      //   title: "Başarılı",
+      //   description: "Hissedarlar başarıyla kaydedildi",
+      // });
+    },
+  });
+};
 
 // New hook for fetching shareholders with real-time updates
 export const useGetShareholders = (searchQuery?: string) => {
@@ -235,28 +236,25 @@ export const useUpdateShareholder = () => {
         .eq("shareholder_id", shareholderId)
 
       if (error) {
-        throw new Error(`Hissedar güncellenemedi: ${error.message}`)
+        throw new Error(error.message)
       }
     },
-    onSuccess: (_, variables) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
-      
-      // Also invalidate the specific shareholder query if it exists
-      queryClient.invalidateQueries({ 
-        queryKey: ["shareholder", variables.shareholderId] 
-      })
-      
-      toast({
-        title: "Başarılı",
-        description: "Hissedar bilgileri başarıyla güncellendi."
-      })
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({ queryKey: ["shareholders"] })
+      // Optimistic update logic can be added here
     },
     onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "Hissedar güncellenirken bir hata oluştu"
+        description: error.message || "Hissedar güncellenirken hata oluştu",
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla güncellendi"
       })
     }
   })
@@ -269,76 +267,40 @@ export const useDeleteShareholder = () => {
 
   return useMutation({
     mutationFn: async (shareholderId: string) => {
-      // First, get the shareholder to obtain the sacrifice_id
-      const { data: shareholder, error: fetchError } = await supabase
-        .from("shareholders")
-        .select("sacrifice_id")
-        .eq("shareholder_id", shareholderId)
-        .single()
-
-      if (fetchError) {
-        throw new Error(`Hissedar bilgisi alınamadı: ${fetchError.message}`)
-      }
-
-      const sacrificeId = shareholder.sacrifice_id
-
-      // Now delete the shareholder
-      const { error: deleteError } = await supabase
+      const { error } = await supabase
         .from("shareholders")
         .delete()
         .eq("shareholder_id", shareholderId)
 
-      if (deleteError) {
-        throw new Error(`Hissedar silinemedi: ${deleteError.message}`)
+      if (error) {
+        throw new Error(error.message)
       }
-
-      // Finally, update the empty_share value of the sacrifice animal
-      if (sacrificeId) {
-        // First, get the current empty_share value
-        const { data: sacrifice, error: sacrificeError } = await supabase
-          .from("sacrifice_animals")
-          .select("empty_share")
-          .eq("sacrifice_id", sacrificeId)
-          .single()
-
-        if (sacrificeError) {
-          throw new Error(`Kurban bilgisi alınamadı: ${sacrificeError.message}`)
-        }
-
-        // Now increment the empty_share value
-        const { error: updateError } = await supabase
-          .from("sacrifice_animals")
-          .update({
-            empty_share: (sacrifice.empty_share || 0) + 1
-          })
-          .eq("sacrifice_id", sacrificeId)
-
-        if (updateError) {
-          throw new Error(`Kurban boş hisse değeri güncellenemedi: ${updateError.message}`)
-        }
-      }
-
-      return { shareholderId, sacrificeId }
     },
-    onSuccess: (result) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
-      
-      // Also invalidate sacrifice queries since we updated the empty_share
-      if (result.sacrificeId) {
-        queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-      }
-      
-      toast({
-        title: "Başarılı",
-        description: "Hissedar başarıyla silindi ve kurban boş hisse sayısı güncellendi."
-      })
+    onMutate: async (shareholderId) => {
+      await queryClient.cancelQueries({ queryKey: ["shareholders"] })
+      // Optimistic update: remove the shareholder from the cache
+      const previousShareholders = queryClient.getQueryData<shareholderSchema[]>(["shareholders"])
+      queryClient.setQueryData<shareholderSchema[]>(["shareholders"], (old) => 
+        old?.filter((s) => s.shareholder_id !== shareholderId) ?? []
+      )
+      return { previousShareholders } // Return snapshot
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _, context) => {
+      // Rollback on error
+      if (context?.previousShareholders) {
+        queryClient.setQueryData(["shareholders"], context.previousShareholders)
+      }
       toast({
         variant: "destructive",
         title: "Hata",
-        description: error.message || "Hissedar silinirken bir hata oluştu"
+        description: error.message || "Hissedar silinirken hata oluştu",
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shareholders"] })
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi"
       })
     }
   })

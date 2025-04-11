@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button"
 import { sacrificeSchema } from "@/types"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState } from "react"
-import PhoneVerificationDialog from "./phone-verification-dialog"
+import SecurityCodeDialog from "./security-code-dialog"
+import TermsAgreementDialog from "./terms-agreement-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
+import { useCompleteReservation } from "@/hooks/useReservations"
+import { useReservationStore } from "@/stores/useReservationStore"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -17,6 +20,7 @@ interface ShareholderSummaryProps {
     name: string
     phone: string
     delivery_location: string
+    is_purchaser?: boolean
   }[]
   onApprove: () => void
   setCurrentStep: (step: Step) => void
@@ -53,7 +57,6 @@ const getDeliveryLocationText = (location: string) => {
   }
 }
 
-
 const formatSacrificeTime = (timeString: string | null) => {
   if (!timeString) return '-';
   try {
@@ -78,59 +81,123 @@ const formatSacrificeTime = (timeString: string | null) => {
 export default function ShareholderSummary({
   sacrifice,
   shareholders,
+  onApprove,
   setCurrentStep,
 }: ShareholderSummaryProps) {
-  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
-  const createShareholders = useCreateShareholders()
+  // States for approval dialogs
+  const [showSecurityCodeDialog, setShowSecurityCodeDialog] = useState(false)
+  const [showTermsDialog, setShowTermsDialog] = useState(false)
+  const [securityCode, setSecurityCode] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const createShareholdersMutation = useCreateShareholders()
+  const completeReservationMutation = useCompleteReservation()
+  const { transaction_id } = useReservationStore()
   const { toast } = useToast()
 
-  const handleVerificationComplete = async (phone: string, verifiedShareholderName: string) => {
-    console.log("Doğrulama dialogundan gelen numara:", phone)
+  // Find the purchaser
+  const purchaserIndex = shareholders.findIndex(shareholder => shareholder.is_purchaser === true)
+  
+  // If no purchaser is marked and there's only one shareholder, that shareholder is the purchaser
+  const effectivePurchaserIndex = purchaserIndex === -1 && shareholders.length === 1 ? 0 : purchaserIndex
+
+  // Open the security code dialog
+  const handleOpenSecurityCodeDialog = () => {
+    setShowSecurityCodeDialog(true)
+    setShowTermsDialog(false)
+  }
+
+  // Security code dialog handler
+  const handleSecurityCodeSet = (code: string) => {
+    setSecurityCode(code)
+    setShowSecurityCodeDialog(false)
+    // Show terms agreement dialog after setting security code
+    setShowTermsDialog(true)
+  }
+
+  // Handle going back to security code from terms
+  const handleBackToSecurityCode = () => {
+    setShowTermsDialog(false)
+    setShowSecurityCodeDialog(true)
+  }
+
+  // Terms agreement dialog handler
+  const handleTermsConfirm = async () => {
+    if (isProcessing || !transaction_id) return;
+    setIsProcessing(true);
+
+    // Get the purchaser name (defaulting to first shareholder if none is marked)
+    let purchaserName = ""
+    if (effectivePurchaserIndex !== -1) {
+      purchaserName = shareholders[effectivePurchaserIndex].name
+    } else {
+      // If for some reason we don't have a purchaser, use first shareholder
+      purchaserName = shareholders[0].name
+    }
     
-    const matchingShareholder = shareholders.find(shareholder => {
-      // Telefon numaralarını aynı formata getirip karşılaştır
-      const shareholderPhone = shareholder.phone.replace(/\D/g, '')
-        .replace(/^0/, '') // Baştaki 0'ı kaldır
-      const verificationPhone = phone.replace(/\D/g, '')
-        .replace(/^\+/, '') // Baştaki + işaretini kaldır
-        .replace(/^90/, '') // Baştaki 90'ı kaldır
-      
-      return shareholderPhone === verificationPhone
+    console.log('İşlemi yapan kişi:', {
+      index: effectivePurchaserIndex,
+      name: purchaserName,
+      totalShareholders: shareholders.length,
+      securityCode: securityCode // Include security code in debug log
     })
 
-    if (!matchingShareholder) {
-      console.error("Eşleşen hissedar bulunamadı")
-      return
-    }
-
     try {
-      // Hissedar verilerini hazırla
-      const shareholderDataArray = shareholders.map(shareholder => {
-        // Telefon numarasını DB formatına çevir
-        const cleanedPhone = shareholder.phone.replace(/\D/g, '')
-          .replace(/^0/, '') // Baştaki 0'ı kaldır
+      // Prepare shareholder data for the API
+      const shareholderDataForApi = shareholders.map((shareholder, index) => {
+        // Clean and format phone number
+        const cleanedPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
+          .replace(/^90/, '') // Remove leading 90
         const formattedPhone = cleanedPhone.startsWith('90') 
           ? '+' + cleanedPhone 
           : '+90' + cleanedPhone
-
-        return {
+        
+        // Calculate the delivery fee based on location
+        const delivery_fee = shareholder.delivery_location !== "kesimhane" ? 500 : 0
+        
+        // Calculate total amount and remaining payment
+        const share_price = sacrifice?.share_price || 0
+        const total_amount = share_price + delivery_fee
+        const paid_amount = 0 // Default to 0 for new shareholders
+        const remaining_payment = total_amount - paid_amount
+        
+        // Create the data object without the is_purchaser field
+        const shareholderData = {
           shareholder_name: shareholder.name,
           phone_number: formattedPhone,
-          delivery_location: shareholder.delivery_location,
-          delivery_fee: shareholder.delivery_location !== "kesimhane" ? 500 : 0,
-          share_price: sacrifice?.share_price || 0,
-          total_amount: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
-          sacrifice_consent: false,
-          last_edited_by: verifiedShareholderName,
-          purchased_by: verifiedShareholderName,
+          transaction_id: transaction_id,
           sacrifice_id: sacrifice?.sacrifice_id || "",
-          paid_amount: 0,
-          remaining_payment: (sacrifice?.share_price || 0) + (shareholder.delivery_location !== "kesimhane" ? 500 : 0),
+          share_price: share_price,
+          delivery_fee: delivery_fee,
+          delivery_location: shareholder.delivery_location,
+          security_code: securityCode,
+          purchased_by: purchaserName,
+          last_edited_by: purchaserName,
+          sacrifice_consent: true, // Set to true since user agreed to terms
+          total_amount: total_amount,
+          remaining_payment: remaining_payment
         }
+        
+        return shareholderData
       })
 
-      // Verileri DB'ye kaydet
-      await createShareholders.mutateAsync(shareholderDataArray)
+      // Save shareholders to DB
+      await createShareholdersMutation.mutateAsync(shareholderDataForApi)
+      
+      // Complete the reservation
+      await completeReservationMutation.mutateAsync({ transaction_id })
+      
+      // Close dialog and proceed
+      setShowTermsDialog(false)
+      
+      // Call the onApprove function to proceed to success state
+      onApprove()
+      
+      toast({
+        title: "Başarılı!",
+        description: "Hissedarlar kaydedildi ve rezervasyon tamamlandı.",
+      });
+      
     } catch (error) {
       console.error("Hissedarlar kaydedilirken hata oluştu:", error)
       toast({
@@ -138,86 +205,105 @@ export default function ShareholderSummary({
         title: "Hata",
         description: "Hissedarlar kaydedilirken bir hata oluştu.",
       })
+      
+      // Close dialog on error
+      setShowTermsDialog(false)
+    } finally {
+      setIsProcessing(false);
     }
   }
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto">
-        {shareholders.map((shareholder, index) => (
-          <div
-            key={index}
-            className={cn(
-              "bg-[#fcfcfa] rounded-lg border border-dashed border-[#c7ddcd] p-4 sm:p-6 w-full",
-              shareholders.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
-              shareholders.length % 2 === 1 && index === shareholders.length - 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : ""
-            )}
-          >
-            <h3 className="text-sm sm:text-lg font-semibold text-center mb-4 sm:mb-6">
-              {index + 1}. Hissedar Bilgileri
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4 sm:gap-8">
-              {/* Sol Sütun */}
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <span className="text-[#5b725e] block text-xs sm:text-base">Ad Soyad</span>
-                  <span className="text-black text-sm sm:text-lg">{shareholder.name}</span>
+        {shareholders.map((shareholder, index) => {
+          // Check if this shareholder is the purchaser
+          const isPurchaser = index === effectivePurchaserIndex
+          
+          return (
+            <div
+              key={index}
+              className={cn(
+                "bg-[#fcfcfa] rounded-lg border border-dashed",
+                isPurchaser ? "border-[#b8c7dd]" : "border-[#c7ddcd]", // Different border for purchaser
+                "p-4 sm:p-6 w-full relative", // Added relative for badge positioning
+                shareholders.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
+                shareholders.length % 2 === 1 && index === shareholders.length - 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : ""
+              )}
+            >
+              {/* Purchaser badge - only shown for the purchaser */}
+              {isPurchaser && shareholders.length > 1 && (
+                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs py-1 px-2 rounded-full">
+                  İşlemi Gerçekleştiren Kişi
                 </div>
+              )}
+              
+              <h3 className="text-sm sm:text-lg font-semibold text-center mb-4 sm:mb-6">
+                {index + 1}. Hissedar Bilgileri
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4 sm:gap-8">
+                {/* Sol Sütun */}
+                <div className="space-y-3 sm:space-y-4">
+                  <div>
+                    <span className="text-[#5b725e] block text-xs sm:text-base">Ad Soyad</span>
+                    <span className="text-black text-sm sm:text-lg">{shareholder.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#5b725e] block text-xs sm:text-base">Teslimat Tercihi</span>
+                    <span className="text-black text-sm sm:text-lg">
+                      {getDeliveryLocationText(shareholder.delivery_location)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sağ Sütun */}
                 <div>
-                  <span className="text-[#5b725e] block text-xs sm:text-base">Teslimat Tercihi</span>
-                  <span className="text-black text-sm sm:text-lg">
-                    {getDeliveryLocationText(shareholder.delivery_location)}
-                  </span>
+                  <span className="text-[#5b725e] block text-xs sm:text-base">Telefon</span>
+                  <span className="text-black text-sm sm:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
                 </div>
               </div>
 
-              {/* Sağ Sütun */}
-              <div>
-                <span className="text-[#5b725e] block text-xs sm:text-base">Telefon</span>
-                <span className="text-black text-sm sm:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+              <div className="my-4 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
+
+              {/* Alt Bilgiler */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-8">
+                <div className="space-y-2 sm:space-y-4">
+                  <div>
+                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Kurbanlık No</span>
+                    <span className="text-black text-xs sm:text-lg">{sacrifice?.sacrifice_no}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Hisse Bedeli</span>
+                    <span className="text-black text-xs sm:text-lg">{sacrifice?.share_price} TL</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 sm:space-y-4">
+                  <div>
+                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Kesim Saati</span>
+                    <span className="text-black text-xs sm:text-lg">
+                      {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="my-3 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
+
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <span className="text-[#5b725e] text-[10px] sm:text-base">Toplam Ücret</span>
+                <span className="text-black text-xs sm:text-lg font-medium text-right">
+                  {new Intl.NumberFormat('tr-TR').format(
+                    shareholder.delivery_location !== "kesimhane"
+                      ? (sacrifice?.share_price || 0) + 500
+                      : (sacrifice?.share_price || 0)
+                  )} TL
+                </span>
               </div>
             </div>
-
-            <div className="my-4 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
-
-            {/* Alt Bilgiler */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-8">
-              <div className="space-y-2 sm:space-y-4">
-                <div>
-                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Kurbanlık No</span>
-                  <span className="text-black text-xs sm:text-lg">{sacrifice?.sacrifice_no}</span>
-                </div>
-                <div>
-                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Hisse Bedeli</span>
-                  <span className="text-black text-xs sm:text-lg">{sacrifice?.share_price} TL</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 sm:space-y-4">
-                <div>
-                  <span className="text-[#5b725e] block text-[10px] sm:text-base">Kesim Saati</span>
-                  <span className="text-black text-xs sm:text-lg">
-                    {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="my-3 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
-
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <span className="text-[#5b725e] text-[10px] sm:text-base">Toplam Ücret</span>
-              <span className="text-black text-xs sm:text-lg font-medium text-right">
-                {new Intl.NumberFormat('tr-TR').format(
-                  shareholder.delivery_location !== "kesimhane"
-                    ? (sacrifice?.share_price || 0) + 500
-                    : (sacrifice?.share_price || 0)
-                )} TL
-              </span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="flex justify-between items-center gap-4 w-full max-w-2xl mx-auto">
@@ -225,6 +311,7 @@ export default function ShareholderSummary({
           variant="ghost"
           className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
           onClick={() => setCurrentStep("details")}
+          disabled={isProcessing}
         >
           <ArrowLeft className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-2" />
           <span className="text-xs sm:text-base">Hissedar Bilgileri</span>
@@ -233,18 +320,29 @@ export default function ShareholderSummary({
         <Button
           variant="ghost"
           className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
-          onClick={() => setShowVerificationDialog(true)}
+          onClick={handleOpenSecurityCodeDialog}
+          disabled={isProcessing}
         >
           <span className="text-xs sm:text-base">Hisseleri Onayla</span>
           <ArrowRight className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ml-0.5 sm:ml-2" />
         </Button>
       </div>
 
-      <PhoneVerificationDialog
-        open={showVerificationDialog}
-        onOpenChange={setShowVerificationDialog}
-        onVerificationComplete={handleVerificationComplete}
-        shareholders={shareholders}
+      {/* Security Code Dialog - pass the existing code to preserve it */}
+      <SecurityCodeDialog
+        open={showSecurityCodeDialog}
+        onOpenChange={setShowSecurityCodeDialog}
+        onSecurityCodeSet={handleSecurityCodeSet}
+        initialCode={securityCode}
+      />
+
+      {/* Terms Agreement Dialog - add back to security code handler */}
+      <TermsAgreementDialog
+        open={showTermsDialog}
+        onOpenChange={setShowTermsDialog}
+        onConfirm={handleTermsConfirm}
+        onBackToSecurityCode={handleBackToSecurityCode}
+        securityCode={securityCode}
       />
     </div>
   )

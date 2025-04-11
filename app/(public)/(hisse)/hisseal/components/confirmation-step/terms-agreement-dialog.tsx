@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -45,23 +45,11 @@ export default function TermsAgreementDialog({
             return
         }
 
-        // Ensure security code is present
-        if (!securityCode || securityCode.length !== 6) {
-            toast({
-                variant: "destructive",
-                title: "Güvenlik Kodu Hatası",
-                description: "Lütfen önce 6 haneli bir güvenlik kodu belirleyiniz."
-            })
-            onBackToSecurityCode()
-            return
-        }
-
         setIsLoading(true)
 
         try {
             // Call the onConfirm callback to proceed with the approval
             onConfirm()
-            // Note: We don't reset loading state here because parent component will close the dialog
         } catch (error) {
             console.error("Onay işlemi sırasında hata:", error)
             toast({
@@ -74,20 +62,10 @@ export default function TermsAgreementDialog({
     }
 
     const handleClose = () => {
-        // If loading, prevent close
-        if (isLoading) return;
-        
         setIsAgreed(false)
         setIsLoading(false)
         onOpenChange(false)
     }
-
-    // Reset loading state when dialog opens/closes
-    useEffect(() => {
-        if (!open) {
-            setIsLoading(false)
-        }
-    }, [open])
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
@@ -202,7 +180,7 @@ export default function TermsAgreementDialog({
                     </ScrollArea>
                 </div>
 
-                {/* Footer with checkbox and button */}
+                {/* Fixed footer with checkbox and button */}
                 <DialogFooter className="px-6 py-4 border-t flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex items-start gap-2">
                         <Checkbox
@@ -210,7 +188,6 @@ export default function TermsAgreementDialog({
                             checked={isAgreed}
                             onCheckedChange={(checked) => setIsAgreed(!!checked)}
                             className="mt-1"
-                            disabled={isLoading}
                         />
                         <label
                             htmlFor="terms"
@@ -225,7 +202,7 @@ export default function TermsAgreementDialog({
                         disabled={isLoading || !isAgreed}
                         className="w-full sm:w-auto h-10 sm:h-12 text-sm"
                     >
-                        {isLoading ? "İşleniyor..." : "Onaylıyorum"}
+                        Onaylıyorum
                     </Button>
                 </DialogFooter>
             </DialogContent>

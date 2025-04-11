@@ -30,7 +30,7 @@ const Ayah = () => {
         </span>{" "}
         Allah&apos;a ulaşır.
         <br />
-        Fakat O&apos;na sizin{" "}
+        Fakat O&apos;na sizin ancak{" "}
         <span className="text-sac-primary font-semibold">
           takvanız{" "}
         </span>

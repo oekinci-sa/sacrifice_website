@@ -7,6 +7,8 @@ import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import { sacrificeSchema } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import ProgressBar from "../common/progress-bar";
+import { useReservationStore } from "@/stores/useReservationStore";
+import { useCancelReservation } from "@/hooks/useReservations";
 
 interface FormViewProps {
   currentStep: string;
@@ -18,7 +20,7 @@ interface FormViewProps {
   selectedSacrifice: sacrificeSchema | null;
   formData: any[];
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
-  updateSacrifice: any;
+  updateShareCount: any;
   setFormData: (data: any[]) => void;
   goToStep: (step: string) => void;
   resetStore: () => void;
@@ -26,6 +28,7 @@ interface FormViewProps {
   setTimeLeft: (time: number) => void;
   handleApprove: () => Promise<void>;
   toast: any;
+  isLoading?: boolean;
 }
 
 export const FormView = ({
@@ -38,19 +41,32 @@ export const FormView = ({
   selectedSacrifice,
   formData,
   onSacrificeSelect,
-  updateSacrifice,
+  updateShareCount,
   setFormData,
   goToStep,
   resetStore,
   setLastInteractionTime,
   setTimeLeft,
   handleApprove,
-  toast
+  toast,
+  isLoading = false
 }: FormViewProps) => {
+  const transaction_id = useReservationStore(state => state.transaction_id);
+  const cancelReservation = useCancelReservation();
+
   return (
     <>
       <h1 className="text-xl sm:text-2xl font-bold text-center mb-0 sm:mb-2">Hisse Al</h1>
       <ProgressBar currentStep={currentStep} />
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-2"></div>
+            <p className="text-sm font-medium">İşleminiz yapılıyor...</p>
+          </div>
+        </div>
+      )}
 
       <Tabs value={tabValue} className="space-y-4 md:space-y-6">
         <TabsContent value="tab-1">
@@ -85,40 +101,14 @@ export const FormView = ({
               if (!selectedSacrifice) return;
 
               try {
-                // Önce güncel kurban bilgisini al
-                const { data: currentSacrifice, error: fetchError } = await supabase
-                  .from("sacrifice_animals")
-                  .select("empty_share")
-                  .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-                  .single();
-
-                if (fetchError || !currentSacrifice) {
-                  toast({
-                    variant: "destructive",
-                    title: "Hata",
-                    description:
-                      "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
-                  });
-                  return;
-                }
-
-                // Güncel empty_share değerini kullanarak güncelleme yap
-                await updateSacrifice.mutateAsync({
-                  sacrificeId: selectedSacrifice.sacrifice_id,
-                  emptyShare: currentSacrifice.empty_share + shareCount,
+                await cancelReservation.mutateAsync({
+                  transaction_id
                 });
 
-                // Store'u sıfırla
                 resetStore();
-                // İlk adıma dön
                 goToStep("selection");
               } catch (err) {
                 console.error('Error handling back action:', err);
-                toast({
-                  variant: "destructive",
-                  title: "Hata",
-                  description: "İşlem sırasında bir hata oluştu.",
-                });
               }
             }}
           />

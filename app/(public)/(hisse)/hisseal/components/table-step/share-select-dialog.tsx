@@ -13,12 +13,14 @@ import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useReservationStore } from "@/stores/useReservationStore";
 
 interface ShareSelectDialogProps {
   isOpen: boolean;
   onClose: () => void;
   sacrifice: sacrificeSchema;
   onSelect: (shareCount: number) => void;
+  isLoading?: boolean;
 }
 
 export function ShareSelectDialog({
@@ -26,19 +28,29 @@ export function ShareSelectDialog({
   onClose,
   sacrifice,
   onSelect,
+  isLoading = false,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
   const [currentEmptyShare, setCurrentEmptyShare] = useState(sacrifice.empty_share);
   const [selectedShareCount, setSelectedShareCount] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLocalLoading, setIsLocalLoading] = useState(false);
+  const generateNewTransactionId = useReservationStore(state => state.generateNewTransactionId);
+  
+  const isButtonLoading = isLoading || isLocalLoading;
 
   // Reset state when dialog opens
   useEffect(() => {
     if (isOpen) {
       setCurrentEmptyShare(sacrifice.empty_share);
       setSelectedShareCount(1);
+      setIsLocalLoading(false);
+      
+      // Dialog açıldığında yeni bir transaction ID oluştur
+      generateNewTransactionId();
+      console.log('Generated new transaction ID when dialog opened:', 
+        useReservationStore.getState().transaction_id);
     }
-  }, [isOpen, sacrifice.empty_share]);
+  }, [isOpen, sacrifice.empty_share, generateNewTransactionId]);
 
   useEffect(() => {
     // Reset selected count when dialog is closed
@@ -84,46 +96,47 @@ export function ShareSelectDialog({
   );
 
   const handleContinue = async () => {
-    setIsLoading(true);
-    // Boş hisse sayısını kontrol et
-    const { data: latestSacrifice, error } = await supabase
-      .from("sacrifice_animals")
-      .select("empty_share")
-      .eq("sacrifice_id", sacrifice.sacrifice_id)
-      .single();
+    setIsLocalLoading(true);
+    
+    try {
+      // Boş hisse sayısını kontrol et - server-side API kullanarak
+      const response = await fetch(`/api/get-latest-sacrifice-share?id=${sacrifice.sacrifice_id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Kurbanlık bilgileri alınamadı: " + (errorData.error || response.statusText),
+        });
+        setIsLocalLoading(false);
+        return;
+      }
+      
+      const latestSacrifice = await response.json();
 
-    if (error || !latestSacrifice) {
+      if (latestSacrifice.empty_share < selectedShareCount) {
+        toast({
+          variant: "destructive",
+          title: "Uyarı",
+          description:
+            "Maalesef biraz önce bu kurbanlık ile ilgili yeni bir işlem yapıldı. Lütfen yeniden hisse adedi seçiniz.",
+        });
+        setSelectedShareCount(1);
+        setIsLocalLoading(false);
+        return;
+      }
+
+      // Seçilen hisse sayısını ana bileşene ilet
+      onSelect(selectedShareCount);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Kurbanlık bilgileri alınamadı. Lütfen tekrar deneyin.",
+        description: "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.",
       });
-      setIsLoading(false);
-      return;
+      setIsLocalLoading(false);
     }
-
-    if (latestSacrifice.empty_share < selectedShareCount) {
-      toast({
-        variant: "destructive",
-        title: "Uyarı",
-        description:
-          "Maalesef biraz önce bu kurbanlık ile ilgili yeni bir işlem yapıldı. Lütfen yeniden hisse adedi seçiniz.",
-      });
-      setSelectedShareCount(1);
-      setIsLoading(false);
-      return;
-    }
-
-    setTimeout(() => {
-      toast({
-        title: "Acele etmenize gerek yok",
-        description:
-          "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
-        duration: 10000,
-      });
-    }, 1000);
-
-    onSelect(selectedShareCount);
   };
 
   return (
@@ -174,10 +187,10 @@ export function ShareSelectDialog({
                 </p>
                 <Button 
                   onClick={handleContinue}
-                  disabled={isLoading}
+                  disabled={isButtonLoading}
                   className="h-8 sm:h-10 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  {isLoading ? "İşleminiz Yapılıyor..." : "Devam"}
+                  {isButtonLoading ? "İşleminiz Yapılıyor..." : "Devam"}
                 </Button>
               </div>
             </>

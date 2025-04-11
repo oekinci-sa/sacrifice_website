@@ -89,7 +89,7 @@ Table 5: reservation_transactions and its fields are:
   - created_at: Timestamp when the reservation was initially created.
 Typically set to the current time in Istanbul timezone using now() AT TIME ZONE 'Europe/Istanbul'.
   - expires_at: Timestamp indicating when the reservation expires. This field is 15 minutes ahead of the created_at field.
-  - status: Tracks the current state of the reservation. Values are: "active", "expired", "completed", "canceled".
+  - status: Tracks the current state of the reservation. Values are: "active", "expired", "completed", "canceled", "timed out".
   - last_edited_time: Timestamp of the most recent update made to the reservation. Automatically set or updated via triggers to reflect change history.
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.

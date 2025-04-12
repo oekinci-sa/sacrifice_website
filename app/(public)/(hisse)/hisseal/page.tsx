@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter, usePathname } from "next/navigation";
 import { useHisseStore } from "@/stores/useHisseStore";
@@ -46,6 +46,8 @@ const Page = () => {
     currentStep,
     tabValue,
     isSuccess,
+    sacrifices,
+    isLoadingSacrifices,
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
@@ -57,11 +59,20 @@ const Page = () => {
   // Reservation store - transaction_id yönetimi
   const { transaction_id, generateNewTransactionId } = useReservationStore();
 
-  // React Query hooks
-  const { data = [] } = useSacrifices();
+  // React Query hooks - still use it for initial loading and realtime updates
+  const { data: queryData, isLoading: isQueryLoading, refetch } = useSacrifices();
   const updateShareCount = useUpdateShareCount();
   const createShareholders = useCreateShareholders();
   const createReservation = useCreateReservation();
+
+  // Force a refetch when the page is loaded
+  useEffect(() => {
+    console.log('🔄 Forcing data refresh on page load...');
+    refetch();
+  }, [refetch]);
+
+  // Combined loading state from both sources
+  const isLoading = isQueryLoading || isLoadingSacrifices;
 
   // Rezervasyon işlemi sırasında yükleniyor durumunu yönet
   useEffect(() => {
@@ -194,6 +205,25 @@ const Page = () => {
     console.log("PDF indirme işlemi");
   };
 
+  // Combine data from both sources, preferring the source with more items (more likely to be up-to-date)
+  const sacrificeData = useMemo(() => {
+    console.log(`🔄 Deciding data source for UI: Store (${sacrifices.length}) vs Query (${queryData?.length || 0})`);
+    
+    // If either source is empty, use the other
+    if (sacrifices.length === 0) return queryData || [];
+    if (!queryData || queryData.length === 0) return sacrifices;
+    
+    // If both have data, use the one with more items (likely more up-to-date)
+    return queryData.length >= sacrifices.length ? queryData : sacrifices;
+  }, [sacrifices, queryData]);
+
+  // Log whenever our data changes
+  useEffect(() => {
+    if (sacrificeData.length > 0) {
+      console.log(`📊 Sacrifice data updated. Now showing ${sacrificeData.length} items`);
+    }
+  }, [sacrificeData]);
+
   return (
     <div className="container flex flex-col space-y-8">
       {isSuccess ? (
@@ -205,7 +235,7 @@ const Page = () => {
           timeLeft={timeLeft}
           showWarning={showWarning}
           columns={columns}
-          data={data}
+          data={sacrificeData}
           selectedSacrifice={selectedSacrifice}
           formData={formData}
           onSacrificeSelect={handleSacrificeSelect}
@@ -217,7 +247,7 @@ const Page = () => {
           setTimeLeft={setTimeLeft}
           handleApprove={handleApprove}
           toast={toast}
-          isLoading={isReservationLoading}
+          isLoading={isLoading || isReservationLoading}
         />
       )}
 

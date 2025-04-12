@@ -59,7 +59,7 @@ const Banner = () => {
 
           {/* Açıklama */}
           <p className="text-lg md:text-xl text-black/70 font-normal leading-loose">
-          İMH Ankara Kurban organizasyonu olarak, Allah’a yakınlaşmak ve O’nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
+          İMH Ankara Kurban organizasyonu olarak, Allah'a yakınlaşmak ve O'nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
           </p>
 
           {/* Buttons */}
@@ -73,6 +73,26 @@ const Banner = () => {
             <Button size="xl" variant="outline" className="w-1/2 md:w-auto border-[1.5px] border-black hover:scale-105 hover:bg-black hover:text-white transition-all duration-300">
               <Link href="/hissesorgula">Hisse Sorgula</Link>
             </Button>
+          </div>
+          
+          {/* Location information */}
+          <div className="flex space-x-4 items-center mt-2">
+            <Image
+              src="/icons/location.svg"
+              alt="Location Icon"
+              width={24}
+              height={24}
+            />
+            <p className="text-sm sm:text-base text-black/70">
+              Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
+              <br />
+              <Link
+                href="#"
+                className="text-sac-primary hover:underline hover:text-primary-dark"
+              >
+                Konum için tıklayınız.
+              </Link>
+            </p>
           </div>
         </motion.div>
 

@@ -61,37 +61,12 @@ const Process = () => {
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
       >
-        {/* İlk 3 öğe için kapsayıcı */}
-        <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-x-24 gap-y-12 md:gap-y-16 justify-items-center">
-          {processes.slice(0, 3).map((process) => (
+        {/* Tüm süreç öğeleri için tek kapsayıcı */}
+        <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-y-12 md:gap-x-24 justify-items-center">
+          {processes.map((process) => (
             <motion.div
               key={process.number}
-              className="flex flex-col w-full max-w-[320px] md:w-80 items-center gap-3 md:gap-4 text-center"
-              variants={item}
-            >
-              {/* Numaralandırma */}
-              <motion.div 
-                className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-sac-primary w-14 h-14 md:w-20 md:h-20 font-heading text-2xl md:text-4xl font-semibold"
-                variants={numberVariant}
-              >
-                {process.number}
-              </motion.div>
-              <p className="font-heading text-xl md:text-2xl font-bold text-white md:text-black">
-                {process.header}
-              </p>
-              <p className="text-sm md:text-base text-white/90 md:text-black/80">
-                {process.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Son 3 öğe için kapsayıcı */}
-        <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-x-24 gap-y-12 md:gap-y-16 justify-items-center">
-          {processes.slice(3).map((process) => (
-            <motion.div
-              key={process.number}
-              className="flex flex-col w-full max-w-[320px] md:w-80 items-center gap-3 md:gap-4 text-center"
+              className="flex flex-col px-12 md:px-0 items-center gap-2 md:gap-4 text-center"
               variants={item}
             >
               {/* Numaralandırma */}

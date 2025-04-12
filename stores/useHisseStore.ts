@@ -22,12 +22,20 @@ interface HisseState {
   stepNumber: number
   tabValue: string
   isSuccess: boolean
+  
+  sacrifices: sacrificeSchema[]
+  isLoadingSacrifices: boolean
+  
   setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setTempSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setFormData: (data: FormData[]) => void
   resetStore: () => void
   goToStep: (step: Step) => void
   setSuccess: (value: boolean) => void
+  
+  setSacrifices: (sacrifices: sacrificeSchema[]) => void
+  updateSacrifice: (updatedSacrifice: sacrificeSchema) => void
+  setIsLoadingSacrifices: (isLoading: boolean) => void
 }
 
 const initialState = {
@@ -38,11 +46,14 @@ const initialState = {
   stepNumber: 1,
   tabValue: "tab-1",
   isSuccess: false,
+  
+  sacrifices: [],
+  isLoadingSacrifices: false,
 }
 
 export const useHisseStore = create<HisseState>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       
       setSelectedSacrifice: (sacrifice) => set({ selectedSacrifice: sacrifice }),
@@ -57,6 +68,30 @@ export const useHisseStore = create<HisseState>()(
         set({ currentStep: step, tabValue: tab });
       },
       setSuccess: (value) => set({ isSuccess: value }),
+      
+      setSacrifices: (sacrifices) => set({ sacrifices }),
+      updateSacrifice: (updatedSacrifice) => {
+        const currentSacrifices = [...get().sacrifices];
+        const index = currentSacrifices.findIndex(
+          sacrifice => sacrifice.sacrifice_id === updatedSacrifice.sacrifice_id
+        );
+        
+        if (index !== -1) {
+          currentSacrifices[index] = updatedSacrifice;
+          set({ sacrifices: currentSacrifices });
+          
+          if (get().selectedSacrifice?.sacrifice_id === updatedSacrifice.sacrifice_id) {
+            set({ selectedSacrifice: updatedSacrifice });
+          }
+          
+          if (get().tempSelectedSacrifice?.sacrifice_id === updatedSacrifice.sacrifice_id) {
+            set({ tempSelectedSacrifice: updatedSacrifice });
+          }
+        } else {
+          set({ sacrifices: [...currentSacrifices, updatedSacrifice] });
+        }
+      },
+      setIsLoadingSacrifices: (isLoadingSacrifices) => set({ isLoadingSacrifices }),
     }),
     { name: 'hisse-store' }
   )

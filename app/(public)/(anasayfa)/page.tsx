@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 // Yukarı kaydırma butonu için ayrı bir bileşen - React.memo ile sarmaladık
 const ScrollToTopButton = React.memo(({ onClick }: { onClick: () => void }) => {
@@ -91,9 +92,48 @@ function MobileHome({ scrollToTop }: { scrollToTop: () => void }) {
   );
 }
 
+// Animasyonlu Tab Trigger bileşeni
+const AnimatedTabTrigger = ({ value, children }: { value: string, children: React.ReactNode }) => {
+  // Tab için animasyon ayarları
+  const tabVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={tabVariants}
+      className="inline-block"
+    >
+      <TabsTrigger
+        value={value}
+        className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
+          data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
+      >
+        {children}
+      </TabsTrigger>
+    </motion.div>
+  );
+};
+
 // Masaüstü görünüm için ana bileşen
 function DesktopHome() {
   const [activeTab, setActiveTab] = useState("banner-features");
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Sayfanın yüklenmesi tamamlandıktan sonra animasyonları başlat
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   return (
     <div className="relative">
@@ -105,37 +145,41 @@ function DesktopHome() {
         onValueChange={setActiveTab}
         className="w-full mt-16 mb-24"
       >
-        {/* Tab butonları - Yeni tasarım */}
+        {/* Tab butonları - Staggering animasyonlu yeni tasarım */}
         <div className="flex justify-center mb-16">
           <TabsList className="flex bg-transparent space-x-8 border-0 shadow-none p-0">
-            <TabsTrigger
-              value="banner-features"
-              className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
-                data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
-            >
-              Tanıtım
-            </TabsTrigger>
-            <TabsTrigger
-              value="prices"
-              className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
-                data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
-            >
-              Hisse Bedellerimiz
-            </TabsTrigger>
-            <TabsTrigger
-              value="process"
-              className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
-                data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
-            >
-              Hisse Alım Sürecimiz
-            </TabsTrigger>
-            <TabsTrigger
-              value="faq"
-              className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
-                data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
-            >
-              Sıkça Sorulan Sorular
-            </TabsTrigger>
+            {isLoaded && (
+              <>
+                <AnimatedTabTrigger value="banner-features" 
+                  // İlk tab için daha hızlı görünme
+                  // @ts-ignore - Transition delay on first item
+                  style={{ transitionDelay: '0.1s' }}
+                >
+                  Başlangıç
+                </AnimatedTabTrigger>
+                
+                <AnimatedTabTrigger value="prices"
+                  // @ts-ignore - Transition delay on second item
+                  style={{ transitionDelay: '0.2s' }}
+                >
+                  Hisse Bedellerimiz
+                </AnimatedTabTrigger>
+                
+                <AnimatedTabTrigger value="process"
+                  // @ts-ignore - Transition delay on third item
+                  style={{ transitionDelay: '0.3s' }}
+                >
+                  Hisse Alım Sürecimiz
+                </AnimatedTabTrigger>
+                
+                <AnimatedTabTrigger value="faq"
+                  // @ts-ignore - Transition delay on fourth item
+                  style={{ transitionDelay: '0.4s' }}
+                >
+                  Sıkça Sorulan Sorular
+                </AnimatedTabTrigger>
+              </>
+            )}
           </TabsList>
         </div>
 

@@ -57,6 +57,47 @@ const Prices = () => {
     price: parseInt(item.price.replace(".", ""))
   }));
 
+  // Container animation for staggered children
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  // Item animation from Process component
+  const item = {
+    hidden: { opacity: 0, y: 50 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  // Box animation similar to numberVariant in Process
+  const boxVariant = {
+    hidden: { 
+      scale: 0.5,
+      opacity: 0 
+    },
+    show: { 
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 15
+      }
+    }
+  };
+
   const sectionVariant = {
     hidden: { opacity: 0, y: 50 },
     show: { 
@@ -69,154 +110,58 @@ const Prices = () => {
     }
   };
 
-  const pricesGridVariant = {
-    hidden: { opacity: 0 },
-    show: { 
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
     <section className="container mx-auto">
-      {/* Mobile only heading - shown on small screens, hidden on md and above */}
-      <h2 className="text-3xl font-bold text-center mb-8 md:hidden">
-        Hisse Bedelleri
-      </h2>
-      
-      <div id="prices" className="container flex flex-col lg:flex-row lg:space-x-16 lg:flex-row-reverse space-y-16 lg:space-y-0">
-        {/* Sol kısım */}
-        <motion.div 
-          className="flex items-start space-x-4 w-full lg:w-auto"
-          variants={sectionVariant}
+      <motion.div 
+        className="w-full flex flex-col gap-8 items-center"
+        variants={sectionVariant}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+      >
+        {/* Title for both mobile and desktop */}
+        <h2 className="text-2xl md:text-4xl font-bold text-center mb-4">
+          Bu seneki hisse bedellerimiz
+        </h2>
+        
+        {/* Centered compact grid with staggered children animations */}
+        <motion.div
+          className="grid grid-cols-3 md:grid-cols-4 gap-8 md:gap-x-24 md:gap-y-12"
+          variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
         >
-          {/* Left Image */}
-          <div className="relative w-1/2 sm:w-60 aspect-[4/5] md:aspect-[3/4]">
-            <Image
-              src="/images/left-image.jpg"
-              alt="Left Side Image"
-              fill
-              priority
-              className="object-cover rounded-lg"
-            />
-            <Image
-              src="/icons/birds.svg"
-              alt="Birds Icon"
-              width={96}
-              height={96}
-              priority
-              className="absolute right-4 lg:scale-150 -bottom-12 lg:right-12 lg:-bottom-18"
-            />
-          </div>
-
-          {/* Right Image and Two Rectangulars */}
-          <div className="flex flex-col w-1/2 items-center space-y-4">
-            {/* İkili */}
-            <div className="flex sm:flex-row justify-between sm:gap-4 w-full">
-              {/* 7 Yıl+ */}
+          {priceItems.map((item, index) => (
+            <motion.div 
+              key={index}
+              className="flex flex-col items-center justify-between hover:scale-105 transition-all duration-300 cursor-pointer"
+              onClick={() => router.push(`/hisseal?price=${item.price}`)}
+              variants={item}
+            >
               <motion.div 
-                className="flex flex-col items-center justify-center bg-black text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
+                className="flex items-center justify-center bg-black text-white text-base md:text-2xl 
+              font-medium px-2 py-1 rounded-md"
+                variants={boxVariant}
               >
-                <p className="text-base sm:text-4xl font-bold">
-                  <Counter from={0} to={7} duration={1.5} />
-                  &nbsp;Yıl<span className="text-sac-primary">+</span>
-                </p>
-                <p className="text-base sm:text-3xl">Tecrübe</p>
+                {item.kg} KG
               </motion.div>
-              {/* 1000+ */}
               <motion.div 
-                className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-2 w-full sm:w-36 h-20 sm:h-36"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
+                className="text-base sm:text-2xl font-semibold bg-sac-primary text-white px-2 py-1 rounded-md w-full text-center"
+                variants={boxVariant}
               >
-                <p className="text-base sm:text-4xl font-bold">
-                  <Counter from={0} to={1000} duration={1.5} />
-                  <span>+</span>
-                </p>
-                <p className="text-base sm:text-3xl">Kurban</p>
+                {item.price.toLocaleString('tr-TR')} TL
               </motion.div>
-            </div>
-            <div className="relative w-full sm:w-80 aspect-[4/5] md:aspect-[3/4]">
-              <Image
-                src="/images/right-image.jpg"
-                alt="Right Side Image"
-                fill
-                priority
-                className="object-cover rounded-lg"
-              />
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </motion.div>
 
-        {/* Sağ kısım */}
-        <motion.div 
-          className="flex flex-col justify-between gap-8 flex-1"
-          variants={sectionVariant}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-        >
-          <p className="font-heading text-center md:text-left text-4xl lg:hidden font-bold">
-            Bu seneki <br /> hisse bedellerimiz
-          </p>
-
-          <motion.div
-            className="grid grid-cols-3 gap-8"
-            variants={pricesGridVariant}
-          >
-            {priceItems.map((item, index) => (
-              <div 
-                key={index}
-                className="flex flex-col items-center justify-between hover:scale-105 transition-all duration-300 cursor-pointer"
-                onClick={() => router.push(`/hisseal?price=${item.price}`)}
-              >
-                <div className="flex items-center justify-center bg-black text-white text-base sm:text-lg font-medium px-2 py-1 rounded-md">
-                  {item.kg} KG
-                </div>
-                <div className="text-base sm:text-lg font-semibold bg-sac-primary text-white px-2 py-1 rounded-md">
-                  {item.price.toLocaleString('tr-TR')} TL
-                </div>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Alt bilgi */}
-          <div className="flex flex-col space-y-4">
-            <p className="text-sm sm:text-base">
-              * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik
-              gösterebilmektedir.
-            </p>
-            <div className="flex space-x-4">
-              <Image
-                src="/icons/location.svg"
-                alt="Location Icon"
-                width={24}
-                height={24}
-              />
-              <p className="text-sm sm:text-base">
-                Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
-                <br />
-                <Link
-                  href="#"
-                  className="text-sac-primary hover:underline hover:text-primary-dark"
-                >
-                  Konum için tıklayınız.
-                </Link>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+        {/* Centered note */}
+        <p className="text-sm sm:text-base text-center max-w-2xl mt-4">
+          * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik
+          gösterebilmektedir.
+        </p>
+      </motion.div>
     </section>
   );
 };

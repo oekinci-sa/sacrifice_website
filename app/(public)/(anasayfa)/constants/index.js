@@ -88,37 +88,37 @@ export const features = [
 
 export const priceInfo = [
   {
+    kg: "23 kg",
+    price: "20.000",
+  },
+  {
     kg: "26 kg",
-    price: "30.000",
+    price: "22.000",
   },
   {
     kg: "30 kg",
-    price: "36.000",
+    price: "24.000",
   },
   {
     kg: "34 kg",
-    price: "42.000",
+    price: "26.000",
   },
   {
     kg: "38 kg",
-    price: "48.000",
+    price: "28.000",
   },
   {
     kg: "42 kg",
-    price: "54.000",
+    price: "30.000",
   },
   {
     kg: "46 kg",
-    price: "60.000",
+    price: "32.000",
   },
   {
     kg: "50 kg",
-    price: "66.000",
-  },
-  {
-    kg: "54 kg",
-    price: "72.000",
-  },
+    price: "34.000",
+  }
 ];
 
 export const processes = [
@@ -132,7 +132,7 @@ export const processes = [
     number: "02",
     header: "Hissedar Bilgileri",
     description:
-      "Seçtiğiniz kurbanlık için hissedar bilgilerini girdikten sonra daha sonra güvenli bir şekilde sorgulama yapabilmek için kendi oluşturacağınız güvenlik kodunu belirleyerek ilerleyin. Bu kod ile daha sonra sorgulama yapabilirsiniz."
+      "Seçtiğiniz kurbanlık için hissedar bilgilerini girdikten sonra, ileride güvenli sorgulama yapabilmeniz için kendi belirleyeceğiniz bir güvenlik kodu oluşturun. Bu kodla daha sonra sorgulama yapabilirsiniz."
   },
   {
     number: "03",

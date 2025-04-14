@@ -11,7 +11,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useSacrifices } from "@/hooks/useSacrifices";
+import { useHisseStore } from "@/stores/useHisseStore";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
@@ -236,14 +236,19 @@ interface ShareFiltersProps {
 
 // 🔹 Ana bileşen
 export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: ShareFiltersProps) {
-  const { data: sacrifices = [] } = useSacrifices();
+  const { sacrifices, isLoadingSacrifices, isInitialized } = useHisseStore();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   
   // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
-    // First, let's log a sample sacrifice to see its structure
-    if (sacrifices.length > 0) {
+    // Don't process if data is not yet available or still loading
+    if (!isInitialized || isLoadingSacrifices || sacrifices.length === 0) {
+      return [];
+    }
+    
+    // First, let's log a sample sacrifice to see its structure (debug only)
+    if (process.env.NODE_ENV === 'development' && sacrifices.length > 0) {
       console.log("Sample sacrifice:", sacrifices[0]);
     }
     
@@ -255,7 +260,6 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
       }
       
       // Use the correct property for weight
-      // Replace 'weight_kg' with the actual property name
       const weight = sacrifice.share_weight; 
       
       // Only add unique weights
@@ -289,7 +293,7 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
       .sort((a, b) => Number(a.value) - Number(b.value));
       
     return priceOptions;
-  }, [sacrifices]);
+  }, [sacrifices, isInitialized, isLoadingSacrifices]);
 
   const [showHideFullOption, setShowHideFullOption] = useState(true);
 

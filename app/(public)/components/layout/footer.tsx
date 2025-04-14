@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import websiteLogoWhite from "@/public/website-logo-white.svg";
-import { supabase } from "@/utils/supabaseClient";
+import { useEffect } from "react";
 
 import { mediaLinks } from "../../constants";
 import CustomLink from "@/components/common/custom-link";
 import { useHisseStore } from "@/stores/useHisseStore";
-import { useSacrifices } from "@/hooks/useSacrifices";
+import { useEmptyShareCount } from "@/hooks/useEmptyShareCount";
 
 interface MediaLink {
   href: string;
@@ -16,57 +15,19 @@ interface MediaLink {
 }
 
 const Footer = () => {
-  // Get sacrifice data from Zustand store
-  const { sacrifices } = useHisseStore();
+  // Use the hook to get empty shares count (sadece real-time güncellemeler için)
+  const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
   
-  // Initialize useSacrifices hook to ensure real-time updates
-  // This doesn't display anything but ensures the data is fetched and subscribed to real-time updates
-  useSacrifices();
+  // Zustand store'dan toplam boş hisse sayısını al
+  const { totalEmptyShares, isInitialized } = useHisseStore();
   
-  // Calculate total empty shares from the store data
-  const totalEmptyShares = useMemo(() => {
-    return sacrifices.reduce(
-      (sum, item) => sum + (item.empty_share || 0),
-      0
-    );
-  }, [sacrifices]);
-  
-  // Fallback state if Zustand store is empty (initial load)
-  const [fallbackEmptyShares, setFallbackEmptyShares] = useState<number>(0);
-
-  // Fetch total empty shares directly only once on initial load as a fallback
-  useEffect(() => {
-    // Only fetch if the store is empty
-    if (sacrifices.length === 0) {
-      const fetchTotalEmptyShares = async () => {
-        try {
-          const { data, error } = await supabase
-            .from("sacrifice_animals")
-            .select("empty_share");
-
-          if (error) {
-            console.error("Error fetching empty shares:", error);
-            return;
-          }
-
-          if (data) {
-            const total = data.reduce(
-              (sum, item) => sum + (item.empty_share || 0),
-              0
-            );
-            setFallbackEmptyShares(total);
-          }
-        } catch (error) {
-          console.error("Error in fetchTotalEmptyShares:", error);
-        }
-      };
-      
-      fetchTotalEmptyShares();
-    }
-  }, [sacrifices.length]);
-
-  // Use the value from the store if available, otherwise use the fallback
-  const displayEmptyShares = sacrifices.length > 0 ? totalEmptyShares : fallbackEmptyShares;
+  // Görüntülenecek boş hisse sayısı - initialize edilmiş Zustand store'u kullan, 
+  // yoksa API'den gelen veriyi kullan, ikisi de yoksa loading göster
+  const displayEmptyShares = isInitialized && totalEmptyShares !== undefined
+    ? totalEmptyShares 
+    : apiEmptyShares !== undefined 
+      ? apiEmptyShares 
+      : "...";
 
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">

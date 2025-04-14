@@ -19,9 +19,6 @@ import {
   useTrackInteractions
 } from "@/helpers/hisseal-helpers";
 import { ReservationStatus, useCreateReservation, useReservationStatus, useUpdateShareCount } from "@/hooks/useReservations";
-import {
-  useSacrifices,
-} from "@/hooks/useSacrifices";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useHisseStore } from "@/stores/useHisseStore";
 import { useReservationStore } from "@/stores/useReservationStore";
@@ -34,7 +31,7 @@ import { columns } from "./components/table-step/columns";
 import { ShareSelectDialog } from "./components/table-step/share-select-dialog";
 import { ReservationInfoDialog } from "./components/reservation-info-dialog";
 
-const TIMEOUT_DURATION = 120; // 3 minutes
+const TIMEOUT_DURATION = 15; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {
@@ -63,6 +60,7 @@ const Page = () => {
     hasNavigatedAway,
     sacrifices,
     isLoadingSacrifices,
+    isInitialized,
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
@@ -75,8 +73,6 @@ const Page = () => {
   // Reservation store - transaction_id yönetimi
   const { transaction_id, generateNewTransactionId } = useReservationStore();
 
-  // React Query hooks
-  const { data, isLoading: isQueryLoading } = useSacrifices();
   const updateShareCount = useUpdateShareCount();
   const createShareholders = useCreateShareholders();
   const createReservation = useCreateReservation();
@@ -90,8 +86,20 @@ const Page = () => {
     refetch: refetchStatus
   } = useReservationStatus(shouldCheckStatus ? transaction_id : '');
 
-  // Combined loading state from both sources
-  const isLoading = isQueryLoading || isLoadingSacrifices || isStatusLoading;
+  // If store is not initialized yet or is still loading, show loading state
+  // This ensures the table doesn't display before data is available
+  const isInitialLoading = !isInitialized || isLoadingSacrifices;
+  
+  // Combined loading state including initial loading
+  const isLoading = isInitialLoading || isStatusLoading;
+
+  // Effect to trigger a data check if we navigate directly to this page
+  useEffect(() => {
+    // If we have no sacrifices data but we're not in loading state, something went wrong
+    if (sacrifices.length === 0 && !isLoadingSacrifices && pathname === "/hisseal") {
+      console.log("No sacrifice data available, might need to fetch data");
+    }
+  }, [pathname, sacrifices.length, isLoadingSacrifices]);
 
   // Handle reservation status changes
   useEffect(() => {
@@ -101,6 +109,12 @@ const Page = () => {
     
     // If status is expired, redirect to selection step
     if (reservationStatus.status === ReservationStatus.EXPIRED) {
+      // Açık dialogları kapat
+      setIsDialogOpen(false);
+      setShowReservationInfo(false);
+      setShowThreeMinuteWarning(false);
+      setShowOneMinuteWarning(false);
+      
       toast({
         variant: "destructive",
         title: "Rezervasyon Süresi Doldu",
@@ -179,32 +193,6 @@ const Page = () => {
     }
   }, [pathname, resetStore, goToStep, generateNewTransactionId, isSuccess]);
 
-  // Set navigation flag when component unmounts (user navigates away)
-  useEffect(() => {
-    return () => {
-      if (isSuccess) {
-        console.log('Component unmounting, setting navigated away flag');
-        setHasNavigatedAway(true);
-      }
-    };
-  }, [isSuccess, setHasNavigatedAway]);
-
-  // Add beforeunload listener to handle page refreshes
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (isSuccess) {
-        console.log('Page refresh/close detected, setting navigated away flag');
-        setHasNavigatedAway(true);
-      }
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isSuccess, setHasNavigatedAway]);
-
   // Handle navigation changes
   useHandleNavigationHistory({
     currentStep,
@@ -215,7 +203,18 @@ const Page = () => {
     goToStep,
     isSuccess,
     setHasNavigatedAway,
-    toast
+    toast,
+    // Dialog durumlarını parametre olarak geçir
+    openDialogs: {
+      isDialogOpen,
+      setIsDialogOpen,
+      showReservationInfo,
+      setShowReservationInfo,
+      showThreeMinuteWarning,
+      setShowThreeMinuteWarning,
+      showOneMinuteWarning,
+      setShowOneMinuteWarning
+    }
   });
 
   // Handle interaction timeout
@@ -232,7 +231,17 @@ const Page = () => {
     setShowWarning,
     setTimeLeft,
     TIMEOUT_DURATION,
-    WARNING_THRESHOLD
+    WARNING_THRESHOLD,
+    {
+      isDialogOpen,
+      setIsDialogOpen,
+      showReservationInfo,
+      setShowReservationInfo,
+      showThreeMinuteWarning,
+      setShowThreeMinuteWarning,
+      showOneMinuteWarning,
+      setShowOneMinuteWarning
+    }
   );
 
   // Sayfa seviyesinde etkileşimleri takip et
@@ -326,8 +335,8 @@ const Page = () => {
     console.log("PDF indirme işlemi");
   };
 
-  // Prefer Zustand store data, but fall back to React Query data if needed
-  const sacrificeData = sacrifices.length > 0 ? sacrifices : data || [];
+  // Use only the Zustand store data
+  const sacrificeData = sacrifices;
 
   // Calculate remaining minutes for display in warnings
   const getRemainingMinutesText = () => {

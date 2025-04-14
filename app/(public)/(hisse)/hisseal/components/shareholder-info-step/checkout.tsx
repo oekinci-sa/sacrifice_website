@@ -14,13 +14,13 @@ import { sacrificeSchema } from "@/types"
 import { useState, useEffect } from "react"
 import { z } from "zod"
 import { useToast } from "@/components/ui/use-toast"
-import { useSacrifices } from "@/hooks/useSacrifices"
 import { useUpdateShareCount, useCancelReservation } from "@/hooks/useReservations"
 import SacrificeInfo from "./sacrifice-info"
 import ShareholderForm from "./shareholder-form"
 import TripleButtons from "../common/triple-buttons"
 import { cn } from "@/lib/utils"
 import { useReservationStore } from "@/stores/useReservationStore"
+import { useHisseStore } from "@/stores/useHisseStore"
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
@@ -77,9 +77,12 @@ export default function Checkout({
   const [isAddingShare, setIsAddingShare] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
 
-  // React Query ile güncel sacrifice verisini al
-  const { data: sacrifices } = useSacrifices()
-  const currentSacrifice = sacrifices?.find(s => s.sacrifice_id === sacrifice?.sacrifice_id)
+  // Get sacrifices data from Zustand store instead of useSacrifices hook
+  const { sacrifices, isLoadingSacrifices, isInitialized } = useHisseStore()
+  // Only try to find the sacrifice if we have data loaded
+  const currentSacrifice = (isInitialized && !isLoadingSacrifices && sacrifices?.length > 0) 
+    ? sacrifices.find(s => s.sacrifice_id === sacrifice?.sacrifice_id)
+    : sacrifice // Fall back to prop if store data isn't ready
 
   // Mutation hook'ları
   const updateShareCount = useUpdateShareCount()
@@ -393,7 +396,7 @@ export default function Checkout({
   return (
     <div className="space-y-16">
       <div className="w-full">
-        <SacrificeInfo sacrifice={sacrifice} />
+        <SacrificeInfo sacrifice={sacrifice} formData={formData} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto mt-8">

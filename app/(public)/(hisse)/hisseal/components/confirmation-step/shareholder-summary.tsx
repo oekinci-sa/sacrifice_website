@@ -11,6 +11,7 @@ import { useCompleteReservation } from "@/hooks/useReservations"
 import { useReservationStore } from "@/stores/useReservationStore"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
+import { useValidateShareholders } from "@/hooks/useValidateShareholders"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -92,6 +93,7 @@ export default function ShareholderSummary({
 
   const createShareholdersMutation = useCreateShareholders()
   const completeReservationMutation = useCompleteReservation()
+  const validateShareholdersMutation = useValidateShareholders()
   const { transaction_id } = useReservationStore()
   const { toast } = useToast()
 
@@ -143,6 +145,12 @@ export default function ShareholderSummary({
     })
 
     try {
+      // Validate shareholder count before proceeding
+      await validateShareholdersMutation.mutateAsync({
+        sacrificeId: sacrifice?.sacrifice_id || "",
+        newShareholderCount: shareholders.length
+      });
+
       // Prepare shareholder data for the API
       const shareholderDataForApi = shareholders.map((shareholder, index) => {
         // Clean and format phone number
@@ -201,15 +209,25 @@ export default function ShareholderSummary({
       });
 
     } catch (error) {
-      console.error("Hissedarlar kaydedilirken hata oluştu:", error)
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Hissedarlar kaydedilirken bir hata oluştu.",
-      })
-
+      console.error("İşlem sırasında hata oluştu:", error);
+      
       // Close dialog on error
-      setShowTermsDialog(false)
+      setShowTermsDialog(false);
+      
+      // Show appropriate error message based on the error type
+      if (error instanceof Error) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: error.message || "Hissedarlar kaydedilirken bir hata oluştu.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedarlar kaydedilirken bir hata oluştu.",
+        });
+      }
     } finally {
       setIsProcessing(false);
     }

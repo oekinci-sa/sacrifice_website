@@ -10,106 +10,26 @@ import { useHisseStore } from "@/stores/useHisseStore"
 export const useSacrifices = () => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
-  const pathname = usePathname()
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   
-  // Get Zustand store methods
-  const { sacrifices, setSacrifices, updateSacrifice, setIsLoadingSacrifices } = useHisseStore()
+  // Get Zustand store methods and state
+  const { 
+    sacrifices, 
+    isLoadingSacrifices, 
+    totalEmptyShares 
+  } = useHisseStore()
 
-  // Function to setup Supabase subscription
-  const setupSubscription = () => {
-    // Clean up existing subscription if any
-    if (channelRef.current) {
-      channelRef.current.unsubscribe()
-    }
-
-    // Create new subscription
-    channelRef.current = supabase.channel('sacrifice-changes-' + Date.now())
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sacrifice_animals'
-        },
-        (payload) => {
-          console.log('Realtime update received:', payload)
-          
-          // Invalidate React Query cache (keep existing behavior)
-          queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-          
-          // Also update the Zustand store directly with the new data
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            // For inserts and updates, update the specific record
-            updateSacrifice(payload.new as sacrificeSchema)
-          } else if (payload.eventType === 'DELETE') {
-            // For deletes, we need to refetch the whole list
-            // This is simpler than trying to remove just one item
-            fetchAndUpdateStore()
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status)
-      })
-  }
-  
-  // Helper function to fetch data and update the store
-  const fetchAndUpdateStore = async () => {
-    try {
-      setIsLoadingSacrifices(true)
-      const response = await fetch('/api/get-sacrifice-animals')
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || response.statusText)
-      }
-      
-      const data = await response.json() as sacrificeSchema[]
-      setSacrifices(data)
-    } catch (error) {
-      console.error('Error fetching sacrifices:', error)
-    } finally {
-      setIsLoadingSacrifices(false)
-    }
-  }
-
-  // Setup subscription on mount and pathname change
-  useEffect(() => {
-    setupSubscription()
-    // Force immediate refetch when pathname changes
-    queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-
-    // Cleanup on unmount
-    return () => {
-      if (channelRef.current) {
-        console.log('Unsubscribing from channel')
-        channelRef.current.unsubscribe()
-        channelRef.current = null
-      }
-    }
-  }, [pathname, queryClient]) // Add pathname as dependency
-
-  // Monitor subscription status
-  useEffect(() => {
-    const checkSubscription = setInterval(() => {
-      if (!channelRef.current) {
-        console.log('Reestablishing lost subscription')
-        setupSubscription()
-      }
-    }, 5000) // Check every 5 seconds
-
-    return () => clearInterval(checkSubscription)
-  }, [])
-
-  // Keep the original React Query hook, but make it also update our Zustand store
+  // We're now using React Query as a wrapper around our Zustand store
+  // since the data is already being loaded and updated by SacrificeDataProvider
   return useQuery({
     queryKey: ["sacrifices"],
     queryFn: async () => {
-      console.log('Fetching sacrifices data')
-      setIsLoadingSacrifices(true)
+      // If we already have data in the store, return it immediately
+      if (sacrifices.length > 0) {
+        return sacrifices;
+      }
       
-      // Using the new server-side API endpoint instead of direct Supabase access
+      // Otherwise fetch it from the API
+      console.log('Fallback fetch for sacrifices data')
       const response = await fetch('/api/get-sacrifice-animals');
       
       if (!response.ok) {
@@ -122,20 +42,14 @@ export const useSacrifices = () => {
         throw new Error(errorData.error || response.statusText);
       }
       
-      const data = await response.json() as sacrificeSchema[];
-      
-      // Update Zustand store with the fetched data
-      setSacrifices(data);
-      setIsLoadingSacrifices(false);
-      
-      return data;
+      return await response.json() as sacrificeSchema[];
     },
-    initialData: () => sacrifices.length > 0 ? sacrifices : undefined, // Use store data if available
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    staleTime: 1000, // Give a small stale time to prevent excessive refetches
-    retry: 3
+    // Use the data directly from our store
+    initialData: sacrifices.length > 0 ? sacrifices : undefined,
+    // Set loading state from our store
+    enabled: true,
+    staleTime: 3000, // Consider data fresh for 3 seconds
+    retry: 1
   })
 }
 
@@ -198,7 +112,12 @@ export function useSacrificeById(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
       
-      // Using the new server-side API endpoint instead of direct Supabase access
+      // Check if we have the data in store first
+      if (cachedSacrifice) {
+        return cachedSacrifice;
+      }
+      
+      // Otherwise fetch from API
       const response = await fetch(`/api/get-sacrifice-by-id?id=${id}`);
       
       if (!response.ok) {
@@ -217,11 +136,15 @@ export function useSacrificeById(id: string | undefined) {
     },
     initialData: cachedSacrifice || undefined, // Use cached data if available
     enabled: !!id, // Sadece ID varsa sorguyu çalıştır
+    staleTime: 3000 // Consider data fresh for 3 seconds
   });
 
   // Realtime desteği ekleniyor
   useEffect(() => {
     if (!id) return;
+    
+    // Individual sacrifice changes are now handled by the global provider
+    // This is kept for backward compatibility and for component-specific updates
     
     // Kurbanlık değişikliklerini dinle
     const channel = supabase

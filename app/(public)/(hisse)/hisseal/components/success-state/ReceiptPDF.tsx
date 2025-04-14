@@ -140,11 +140,14 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>Kurban Hisse Bilgilendirme ve Rezervasyon Özeti</Text>
+      <Text style={styles.title}>
+        Kurban Hisse Bilgilendirme ve Rezervasyon Özeti
+      </Text>
 
       {/* Intro Message */}
       <Text style={styles.intro}>
-        Kurban ibadetinizi eda etme niyetinizde size vesile olduğumuz için teşekkür ederiz.{"\n"}
+        Kurban ibadetinizi yerine getirmenize yardımcı olduğumuz için teşekkür
+        ederiz.{"\n"}
         Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.
       </Text>
 
@@ -216,7 +219,9 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
 
         {/* 4. Rezervasyon Takibi ve Güvenlik */}
         <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Rezervasyon Takibi ve Güvenlik</Text>
+          <Text style={styles.sectionTitle}>
+            Rezervasyon Takibi ve Güvenlik
+          </Text>
           <View style={styles.row}>
             <Text style={styles.label}>Rezervasyon Kodu:</Text>
             <Text style={styles.value}>{data.transaction_id}</Text>
@@ -231,17 +236,24 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
       {/* Warning - at the bottom */}
       <View style={styles.warning}>
         <Text style={styles.warningText}>⚠️ Önemli Not:</Text>
-        <Text>Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için gerekmektedir. Lütfen kodunuzu kimse ile paylaşmayınız.</Text>
+        <Text>
+          Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için
+          gerekmektedir. Lütfen kodunuzu kimse ile paylaşmayınız.
+        </Text>
       </View>
-      
+
       {/* 5. Kapanış Mesajı */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Bu belge bilgilendirme amaçlıdır. Lütfen bilgilerinizi kontrol ediniz.</Text>
-        <Text style={styles.footerText}>Detaylı bilgiler için ankarakurban.com.tr adresine göz atınız.</Text>
-        <Text style={styles.contact}>Destek: 0552 652 90 00 / 0312 312 44 64 </Text>
+        <Text style={styles.footerText}>
+          Bu belge bilgilendirme amaçlıdır. Lütfen bilgilerinizi kontrol ediniz.
+        </Text>
+        <Text style={styles.footerText}>
+          Detaylı bilgiler için ankarakurban.com.tr adresine göz atınız.
+        </Text>
+        <Text style={styles.contact}>
+          Destek: 0552 652 90 00 / 0312 312 44 64{" "}
+        </Text>
       </View>
-
-
     </Page>
   </Document>
 );

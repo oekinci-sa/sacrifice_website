@@ -27,6 +27,12 @@ interface HisseState {
   sacrifices: sacrificeSchema[]
   isLoadingSacrifices: boolean
   
+  // Toplam boş hisse sayısı
+  totalEmptyShares: number
+  
+  // Store initialization state
+  isInitialized: boolean
+  
   setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setTempSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void
   setFormData: (data: FormData[]) => void
@@ -38,6 +44,13 @@ interface HisseState {
   setSacrifices: (sacrifices: sacrificeSchema[]) => void
   updateSacrifice: (updatedSacrifice: sacrificeSchema) => void
   setIsLoadingSacrifices: (isLoading: boolean) => void
+  setIsInitialized: (isInitialized: boolean) => void
+  
+  // Toplam boş hisse sayısını güncellemek için fonksiyon
+  setEmptyShareCount: (count: number) => void
+  
+  // Utility function to remove a sacrifice by ID
+  removeSacrifice: (sacrificeId: string) => void
 }
 
 const initialState = {
@@ -52,6 +65,12 @@ const initialState = {
   
   sacrifices: [],
   isLoadingSacrifices: false,
+  
+  // Başlangıç değeri
+  totalEmptyShares: 0,
+  
+  // Store initialization state
+  isInitialized: false,
 }
 
 export const useHisseStore = create<HisseState>()(
@@ -73,7 +92,10 @@ export const useHisseStore = create<HisseState>()(
       setSuccess: (value) => set({ isSuccess: value }),
       setHasNavigatedAway: (value) => set({ hasNavigatedAway: value }),
       
-      setSacrifices: (sacrifices) => set({ sacrifices }),
+      setSacrifices: (sacrifices) => set({ 
+        sacrifices,
+        isInitialized: true
+      }),
       updateSacrifice: (updatedSacrifice) => {
         const currentSacrifices = [...get().sacrifices];
         const index = currentSacrifices.findIndex(
@@ -91,11 +113,61 @@ export const useHisseStore = create<HisseState>()(
           if (get().tempSelectedSacrifice?.sacrifice_id === updatedSacrifice.sacrifice_id) {
             set({ tempSelectedSacrifice: updatedSacrifice });
           }
+          
+          // Update total empty shares when a sacrifice is updated
+          const totalEmptyShares = currentSacrifices.reduce(
+            (sum, sacrifice) => sum + sacrifice.empty_share, 
+            0
+          );
+          set({ totalEmptyShares });
         } else {
-          set({ sacrifices: [...currentSacrifices, updatedSacrifice] });
+          const newSacrifices = [...currentSacrifices, updatedSacrifice];
+          
+          // Update total empty shares when adding a new sacrifice
+          const totalEmptyShares = newSacrifices.reduce(
+            (sum, sacrifice) => sum + sacrifice.empty_share, 
+            0
+          );
+          
+          set({ 
+            sacrifices: newSacrifices,
+            totalEmptyShares 
+          });
         }
       },
       setIsLoadingSacrifices: (isLoadingSacrifices) => set({ isLoadingSacrifices }),
+      setIsInitialized: (isInitialized) => set({ isInitialized }),
+      
+      // Toplam boş hisse sayısını güncelleme fonksiyonu
+      setEmptyShareCount: (count) => set({ totalEmptyShares: count }),
+      
+      // Function to remove a sacrifice by ID
+      removeSacrifice: (sacrificeId) => {
+        const currentSacrifices = [...get().sacrifices];
+        const updatedSacrifices = currentSacrifices.filter(
+          sacrifice => sacrifice.sacrifice_id !== sacrificeId
+        );
+        
+        // Update total empty shares
+        const totalEmptyShares = updatedSacrifices.reduce(
+          (sum, sacrifice) => sum + sacrifice.empty_share, 
+          0
+        );
+        
+        set({ 
+          sacrifices: updatedSacrifices,
+          totalEmptyShares
+        });
+        
+        // If selected sacrifice is removed, clear it
+        if (get().selectedSacrifice?.sacrifice_id === sacrificeId) {
+          set({ selectedSacrifice: null });
+        }
+        
+        if (get().tempSelectedSacrifice?.sacrifice_id === sacrificeId) {
+          set({ tempSelectedSacrifice: null });
+        }
+      }
     }),
     { name: 'hisse-store' }
   )

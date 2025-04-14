@@ -303,9 +303,20 @@ export const useHandleInteractionTimeout = (
   setShowWarning: (show: boolean) => void,
   setTimeLeft: (time: number) => void,
   TIMEOUT_DURATION: number,
-  WARNING_THRESHOLD: number
+  WARNING_THRESHOLD: number,
+  // Yeni parametreler - açık dialog kontrolü için
+  openDialogs?: {
+    isDialogOpen?: boolean;
+    setIsDialogOpen?: (open: boolean) => void;
+    showReservationInfo?: boolean;
+    setShowReservationInfo?: (show: boolean) => void;
+    showThreeMinuteWarning?: boolean;
+    setShowThreeMinuteWarning?: (show: boolean) => void;
+    showOneMinuteWarning?: boolean;
+    setShowOneMinuteWarning?: (show: boolean) => void;
+  }
 ) => {
-  const cancelReservation = useCancelReservation();
+  const timeoutReservation = useTimeoutReservation();
   const transaction_id = useReservationStore(state => state.transaction_id);
 
   useEffect(() => {
@@ -334,10 +345,33 @@ export const useHandleInteractionTimeout = (
       
       // Eğer süre doldu ve hala details veya confirmation adımındaysak
       if (timeLeft <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
-        // Eğer transaction_id varsa rezervasyonu iptal et
+        // Açık dialogları kapat
+        if (openDialogs) {
+          // Hisse seçme dialog
+          if (openDialogs.setIsDialogOpen && openDialogs.isDialogOpen) {
+            openDialogs.setIsDialogOpen(false);
+          }
+          
+          // Rezervasyon bilgi dialog
+          if (openDialogs.setShowReservationInfo && openDialogs.showReservationInfo) {
+            openDialogs.setShowReservationInfo(false);
+          }
+          
+          // 3 dakika uyarı dialog
+          if (openDialogs.setShowThreeMinuteWarning && openDialogs.showThreeMinuteWarning) {
+            openDialogs.setShowThreeMinuteWarning(false);
+          }
+          
+          // 1 dakika uyarı dialog
+          if (openDialogs.setShowOneMinuteWarning && openDialogs.showOneMinuteWarning) {
+            openDialogs.setShowOneMinuteWarning(false);
+          }
+        }
+        
+        // Eğer transaction_id varsa rezervasyonu zaman aşımına uğrat
         if (transaction_id) {
           try {
-            await cancelReservation.mutateAsync({
+            await timeoutReservation.mutateAsync({
               transaction_id
             });
             
@@ -348,7 +382,7 @@ export const useHandleInteractionTimeout = (
             // Uyarıyı kapat
             setShowWarning(false);
           } catch (err) {
-            console.error('Error canceling reservation during timeout:', err);
+            console.error('Error timing out reservation:', err);
             // Hata olsa bile reset yapmaya çalış
             resetStore();
             goToStep("selection");
@@ -378,7 +412,8 @@ export const useHandleInteractionTimeout = (
     goToStep,
     setShowWarning,
     setTimeLeft,
-    cancelReservation
+    timeoutReservation,
+    openDialogs // Yeni dependency
   ]);
 };
 
@@ -575,7 +610,8 @@ export const useHandleNavigationHistory = ({
   goToStep,
   isSuccess,
   setHasNavigatedAway,
-  toast
+  toast,
+  openDialogs
 }: {
   currentStep: string;
   selectedSacrifice: sacrificeSchema | null;
@@ -586,6 +622,16 @@ export const useHandleNavigationHistory = ({
   isSuccess: boolean;
   setHasNavigatedAway: (value: boolean) => void;
   toast: any;
+  openDialogs?: {
+    isDialogOpen?: boolean;
+    setIsDialogOpen?: (open: boolean) => void;
+    showReservationInfo?: boolean;
+    setShowReservationInfo?: (show: boolean) => void;
+    showThreeMinuteWarning?: boolean;
+    setShowThreeMinuteWarning?: (show: boolean) => void;
+    showOneMinuteWarning?: boolean;
+    setShowOneMinuteWarning?: (show: boolean) => void;
+  }
 }) => {
   const transaction_id = useReservationStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
@@ -603,6 +649,29 @@ export const useHandleNavigationHistory = ({
       if (!transaction_id) return true;
 
       try {
+        // Açık dialogları kapat
+        if (openDialogs) {
+          // Hisse seçme dialog
+          if (openDialogs.setIsDialogOpen && openDialogs.isDialogOpen) {
+            openDialogs.setIsDialogOpen(false);
+          }
+          
+          // Rezervasyon bilgi dialog
+          if (openDialogs.setShowReservationInfo && openDialogs.showReservationInfo) {
+            openDialogs.setShowReservationInfo(false);
+          }
+          
+          // 3 dakika uyarı dialog
+          if (openDialogs.setShowThreeMinuteWarning && openDialogs.showThreeMinuteWarning) {
+            openDialogs.setShowThreeMinuteWarning(false);
+          }
+          
+          // 1 dakika uyarı dialog
+          if (openDialogs.setShowOneMinuteWarning && openDialogs.showOneMinuteWarning) {
+            openDialogs.setShowOneMinuteWarning(false);
+          }
+        }
+        
         // Browser geri tuşu veya sayfa değişikliği durumunda rezervasyonu iptal et
         await cancelReservation.mutateAsync({
           transaction_id
@@ -666,6 +735,7 @@ export const useHandleNavigationHistory = ({
     toast,
     transaction_id,
     cancelReservation,
-    setHasNavigatedAway
+    setHasNavigatedAway,
+    openDialogs // Yeni dependency
   ]);
 };

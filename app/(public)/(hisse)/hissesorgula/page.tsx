@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ShareholderDetails } from "./components/shareholder-details";
 import { shareholderSchema } from "@/types";
+import { useShareholderLookup } from "@/hooks/useShareholderLookup";
 
 // Telefon numarası formatlama fonksiyonu
 const formatPhoneNumber = (value: string) => {
@@ -46,11 +46,12 @@ const validatePhoneNumber = (phone: string) => {
 export default function HisseSorgula() {
   const [phone, setPhone] = useState("");
   const [securityCode, setSecurityCode] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [shareholderInfo, setShareholderInfo] = useState<shareholderSchema | null>(null);
   const [shareholderInfoList, setShareholderInfoList] = useState<shareholderSchema[]>([]);
   const { toast } = useToast();
+  
+  // Use the shareholder lookup mutation
+  const shareholderLookup = useShareholderLookup();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPhoneNumber(e.target.value);
@@ -95,78 +96,40 @@ export default function HisseSorgula() {
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    setShareholderInfo(null);
-    setShareholderInfoList([]);
-
     try {
-      // Telefon numarasını formatlama
-      let formattedPhone = phone.replace(/\D/g, '');
-      formattedPhone = `+90${formattedPhone.substring(1)}`; // Başındaki 0'ı kaldır ve +90 ekle
-
-      console.log("Arama yapılan numara:", formattedPhone); // Debug için
-
-      // Tüm kayıtları al ve purchase_time'a göre sırala
-      const { data, error: queryError } = await supabase
-        .from("shareholders")
-        .select(
-          `
-          *,
-          sacrifice:sacrifice_animals (
-            sacrifice_no,
-            sacrifice_time,
-            share_price
-          )
-        `
-        )
-        .eq("phone_number", formattedPhone)
-        .order("purchase_time", { ascending: false });
-
-      if (queryError) throw queryError;
-      if (!data || data.length === 0) {
-        setError("Bu telefon numarasına ait kayıt bulunamadı.");
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Bu telefon numarasına ait kayıt bulunamadı.",
-        });
-        return;
-      }
-
-      // En son kaydı al (güvenlik kodu kontrolü için)
-      const latestRecord = data[0] as shareholderSchema;
-
-      // Güvenlik kodu kontrolü
-      if (latestRecord.security_code !== securityCode) {
-        setError("Güvenlik kodu hatalı. Lütfen tekrar deneyiniz.");
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Güvenlik kodu hatalı. Lütfen tekrar deneyiniz.",
-        });
-        return;
-      }
-
-      // Güvenlik kodu doğruysa tüm kayıtları göster
-      setShareholderInfoList(data as shareholderSchema[]);
-      setShareholderInfo(latestRecord); // En son kaydı da ayrıca tut
-
+      setError(null);
+      setShareholderInfoList([]);
+      
+      // Use our mutation to lookup shareholders
+      const result = await shareholderLookup.mutateAsync({
+        phone,
+        securityCode
+      });
+      
+      // If we get here, the lookup was successful
+      const shareholders = result.shareholders;
+      
+      setShareholderInfoList(shareholders);
+      
       toast({
         title: "Başarılı",
-        description: `${data.length} adet hissedar kaydı bulundu.`,
+        description: `${shareholders.length} adet hissedar kaydı bulundu.`,
       });
     } catch (err) {
       console.error("Error fetching shareholder:", err);
-      setError("Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
-
+      
+      // Show the error message from the API or a fallback
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.";
+        
+      setError(errorMessage);
+      
       toast({
         variant: "destructive",
         title: "Hata",
-        description: "Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+        description: errorMessage,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -219,7 +182,7 @@ export default function HisseSorgula() {
                       if (/^\d*$/.test(newValue)) {
                         const newCode = securityCode.split('');
                         newCode[i] = newValue;
-                        setSecurityCode(newCode.join(''));
+                        handleSecurityCodeChange(newCode.join(''));
 
                         // Auto-focus next input if a digit was entered
                         if (newValue && i < 5) {
@@ -239,9 +202,9 @@ export default function HisseSorgula() {
             <Button
               onClick={handleSearch}
               className=""
-              disabled={!phone || loading}
+              disabled={!phone || shareholderLookup.isPending}
             >
-              {loading ? (
+              {shareholderLookup.isPending ? (
                 "Yükleniyor..."
               ) : (
                 <>

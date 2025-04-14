@@ -34,7 +34,7 @@ import { columns } from "./components/table-step/columns";
 import { ShareSelectDialog } from "./components/table-step/share-select-dialog";
 import { ReservationInfoDialog } from "./components/reservation-info-dialog";
 
-const TIMEOUT_DURATION = 15; // 3 minutes
+const TIMEOUT_DURATION = 120; // 3 minutes
 const WARNING_THRESHOLD = 5; // Show warning at 1 minute
 
 const Page = () => {

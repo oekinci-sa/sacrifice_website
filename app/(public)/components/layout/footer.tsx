@@ -19,36 +19,25 @@ const Footer = () => {
   // Get sacrifice data from Zustand store
   const { sacrifices } = useHisseStore();
   
-  // Force real-time connections to be active by using the hook directly
-  // The returned data isn't used directly, but ensures the subscription is active
-  const { data: realtimeData, isLoading } = useSacrifices();
+  // Initialize useSacrifices hook to ensure real-time updates
+  // This doesn't display anything but ensures the data is fetched and subscribed to real-time updates
+  useSacrifices();
   
   // Calculate total empty shares from the store data
   const totalEmptyShares = useMemo(() => {
-    // Use either store data or the real-time data from React Query, whichever has more items
-    const dataToUse = realtimeData && realtimeData.length > sacrifices.length ? realtimeData : sacrifices;
-    
-    if (dataToUse.length === 0) {
-      return 0; // No data yet
-    }
-    
-    console.log(`🔢 Calculating total empty shares from ${dataToUse.length} sacrifices`);
-    const total = dataToUse.reduce(
+    return sacrifices.reduce(
       (sum, item) => sum + (item.empty_share || 0),
       0
     );
-    console.log(`🔢 Total empty shares: ${total}`);
-    return total;
-  }, [sacrifices, realtimeData]);
+  }, [sacrifices]);
   
-  // We still need a fallback for the initial load
-  const [fallbackEmptyShares, setFallbackEmptyShares] = useState<number | null>(null);
+  // Fallback state if Zustand store is empty (initial load)
+  const [fallbackEmptyShares, setFallbackEmptyShares] = useState<number>(0);
 
   // Fetch total empty shares directly only once on initial load as a fallback
   useEffect(() => {
-    // Only fetch directly if we don't have data from other sources
-    if ((sacrifices.length === 0 && !realtimeData) && fallbackEmptyShares === null) {
-      console.log('🔍 Fetching fallback empty shares data directly...');
+    // Only fetch if the store is empty
+    if (sacrifices.length === 0) {
       const fetchTotalEmptyShares = async () => {
         try {
           const { data, error } = await supabase
@@ -65,7 +54,6 @@ const Footer = () => {
               (sum, item) => sum + (item.empty_share || 0),
               0
             );
-            console.log(`🔍 Fallback empty shares: ${total}`);
             setFallbackEmptyShares(total);
           }
         } catch (error) {
@@ -75,40 +63,10 @@ const Footer = () => {
       
       fetchTotalEmptyShares();
     }
-  }, [sacrifices.length, realtimeData, fallbackEmptyShares]);
+  }, [sacrifices.length]);
 
-  // Determine which value to display, prioritizing real-time data
-  const displayEmptyShares = totalEmptyShares > 0 
-    ? totalEmptyShares 
-    : (fallbackEmptyShares ?? 0);
-
-  // Add a direct subscription for footer-specific updates
-  useEffect(() => {
-    console.log('🔌 Setting up footer-specific Supabase subscription...');
-    const channel = supabase
-      .channel("footer-empty-shares-subscription")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "sacrifice_animals",
-        },
-        (payload) => {
-          console.log("📢 Footer received change event:", payload);
-          // We don't need to do anything here, the store will be updated via useSacrifices
-        }
-      )
-      .subscribe((status) => {
-        console.log("🔌 Footer subscription status:", status);
-      });
-
-    // Cleanup subscription
-    return () => {
-      console.log('🔌 Cleaning up footer-specific subscription');
-      channel.unsubscribe();
-    };
-  }, []);
+  // Use the value from the store if available, otherwise use the fallback
+  const displayEmptyShares = sacrifices.length > 0 ? totalEmptyShares : fallbackEmptyShares;
 
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">

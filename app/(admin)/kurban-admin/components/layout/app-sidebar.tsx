@@ -19,7 +19,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useSidebarStore } from "@/store/sidebar-store"
+import { useSidebarStore } from "@/stores/sidebar-store"
 import { UserRole } from "@/types"
 
 type NavItem = {

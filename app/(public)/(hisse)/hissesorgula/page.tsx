@@ -14,7 +14,7 @@ import { shareholderSchema } from "@/types";
 const formatPhoneNumber = (value: string) => {
   // Sadece rakamları al
   const numbers = value.replace(/\D/g, '');
-  
+
   // Eğer numara boşsa, boş string döndür
   if (!numbers) return '';
 
@@ -25,7 +25,7 @@ const formatPhoneNumber = (value: string) => {
     if (numbers.length <= 10) return `${numbers.slice(0, 4)} ${numbers.slice(4, 7)} ${numbers.slice(7)}`;
     return `${numbers.slice(0, 4)} ${numbers.slice(4, 7)} ${numbers.slice(7, 9)} ${numbers.slice(9, 11)}`;
   }
-  
+
   // Başında 0 yoksa, otomatik ekle
   const withZero = '0' + numbers;
   if (withZero.length <= 4) return withZero;
@@ -136,7 +136,7 @@ export default function HisseSorgula() {
 
       // En son kaydı al (güvenlik kodu kontrolü için)
       const latestRecord = data[0] as shareholderSchema;
-      
+
       // Güvenlik kodu kontrolü
       if (latestRecord.security_code !== securityCode) {
         setError("Güvenlik kodu hatalı. Lütfen tekrar deneyiniz.");
@@ -172,18 +172,21 @@ export default function HisseSorgula() {
 
   return (
     <div>
-      <div className="container py-8 space-y-8">
-        <div className="flex flex-col items-center justify-center max-w-xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-semibold">Hisse Sorgula</h1>
-            <p className="text-muted-foreground">
+      <div className="container">
+        <div className="flex flex-col items-center justify-center mx-auto">
+
+          {/* Başlık ve açıklama */}
+          <div className="text-center space-y-6 md:space-y-12">
+            <h1 className="text-3xl font-semibold mt-8">Hisse Sorgula</h1>
+            <div className="text-black/75 font-medium md:text-lg">
               Hisse bilgilerinizi sorgulamak için telefon numaranızı ve güvenlik kodunuzu giriniz.
-            </p>
+            </div>
           </div>
 
-          <div className="w-full space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="phone" className="text-sm font-medium">
+          {/* Telefon numarası ve güvenlik kodu alanları */}
+          <div className="flex flex-col gap-8 md:mt-12 border border-black/10 rounded-lg p-8 mt-16">
+            <div className="space-y-4">
+              <label htmlFor="phone" className="font-medium">
                 Telefon Numarası
               </label>
               <Input
@@ -198,9 +201,10 @@ export default function HisseSorgula() {
                 )}
               />
             </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="securityCode" className="text-sm font-medium">
+
+            {/* Güvenlik kodu alanı */}
+            <div className="space-y-4">
+              <label htmlFor="securityCode" className="font-medium">
                 Güvenlik Kodu (6 Haneli)
               </label>
               <div className="flex gap-2 justify-center">
@@ -216,10 +220,10 @@ export default function HisseSorgula() {
                         const newCode = securityCode.split('');
                         newCode[i] = newValue;
                         setSecurityCode(newCode.join(''));
-                        
+
                         // Auto-focus next input if a digit was entered
                         if (newValue && i < 5) {
-                          const nextInput = document.querySelector(`input[name="otp-${i+1}"]`);
+                          const nextInput = document.querySelector(`input[name="otp-${i + 1}"]`);
                           if (nextInput) {
                             (nextInput as HTMLInputElement).focus();
                           }
@@ -231,14 +235,10 @@ export default function HisseSorgula() {
                 ))}
               </div>
             </div>
-            
-            {error && (
-              <p className="text-destructive text-sm text-center">{error}</p>
-            )}
-            
+            {/* Sorgula butonu */}
             <Button
               onClick={handleSearch}
-              className="w-full"
+              className=""
               disabled={!phone || loading}
             >
               {loading ? (
@@ -257,11 +257,11 @@ export default function HisseSorgula() {
         {shareholderInfoList.length > 0 && (
           <div className="max-w-5xl mx-auto space-y-8">
             <h2 className="text-2xl font-semibold text-center">
-              {shareholderInfoList.length > 1 
-                ? `${shareholderInfoList.length} Adet Hisse Kaydı Bulundu` 
+              {shareholderInfoList.length > 1
+                ? `${shareholderInfoList.length} Adet Hisse Kaydı Bulundu`
                 : "Hisse Kaydı"}
             </h2>
-            
+
             {shareholderInfoList.map((info, index) => (
               <div key={info.shareholder_id} className="mb-8">
                 {shareholderInfoList.length > 1 && (

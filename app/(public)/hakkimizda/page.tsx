@@ -13,7 +13,7 @@ const AboutPage = () => {
   return (
     <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="container mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Hakkımızda</h1>
+        <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-8 text-center">Hakkımızda</h1>
 
         <div className="mb-12">
           <p className="text-lg mb-6">

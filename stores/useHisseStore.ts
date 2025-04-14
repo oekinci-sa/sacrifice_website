@@ -22,6 +22,7 @@ interface HisseState {
   stepNumber: number
   tabValue: string
   isSuccess: boolean
+  hasNavigatedAway: boolean
   
   sacrifices: sacrificeSchema[]
   isLoadingSacrifices: boolean
@@ -32,6 +33,7 @@ interface HisseState {
   resetStore: () => void
   goToStep: (step: Step) => void
   setSuccess: (value: boolean) => void
+  setHasNavigatedAway: (value: boolean) => void
   
   setSacrifices: (sacrifices: sacrificeSchema[]) => void
   updateSacrifice: (updatedSacrifice: sacrificeSchema) => void
@@ -46,6 +48,7 @@ const initialState = {
   stepNumber: 1,
   tabValue: "tab-1",
   isSuccess: false,
+  hasNavigatedAway: false,
   
   sacrifices: [],
   isLoadingSacrifices: false,
@@ -68,6 +71,7 @@ export const useHisseStore = create<HisseState>()(
         set({ currentStep: step, tabValue: tab });
       },
       setSuccess: (value) => set({ isSuccess: value }),
+      setHasNavigatedAway: (value) => set({ hasNavigatedAway: value }),
       
       setSacrifices: (sacrifices) => set({ sacrifices }),
       updateSacrifice: (updatedSacrifice) => {

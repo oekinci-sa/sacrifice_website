@@ -123,7 +123,7 @@ const Form = () => {
           type="submit"
           className="w-full bg-sac-primary hover:bg-sac-primary text-white text-sm lg:text-base py-2 lg:py-3"
         >
-          Send a message
+          Mesaj gönder
         </Button>
       </form>
     </div>

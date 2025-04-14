@@ -29,7 +29,7 @@ export default function TripleButtons({
   maxShareholderReached = false,
 }: TripleButtonsProps) {
   return (
-    <div className="flex justify-center items-center gap-2 sm:gap-4 pt-6">
+    <div className="flex justify-center items-center gap-2 sm:gap-4">
       <Button
         variant="ghost"
         className="rounded-full bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 min-w-[100px] sm:min-w-[140px]"

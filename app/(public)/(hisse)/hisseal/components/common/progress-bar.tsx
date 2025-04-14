@@ -21,10 +21,10 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
   const stepIndex = getCurrentStepIndex()
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-8 sm:my-16">
+    <div className="w-full max-w-5xl mx-auto my-8 md:my-8">
       <div className="relative">
         {/* Steps */}
-        <div className="relative flex justify-between">
+        <div className="relative flex justify-between md:justify-center md:gap-64">
           {steps.map((step, index) => {
             const isActive = index <= stepIndex
             const isCompleted = index < stepIndex
@@ -32,8 +32,8 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
             return (
               <div key={step.id} className="flex flex-col items-center">
                 <span
-                  className={`text-xs sm:text-base font-medium mb-2 sm:mb-3 transition-colors duration-300 ${
-                    isActive ? "text-black" : "text-gray-400"
+                  className={`text-xs sm:text-xl font-semibold mb-2 sm:mb-3 transition-colors duration-300 ${
+                    isActive ? "text-black" : "text-black/75"
                   }`}
                 >
                   {step.label.split('\n').map((line, i) => (
@@ -42,10 +42,10 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
                   <span className="hidden sm:block">{step.label.replace('\n', ' ')}</span>
                 </span>
                 <div
-                  className={`w-10 h-10 sm:w-15 sm:h-15 rounded-full flex items-center justify-center text-sm sm:text-base font-medium transition-all duration-300 ${
+                  className={`w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-medium transition-all duration-300 ${
                     isActive
-                      ? "bg-[#22C55E] text-white"
-                      : "bg-[#EAEAEA] text-[#AFAFAF]"
+                      ? "bg-sac-primary text-white"
+                      : "bg-black/5 text-black/50"
                   }`}
                 >
                   {isCompleted ? (

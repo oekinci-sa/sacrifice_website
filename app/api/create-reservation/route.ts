@@ -14,11 +14,24 @@ enum ReservationStatus {
 
 // Türkiye saati için yardımcı fonksiyon
 function getTurkeyDateTime() {
-  return new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })
-    .replace(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/, function(_, day, month, year, hour, minute, second) {
-      // Formatlı tarih string'i: YYYY-MM-DD HH:MM:SS.ssssss
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000000`;
-    });
+  // ISO formatında doğrudan Türkiye saati oluştur (daha güvenilir yöntem)
+  const now = new Date();
+  // Türkiye'nin zaman dilimi offsetini hesapla (GMT+3 = +180 dakika)
+  const offsetMinutes = 180;
+  
+  // UTC zamanını alıp Türkiye offsetini ekle
+  const turkeyDate = new Date(now.getTime() + offsetMinutes * 60 * 1000);
+  
+  // ISO formatını al ve formatla (saat 0-23 arasında garanti edilir)
+  const year = turkeyDate.getUTCFullYear();
+  const month = String(turkeyDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(turkeyDate.getUTCDate()).padStart(2, '0');
+  const hours = String(turkeyDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(turkeyDate.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(turkeyDate.getUTCSeconds()).padStart(2, '0');
+  
+  // YYYY-MM-DD HH:MM:SS formatında döndür
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 // Rezervasyon oluşturma API endpoint'i

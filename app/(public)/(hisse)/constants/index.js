@@ -1,8 +1,8 @@
 export const reminders = [
   {
-    src: "location-2.svg",
-    header: "Kapora Adresi",
-    description: "Hacı Bayram, Ulus, Adliye Sk. No:1,<br/>Altındağ/Ankara",
+    src: "wallet-fill.svg",
+    header: "Kapora IBAN Bilgisi",
+    description: "TR12 3456 7890 1234 5678 9012 34<br/>Ahmet oğlu Mehmet",
   },
   {
     src: "info.svg",
@@ -14,6 +14,6 @@ export const reminders = [
     src: "exclamation.svg",
     header: "Tüm Ödemeler",
     description:
-      "Tüm ödemeler 31 Mayıs Cumartesi<br/>gününe kadar tamamlanmalıdır.",
+      "Tüm ödemeler 1 Haziran Cuma<br/>gününe kadar tamamlanmalıdır.",
   },
 ];

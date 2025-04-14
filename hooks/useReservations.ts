@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 
 // Rezervasyon durumu için olası değerler
@@ -7,8 +7,64 @@ export enum ReservationStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
   CANCELED = 'canceled',  // 'canceled' versiyonu da ekleyelim (tutarlılık için)
-  TIMED_OUT = 'timed out' // Zaman aşımı durumu için yeni enum değeri
+  TIMED_OUT = 'timed out', // Zaman aşımı durumu için yeni enum değeri
+  EXPIRED = 'expired' // Expiration için enum değeri
 }
+
+// Reservation status check interface
+export interface ReservationStatusData {
+  status: ReservationStatus;
+  transaction_id: string;
+  timeRemaining: number | null; // seconds remaining
+  expires_at: string | null;
+  sacrifice_id: string;
+  share_count: number;
+}
+
+// New hook for checking reservation status
+export const useReservationStatus = (transaction_id: string) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  // Skip query if no transaction_id
+  const enabled = !!transaction_id && transaction_id.length > 0;
+  
+  return useQuery<ReservationStatusData, Error>({
+    queryKey: ['reservation-status', transaction_id],
+    queryFn: async () => {
+      if (!transaction_id) {
+        throw new Error('Transaction ID is required');
+      }
+      
+      console.log('Checking reservation status for transaction_id:', transaction_id);
+      
+      try {
+        const response = await fetch(`/api/check-reservation-status?transaction_id=${transaction_id}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error checking reservation status:', errorData);
+          throw new Error(errorData.error || `Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data as ReservationStatusData;
+      } catch (error) {
+        console.error('Error in reservation status check:', error);
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error('An unexpected error occurred while checking reservation status');
+        }
+      }
+    },
+    enabled: enabled,
+    refetchInterval: 30000, // Check every 30 seconds while window is open
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: false, // Don't refetch when tab is not active
+    retry: 3,
+  });
+};
 
 // Rezervasyonu ekle hook'u tipini daha iyi tanımlayalım
 interface ReservationData {

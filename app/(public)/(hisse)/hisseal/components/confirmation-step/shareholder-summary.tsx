@@ -31,14 +31,14 @@ interface ShareholderSummaryProps {
 const formatPhoneNumber = (phone: string) => {
   // Önce tüm non-digit karakterleri kaldır
   const cleaned = phone.replace(/\D/g, '')
-  
+
   // Eğer +90 ile başlıyorsa, onu kaldır
   const withoutPrefix = cleaned.replace(/^90/, '')
-  
+
   // Baştaki 0'ı kaldır ve tekrar ekle
   const withoutZero = withoutPrefix.replace(/^0/, '')
   const withZero = '0' + withoutZero
-  
+
   // Formatı ayarla: 05XX XXX XX XX
   const formatted = withZero.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4')
   return formatted
@@ -89,7 +89,7 @@ export default function ShareholderSummary({
   const [showTermsDialog, setShowTermsDialog] = useState(false)
   const [securityCode, setSecurityCode] = useState("")
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const createShareholdersMutation = useCreateShareholders()
   const completeReservationMutation = useCompleteReservation()
   const { transaction_id } = useReservationStore()
@@ -97,7 +97,7 @@ export default function ShareholderSummary({
 
   // Find the purchaser
   const purchaserIndex = shareholders.findIndex(shareholder => shareholder.is_purchaser === true)
-  
+
   // If no purchaser is marked and there's only one shareholder, that shareholder is the purchaser
   const effectivePurchaserIndex = purchaserIndex === -1 && shareholders.length === 1 ? 0 : purchaserIndex
 
@@ -134,7 +134,7 @@ export default function ShareholderSummary({
       // If for some reason we don't have a purchaser, use first shareholder
       purchaserName = shareholders[0].name
     }
-    
+
     console.log('İşlemi yapan kişi:', {
       index: effectivePurchaserIndex,
       name: purchaserName,
@@ -148,19 +148,21 @@ export default function ShareholderSummary({
         // Clean and format phone number
         const cleanedPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
           .replace(/^90/, '') // Remove leading 90
-        const formattedPhone = cleanedPhone.startsWith('90') 
-          ? '+' + cleanedPhone 
+        const formattedPhone = cleanedPhone.startsWith('90')
+          ? '+' + cleanedPhone
           : '+90' + cleanedPhone
-        
+
         // Calculate the delivery fee based on location
         const delivery_fee = shareholder.delivery_location !== "kesimhane" ? 500 : 0
-        
+
         // Calculate total amount and remaining payment
         const share_price = sacrifice?.share_price || 0
-        const total_amount = share_price + delivery_fee
-        const paid_amount = 0 // Default to 0 for new shareholders
-        const remaining_payment = total_amount - paid_amount
-        
+        const totalAmount = share_price + delivery_fee
+        const paidAmount = Number.isFinite(shareholder.paid_amount) ? shareholder.paid_amount : totalAmount;
+
+        const remainingPayment = totalAmount - paidAmount;
+
+
         // Create the data object without the is_purchaser field
         const shareholderData = {
           shareholder_name: shareholder.name,
@@ -173,31 +175,31 @@ export default function ShareholderSummary({
           security_code: securityCode,
           purchased_by: purchaserName,
           last_edited_by: purchaserName,
-          sacrifice_consent: true, // Set to true since user agreed to terms
-          total_amount: total_amount,
-          remaining_payment: remaining_payment
+          sacrifice_consent: false, // Set to true since user agreed to terms
+          total_amount: totalAmount,
+          remaining_payment: remainingPayment
         }
-        
+
         return shareholderData
       })
 
       // Save shareholders to DB
       await createShareholdersMutation.mutateAsync(shareholderDataForApi)
-      
+
       // Complete the reservation
       await completeReservationMutation.mutateAsync({ transaction_id })
-      
+
       // Close dialog and proceed
       setShowTermsDialog(false)
-      
+
       // Call the onApprove function to proceed to success state
       onApprove()
-      
+
       toast({
         title: "Başarılı!",
         description: "Hissedarlar kaydedildi ve rezervasyon tamamlandı.",
       });
-      
+
     } catch (error) {
       console.error("Hissedarlar kaydedilirken hata oluştu:", error)
       toast({
@@ -205,7 +207,7 @@ export default function ShareholderSummary({
         title: "Hata",
         description: "Hissedarlar kaydedilirken bir hata oluştu.",
       })
-      
+
       // Close dialog on error
       setShowTermsDialog(false)
     } finally {
@@ -219,7 +221,7 @@ export default function ShareholderSummary({
         {shareholders.map((shareholder, index) => {
           // Check if this shareholder is the purchaser
           const isPurchaser = index === effectivePurchaserIndex
-          
+
           return (
             <div
               key={index}
@@ -237,7 +239,7 @@ export default function ShareholderSummary({
                   İşlemi Gerçekleştiren Kişi
                 </div>
               )}
-              
+
               <h3 className="text-sm sm:text-lg font-semibold text-center mb-4 sm:mb-6">
                 {index + 1}. Hissedar Bilgileri
               </h3>

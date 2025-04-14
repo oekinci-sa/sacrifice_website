@@ -41,6 +41,19 @@ export function CustomDataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])
   
+  // Force re-render when data changes
+  const dataRef = React.useRef<TData[]>([]);
+  const [dataVersion, setDataVersion] = React.useState(0);
+  
+  // Check if data has changed
+  React.useEffect(() => {
+    if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
+      dataRef.current = [...data];
+      setDataVersion(prev => prev + 1);
+      console.log('Data changed, forcing CustomDataTable re-render');
+    }
+  }, [data]);
+  
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
@@ -55,6 +68,13 @@ export function CustomDataTable<TData, TValue>({
   React.useEffect(() => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }, [pageSize])
+
+  // Reset to first page when data changes
+  React.useEffect(() => {
+    if (dataVersion > 0) {
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    }
+  }, [dataVersion]);
 
   const table = useReactTable({
     data,

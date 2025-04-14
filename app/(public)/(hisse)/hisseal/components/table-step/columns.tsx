@@ -1,10 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { sacrificeSchema } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Plus, Ban, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-
+import { ColumnDef } from "@tanstack/react-table";
+import { Ban, Plus } from "lucide-react";
+  
 interface TableMeta {
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
 }
@@ -31,11 +30,11 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => {
       const time = row.getValue("sacrifice_time") as string;
       if (!time) return <div className="text-center py-0.5 sm:py-1">-</div>;
-      
-      const [hours, minutes] = time.split(':');
+
+      const [hours, minutes] = time.split(":");
       return (
         <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">
-          {`${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`}
+          {`${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`}
         </div>
       );
     },
@@ -50,7 +49,8 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
 
       return (
         <div className="text-center text-xs sm:text-base py-0.5 sm:py-1 whitespace-nowrap">
-          {share_weight} kg. - {new Intl.NumberFormat("tr-TR", {
+          {share_weight} kg. -{" "}
+          {new Intl.NumberFormat("tr-TR", {
             style: "decimal",
             maximumFractionDigits: 0,
           }).format(share_price)}{" "}
@@ -60,13 +60,14 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
     filterFn: (row, id, filterValues) => {
       if (!filterValues || filterValues.length === 0) return true;
-      
+
       const rowValue = row.getValue(id) as number;
-      
-      return filterValues.some(filterValue => {
-        const numericFilterValue = typeof filterValue === 'string' 
-          ? parseFloat(filterValue)
-          : filterValue;
+
+      return filterValues.some((filterValue) => {
+        const numericFilterValue =
+          typeof filterValue === "string"
+            ? parseFloat(filterValue)
+            : filterValue;
         return rowValue === numericFilterValue;
       });
     },
@@ -122,4 +123,4 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       );
     },
   },
-]; 
+];

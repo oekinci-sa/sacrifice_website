@@ -8,7 +8,9 @@ import { sacrificeSchema } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import ProgressBar from "../common/progress-bar";
 import { useReservationStore } from "@/stores/useReservationStore";
-import { useCancelReservation } from "@/hooks/useReservations";
+import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
+import { useEffect, useState } from "react";
+import CountdownTimer from '../common/countdown-timer';
 
 interface FormViewProps {
   currentStep: string;
@@ -29,6 +31,7 @@ interface FormViewProps {
   handleApprove: () => Promise<void>;
   toast: any;
   isLoading?: boolean;
+  serverTimeRemaining?: number | null; // Server-based remaining time
 }
 
 export const FormView = ({
@@ -49,22 +52,84 @@ export const FormView = ({
   setTimeLeft,
   handleApprove,
   toast,
-  isLoading = false
+  isLoading = false,
+  serverTimeRemaining = null
 }: FormViewProps) => {
   const transaction_id = useReservationStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
+  const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
+  
+  // Check reservation status directly in component if needed
+  const shouldCheckStatus = currentStep === "details" || currentStep === "confirmation";
+  const { data: reservationStatus } = useReservationStatus(
+    shouldCheckStatus ? transaction_id : ''
+  );
+  
+  // Update local time when server time changes
+  useEffect(() => {
+    if (reservationStatus?.timeRemaining !== undefined && reservationStatus?.timeRemaining !== null) {
+      setLocalTimeRemaining(reservationStatus.timeRemaining);
+    }
+  }, [reservationStatus?.timeRemaining]);
+  
+  // Canlı geri sayım için timer
+  useEffect(() => {
+    if (!shouldCheckStatus) return;
+    
+    const timer = setInterval(() => {
+      setLocalTimeRemaining(prevTime => {
+        if (prevTime <= 0) return 0;
+        return prevTime - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [shouldCheckStatus]);
+  
+  // Format remaining time for display in HH:MM:SS format
+  const formatRemainingTime = () => {
+    // Always use local time for display
+    const secondsRemaining = localTimeRemaining;
+    
+    if (secondsRemaining <= 0) return "00:00:00";
+    
+    const hours = Math.floor(secondsRemaining / 3600);
+    const minutes = Math.floor((secondsRemaining % 3600) / 60);
+    const seconds = secondsRemaining % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Format expiration time
+  const formatExpirationTime = () => {
+    if (!reservationStatus?.expires_at) return "";
+    
+    const expiryDate = new Date(reservationStatus.expires_at);
+    return expiryDate.toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
 
   return (
     <>
-      <h1 className="text-xl sm:text-2xl font-bold text-center mb-0 sm:mb-2">Hisse Al</h1>
+      <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 text-center mt-8">Hisse Al</h1>
       <ProgressBar currentStep={currentStep} />
+      
+      {/* Süre göstergesi - formun üst kısmında gösteriliyor */}
+      {(currentStep === "details" || currentStep === "confirmation") && (
+        <CountdownTimer
+          expirationTime={formatExpirationTime()}
+          remainingTime={localTimeRemaining}
+        />
+      )}
 
+      {/* Non-blocking loading indicator */}
       {isLoading && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-2"></div>
-            <p className="text-sm font-medium">İşleminiz yapılıyor...</p>
-          </div>
+        <div className="fixed bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg flex items-center z-40">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sac-primary mr-2"></div>
+          <p className="text-sm font-medium text-sac-primary">Yükleniyor...</p>
         </div>
       )}
 
@@ -119,17 +184,11 @@ export const FormView = ({
             shareholders={formData}
             onApprove={handleApprove}
             setCurrentStep={goToStep}
-            remainingTime={timeLeft}
+            remainingTime={localTimeRemaining}
             setRemainingTime={setTimeLeft}
           />
         </TabsContent>
       </Tabs>
-
-      {(currentStep === "details" || currentStep === "confirmation") && (
-        <div className="text-sm text-muted-foreground text-center mt-auto mb-8">
-          Kalan Süre: {timeLeft} saniye
-        </div>
-      )}
 
       <AlertDialog open={showWarning} onOpenChange={() => {}}>
         <AlertDialogContent>

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/utils/supabaseClient"
 import { sacrificeSchema } from "@/types"
 import { useToast } from "@/components/ui/use-toast"
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { useHisseStore } from "@/stores/useHisseStore"
 
@@ -16,57 +16,13 @@ export const useSacrifices = () => {
   // Get Zustand store methods
   const { sacrifices, setSacrifices, updateSacrifice, setIsLoadingSacrifices } = useHisseStore()
 
-  // Helper function to fetch data and update the store
-  const fetchAndUpdateStore = useCallback(async () => {
-    try {
-      setIsLoadingSacrifices(true)
-      console.log("📊 Fetching all sacrifice data...")
-      const response = await fetch('/api/get-sacrifice-animals')
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || response.statusText)
-      }
-      
-      const data = await response.json() as sacrificeSchema[]
-      console.log(`📊 Fetched ${data.length} sacrifices, updating store...`)
-      setSacrifices(data)
-    } catch (error) {
-      console.error("Error fetching sacrifices:", error)
-    } finally {
-      setIsLoadingSacrifices(false)
-    }
-  }, [setSacrifices, setIsLoadingSacrifices])
-
-  // Callback for handling real-time changes
-  const handleRealtimeChange = useCallback((payload: any) => {
-    console.log('🔄 Realtime update received:', payload)
-    
-    // Invalidate React Query cache (keep existing behavior)
-    queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-    
-    // Also update the Zustand store directly with the new data
-    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-      // For inserts and updates, update the specific record
-      console.log('🔄 Updating store with new sacrifice data:', payload.new)
-      updateSacrifice(payload.new as sacrificeSchema)
-    } else if (payload.eventType === 'DELETE') {
-      // For deletes, we need to refetch the whole list
-      console.log('🔄 Sacrifice was deleted, refetching all data...')
-      fetchAndUpdateStore()
-    }
-  }, [queryClient, updateSacrifice, fetchAndUpdateStore])
-
   // Function to setup Supabase subscription
-  const setupSubscription = useCallback(() => {
+  const setupSubscription = () => {
     // Clean up existing subscription if any
     if (channelRef.current) {
-      console.log('🔌 Cleaning up existing subscription...')
       channelRef.current.unsubscribe()
-      channelRef.current = null
     }
 
-    console.log('🔌 Setting up new subscription...')
     // Create new subscription
     channelRef.current = supabase.channel('sacrifice-changes-' + Date.now())
       .on(
@@ -76,56 +32,81 @@ export const useSacrifices = () => {
           schema: 'public',
           table: 'sacrifice_animals'
         },
-        handleRealtimeChange
+        (payload) => {
+          console.log('Realtime update received:', payload)
+          
+          // Invalidate React Query cache (keep existing behavior)
+          queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
+          
+          // Also update the Zustand store directly with the new data
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            // For inserts and updates, update the specific record
+            updateSacrifice(payload.new as sacrificeSchema)
+          } else if (payload.eventType === 'DELETE') {
+            // For deletes, we need to refetch the whole list
+            // This is simpler than trying to remove just one item
+            fetchAndUpdateStore()
+          }
+        }
       )
       .subscribe((status) => {
-        console.log('🔌 Subscription status:', status)
+        console.log('Subscription status:', status)
       })
+  }
+  
+  // Helper function to fetch data and update the store
+  const fetchAndUpdateStore = async () => {
+    try {
+      setIsLoadingSacrifices(true)
+      const response = await fetch('/api/get-sacrifice-animals')
       
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || response.statusText)
+      }
+      
+      const data = await response.json() as sacrificeSchema[]
+      setSacrifices(data)
+    } catch (error) {
+      console.error('Error fetching sacrifices:', error)
+    } finally {
+      setIsLoadingSacrifices(false)
+    }
+  }
+
+  // Setup subscription on mount and pathname change
+  useEffect(() => {
+    setupSubscription()
+    // Force immediate refetch when pathname changes
+    queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
+
+    // Cleanup on unmount
     return () => {
       if (channelRef.current) {
-        console.log('🔌 Unsubscribing from channel on cleanup')
+        console.log('Unsubscribing from channel')
         channelRef.current.unsubscribe()
         channelRef.current = null
       }
     }
-  }, [handleRealtimeChange])
-
-  // Setup subscription on mount and pathname change
-  useEffect(() => {
-    console.log('🔄 Setting up subscription due to path change or initial mount...')
-    const cleanup = setupSubscription()
-    
-    // Force immediate refetch when pathname changes
-    console.log('🔄 Invalidating sacrifices query due to path change...')
-    queryClient.invalidateQueries({ queryKey: ["sacrifices"] })
-    
-    // Forcefully fetch data when component mounts/path changes
-    fetchAndUpdateStore()
-
-    // Cleanup on unmount
-    return cleanup
-  }, [pathname, queryClient, setupSubscription, fetchAndUpdateStore])
+  }, [pathname, queryClient]) // Add pathname as dependency
 
   // Monitor subscription status
   useEffect(() => {
     const checkSubscription = setInterval(() => {
       if (!channelRef.current) {
-        console.log('🔌 Reestablishing lost subscription')
+        console.log('Reestablishing lost subscription')
         setupSubscription()
       }
     }, 5000) // Check every 5 seconds
 
-    return () => {
-      clearInterval(checkSubscription)
-    }
-  }, [setupSubscription])
+    return () => clearInterval(checkSubscription)
+  }, [])
 
   // Keep the original React Query hook, but make it also update our Zustand store
   return useQuery({
     queryKey: ["sacrifices"],
     queryFn: async () => {
-      console.log('📊 React Query is fetching sacrifices data')
+      console.log('Fetching sacrifices data')
       setIsLoadingSacrifices(true)
       
       // Using the new server-side API endpoint instead of direct Supabase access
@@ -144,7 +125,6 @@ export const useSacrifices = () => {
       const data = await response.json() as sacrificeSchema[];
       
       // Update Zustand store with the fetched data
-      console.log(`📊 React Query fetched ${data.length} sacrifices, updating store...`)
       setSacrifices(data);
       setIsLoadingSacrifices(false);
       

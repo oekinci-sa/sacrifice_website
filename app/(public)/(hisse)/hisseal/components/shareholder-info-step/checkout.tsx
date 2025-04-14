@@ -80,11 +80,11 @@ export default function Checkout({
   // React Query ile güncel sacrifice verisini al
   const { data: sacrifices } = useSacrifices()
   const currentSacrifice = sacrifices?.find(s => s.sacrifice_id === sacrifice?.sacrifice_id)
-  
+
   // Mutation hook'ları
   const updateShareCount = useUpdateShareCount()
   const cancelReservation = useCancelReservation()
-  
+
   // Reservation store'dan transaction_id'yi alalım
   const transaction_id = useReservationStore(state => state.transaction_id)
 
@@ -169,10 +169,10 @@ export default function Checkout({
   // Yeni "İşlemi yapan kişi" durumunu yönetmek için fonksiyon
   const handleIsPurchaserChange = (index: number, checked: boolean) => {
     setLastInteractionTime(Date.now()); // Reset timeout
-    
+
     const newFormData = [...formData];
     const newErrors = [...errors];
-    
+
     if (checked) {
       // Eğer yeni bir seçim yapıldıysa, önce tüm diğer seçimleri kaldır
       newFormData.forEach((data, i) => {
@@ -180,7 +180,7 @@ export default function Checkout({
           ...data,
           is_purchaser: i === index // Sadece seçilen indeksi true yap
         };
-        
+
         // Seçim yapıldığında tüm hata mesajlarını temizle (Checkbox ile ilgili)
         if (newErrors[i] && newErrors[i].is_purchaser) {
           delete newErrors[i].is_purchaser;
@@ -193,7 +193,7 @@ export default function Checkout({
         is_purchaser: false
       };
     }
-    
+
     setFormData(newFormData);
     setErrors(newErrors); // Hata durumunu da güncelle
   };
@@ -207,7 +207,7 @@ export default function Checkout({
 
       // Şu anki hisse sayısı + 1 ile API'yi çağıralım
       const newShareCount = formData.length + 1;
-      
+
       // API'yi çağırarak rezervasyon işlemini güncelle
       await updateShareCount.mutateAsync({
         transaction_id,
@@ -248,7 +248,7 @@ export default function Checkout({
     try {
       // Yeni hisse sayısı
       const newShareCount = formData.length - 1;
-      
+
       // API'yi çağırarak rezervasyon işlemini güncelle
       await updateShareCount.mutateAsync({
         transaction_id,
@@ -264,7 +264,7 @@ export default function Checkout({
       const newErrors = [...errors];
       newErrors.splice(index, 1);
       setErrors(newErrors);
-      
+
     } catch (error) {
       console.error('Error removing shareholder:', error);
       toast({
@@ -277,15 +277,15 @@ export default function Checkout({
 
   const confirmBack = async () => {
     if (isCanceling) return;
-    
+
     try {
       setIsCanceling(true);
-      
+
       await cancelReservation.mutateAsync({ transaction_id });
-      
+
       setUserAction("confirm");
       setShowBackDialog(false);
-      
+
     } catch (error) {
       console.error('Error canceling reservation in confirmBack:', error);
       setShowBackDialog(false);
@@ -309,12 +309,12 @@ export default function Checkout({
   const handleLastShareAction = async (action: 'return' | 'stay') => {
     if (action === 'return' && sacrifice) {
       if (isCanceling) return;
-      
+
       try {
         setIsCanceling(true);
-        
+
         await cancelReservation.mutateAsync({ transaction_id });
-        
+
         resetStore();
         setCurrentStep("selection");
       } catch (error) {
@@ -358,7 +358,7 @@ export default function Checkout({
 
     // Birden fazla hissedar varsa, en az biri "işlemi yapan kişi" olarak işaretlenmiş olmalı
     const hasPurchaser = formData.length > 1 ? formData.some(data => data.is_purchaser === true) : true;
-    
+
     if (formData.length > 1 && !hasPurchaser) {
       hasPurchaserError = true;
     }
@@ -375,7 +375,7 @@ export default function Checkout({
       });
       return;
     }
-    
+
     // Eğer sadece purchaser hatası varsa
     if (hasPurchaserError) {
       toast({
@@ -391,11 +391,9 @@ export default function Checkout({
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-center">
-        <div className="w-full max-w-2xl">
-          <SacrificeInfo sacrifice={sacrifice} />
-        </div>
+    <div className="space-y-16">
+      <div className="w-full">
+        <SacrificeInfo sacrifice={sacrifice} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto mt-8">

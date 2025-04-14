@@ -75,37 +75,34 @@ export const setupPageUnloadHandlers = ({
 export const useHandlePageUnload = ({
   currentStep,
   selectedSacrifice,
-  formData
+  formData,
+  isSuccess,
 }: {
   currentStep: string;
   selectedSacrifice: sacrificeSchema | null;
   formData: any[];
+  isSuccess: boolean;
 }) => {
-  // Reservation store'dan transaction_id'yi alalım
-  const transaction_id = useReservationStore(state => state.transaction_id);
+  const { transaction_id } = useReservationStore();
 
   useEffect(() => {
-    // Sadece gerektiğinde event dinleyicileri ekle
-    if (selectedSacrifice && formData.length && transaction_id) {
-      // Handler'ları ayarla - transaction_id'yi de geçir
-      const { handleBeforeUnload, handleUnload } = setupPageUnloadHandlers({
-        currentStep,
-        selectedSacrifice,
-        formData,
-        transaction_id
-      });
+    if (isSuccess) return;
+    
+    const { handleBeforeUnload, handleUnload } = setupPageUnloadHandlers({
+      currentStep,
+      selectedSacrifice,
+      formData,
+      transaction_id,
+    });
 
-      // Event dinleyicilerini ekle
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      window.addEventListener("unload", handleUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
 
-      // Temizleme
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-        window.removeEventListener("unload", handleUnload);
-      };
-    }
-  }, [currentStep, selectedSacrifice, formData, transaction_id]);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [currentStep, selectedSacrifice, formData, transaction_id, isSuccess]);
 };
 
 type NavigationHandlerParams = {
@@ -308,72 +305,80 @@ export const useHandleInteractionTimeout = (
   TIMEOUT_DURATION: number,
   WARNING_THRESHOLD: number
 ) => {
-  const { toast } = useToast();
+  const cancelReservation = useCancelReservation();
   const transaction_id = useReservationStore(state => state.transaction_id);
-  const timeoutReservation = useTimeoutReservation();
 
   useEffect(() => {
+    // Success state'de timeout kontrolünü devre dışı bırak
     if (isSuccess) return;
-
-    const checkTimeout = async () => {
-      if (currentStep !== "details" && currentStep !== "confirmation") return;
-
-      const timePassed = Math.floor((Date.now() - lastInteractionTime) / 1000);
-      const remaining = TIMEOUT_DURATION - timePassed;
-
-      if (remaining <= 0) {
-        try {
-          if (selectedSacrifice) {
-            await timeoutReservation.mutateAsync({
+    
+    // Yalnızca details ve confirmation adımlarında timeout kontrolü yap
+    if (currentStep !== "details" && currentStep !== "confirmation") return;
+    
+    // Gerekli veriler yoksa timeout kontrolünü devre dışı bırak
+    if (!selectedSacrifice || !formData.length) return;
+    
+    // Timeout kontrolü için interval
+    const interval = setInterval(async () => {
+      const now = Date.now();
+      const elapsed = (now - lastInteractionTime) / 1000; // saniye
+      const timeLeft = Math.max(0, TIMEOUT_DURATION - elapsed);
+      
+      // Kalan süreyi güncelle
+      setTimeLeft(Math.floor(timeLeft));
+      
+      // Eğer warn threshold'u aşıldıysa uyarıyı göster
+      if (timeLeft <= WARNING_THRESHOLD && !showWarning) {
+        setShowWarning(true);
+      }
+      
+      // Eğer süre doldu ve hala details veya confirmation adımındaysak
+      if (timeLeft <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
+        // Eğer transaction_id varsa rezervasyonu iptal et
+        if (transaction_id) {
+          try {
+            await cancelReservation.mutateAsync({
               transaction_id
             });
+            
+            // Store'u sıfırla ve selection adımına git
+            resetStore();
+            goToStep("selection");
+            
+            // Uyarıyı kapat
+            setShowWarning(false);
+          } catch (err) {
+            console.error('Error canceling reservation during timeout:', err);
+            // Hata olsa bile reset yapmaya çalış
+            resetStore();
+            goToStep("selection");
           }
-        } catch (err) {
-          console.error('Error handling timeout:', err);
-        } finally {
-          setShowWarning(false);
-          goToStep("selection");
+        } else {
+          // transaction_id yoksa direkt olarak reset yap
           resetStore();
-          setTimeLeft(TIMEOUT_DURATION);
-          
-          toast({
-            variant: "destructive",
-            title: "Zaman Aşımı",
-            description: "Oturumunuz zaman aşımına uğradı. Lütfen işleminize yeniden başlayın.",
-          });
-        }
-      } else {
-        setTimeLeft(remaining);
-
-        if (remaining <= WARNING_THRESHOLD && !showWarning) {
-          setShowWarning(true);
-          toast({
-            title: "Uyarı",
-            description: "Oturumunuz 1 dakika içinde sonlanacak.",
-          });
+          goToStep("selection");
         }
       }
-    };
+    }, 1000);
 
-    const timer = setInterval(checkTimeout, 1000);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(interval);
+    };
   }, [
-    lastInteractionTime,
-    showWarning,
+    isSuccess, // Success state değişikliklerini dinle
     currentStep,
-    selectedSacrifice,
-    formData.length,
-    updateShareCount,
-    goToStep,
-    resetStore,
-    isSuccess,
-    toast,
+    lastInteractionTime,
     TIMEOUT_DURATION,
     WARNING_THRESHOLD,
+    showWarning,
+    selectedSacrifice,
+    formData,
+    transaction_id,
+    resetStore,
+    goToStep,
     setShowWarning,
     setTimeLeft,
-    transaction_id,
-    timeoutReservation
+    cancelReservation
   ]);
 };
 
@@ -503,21 +508,12 @@ export const handleShareCountSelect = async ({
       })
     );
     
-    // Go to details step
-    goToStep("details");
+    // Close the share selection dialog
     setIsDialogOpen(false);
     setLastInteractionTime(Date.now());
-
-    // Rezervasyon başarıyla oluşturulduğunda "Acele etmenize gerek yok" toast mesajını göster
-    // Bir küçük gecikme ile gösteriyoruz ki, kullanıcı sayfa değişimini fark etsin
-    setTimeout(() => {
-      toast({
-        title: "Acele etmenize gerek yok",
-        description:
-          "Bilgilerinizi doldurduğunuz süre boyunca, seçtiğiniz hisseler sistem tarafından ayrılır ve başka kullanıcılar tarafından işleme açılamaz.",
-        duration: 10000,
-      });
-    }, 500);
+    
+    // Note: We no longer automatically navigate to the details step or show the toast
+    // This is now handled in the page component by showing the ReservationInfoDialog first
   } catch (err) {
     console.error('Error selecting share count:', err);
     
@@ -578,6 +574,7 @@ export const useHandleNavigationHistory = ({
   resetStore,
   goToStep,
   isSuccess,
+  setHasNavigatedAway,
   toast
 }: {
   currentStep: string;
@@ -587,6 +584,7 @@ export const useHandleNavigationHistory = ({
   resetStore: () => void;
   goToStep: (step: string) => void;
   isSuccess: boolean;
+  setHasNavigatedAway: (value: boolean) => void;
   toast: any;
 }) => {
   const transaction_id = useReservationStore(state => state.transaction_id);
@@ -594,8 +592,13 @@ export const useHandleNavigationHistory = ({
 
   useEffect(() => {
     const handleRouteChange = async (): Promise<boolean> => {
+      // Success state'de navigasyon kontrollerini devre dışı bırak
       if (isSuccess) return true;
+      
+      // Sadece details ve confirmation adımlarında kontrol yap
       if (currentStep !== "details" && currentStep !== "confirmation") return true;
+      
+      // Gerekli veriler yoksa kontrolü devre dışı bırak
       if (!selectedSacrifice || !formData.length) return true;
       if (!transaction_id) return true;
 
@@ -606,12 +609,17 @@ export const useHandleNavigationHistory = ({
         });
 
         resetStore();
-        goToStep("selection");
-        return true;
       } catch (err) {
-        console.error('Error handling route change:', err);
-        return false;
+        console.error('Error canceling reservation during navigation:', err);
       }
+
+      // If we're in success state, mark that we've navigated away
+      if (isSuccess) {
+        console.log('Navigation detected in success state, setting navigated away flag');
+        setHasNavigatedAway(true);
+      }
+      
+      return true;
     };
 
     const handlePopState = async (event: PopStateEvent) => {
@@ -657,6 +665,7 @@ export const useHandleNavigationHistory = ({
     isSuccess,
     toast,
     transaction_id,
-    cancelReservation
+    cancelReservation,
+    setHasNavigatedAway
   ]);
 };

@@ -26,7 +26,7 @@ interface ShareholderInput {
   purchased_by: string;
   last_edited_by: string;
   is_purchaser?: boolean; // Made optional as it's only used locally
-  sacrifice_consent: boolean; // Added this based on schema
+  sacrifice_consent?: boolean; // Made optional since it's not required when creating shareholders
   total_amount: number; // Total amount = share_price + delivery_fee
   remaining_payment: number; // Remaining payment = total_amount - paid_amount
 }
@@ -305,3 +305,27 @@ export const useDeleteShareholder = () => {
     }
   })
 }
+
+// Transaction ID ile hissedarları getiren hook
+export const useGetShareholdersByTransactionId = (transaction_id: string) => {
+  return useQuery({
+    queryKey: ['shareholders', transaction_id],
+    queryFn: async () => {
+      if (!transaction_id) {
+        throw new Error('transaction_id is required');
+      }
+      
+      const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch shareholder data');
+      }
+      
+      return response.json();
+    },
+    enabled: !!transaction_id, // Sorguyu yalnızca transaction_id varsa aktifleştir
+    staleTime: 0, // Her zaman güncel veri almak için
+    retry: 1, // Hata durumunda bir kez daha dene
+  });
+};

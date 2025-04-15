@@ -10,8 +10,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useHisseStore } from "@/stores/useHisseStore";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useSacrificeStore } from "@/stores/useSacrificeStore";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
@@ -29,14 +33,14 @@ const FilterCountBadge = ({ count }: { count: number }) =>
   ) : null;
 
 // 🔹 Seçili filtreleri gösteren bileşen
-const SelectedFiltersDisplay = ({ 
-  selectedValues, 
-  options, 
-  type 
-}: { 
-  selectedValues: Set<string>,
-  options: { label: string; value: string }[],
-  type: 'price' | 'share'
+const SelectedFiltersDisplay = ({
+  selectedValues,
+  options,
+  type,
+}: {
+  selectedValues: Set<string>;
+  options: { label: string; value: string }[];
+  type: "price" | "share";
 }) => {
   if (selectedValues.size === 0) return null;
 
@@ -46,13 +50,13 @@ const SelectedFiltersDisplay = ({
     return parseFloat(a) - parseFloat(b);
   });
 
-  if (type === 'price') {
+  if (type === "price") {
     if (selectedValues.size <= 3) {
       return (
         <div className="hidden sm:flex gap-1 ml-2">
           <AnimatePresence>
             {sortedValues.map((value, index) => {
-              const option = options.find(opt => opt.value === value);
+              const option = options.find((opt) => opt.value === value);
               return option ? (
                 <motion.span
                   key={value}
@@ -114,7 +118,7 @@ function DataTableFacetedFilter<TData, TValue>({
   column?: Column<TData, TValue>;
   title?: string;
   options: { label: string; value: string }[];
-  type: 'price' | 'share';
+  type: "price" | "share";
   showHideFullOption?: boolean;
   setShowHideFullOption?: (show: boolean) => void;
 }) {
@@ -122,14 +126,15 @@ function DataTableFacetedFilter<TData, TValue>({
   const facets = column?.getFacetedUniqueValues();
 
   const handleHideFullOnes = () => {
-    const isCurrentlyHidingFull = selectedValues.has("0") && selectedValues.size === 1;
-    
+    const isCurrentlyHidingFull =
+      selectedValues.has("0") && selectedValues.size === 1;
+
     if (isCurrentlyHidingFull) {
       selectedValues.clear();
       column?.setFilterValue(undefined);
     } else {
       selectedValues.clear();
-      options.forEach(option => {
+      options.forEach((option) => {
         if (option.value !== "0") {
           selectedValues.add(option.value);
         }
@@ -149,8 +154,8 @@ function DataTableFacetedFilter<TData, TValue>({
         >
           <PlusCircle className="mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
           <span className="mr-auto">{title}</span>
-          <SelectedFiltersDisplay 
-            selectedValues={selectedValues} 
+          <SelectedFiltersDisplay
+            selectedValues={selectedValues}
             options={options}
             type={type}
           />
@@ -161,7 +166,7 @@ function DataTableFacetedFilter<TData, TValue>({
           <CommandInput placeholder={title} />
           <CommandList className="max-h-full">
             <CommandEmpty>Sonuç bulunamadı.</CommandEmpty>
-            {type === 'share' && (
+            {type === "share" && (
               <AnimatePresence>
                 {showHideFullOption && (
                   <motion.div
@@ -204,8 +209,8 @@ function DataTableFacetedFilter<TData, TValue>({
                     <div
                       className={cn(
                         "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border rounded-md",
-                        isSelected 
-                          ? "bg-sac-primary border-sac-primary text-primary-foreground" 
+                        isSelected
+                          ? "bg-sac-primary border-sac-primary text-primary-foreground"
                           : "border-primary opacity-50 [&_svg]:invisible"
                       )}
                     >
@@ -235,70 +240,74 @@ interface ShareFiltersProps {
 }
 
 // 🔹 Ana bileşen
-export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: ShareFiltersProps) {
-  const { sacrifices, isLoadingSacrifices, isInitialized } = useHisseStore();
+export function ShareFilters({
+  table,
+  columnFilters,
+  onColumnFiltersChange,
+}: ShareFiltersProps) {
+  const { sacrifices } = useSacrificeStore();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  
+
   // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
-    // Don't process if data is not yet available or still loading
-    if (!isInitialized || isLoadingSacrifices || sacrifices.length === 0) {
-      return [];
-    }
-    
-    // First, let's log a sample sacrifice to see its structure (debug only)
-    if (process.env.NODE_ENV === 'development' && sacrifices.length > 0) {
+    // First, let's log a sample sacrifice to see its structure
+    if (sacrifices.length > 0) {
       console.log("Sample sacrifice:", sacrifices[0]);
     }
-    
+
     // Create a map to group sacrifices by price
     const priceGroups = sacrifices.reduce((groups, sacrifice) => {
       const price = sacrifice.share_price;
       if (!groups[price]) {
         groups[price] = [];
       }
-      
+
       // Use the correct property for weight
-      const weight = sacrifice.share_weight; 
-      
+      // Replace 'weight_kg' with the actual property name
+      const weight = sacrifice.share_weight;
+
       // Only add unique weights
       if (!groups[price].includes(weight)) {
         groups[price].push(weight);
       }
       return groups;
     }, {} as Record<number, number[]>);
-    
+
     // Convert to options format with weight and price
     const priceOptions = Object.entries(priceGroups)
       .map(([price, weights]) => {
         const numPrice = Number(price);
-        const formattedPrice = new Intl.NumberFormat("tr-TR", { 
-          style: "decimal", 
-          maximumFractionDigits: 0 
+        const formattedPrice = new Intl.NumberFormat("tr-TR", {
+          style: "decimal",
+          maximumFractionDigits: 0,
         }).format(numPrice);
-        
+
         // If there are multiple weights for this price, use the min weight
         // Make sure we have valid weights
-        const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
-        const weight = validWeights.length > 0 
-          ? Math.min(...validWeights) 
-          : 0; // Default to 0 if no valid weights
-        
+        const validWeights = weights.filter(
+          (w) => typeof w === "number" && !isNaN(w)
+        );
+        const weight = validWeights.length > 0 ? Math.min(...validWeights) : 0; // Default to 0 if no valid weights
+
         return {
           label: `${weight} kg. - ${formattedPrice} TL`,
           value: price.toString(), // Ensure this is a string for consistency
         };
       })
       .sort((a, b) => Number(a.value) - Number(b.value));
-      
+
     return priceOptions;
-  }, [sacrifices, isInitialized, isLoadingSacrifices]);
+  }, [sacrifices]);
 
   const [showHideFullOption, setShowHideFullOption] = useState(true);
 
   const emptyShares = useMemo(
-    () => Array.from({ length: 8 }, (_, i) => ({ label: i.toString(), value: i.toString() })),
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        label: i.toString(),
+        value: i.toString(),
+      })),
     []
   );
 
@@ -307,34 +316,37 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
   // Improved URL filtering handling for price filters
   useEffect(() => {
     const handleURLFilters = () => {
-      const priceFilter = searchParams.get('price');
-      
+      const priceFilter = searchParams.get("price");
+
       if (priceFilter) {
         try {
           // Handle both comma-separated values and single values
-          const prices = priceFilter.includes(',') 
-            ? priceFilter.split(',').map(p => p.trim())
+          const prices = priceFilter.includes(",")
+            ? priceFilter.split(",").map((p) => p.trim())
             : [priceFilter.trim()];
-            
-          const priceColumn = table.getColumn('share_price');
+
+          const priceColumn = table.getColumn("share_price");
           if (priceColumn) {
             // Apply the filter directly to the table's state
-            table.setColumnFilters(prev => {
+            table.setColumnFilters((prev) => {
               // Remove any existing share_price filter
-              const filtered = prev.filter(f => f.id !== 'share_price');
+              const filtered = prev.filter((f) => f.id !== "share_price");
               // Add the new filter
-              return [...filtered, {
-                id: 'share_price',
-                value: prices
-              }];
+              return [
+                ...filtered,
+                {
+                  id: "share_price",
+                  value: prices,
+                },
+              ];
             });
           }
         } catch (error) {
-          console.error('Error parsing URL price filter:', error);
+          console.error("Error parsing URL price filter:", error);
         }
       }
     };
-    
+
     handleURLFilters();
   }, [table, searchParams, pathname]);
 
@@ -342,28 +354,30 @@ export function ShareFilters({ table, columnFilters, onColumnFiltersChange }: Sh
     <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
       <div className="flex flex-col sm:flex-row items-center justify-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
         {[
-          { 
-            column: "share_price", 
-            title: "Hisse Bedeline Göre Filtrele", 
+          {
+            column: "share_price",
+            title: "Hisse Bedeline Göre Filtrele",
             options: sharePrices,
-            type: 'price' as const
+            type: "price" as const,
           },
-          { 
-            column: "empty_share", 
-            title: "Boş Hisse Sayısına Göre Filtrele", 
+          {
+            column: "empty_share",
+            title: "Boş Hisse Sayısına Göre Filtrele",
             options: emptyShares,
-            type: 'share' as const,
+            type: "share" as const,
             showHideFullOption,
-            setShowHideFullOption
+            setShowHideFullOption,
           },
         ].map(({ column, title, options, type, ...rest }) => {
           const col = table.getColumn(column);
           return (
             <div key={column} className="relative w-full sm:w-auto">
-              <FilterCountBadge count={(col?.getFilterValue() as string[])?.length || 0} />
-              <DataTableFacetedFilter 
-                column={col} 
-                title={title} 
+              <FilterCountBadge
+                count={(col?.getFilterValue() as string[])?.length || 0}
+              />
+              <DataTableFacetedFilter
+                column={col}
+                title={title}
                 options={options}
                 type={type}
                 {...rest}

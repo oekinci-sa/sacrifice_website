@@ -143,7 +143,7 @@ export const FormView = ({
             meta={{
               onSacrificeSelect,
             }}
-            pageSizeOptions={[10, 20, 50, 100, 150]}
+            pageSizeOptions={[20, 50, 100, 150]}
             filters={({ table, columnFilters, onColumnFiltersChange }) => (
               <ShareFilters
                 table={table}

@@ -314,7 +314,11 @@ export const useHandleInteractionTimeout = (
     setShowThreeMinuteWarning?: (show: boolean) => void;
     showOneMinuteWarning?: boolean;
     setShowOneMinuteWarning?: (show: boolean) => void;
-  }
+  },
+  // Veri yenileme fonksiyonu (isteğe bağlı)
+  refetchSacrifices?: () => Promise<any>,
+  // Özel timeout handler fonksiyonu (isteğe bağlı)
+  customTimeoutHandler?: () => void
 ) => {
   const timeoutReservation = useTimeoutReservation();
   const transaction_id = useReservationStore(state => state.transaction_id);
@@ -345,6 +349,9 @@ export const useHandleInteractionTimeout = (
       
       // Eğer süre doldu ve hala details veya confirmation adımındaysak
       if (timeLeft <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
+        // Uyarıyı kapat - this must happen before any other timeout handling
+        setShowWarning(false);
+
         // Açık dialogları kapat
         if (openDialogs) {
           // Hisse seçme dialog
@@ -368,29 +375,58 @@ export const useHandleInteractionTimeout = (
           }
         }
         
-        // Eğer transaction_id varsa rezervasyonu zaman aşımına uğrat
-        if (transaction_id) {
-          try {
-            await timeoutReservation.mutateAsync({
-              transaction_id
-            });
-            
-            // Store'u sıfırla ve selection adımına git
-            resetStore();
-            goToStep("selection");
-            
-            // Uyarıyı kapat
-            setShowWarning(false);
-          } catch (err) {
-            console.error('Error timing out reservation:', err);
-            // Hata olsa bile reset yapmaya çalış
-            resetStore();
-            goToStep("selection");
-          }
+        // Özel timeout handler varsa onu kullan, yoksa standart işlemi yap
+        if (customTimeoutHandler) {
+          console.log("Using custom timeout handler");
+          customTimeoutHandler();
         } else {
-          // transaction_id yoksa direkt olarak reset yap
-          resetStore();
-          goToStep("selection");
+          console.log("Using default timeout handler");
+          // Eğer transaction_id varsa rezervasyonu zaman aşımına uğrat
+          if (transaction_id) {
+            try {
+              await timeoutReservation.mutateAsync({
+                transaction_id
+              });
+              
+              // Store'u sıfırla ve selection adımına git
+              resetStore();
+              goToStep("selection");
+              
+              // Veri yenileme fonksiyonu varsa çağır - Tablo görünümüne döndüğümüzde tüm verileri yenilemek için
+              if (refetchSacrifices) {
+                // setTimeout kullanarak resetStore işleminin tamamlanmasını bekleyelim
+                setTimeout(() => {
+                  console.log("Timeout sonrası veri yenileniyor...");
+                  refetchSacrifices();
+                }, 100);
+              }
+            } catch (err) {
+              console.error('Error timing out reservation:', err);
+              // Hata olsa bile reset yapmaya çalış
+              resetStore();
+              goToStep("selection");
+              
+              // Hata durumunda da veri yenileme fonksiyonunu çağır
+              if (refetchSacrifices) {
+                setTimeout(() => {
+                  console.log("Hata durumunda veri yenileniyor...");
+                  refetchSacrifices();
+                }, 100);
+              }
+            }
+          } else {
+            // transaction_id yoksa direkt olarak reset yap
+            resetStore();
+            goToStep("selection");
+            
+            // Bu durumda da veri yenileme fonksiyonunu çağır
+            if (refetchSacrifices) {
+              setTimeout(() => {
+                console.log("transaction_id yokken veri yenileniyor...");
+                refetchSacrifices();
+              }, 100);
+            }
+          }
         }
       }
     }, 1000);
@@ -413,7 +449,9 @@ export const useHandleInteractionTimeout = (
     setShowWarning,
     setTimeLeft,
     timeoutReservation,
-    openDialogs // Yeni dependency
+    openDialogs, // Yeni dependency
+    refetchSacrifices, // Yeni dependency
+    customTimeoutHandler // Yeni custom handler dependency
   ]);
 };
 

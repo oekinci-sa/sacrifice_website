@@ -3,8 +3,12 @@ import Link from "next/link";
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useSacrificeStore } from "@/stores/useSacrificeStore";
 
 const Banner = () => {
+  // Get total empty shares from Zustand store
+  const { totalEmptyShares } = useSacrificeStore();
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -46,10 +50,10 @@ const Banner = () => {
         </motion.div>
 
         {/* Left */}
-        <motion.div variants={item} className="flex flex-col gap-6 md:gap-8 font-heading basis-full md:basis-3/5 text-left">
+        <motion.div variants={item} className="flex flex-col gap-4 md:gap-6 md:gap-8 font-heading basis-full md:basis-3/5 text-left">
           {/* Ana başlık */}
           <div>
-            <p className="text-3xl md:text-6xl font-heading font-bold mb-2">
+            <p className="text-3xl md:text-6xl font-heading font-bold md:mb-2">
               Kurban ibadetini
             </p>
             <p className="text-3xl md:text-6xl font-heading font-bold text-sac-primary">
@@ -58,7 +62,7 @@ const Banner = () => {
           </div>
 
           {/* Açıklama */}
-          <p className="text-lg md:text-xl text-black/70 font-normal leading-loose">
+          <p className="md:text-xl text-black/70 font-normal md:leading-loose">
           İMH Ankara Kurban organizasyonu olarak, Allah'a yakınlaşmak ve O'nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
           </p>
 

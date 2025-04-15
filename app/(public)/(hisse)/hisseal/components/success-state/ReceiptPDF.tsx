@@ -140,9 +140,7 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>
-        Kurban Hisse Bilgilendirme ve Rezervasyon Özeti
-      </Text>
+      <Text style={styles.title}>Kurban Hisse Seçimi İşlem Özeti</Text>
 
       {/* Intro Message */}
       <Text style={styles.intro}>
@@ -238,7 +236,8 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
         <Text style={styles.warningText}>⚠️ Önemli Not:</Text>
         <Text>
           Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için
-          gerekmektedir. Lütfen kodunuzu kimse ile paylaşmayınız.
+          gerekmektedir.{"\n"}
+          Lütfen kodunuzu kimse ile paylaşmayınız.
         </Text>
       </View>
 

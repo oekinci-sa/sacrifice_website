@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReservationStore } from "@/stores/useReservationStore";
+import { useSacrificeStore } from "@/stores/useSacrificeStore";
 
 interface ShareSelectDialogProps {
   isOpen: boolean;
@@ -31,26 +32,43 @@ export function ShareSelectDialog({
   isLoading = false,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
-  const [currentEmptyShare, setCurrentEmptyShare] = useState(sacrifice.empty_share);
+  const { sacrifices, refetchSacrifices } = useSacrificeStore();
   const [selectedShareCount, setSelectedShareCount] = useState(1);
   const [isLocalLoading, setIsLocalLoading] = useState(false);
   const generateNewTransactionId = useReservationStore(state => state.generateNewTransactionId);
   
+  // Get the most up-to-date sacrifice information from the store
+  const currentSacrifice = sacrifices.find(s => s.sacrifice_id === sacrifice.sacrifice_id) || sacrifice;
+  const currentEmptyShare = currentSacrifice.empty_share;
+  
   const isButtonLoading = isLoading || isLocalLoading;
 
-  // Reset state when dialog opens
+  // Reset state and fetch fresh data when dialog opens
   useEffect(() => {
     if (isOpen) {
-      setCurrentEmptyShare(sacrifice.empty_share);
+      console.log("Share select dialog opened - Fetching fresh data");
+      
+      // First fetch when dialog opens
+      refetchSacrifices();
+      
+      // Schedule a second fetch after a short delay to ensure we have the latest data
+      const timer = setTimeout(() => {
+        console.log("Secondary data refresh in ShareSelectDialog");
+        refetchSacrifices();
+      }, 300);
+      
+      // Reset the selected share count to 1 (or max available if less than 1)
       setSelectedShareCount(1);
       setIsLocalLoading(false);
       
-      // Dialog açıldığında yeni bir transaction ID oluştur
+      // Generate a new transaction ID when the dialog opens
       generateNewTransactionId();
       console.log('Generated new transaction ID when dialog opened:', 
         useReservationStore.getState().transaction_id);
+        
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, sacrifice.empty_share, generateNewTransactionId]);
+  }, [isOpen, generateNewTransactionId, refetchSacrifices]);
 
   useEffect(() => {
     // Reset selected count when dialog is closed
@@ -58,8 +76,10 @@ export function ShareSelectDialog({
       setSelectedShareCount(1);
     }
 
-    // Reset current empty share when sacrifice changes
-    setCurrentEmptyShare(sacrifice.empty_share);
+    // Adjust selected count if it's more than available shares
+    if (selectedShareCount > currentEmptyShare) {
+      setSelectedShareCount(Math.max(1, currentEmptyShare));
+    }
 
     if (isOpen) {
       const channel = supabase
@@ -74,7 +94,8 @@ export function ShareSelectDialog({
           },
           (payload: { new: { empty_share: number } }) => {
             const newEmptyShare = payload.new.empty_share;
-            setCurrentEmptyShare(newEmptyShare);
+            // Real-time updates will be handled by the Zustand store,
+            // but we'll adjust the selected count if needed
             if (newEmptyShare === 0) {
               setSelectedShareCount(1);
             } else if (selectedShareCount > newEmptyShare) {
@@ -88,10 +109,10 @@ export function ShareSelectDialog({
         channel.unsubscribe();
       };
     }
-  }, [sacrifice.sacrifice_id, sacrifice.empty_share, isOpen, selectedShareCount]);
+  }, [sacrifice.sacrifice_id, currentEmptyShare, isOpen, selectedShareCount]);
 
   const shareOptions = Array.from(
-    { length: currentEmptyShare },
+    { length: Math.max(0, currentEmptyShare) },
     (_, i) => i + 1
   );
 
@@ -99,7 +120,7 @@ export function ShareSelectDialog({
     setIsLocalLoading(true);
     
     try {
-      // Boş hisse sayısını kontrol et - server-side API kullanarak
+      // Fetch the latest sacrifice data directly from the server
       const response = await fetch(`/api/get-latest-sacrifice-share?id=${sacrifice.sacrifice_id}`);
       
       if (!response.ok) {
@@ -123,6 +144,8 @@ export function ShareSelectDialog({
             "Maalesef biraz önce bu kurbanlık ile ilgili yeni bir işlem yapıldı. Lütfen yeniden hisse adedi seçiniz.",
         });
         setSelectedShareCount(1);
+        // Update the Zustand store with the latest data
+        refetchSacrifices();
         setIsLocalLoading(false);
         return;
       }
@@ -137,6 +160,15 @@ export function ShareSelectDialog({
       });
       setIsLocalLoading(false);
     }
+  };
+
+  // Add a retry mechanism for button clicks
+  const handleButtonClick = (count: number) => {
+    console.log(`Button ${count} clicked`);
+    // Force a state update to ensure the button click is registered
+    setTimeout(() => {
+      setSelectedShareCount(count);
+    }, 0);
   };
 
   return (
@@ -163,7 +195,7 @@ export function ShareSelectDialog({
               <p className="text-center text-muted-foreground text-xs sm:text-sm">
                 Seçmiş olduğunuz{" "}
                 <span className="text-sac-primary font-medium">
-                  {sacrifice.share_price.toLocaleString("tr-TR")} ₺
+                  {currentSacrifice.share_price.toLocaleString("tr-TR")} ₺
                 </span>
                 &apos;lik kurbanlıktan kaç adet hisse almak istersiniz?
               </p>
@@ -173,7 +205,7 @@ export function ShareSelectDialog({
                     key={count}
                     variant={selectedShareCount === count ? "default" : "outline"}
                     className="h-8 w-8 sm:h-12 sm:w-12 text-sm sm:text-lg"
-                    onClick={() => setSelectedShareCount(count)}
+                    onClick={() => handleButtonClick(count)}
                   >
                     {count}
                   </Button>

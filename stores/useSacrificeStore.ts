@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { sacrificeSchema, Step } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface FormData {
   name: string;
@@ -26,6 +27,9 @@ interface HisseState {
 
   sacrifices: sacrificeSchema[];
   isLoadingSacrifices: boolean;
+  
+  // Veri yenileme durumu
+  isRefetching: boolean;
 
   // Toplam boş hisse sayısı
   totalEmptyShares: number;
@@ -45,6 +49,10 @@ interface HisseState {
   updateSacrifice: (updatedSacrifice: sacrificeSchema) => void;
   setIsLoadingSacrifices: (isLoading: boolean) => void;
   setIsInitialized: (isInitialized: boolean) => void;
+  
+  // Veri yenileme için fonksiyon
+  setIsRefetching: (isRefetching: boolean) => void;
+  refetchSacrifices: () => Promise<sacrificeSchema[] | undefined>;
 
   // Toplam boş hisse sayısını güncellemek için fonksiyon
   setEmptyShareCount: (count: number) => void;
@@ -65,6 +73,7 @@ const initialState = {
 
   sacrifices: [],
   isLoadingSacrifices: false,
+  isRefetching: false,
 
   // Başlangıç değeri
   totalEmptyShares: 0,
@@ -148,6 +157,48 @@ export const useSacrificeStore = create<HisseState>()(
       setIsLoadingSacrifices: (isLoadingSacrifices) =>
         set({ isLoadingSacrifices }),
       setIsInitialized: (isInitialized) => set({ isInitialized }),
+      
+      // Yeni eklediklerimiz
+      setIsRefetching: (isRefetching) => set({ isRefetching }),
+      
+      // Veri yenileme fonksiyonu - artık Zustand store'da
+      refetchSacrifices: async () => {
+        try {
+          set({ isRefetching: true });
+          set({ isLoadingSacrifices: true });
+          console.log("Zustand store: Fetching sacrifice data");
+
+          const response = await fetch("/api/get-sacrifice-animals");
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || response.statusText);
+          }
+
+          const data = (await response.json()) as sacrificeSchema[];
+
+          // Set the data in Zustand store
+          set({ 
+            sacrifices: data,
+            isInitialized: true
+          });
+
+          // Calculate and update total empty shares
+          const totalEmptyShares = data.reduce(
+            (sum, sacrifice) => sum + sacrifice.empty_share,
+            0
+          );
+          set({ totalEmptyShares });
+
+          return data;
+        } catch (error) {
+          console.error("Error fetching sacrifices:", error);
+          return undefined;
+        } finally {
+          set({ isLoadingSacrifices: false });
+          set({ isRefetching: false });
+        }
+      },
 
       // Toplam boş hisse sayısını güncelleme fonksiyonu
       setEmptyShareCount: (count) => set({ totalEmptyShares: count }),

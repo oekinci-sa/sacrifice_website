@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 import { mediaLinks } from "../../constants";
 import CustomLink from "@/components/common/custom-link";
-import { useHisseStore } from "@/stores/useHisseStore";
+import { useSacrificeStore } from "@/stores/useSacrificeStore";
 import { useEmptyShareCount } from "@/hooks/useEmptyShareCount";
 
 interface MediaLink {
@@ -17,17 +17,12 @@ interface MediaLink {
 const Footer = () => {
   // Use the hook to get empty shares count (sadece real-time güncellemeler için)
   const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
-  
+
   // Zustand store'dan toplam boş hisse sayısını al
-  const { totalEmptyShares, isInitialized } = useHisseStore();
-  
-  // Görüntülenecek boş hisse sayısı - initialize edilmiş Zustand store'u kullan, 
-  // yoksa API'den gelen veriyi kullan, ikisi de yoksa loading göster
-  const displayEmptyShares = isInitialized && totalEmptyShares !== undefined
-    ? totalEmptyShares 
-    : apiEmptyShares !== undefined 
-      ? apiEmptyShares 
-      : "...";
+  const { totalEmptyShares } = useSacrificeStore();
+
+  // Görüntülenecek boş hisse sayısı - Zustand store'u kullan, yoksa API'den gelen veriyi kullan
+  const displayEmptyShares = totalEmptyShares || apiEmptyShares || "...";
 
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
@@ -46,8 +41,8 @@ const Footer = () => {
           <div className="text-sm text-white/75">
             <p>
               İnsan ve Medeniyet Hareketi Ankara&apos;nın
-              <br className="hidden md:block" /> 
-               katkılarıyla düzenlenmektedir.
+              <br className="hidden md:block" />
+              katkılarıyla düzenlenmektedir.
             </p>
           </div>
 
@@ -101,7 +96,9 @@ const Footer = () => {
 
           {/* İletişim */}
           <div className="mt-8 md:mt-0">
-            <p className="font-heading text-lg md:text-xl font-semibold mb-4">İletişim</p>
+            <p className="font-heading text-lg md:text-xl font-semibold mb-4">
+              İletişim
+            </p>
             <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
               {/* Location */}
               <div className="flex gap-3">
@@ -109,7 +106,7 @@ const Footer = () => {
                 <p className="font-normal">
                   Hacı Bayram, Ulus, Adliye Sk. No:1 &nbsp;
                   <br className="hidden md:block" />
-                   Altındağ/Ankara (09.00 - 18.00)
+                  Altındağ/Ankara (09.00 - 18.00)
                 </p>
               </div>
               {/* Phone */}
@@ -123,9 +120,7 @@ const Footer = () => {
               {/* Mail */}
               <div className="flex gap-3">
                 <i className="bi bi-envelope text-sac-primary"></i>
-                <p className="font-normal">
-                  imhankara@gmail.com
-                </p>
+                <p className="font-normal">imhankara@gmail.com</p>
               </div>
             </div>
           </div>

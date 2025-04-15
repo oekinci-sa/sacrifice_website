@@ -20,7 +20,7 @@ const Ayah = () => {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true }}
-      className="container flex flex-col space-y-4 mt-8 text-md mb-8 md:text-xl text-center"
+      className="container flex flex-col space-y-2 md:space-y-4 mt-4 md:mb-8 text-lg md:text-xl text-center"
     >
       <p className="font-medium">
         Şüphesiz kurbanlarınızın,{" "}

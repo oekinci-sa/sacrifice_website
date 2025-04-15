@@ -36,7 +36,7 @@ export function CustomDataTable<TData, TValue>({
   columns,
   data,
   meta,
-  pageSizeOptions = [10, 20, 50, 100, 150],
+  pageSizeOptions = [20, 50, 100, 150],
   filters,
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])

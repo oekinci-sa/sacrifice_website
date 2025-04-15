@@ -1,7 +1,7 @@
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Toast } from "@/components/ui/use-toast";
+import { toast as ToastType } from "@/components/ui/use-toast";
 import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
@@ -13,13 +13,17 @@ import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import Checkout from "../shareholder-info-step/checkout";
 import { ShareFilters } from "../table-step/ShareFilters";
 
+type Step = "selection" | "details" | "confirmation" | "success";
+
 // Define a shareholder type for the form data
 interface ShareholderFormData {
-  shareholder_name: string;
-  phone_number: string;
+  name: string;
+  phone: string;
   delivery_location: string;
   delivery_fee: number;
   sacrifice_consent: boolean;
+  is_purchaser?: boolean;
+  paid_amount?: number;
 }
 
 interface FormViewProps {
@@ -32,16 +36,14 @@ interface FormViewProps {
   selectedSacrifice: sacrificeSchema | null;
   formData: ShareholderFormData[];
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
-  updateShareCount: (count: number) => void;
-  setFormData: (data: ShareholderFormData[]) => void;
-  goToStep: (step: string) => void;
+  goToStep: (step: Step) => void;
   resetStore: () => void;
   setLastInteractionTime: (time: number) => void;
-  setTimeLeft: (time: number) => void;
+  setTimeLeft: (value: number | ((prevValue: number) => number)) => void;
   handleApprove: () => Promise<void>;
-  toast: (props: Toast) => void;
+  toast: (props: Parameters<typeof ToastType>[0]) => void;
   isLoading?: boolean;
-  serverTimeRemaining?: number | null; // Server-based remaining time
+  serverTimeRemaining?: number | null;
 }
 
 export const FormView = ({
@@ -54,7 +56,6 @@ export const FormView = ({
   selectedSacrifice,
   formData,
   onSacrificeSelect,
-  setFormData,
   goToStep,
   resetStore,
   setLastInteractionTime,
@@ -109,7 +110,7 @@ export const FormView = ({
   return (
     <>
       <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 text-center mt-8">Hisse Al</h1>
-      <ProgressBar currentStep={currentStep} />
+      <ProgressBar currentStep={currentStep as Step} />
 
       {/* Süre göstergesi - formun üst kısmında gösteriliyor */}
       {(currentStep === "details" || currentStep === "confirmation") && (
@@ -132,8 +133,6 @@ export const FormView = ({
           <CustomDataTable
             data={data}
             columns={columns}
-            searchKey="sacrifice_no"
-            searchPlaceholder="Kurbanlık Numarası Ara..."
             meta={{
               onSacrificeSelect,
             }}
@@ -149,27 +148,24 @@ export const FormView = ({
         </TabsContent>
         <TabsContent value="tab-2">
           <Checkout
-            sacrifice={selectedSacrifice}
-            formData={formData}
-            setFormData={setFormData}
-            onApprove={() => goToStep("confirmation")}
-            resetStore={resetStore}
-            setCurrentStep={goToStep}
-            setLastInteractionTime={setLastInteractionTime}
-            onBack={async () => {
+            onBack={(_shareCount) => {
               if (!selectedSacrifice) return;
 
               try {
-                await cancelReservation.mutateAsync({
+                cancelReservation.mutateAsync({
                   transaction_id
+                }).then(() => {
+                  resetStore();
+                  goToStep("selection");
+                }).catch(err => {
+                  console.error('Error handling back action:', err);
                 });
-
-                resetStore();
-                goToStep("selection");
               } catch (err) {
                 console.error('Error handling back action:', err);
               }
             }}
+            setLastInteractionTime={setLastInteractionTime}
+            onApprove={() => goToStep("confirmation")}
           />
         </TabsContent>
         <TabsContent value="tab-3" className="space-y-8">

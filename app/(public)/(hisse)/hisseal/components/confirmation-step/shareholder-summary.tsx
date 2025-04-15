@@ -22,6 +22,7 @@ interface ShareholderSummaryProps {
     phone: string
     delivery_location: string
     is_purchaser?: boolean
+    paid_amount?: number
   }[]
   onApprove: () => void
   setCurrentStep: (step: Step) => void
@@ -166,7 +167,8 @@ export default function ShareholderSummary({
         // Calculate total amount and remaining payment
         const share_price = sacrifice?.share_price || 0
         const totalAmount = share_price + delivery_fee
-        const paidAmount = Number.isFinite(shareholder.paid_amount) ? shareholder.paid_amount : totalAmount;
+        // Ensure paidAmount is always a number
+        const paidAmount = shareholder.paid_amount !== undefined ? shareholder.paid_amount : 0
 
         const remainingPayment = totalAmount - paidAmount;
 

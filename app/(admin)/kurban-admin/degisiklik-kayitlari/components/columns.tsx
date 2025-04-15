@@ -57,7 +57,7 @@ export const columns: ColumnDef<ChangeLog>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string[]) => {
       return value.includes(row.getValue(id));
     },
   },
@@ -74,7 +74,7 @@ export const columns: ColumnDef<ChangeLog>[] = [
       
       return <div className="text-center">{displayName}</div>;
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string[]) => {
       return value.includes(row.getValue(id));
     },
   },

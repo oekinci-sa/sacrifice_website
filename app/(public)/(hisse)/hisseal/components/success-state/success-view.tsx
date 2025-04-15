@@ -102,7 +102,7 @@ export const SuccessView = () => {
       delivery_location: formatDeliveryLocation(
         shareholder.delivery_location || ""
       ),
-      sacrifice_consent: shareholder.sacrifice_consent, // Typically this would come from the DB
+      sacrifice_consent: !!shareholder.sacrifice_consent, // Convert to boolean with double negation
       vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
 
       // Hisse ve Ödeme Özeti

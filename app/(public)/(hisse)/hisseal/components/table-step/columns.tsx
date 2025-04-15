@@ -3,7 +3,7 @@
 import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Ban, Plus } from "lucide-react";
-  
+
 interface TableMeta {
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
 }
@@ -17,7 +17,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         {row.getValue("sacrifice_no")}
       </div>
     ),
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string) => {
       const searchValue = value.toLowerCase();
       const cellValue = String(row.getValue(id)).toLowerCase();
       return cellValue.includes(searchValue);
@@ -58,12 +58,12 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </div>
       );
     },
-    filterFn: (row, id, filterValues) => {
+    filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
 
       const rowValue = row.getValue(id) as number;
 
-      return filterValues.some((filterValue) => {
+      return filterValues.some((filterValue: string | number) => {
         const numericFilterValue =
           typeof filterValue === "string"
             ? parseFloat(filterValue)
@@ -86,7 +86,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: (string | number)[]) => {
       return value.includes((row.getValue(id) as number).toString());
     },
     enableSorting: true,

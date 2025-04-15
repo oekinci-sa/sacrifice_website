@@ -64,7 +64,7 @@ export function ToolbarAndFilters({
     table.resetColumnFilters();
     setGlobalFilter("");
     table.setGlobalFilter("");
-
+    
     // Call the reset function if it exists
     if (resetFilterStateRef.current) {
       resetFilterStateRef.current();
@@ -90,10 +90,10 @@ export function ToolbarAndFilters({
               <X className="h-4 w-4 ml-1" />
             </Button>
           )}
-
+          
           {/* Filter components */}
-          <SacrificeFilters
-            table={table}
+          <SacrificeFilters 
+            table={table} 
             registerResetFunction={registerResetFunction}
           />
 

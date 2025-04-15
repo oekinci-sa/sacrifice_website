@@ -1,17 +1,9 @@
 "use client";
 
-import { ColumnDef, Row } from "@tanstack/react-table";
-import { sacrificeSchema, shareholderSchema } from "@/types";
-import { Eye, Ban, Pencil, X, ArrowUpDown, ArrowUp, ArrowDown, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/utils/supabaseClient";
-import Link from "next/link";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -19,19 +11,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrifices } from "@/hooks/useSacrifices";
+import { cn } from "@/lib/utils";
+import { sacrificeSchema, shareholderSchema } from "@/types";
+import { supabase } from "@/utils/supabaseClient";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Pencil, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
@@ -78,7 +67,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         .from("shareholders")
         .select("shareholder_id")
         .eq("sacrifice_id", sacrificeId);
-        
+
       // Kurbanlık ve ilişkili hissedarları silme işlemi
       if (shareholders && shareholders.length > 0) {
         // Önce hissedarları sil
@@ -86,18 +75,18 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
           .from("shareholders")
           .delete()
           .eq("sacrifice_id", sacrificeId);
-          
+
         if (shareholderError) throw shareholderError;
       }
-      
+
       // Şimdi kurbanlığı sil
       const { error } = await supabase
         .from("sacrifice_animals")
         .delete()
         .eq("sacrifice_id", sacrificeId);
-        
+
       if (error) throw error;
-      
+
       toast({
         title: "Başarılı",
         description: "Kurbanlık ve ilişkili hissedarlar başarıyla silindi!",
@@ -118,7 +107,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   return (
     <div className="flex items-center justify-end gap-2">
       <div className="flex items-center justify-center gap-2">
-        <Button 
+        <Button
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 hover:bg-[#E8F7EF] hover:text-[#09B850]"
@@ -126,7 +115,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         >
           <Eye className="h-4 w-4" />
         </Button>
-        <Button 
+        <Button
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 hover:bg-[#E6EAF2] hover:text-[#367CFE]"
@@ -136,7 +125,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         >
           <Pencil className="h-4 w-4" />
         </Button>
-        <Button 
+        <Button
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 hover:bg-[#FCEFEF] hover:text-[#D22D2D]"
@@ -153,8 +142,8 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
             <DialogDescription className="text-md text-center font-medium">
               Hissedarlar için daha fazla bilgi için
               <br />
-              <Link 
-                href="/kurban-admin/hissedarlar/tum-hissedarlar" 
+              <Link
+                href="/kurban-admin/hissedarlar/tum-hissedarlar"
                 className="font-semibold hover:text-[#09B850] transition-all duration-300"
               >
                 Tüm Hissedarlar
@@ -167,7 +156,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
             <div className="space-y-4 mt-8">
               {shareholders.map((shareholder, index) => (
                 <div key={index}>
-                  <div 
+                  <div
                     onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${shareholder.shareholder_id}`)}
                     className="transition-all duration-200 hover:bg-gray-50 rounded-lg p-4 cursor-pointer"
                   >
@@ -194,14 +183,14 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                   value={Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100)}
                                   className="flex-1"
                                   style={{
-                                    ["--progress-background" as string]: (shareholder.remaining_payment > 0) 
+                                    ["--progress-background" as string]: (shareholder.remaining_payment > 0)
                                       ? shareholder.paid_amount < 2000
-                                        ? "rgb(220 38 38 / 0.2)" 
+                                        ? "rgb(220 38 38 / 0.2)"
                                         : "rgb(202 138 4 / 0.2)"
                                       : "rgb(22 163 74 / 0.2)",
                                     ["--progress-foreground" as string]: (shareholder.remaining_payment > 0)
                                       ? shareholder.paid_amount < 2000
-                                        ? "rgb(220 38 38)" 
+                                        ? "rgb(220 38 38)"
                                         : "rgb(202 138 4)"
                                       : "rgb(22 163 74)",
                                   } as React.CSSProperties}
@@ -352,15 +341,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       </div>
     ),
     enableSorting: true,
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string | number) => {
       const rawValue = row.getValue(id) as number;
       const stringValue = String(rawValue);
-      
+
       // Handle both direct value matching and text search
       if (typeof value === "string") {
         return stringValue.includes(value);
       }
-      
+
       return false;
     }
   },
@@ -370,7 +359,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => {
       const time = row.getValue("sacrifice_time") as string;
       if (!time) return <div className="text-center">-</div>;
-      
+
       try {
         const [hours, minutes] = time.split(':');
         return (
@@ -418,14 +407,14 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       );
     },
     enableSorting: true,
-    filterFn: (row, id, filterValues) => {
+    filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
 
       const rowValue = row.getValue(id) as number;
 
-      return filterValues.some((filterValue) => {
-        const numericFilterValue = typeof filterValue === "string" 
-          ? parseFloat(filterValue) 
+      return filterValues.some((filterValue: string | number) => {
+        const numericFilterValue = typeof filterValue === "string"
+          ? parseFloat(filterValue)
           : filterValue;
         return rowValue === numericFilterValue;
       });
@@ -456,7 +445,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       return <div>{empty}</div>;
     },
     enableSorting: true,
-    filterFn: (row, id, filterValues) => {
+    filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
 
       const rowValue = row.getValue(id) as number;
@@ -488,18 +477,18 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
     accessorFn: (row) => {
       const shareholders = row.shareholders || [];
-      
+
       if (!shareholders.length) return 0;
-      
+
       const totalPaid = shareholders.reduce((sum, s) => sum + (s.paid_amount || 0), 0);
       const total = shareholders.reduce((sum, s) => sum + (s.total_amount || 0), 0);
-      
+
       return total > 0 ? Math.floor((totalPaid / total) * 100) : 0;
     },
     cell: ({ row }) => {
       const ratio = row.getValue("payment_status") as number;
       const shareholders = row.original.shareholders || [];
-      
+
       const totalPaid = shareholders.reduce((sum, s) => sum + (s.paid_amount || 0), 0);
       const total = shareholders.reduce((sum, s) => sum + (s.total_amount || 0), 0);
 
@@ -516,15 +505,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
             value={ratio}
             className="min-w-[100px]"
             style={{
-              ["--progress-background" as string]: ratio < 50 
-                ? "rgb(220 38 38 / 0.2)" 
-                : ratio < 100 
-                  ? "rgb(202 138 4 / 0.2)" 
+              ["--progress-background" as string]: ratio < 50
+                ? "rgb(220 38 38 / 0.2)"
+                : ratio < 100
+                  ? "rgb(202 138 4 / 0.2)"
                   : "rgb(22 163 74 / 0.2)",
-              ["--progress-foreground" as string]: ratio < 50 
-                ? "rgb(220 38 38)" 
-                : ratio < 100 
-                  ? "rgb(202 138 4)" 
+              ["--progress-foreground" as string]: ratio < 50
+                ? "rgb(220 38 38)"
+                : ratio < 100
+                  ? "rgb(202 138 4)"
                   : "rgb(22 163 74)",
             } as React.CSSProperties}
           />
@@ -605,10 +594,10 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     size: 200,
     enableSorting: false,
     enableHiding: true,
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string | number) => {
       if (!value) return true;
       const notes = row.getValue(id)?.toString().toLowerCase() || "";
-      return notes.includes(value.toLowerCase());
+      return notes.includes(value.toString().toLowerCase());
     },
   },
   {

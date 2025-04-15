@@ -18,12 +18,17 @@ import {
 import { cn } from "@/lib/utils";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
-import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { FormData as StoreFormData, useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import TripleButtons from "../common/triple-buttons";
 import SacrificeInfo from "./sacrifice-info";
 import ShareholderForm from "./shareholder-form";
+
+// Define an extended form data interface for component use
+interface ExtendedFormData extends StoreFormData {
+  is_purchaser?: boolean;
+}
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
@@ -37,8 +42,6 @@ const formSchema = z.object({
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
   is_purchaser: z.boolean().optional().default(false),
 });
-
-type FormData = z.infer<typeof formSchema>;
 
 interface CheckoutProps {
   onApprove: () => void;
@@ -78,6 +81,9 @@ export default function Checkout({
     goToStep
   } = useShareSelectionFlowStore();
 
+  // Cast formData to ExtendedFormData for use in this component
+  const extendedFormData = formData as ExtendedFormData[];
+
   const currentSacrifice = sacrifices?.find(
     (s) => s.sacrifice_id === selectedSacrifice?.sacrifice_id
   );
@@ -105,21 +111,21 @@ export default function Checkout({
 
   const handleInputChange = (
     index: number,
-    field: keyof FormData,
+    field: keyof ExtendedFormData,
     value: string
   ) => {
     setLastInteractionTime(Date.now()); // Reset timeout
-    const newFormData = [...formData];
+    const newFormData = [...extendedFormData];
     newFormData[index] = {
       ...newFormData[index],
       [field]: value,
     };
-    setFormData(newFormData);
+    setFormData(newFormData as StoreFormData[]);
   };
 
   const handleInputBlur = (
     index: number,
-    field: keyof FormData,
+    field: keyof ExtendedFormData,
     value: string
   ) => {
     setLastInteractionTime(Date.now()); // Reset timeout
@@ -178,18 +184,18 @@ export default function Checkout({
   // Select değişikliğini yakalayalım
   const handleSelectChange = (
     index: number,
-    field: keyof FormData,
+    field: keyof ExtendedFormData,
     value: string
   ) => {
     console.log("handleSelectChange called with:", { index, field, value });
     setLastInteractionTime(Date.now()); // Reset timeout
-    const newFormData = [...formData];
+    const newFormData = [...extendedFormData];
     newFormData[index] = {
       ...newFormData[index],
       [field]: value,
     };
     console.log("Updated form data:", newFormData);
-    setFormData(newFormData);
+    setFormData(newFormData as StoreFormData[]);
     handleInputBlur(index, field, value);
   };
 
@@ -197,7 +203,7 @@ export default function Checkout({
   const handleIsPurchaserChange = (index: number, checked: boolean) => {
     setLastInteractionTime(Date.now()); // Reset timeout
 
-    const newFormData = [...formData];
+    const newFormData = [...extendedFormData];
     const newErrors = [...errors];
 
     if (checked) {
@@ -221,7 +227,7 @@ export default function Checkout({
       };
     }
 
-    setFormData(newFormData);
+    setFormData(newFormData as StoreFormData[]);
     setErrors(newErrors); // Hata durumunu da güncelle
   };
 
@@ -249,15 +255,14 @@ export default function Checkout({
       });
 
       // Form state'ini güncelle - is_purchaser varsayılan olarak false
-      setFormData([
-        ...formData,
-        {
-          name: "",
-          phone: "",
-          delivery_location: "",
-          is_purchaser: false,
-        },
-      ]);
+      const newShareholderData: ExtendedFormData = {
+        name: "",
+        phone: "",
+        delivery_location: "",
+        is_purchaser: false,
+      };
+
+      setFormData([...formData, newShareholderData] as StoreFormData[]);
       setErrors([...errors, {}]);
     } catch (error) {
       console.error("Error adding shareholder:", error);
@@ -293,9 +298,9 @@ export default function Checkout({
       });
 
       // Form state'ini güncelle
-      const newFormData = [...formData];
+      const newFormData = [...extendedFormData];
       newFormData.splice(index, 1);
-      setFormData(newFormData);
+      setFormData(newFormData as StoreFormData[]);
 
       const newErrors = [...errors];
       newErrors.splice(index, 1);
@@ -398,7 +403,7 @@ export default function Checkout({
     // Birden fazla hissedar varsa, en az biri "işlemi yapan kişi" olarak işaretlenmiş olmalı
     const hasPurchaser =
       formData.length > 1
-        ? formData.some((data) => data.is_purchaser === true)
+        ? extendedFormData.some((data) => data.is_purchaser === true)
         : true;
 
     if (formData.length > 1 && !hasPurchaser) {
@@ -462,7 +467,7 @@ export default function Checkout({
               }
               onRemove={handleRemoveShareholder}
               onIsPurchaserChange={handleIsPurchaserChange}
-              isOtherPurchaserSelected={formData.some(
+              isOtherPurchaserSelected={extendedFormData.some(
                 (d, i) => i !== index && d.is_purchaser === true
               )}
               totalForms={formData.length}

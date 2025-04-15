@@ -115,7 +115,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     enableSorting: true,
     sortingFn: sortingFunctions.text,
     cell: ({ row }) => row.getValue("shareholder_name"),
-    filterFn: (row, id, value) => {
+    filterFn: (row, id, value: string) => {
       const rowValue = row.getValue(id);
       // Ensure the value is a string before calling toLowerCase
       return typeof rowValue === 'string'

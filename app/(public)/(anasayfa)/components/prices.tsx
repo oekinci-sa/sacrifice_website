@@ -38,6 +38,20 @@ const Prices = () => {
     }
   };
 
+  // Item animation variant
+  const itemVariant = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 10
+      }
+    }
+  };
+
   const sectionVariant = {
     hidden: { opacity: 0, y: 50 },
     show: {
@@ -77,7 +91,7 @@ const Prices = () => {
               key={index}
               className="flex flex-col items-center justify-between hover:scale-105 transition-all duration-300 cursor-pointer"
               onClick={() => router.push(`/hisseal?price=${item.price}`)}
-              variants={item}
+              variants={itemVariant}
             >
               <motion.div
                 className="flex items-center justify-center bg-black text-white text-base md:text-2xl 

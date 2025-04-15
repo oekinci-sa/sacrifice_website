@@ -1,10 +1,10 @@
+import { useToast } from "@/components/ui/use-toast";
+import { useCancelReservation, useTimeoutReservation } from "@/hooks/useReservations";
+import { useUpdateSacrifice } from "@/hooks/useSacrifices";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { sacrificeSchema, Step } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import { useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { useUpdateSacrifice } from "@/hooks/useSacrifices";
-import { useCreateReservation, useCancelReservation, useTimeoutReservation } from "@/hooks/useReservations";
-import { sacrificeSchema, Step } from "@/types";
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 
 // Define a more generic type for form data that matches what's used in the page component
 export interface FormData {
@@ -57,10 +57,10 @@ export const setupPageUnloadHandlers = ({
     const blob = new Blob([JSON.stringify(cancelData)], {
       type: "application/json",
     });
-    
+
     // sendBeacon API kullan - sayfa kapanırken bile çalışır
     navigator.sendBeacon(CANCEL_RESERVATION_API, blob);
-    
+
     // Debug amaçlı loglama (sayfa kapanıyor olsa da konsolda loglar)
     console.log("Sayfa kapatma/ayrılma işlemi: Rezervasyon iptal ediliyor", cancelData);
   };
@@ -87,7 +87,7 @@ export const useHandlePageUnload = ({
 
   useEffect(() => {
     if (isSuccess) return;
-    
+
     const { handleBeforeUnload, handleUnload } = setupPageUnloadHandlers({
       currentStep,
       selectedSacrifice,
@@ -258,7 +258,7 @@ export const useHandleNavigation = (
     const originalReplaceState = window.history.replaceState;
 
     function createHistoryStateHandler(originalFn: (data: unknown, unused: string, url?: string | URL | null) => void) {
-      return function(this: History, data: unknown, unused: string, url?: string | URL | null) {
+      return function (this: History, data: unknown, unused: string, url?: string | URL | null) {
         if (url) {
           handleRouteChange().then((shouldContinue) => {
             if (shouldContinue) {
@@ -326,27 +326,27 @@ export const useHandleInteractionTimeout = (
   useEffect(() => {
     // Success state'de timeout kontrolünü devre dışı bırak
     if (isSuccess) return;
-    
+
     // Yalnızca details ve confirmation adımlarında timeout kontrolü yap
     if (currentStep !== "details" && currentStep !== "confirmation") return;
-    
+
     // Gerekli veriler yoksa timeout kontrolünü devre dışı bırak
     if (!selectedSacrifice || !formData.length) return;
-    
+
     // Timeout kontrolü için interval
     const interval = setInterval(async () => {
       const now = Date.now();
       const elapsed = (now - lastInteractionTime) / 1000; // saniye
       const timeLeft = Math.max(0, TIMEOUT_DURATION - elapsed);
-      
+
       // Kalan süreyi güncelle
       setTimeLeft(Math.floor(timeLeft));
-      
+
       // Eğer warn threshold'u aşıldıysa uyarıyı göster
       if (timeLeft <= WARNING_THRESHOLD && !showWarning) {
         setShowWarning(true);
       }
-      
+
       // Eğer süre doldu ve hala details veya confirmation adımındaysak
       if (timeLeft <= 0 && (currentStep === "details" || currentStep === "confirmation")) {
         // Uyarıyı kapat - this must happen before any other timeout handling
@@ -358,23 +358,23 @@ export const useHandleInteractionTimeout = (
           if (openDialogs.setIsDialogOpen && openDialogs.isDialogOpen) {
             openDialogs.setIsDialogOpen(false);
           }
-          
+
           // Rezervasyon bilgi dialog
           if (openDialogs.setShowReservationInfo && openDialogs.showReservationInfo) {
             openDialogs.setShowReservationInfo(false);
           }
-          
+
           // 3 dakika uyarı dialog
           if (openDialogs.setShowThreeMinuteWarning && openDialogs.showThreeMinuteWarning) {
             openDialogs.setShowThreeMinuteWarning(false);
           }
-          
+
           // 1 dakika uyarı dialog
           if (openDialogs.setShowOneMinuteWarning && openDialogs.showOneMinuteWarning) {
             openDialogs.setShowOneMinuteWarning(false);
           }
         }
-        
+
         // Özel timeout handler varsa onu kullan, yoksa standart işlemi yap
         if (customTimeoutHandler) {
           console.log("Using custom timeout handler");
@@ -387,11 +387,11 @@ export const useHandleInteractionTimeout = (
               await timeoutReservation.mutateAsync({
                 transaction_id
               });
-              
+
               // Store'u sıfırla ve selection adımına git
               resetStore();
               goToStep("selection");
-              
+
               // Veri yenileme fonksiyonu varsa çağır - Tablo görünümüne döndüğümüzde tüm verileri yenilemek için
               if (refetchSacrifices) {
                 // setTimeout kullanarak resetStore işleminin tamamlanmasını bekleyelim
@@ -405,7 +405,7 @@ export const useHandleInteractionTimeout = (
               // Hata olsa bile reset yapmaya çalış
               resetStore();
               goToStep("selection");
-              
+
               // Hata durumunda da veri yenileme fonksiyonunu çağır
               if (refetchSacrifices) {
                 setTimeout(() => {
@@ -418,7 +418,7 @@ export const useHandleInteractionTimeout = (
             // transaction_id yoksa direkt olarak reset yap
             resetStore();
             goToStep("selection");
-            
+
             // Bu durumda da veri yenileme fonksiyonunu çağır
             if (refetchSacrifices) {
               setTimeout(() => {
@@ -527,12 +527,12 @@ export const handleShareCountSelect = async ({
   createReservation: any;
 }) => {
   try {
-    console.log('Starting handleShareCountSelect function', { 
-      shareCount, 
+    console.log('Starting handleShareCountSelect function', {
+      shareCount,
       transaction_id_length: transaction_id?.length,
-      sacrifice_id: tempSelectedSacrifice?.sacrifice_id 
+      sacrifice_id: tempSelectedSacrifice?.sacrifice_id
     });
-    
+
     if (!tempSelectedSacrifice) {
       console.error('No sacrifice selected');
       toast({
@@ -570,7 +570,7 @@ export const handleShareCountSelect = async ({
 
     // Set selected sacrifice and form data
     setSelectedSacrifice(tempSelectedSacrifice);
-    
+
     // Form data'yı oluştur - burada is_purchaser değerini false olarak başlat
     setFormData(
       Array(shareCount).fill({
@@ -580,35 +580,35 @@ export const handleShareCountSelect = async ({
         is_purchaser: false // Başlangıçta hiçbir hissedar "işlemi yapan kişi" olarak seçilmemiş olacak
       })
     );
-    
+
     // Close the share selection dialog
     setIsDialogOpen(false);
     setLastInteractionTime(Date.now());
-    
+
     // Note: We no longer automatically navigate to the details step or show the toast
     // This is now handled in the page component by showing the ReservationInfoDialog first
   } catch (err) {
     console.error('Error selecting share count:', err);
-    
+
     // Daha detaylı hata mesajı göster
     let errorMessage = "İşlem sırasında bir hata oluştu.";
-    
+
     // API yanıtından gelen hata mesajını göster (eğer varsa)
     if (err instanceof Error) {
       errorMessage = err.message;
-      
+
       // transaction_id uzunluk hatasını tespit et ve daha kullanıcı dostu mesaj göster
       if (errorMessage.includes('transaction_id') && errorMessage.includes('length')) {
         errorMessage = "Sistem hatası: İşlem kodu uyumsuz. Lütfen sayfayı yenileyip tekrar deneyin.";
       }
     }
-    
+
     toast({
       variant: "destructive",
       title: "Hata",
       description: errorMessage,
     });
-    
+
     // Dialog'u kapat ve seçim ekranına dön
     setIsDialogOpen(false);
   }
@@ -656,7 +656,7 @@ export const useHandleNavigationHistory = ({
   formData: any[];
   updateShareCount: any;
   resetStore: () => void;
-  goToStep: (step: string) => void;
+  goToStep: (step: Step) => void;
   isSuccess: boolean;
   setHasNavigatedAway: (value: boolean) => void;
   toast: any;
@@ -678,10 +678,10 @@ export const useHandleNavigationHistory = ({
     const handleRouteChange = async (): Promise<boolean> => {
       // Success state'de navigasyon kontrollerini devre dışı bırak
       if (isSuccess) return true;
-      
+
       // Sadece details ve confirmation adımlarında kontrol yap
       if (currentStep !== "details" && currentStep !== "confirmation") return true;
-      
+
       // Gerekli veriler yoksa kontrolü devre dışı bırak
       if (!selectedSacrifice || !formData.length) return true;
       if (!transaction_id) return true;
@@ -693,23 +693,23 @@ export const useHandleNavigationHistory = ({
           if (openDialogs.setIsDialogOpen && openDialogs.isDialogOpen) {
             openDialogs.setIsDialogOpen(false);
           }
-          
+
           // Rezervasyon bilgi dialog
           if (openDialogs.setShowReservationInfo && openDialogs.showReservationInfo) {
             openDialogs.setShowReservationInfo(false);
           }
-          
+
           // 3 dakika uyarı dialog
           if (openDialogs.setShowThreeMinuteWarning && openDialogs.showThreeMinuteWarning) {
             openDialogs.setShowThreeMinuteWarning(false);
           }
-          
+
           // 1 dakika uyarı dialog
           if (openDialogs.setShowOneMinuteWarning && openDialogs.showOneMinuteWarning) {
             openDialogs.setShowOneMinuteWarning(false);
           }
         }
-        
+
         // Browser geri tuşu veya sayfa değişikliği durumunda rezervasyonu iptal et
         await cancelReservation.mutateAsync({
           transaction_id
@@ -725,7 +725,7 @@ export const useHandleNavigationHistory = ({
         console.log('Navigation detected in success state, setting navigated away flag');
         setHasNavigatedAway(true);
       }
-      
+
       return true;
     };
 
@@ -738,7 +738,7 @@ export const useHandleNavigationHistory = ({
     };
 
     function createHistoryStateHandler(originalFn: (data: unknown, unused: string, url?: string | URL | null) => void) {
-      return function(this: History, data: unknown, unused: string, url?: string | URL | null) {
+      return function (this: History, data: unknown, unused: string, url?: string | URL | null) {
         if (url) {
           handleRouteChange().then((shouldContinue) => {
             if (shouldContinue) {

@@ -8,7 +8,7 @@ import SecurityCodeDialog from "./security-code-dialog"
 import TermsAgreementDialog from "./terms-agreement-dialog"
 import { useCreateShareholders } from "@/hooks/useShareholders"
 import { useCompleteReservation } from "@/hooks/useReservations"
-import { useReservationStore } from "@/stores/useReservationStore"
+import { useReservationIDStore } from "@/stores/useReservationIDStore"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { useValidateShareholders } from "@/hooks/useValidateShareholders"
@@ -94,7 +94,7 @@ export default function ShareholderSummary({
   const createShareholdersMutation = useCreateShareholders()
   const completeReservationMutation = useCompleteReservation()
   const validateShareholdersMutation = useValidateShareholders()
-  const { transaction_id } = useReservationStore()
+  const { transaction_id } = useReservationIDStore()
   const { toast } = useToast()
 
   // Find the purchaser

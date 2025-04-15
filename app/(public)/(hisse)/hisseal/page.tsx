@@ -26,7 +26,7 @@ import {
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -83,7 +83,7 @@ const Page = () => {
   } = useSacrificeStore();
 
   // Reservation store - transaction_id yönetimi
-  const { transaction_id, generateNewTransactionId } = useReservationStore();
+  const { transaction_id, generateNewTransactionId } = useReservationIDStore();
 
   // Remove React Query fetch since we're using the Zustand store data
   // const { data, isLoading: isQueryLoading } = useSacrifices();
@@ -310,8 +310,8 @@ const Page = () => {
 
       // Console'a transaction_id değerini ve uzunluğunu logla (debug için)
       console.log("Generated new transaction_id:", {
-        id: useReservationStore.getState().transaction_id,
-        length: useReservationStore.getState().transaction_id.length,
+        id: useReservationIDStore.getState().transaction_id,
+        length: useReservationIDStore.getState().transaction_id.length,
       });
     }
   }, [pathname, resetStore, goToStep, generateNewTransactionId, isSuccess]);

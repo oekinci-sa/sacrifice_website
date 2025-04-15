@@ -22,7 +22,7 @@ import SacrificeInfo from "./sacrifice-info";
 import ShareholderForm from "./shareholder-form";
 import TripleButtons from "../common/triple-buttons";
 import { cn } from "@/lib/utils";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
 
 const formSchema = z.object({
@@ -101,7 +101,7 @@ export default function Checkout({
   const cancelReservation = useCancelReservation();
 
   // Reservation store'dan transaction_id'yi alalım
-  const transaction_id = useReservationStore((state) => state.transaction_id);
+  const transaction_id = useReservationIDStore((state) => state.transaction_id);
 
   const { toast } = useToast();
 

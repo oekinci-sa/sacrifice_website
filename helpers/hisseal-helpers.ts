@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUpdateSacrifice } from "@/hooks/useSacrifices";
 import { useCreateReservation, useCancelReservation, useTimeoutReservation } from "@/hooks/useReservations";
 import { sacrificeSchema, Step } from "@/types";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 
 // Define a more generic type for form data that matches what's used in the page component
 export interface FormData {
@@ -83,7 +83,7 @@ export const useHandlePageUnload = ({
   formData: any[];
   isSuccess: boolean;
 }) => {
-  const { transaction_id } = useReservationStore();
+  const { transaction_id } = useReservationIDStore();
 
   useEffect(() => {
     if (isSuccess) return;
@@ -321,7 +321,7 @@ export const useHandleInteractionTimeout = (
   customTimeoutHandler?: () => void
 ) => {
   const timeoutReservation = useTimeoutReservation();
-  const transaction_id = useReservationStore(state => state.transaction_id);
+  const transaction_id = useReservationIDStore(state => state.transaction_id);
 
   useEffect(() => {
     // Success state'de timeout kontrolünü devre dışı bırak
@@ -671,7 +671,7 @@ export const useHandleNavigationHistory = ({
     setShowOneMinuteWarning?: (show: boolean) => void;
   }
 }) => {
-  const transaction_id = useReservationStore(state => state.transaction_id);
+  const transaction_id = useReservationIDStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
 
   useEffect(() => {

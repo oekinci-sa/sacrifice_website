@@ -7,7 +7,7 @@ import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import { sacrificeSchema } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import ProgressBar from "../common/progress-bar";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
 import { useEffect, useState } from "react";
 import CountdownTimer from '../common/countdown-timer';
@@ -55,7 +55,7 @@ export const FormView = ({
   isLoading = false,
   serverTimeRemaining = null
 }: FormViewProps) => {
-  const transaction_id = useReservationStore(state => state.transaction_id);
+  const transaction_id = useReservationIDStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
   const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
   

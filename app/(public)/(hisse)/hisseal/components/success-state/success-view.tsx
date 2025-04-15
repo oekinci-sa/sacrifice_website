@@ -5,7 +5,7 @@ import { PDFDownloadLink, BlobProvider } from "@react-pdf/renderer";
 import ReceiptPDF from "./ReceiptPDF";
 import { useState, useEffect } from "react";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useGetShareholdersByTransactionId } from "@/hooks/useShareholders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,7 +26,7 @@ interface ShareholderData {
 export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
   const { formData, selectedSacrifice } = useSacrificeStore();
-  const { transaction_id } = useReservationStore();
+  const { transaction_id } = useReservationIDStore();
 
   const [isClient, setIsClient] = useState(false);
 

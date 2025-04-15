@@ -13,7 +13,7 @@ import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useReservationStore } from "@/stores/useReservationStore";
+import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
 
 interface ShareSelectDialogProps {
@@ -35,7 +35,7 @@ export function ShareSelectDialog({
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
   const [selectedShareCount, setSelectedShareCount] = useState(1);
   const [isLocalLoading, setIsLocalLoading] = useState(false);
-  const generateNewTransactionId = useReservationStore(state => state.generateNewTransactionId);
+  const generateNewTransactionId = useReservationIDStore(state => state.generateNewTransactionId);
   
   // Get the most up-to-date sacrifice information from the store
   const currentSacrifice = sacrifices.find(s => s.sacrifice_id === sacrifice.sacrifice_id) || sacrifice;
@@ -64,7 +64,7 @@ export function ShareSelectDialog({
       // Generate a new transaction ID when the dialog opens
       generateNewTransactionId();
       console.log('Generated new transaction ID when dialog opened:', 
-        useReservationStore.getState().transaction_id);
+        useReservationIDStore.getState().transaction_id);
         
       return () => clearTimeout(timer);
     }

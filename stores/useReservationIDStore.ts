@@ -18,7 +18,7 @@ const initialState = {
   transaction_id: generateTransactionId(),
 }
 
-export const useReservationStore = create<ReservationState>()(
+export const useReservationIDStore = create<ReservationState>()(
   devtools(
     (set) => ({
       ...initialState,

@@ -25,9 +25,9 @@ import {
   useUpdateShareCount,
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
-import { useReservationIDStore } from "@/stores/useReservationIDStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useRef } from "react";

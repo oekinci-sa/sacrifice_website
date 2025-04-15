@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 import { mediaLinks } from "../../constants";
 import CustomLink from "@/components/common/custom-link";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useEmptyShareCount } from "@/hooks/useEmptyShareCount";
 
 interface MediaLink {

@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";

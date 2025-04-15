@@ -4,7 +4,7 @@ import { sacrificeSchema } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 
 // Fetch all sacrifices
 export const useSacrifices = () => {

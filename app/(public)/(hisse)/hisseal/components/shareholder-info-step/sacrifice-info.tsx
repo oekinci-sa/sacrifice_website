@@ -1,8 +1,8 @@
 "use client";
 
 import { sacrificeSchema } from "@/types";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 
 interface SacrificeInfoProps {
   sacrifice: sacrificeSchema | null;

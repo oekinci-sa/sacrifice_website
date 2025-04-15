@@ -22,9 +22,9 @@ import SacrificeInfo from "./sacrifice-info";
 import ShareholderForm from "./shareholder-form";
 import TripleButtons from "../common/triple-buttons";
 import { cn } from "@/lib/utils";
-import { useReservationIDStore } from "@/stores/useReservationIDStore";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),

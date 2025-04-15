@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema } from "@/types";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SacrificeDataProviderProps {

@@ -13,8 +13,8 @@ import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useReservationIDStore } from "@/stores/useReservationIDStore";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 
 interface ShareSelectDialogProps {
   isOpen: boolean;

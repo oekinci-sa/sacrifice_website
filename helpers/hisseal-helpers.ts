@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUpdateSacrifice } from "@/hooks/useSacrifices";
 import { useCreateReservation, useCancelReservation, useTimeoutReservation } from "@/hooks/useReservations";
 import { sacrificeSchema, Step } from "@/types";
-import { useReservationIDStore } from "@/stores/useReservationIDStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 
 // Define a more generic type for form data that matches what's used in the page component
 export interface FormData {

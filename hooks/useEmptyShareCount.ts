@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 
 // Anahtar isim tanımla
 const EMPTY_SHARE_QUERY_KEY = "emptyShareCount";

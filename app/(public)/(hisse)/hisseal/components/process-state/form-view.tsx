@@ -7,7 +7,7 @@ import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import { sacrificeSchema } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import ProgressBar from "../common/progress-bar";
-import { useReservationIDStore } from "@/stores/useReservationIDStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
 import { useEffect, useState } from "react";
 import CountdownTimer from '../common/countdown-timer';

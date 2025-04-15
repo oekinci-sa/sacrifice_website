@@ -1,8 +1,7 @@
 "use client";
 
-import { sacrificeSchema } from "@/types";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { sacrificeSchema } from "@/types";
 
 interface SacrificeInfoProps {
   sacrifice: sacrificeSchema | null;
@@ -20,16 +19,11 @@ export default function SacrificeInfo({
 }: SacrificeInfoProps) {
   // Get sacrifices from Zustand store
   const { sacrifices } = useSacrificeStore();
-  
-  // Get formData from the UI flow store
-  const { formData } = useShareSelectionFlowStore();
 
   // Get the most up-to-date sacrifice information from the store
   const currentSacrifice = sacrifice?.sacrifice_id
     ? sacrifices.find((s) => s.sacrifice_id === sacrifice.sacrifice_id)
     : null;
-
-  const shareCount = formData?.length || 0;
 
   // Use the latest data if available, otherwise fall back to the prop
   const displaySacrifice = currentSacrifice || sacrifice;

@@ -1,17 +1,16 @@
 "use client";
 
-import React from "react";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { ProgressBar } from "./ProgressBar";
-import { addDays } from "date-fns";
+import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
+import { addDays } from "date-fns";
+import { ProgressBar } from "./ProgressBar";
 
 interface PaymentDetailsProps {
   shareholderInfo: shareholderSchema;
   isEditing: boolean;
-  editFormData: any;
-  handleChange: (field: string, value: any) => void;
+  editFormData?: Partial<shareholderSchema>;
+  handleChange?: (field: string, value: string | number | boolean) => void;
   sectionClass: string;
   labelClass: string;
   valueClass: string;
@@ -22,7 +21,6 @@ export function PaymentDetails({
   isEditing,
   editFormData,
   handleChange,
-  sectionClass,
   labelClass,
   valueClass
 }: PaymentDetailsProps) {
@@ -32,7 +30,7 @@ export function PaymentDetails({
   return (
     <div className="md:w-1/2 p-6">
       <h3 className="text-lg md:text-xl font-semibold mb-4">Ödeme Detayları</h3>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <p className={labelClass}>Son kapora ödeme tarihi</p>
@@ -54,13 +52,13 @@ export function PaymentDetails({
             }).format(shareholderInfo.total_amount)}
           </p>
         </div>
-        
+
         <div className="col-span-2">
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
               <div className="flex items-center gap-2">
                 <p className={`${valueClass} text-sm md:text-base`}>Ödeme Miktarı:</p>
-                {isEditing ? (
+                {isEditing && editFormData && handleChange ? (
                   <Input
                     type="number"
                     value={editFormData.paid_amount}
@@ -89,8 +87,8 @@ export function PaymentDetails({
                 {shareholderInfo.paid_amount < 2000
                   ? "Kapora Bekleniyor"
                   : shareholderInfo.remaining_payment > 0
-                  ? "Tüm Ödeme Bekleniyor"
-                  : "Ödeme Tamamlandı"}
+                    ? "Tüm Ödeme Bekleniyor"
+                    : "Ödeme Tamamlandı"}
               </p>
             </div>
             <ProgressBar

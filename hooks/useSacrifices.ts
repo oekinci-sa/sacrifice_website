@@ -1,10 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/utils/supabaseClient";
-import { sacrificeSchema } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { sacrificeSchema } from "@/types";
+import { supabase } from "@/utils/supabaseClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 // Fetch all sacrifices
 export const useSacrifices = () => {

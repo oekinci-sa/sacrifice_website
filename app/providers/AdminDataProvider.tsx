@@ -1,15 +1,15 @@
 "use client";
 
-import { ReactNode, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ReactNode, useEffect, useRef } from "react";
 
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { useReservationTransactionsStore } from "@/stores/only-admin-pages/useReservationTransactionsStore";
+import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/utils/supabaseClient";
 import { sacrificeSchema } from "@/types";
+import { supabase } from "@/utils/supabaseClient";
 
 interface AdminDataProviderProps {
   children: ReactNode;
@@ -22,61 +22,22 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Get store methods
-  const { 
-    shareholders, 
-    setShareholders, 
+  const {
+    shareholders,
+    setShareholders,
     setLoading: setShareholdersLoading,
-    setError: setShareholdersError 
+    setError: setShareholdersError
   } = useShareholderStore();
-  
-  const { 
-    transactions, 
-    setTransactions, 
+
+  const {
+    transactions,
+    setTransactions,
     setLoading: setTransactionsLoading,
-    setError: setTransactionsError 
+    setError: setTransactionsError
   } = useReservationTransactionsStore();
 
   // Get sacrifice store methods for realtime updates
   const { updateSacrifice, refetchSacrifices } = useSacrificeStore();
-
-  // Setup Supabase Realtime subscription for sacrifice_animals table
-  const setupRealtimeSubscription = () => {
-    // Clean up existing subscription if any
-    if (channelRef.current) {
-      channelRef.current.unsubscribe();
-    }
-
-    // Create new subscription
-    channelRef.current = supabase
-      .channel("admin-sacrifice-changes-" + Date.now())
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "sacrifice_animals",
-        },
-        (payload) => {
-          console.log("Admin Realtime update received:", payload);
-
-          // Update Zustand store based on the event type
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            updateSacrifice(payload.new as sacrificeSchema);
-            // Invalidate React Query cache
-            queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
-          } else if (payload.eventType === "DELETE") {
-            // For deletes, we need to refetch the whole list
-            refetchSacrifices();
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Admin subscription status:", status);
-      });
-  };
 
   // Fetch shareholders data with React Query
   const {
@@ -140,17 +101,56 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
 
   // Load data on provider mount
   useEffect(() => {
+    // Setup Supabase Realtime subscription for sacrifice_animals table
+    const setupRealtimeSubscription = () => {
+      // Clean up existing subscription if any
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+      }
+
+      // Create new subscription
+      channelRef.current = supabase
+        .channel("admin-sacrifice-changes-" + Date.now())
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "sacrifice_animals",
+          },
+          (payload) => {
+            console.log("Admin Realtime update received:", payload);
+
+            // Update Zustand store based on the event type
+            if (
+              payload.eventType === "INSERT" ||
+              payload.eventType === "UPDATE"
+            ) {
+              updateSacrifice(payload.new as sacrificeSchema);
+              // Invalidate React Query cache
+              queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
+            } else if (payload.eventType === "DELETE") {
+              // For deletes, we need to refetch the whole list
+              refetchSacrifices();
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log("Admin subscription status:", status);
+        });
+    };
+
     if (!hasInitialized.current) {
       hasInitialized.current = true;
-      
+
       console.log("AdminDataProvider: Initializing data loading for admin pages");
-      
+
       // Only fetch if data is not already in store
       if (shareholders.length === 0) {
         console.log("AdminDataProvider: Fetching shareholders data");
         refetchShareholders();
       }
-      
+
       if (transactions.length === 0) {
         console.log("AdminDataProvider: Fetching reservation transactions data");
         refetchTransactions();
@@ -177,7 +177,7 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
         channelRef.current = null;
       }
     };
-  }, [shareholders.length, transactions.length, refetchShareholders, refetchTransactions]);
+  }, [shareholders.length, transactions.length, refetchShareholders, refetchTransactions, updateSacrifice, refetchSacrifices, queryClient]);
 
   return <>{children}</>;
 } 

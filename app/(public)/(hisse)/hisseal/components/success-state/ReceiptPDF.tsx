@@ -1,6 +1,8 @@
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+/* eslint-disable jsx-a11y/alt-text */
+// This file uses react-pdf's Image component which doesn't support alt attributes
+
 import { logoBase64 } from '@/lib/logoBase64';
+import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
 Font.register({
@@ -136,6 +138,7 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
     <Page size="A4" style={styles.page}>
       {/* Logo */}
       <View style={styles.header}>
+        {/* alt attribute not supported by react-pdf's Image component */}
         <Image src={logoBase64} style={styles.logo} />
       </View>
 

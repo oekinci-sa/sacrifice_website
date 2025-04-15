@@ -2,9 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 interface ShareholderSearchProps {
   onSearch: (value: string) => void;
@@ -16,17 +14,17 @@ export function ShareholderSearch({ onSearch }: ShareholderSearchProps) {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
-    
+
     // Format the phone number by removing spaces if it looks like a phone number
     let formattedValue = value;
-    
+
     // Check if the input is likely a phone number (contains more digits than other characters)
     const digits = value.replace(/\D/g, '');
     if (digits.length > 0 && digits.length >= (value.length / 2)) {
       // If it looks like a phone number, remove all spaces
       formattedValue = value.replace(/\s+/g, '');
     }
-    
+
     // Pass the formatted value to the search handler
     onSearch(formattedValue);
   };

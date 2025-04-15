@@ -1,16 +1,15 @@
 "use client";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
+import { ChevronUp } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Ayah from "./components/ayah";
 import Banner from "./components/banner";
 import Faq from "./components/faq";
 import Features from "./components/features";
 import Prices from "./components/prices";
 import Process from "./components/process";
-import Ayah from "./components/ayah";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ChevronUp } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
 
 // Yukarı kaydırma butonu için ayrı bir bileşen - React.memo ile sarmaladık
 const ScrollToTopButton = React.memo(({ onClick }: { onClick: () => void }) => {
@@ -97,8 +96,8 @@ const AnimatedTabTrigger = ({ value, children }: { value: string, children: Reac
   // Tab için animasyon ayarları
   const tabVariants = {
     hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.5,
@@ -150,30 +149,29 @@ function DesktopHome() {
           <TabsList className="flex bg-transparent space-x-8 border-0 shadow-none p-0">
             {isLoaded && (
               <>
-                <AnimatedTabTrigger value="banner-features" 
-                  // İlk tab için daha hızlı görünme
-                  // @ts-ignore - Transition delay on first item
+                <AnimatedTabTrigger value="banner-features"
+                  // @ts-expect-error - Transition delay on first item
                   style={{ transitionDelay: '0.1s' }}
                 >
                   Başlangıç
                 </AnimatedTabTrigger>
-                
+
                 <AnimatedTabTrigger value="prices"
-                  // @ts-ignore - Transition delay on second item
+                  // @ts-expect-error - Transition delay on second item
                   style={{ transitionDelay: '0.2s' }}
                 >
                   Hisse Bedellerimiz
                 </AnimatedTabTrigger>
-                
+
                 <AnimatedTabTrigger value="process"
-                  // @ts-ignore - Transition delay on third item
+                  // @ts-expect-error - Transition delay on third item
                   style={{ transitionDelay: '0.3s' }}
                 >
                   Hisse Alım Sürecimiz
                 </AnimatedTabTrigger>
-                
+
                 <AnimatedTabTrigger value="faq"
-                  // @ts-ignore - Transition delay on fourth item
+                  // @ts-expect-error - Transition delay on fourth item
                   style={{ transitionDelay: '0.4s' }}
                 >
                   Sıkça Sorulan Sorular

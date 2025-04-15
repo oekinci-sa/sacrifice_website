@@ -1,27 +1,27 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { useEffect, useState, useMemo } from "react";
-import { ShareholderSearch } from "./components/shareholder-search";
-import { useGetShareholders } from "@/hooks/useShareholders";
-import { shareholderSchema } from "@/types";
-import { columns } from "./components/columns";
 import { Button } from "@/components/ui/button";
-import { Download, SlidersHorizontal, X } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VisibilityState } from "@tanstack/react-table";
-import { ShareholderFilters } from "./components/shareholder-filters";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetShareholders } from "@/hooks/useShareholders";
+import { shareholderSchema } from "@/types";
+import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
+import { Download, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { columns } from "./components/columns";
+import { ShareholderFilters } from "./components/shareholder-filters";
+import { ShareholderSearch } from "./components/shareholder-search";
 
 export default function TumHissedarlarPage() {
   const [searchTerm, setSearchTerm] = useState("");
   // Default column visibility - hide security_code and notes by default
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+  const [columnVisibility] = useState<VisibilityState>({
     security_code: false,
     notes: false,
   });
@@ -46,39 +46,39 @@ export default function TumHissedarlarPage() {
     security_code: "Güvenlik Kodu",
     notes: "Notlar",
   };
-  
+
   // Get all shareholders without filtering at the database level
   const { data: allShareholders, isLoading, error } = useGetShareholders();
-  
+
   // Filter the data client-side based on search term
   const filteredShareholders = useMemo(() => {
     if (!allShareholders || !searchTerm.trim()) {
       return allShareholders || [];
     }
-    
+
     const lowercasedSearch = searchTerm.toLowerCase();
-    
+
     return allShareholders.filter(shareholder => {
       // Search in shareholder name
       if (shareholder.shareholder_name?.toLowerCase().includes(lowercasedSearch)) {
         return true;
       }
-      
+
       // Search in phone number
       if (shareholder.phone_number?.includes(lowercasedSearch)) {
         return true;
       }
-      
+
       // Search in notes
       if (shareholder.notes?.toLowerCase().includes(lowercasedSearch)) {
         return true;
       }
-      
+
       // Search only in the fields above, not in other columns
       return false;
     });
   }, [allShareholders, searchTerm]);
-  
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
   };
@@ -100,10 +100,10 @@ export default function TumHissedarlarPage() {
   }
 
   // Filters component for the CustomDataTable
-  const FiltersComponent = ({ table, columnFilters, onColumnFiltersChange }: { 
-    table: any, 
-    columnFilters: any,
-    onColumnFiltersChange: (filters: any) => void
+  const FiltersComponent = ({ table, columnFilters, onColumnFiltersChange }: {
+    table: Table<shareholderSchema>,
+    columnFilters: ColumnFiltersState,
+    onColumnFiltersChange: (filters: ColumnFiltersState) => void
   }) => {
     const [isFiltered, setIsFiltered] = useState(false);
 
@@ -124,7 +124,7 @@ export default function TumHissedarlarPage() {
         <div className="flex items-center gap-3">
           {/* Filter components */}
           <ShareholderFilters table={table} />
-          
+
           {/* Columns dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -141,10 +141,10 @@ export default function TumHissedarlarPage() {
               {table
                 .getAllColumns()
                 .filter(
-                  (column: any) =>
+                  (column) =>
                     typeof column.accessorFn !== "undefined" && column.getCanHide()
                 )
-                .map((column: any) => {
+                .map((column) => {
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
@@ -158,7 +158,7 @@ export default function TumHissedarlarPage() {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Reset filters button - after columns button */}
           {isFiltered && (
             <Button
@@ -172,11 +172,11 @@ export default function TumHissedarlarPage() {
             </Button>
           )}
         </div>
-        
+
         {/* Export to Excel button - on the far right */}
         <Button onClick={exportToExcel} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
-          Excel'e Aktar
+          Excel&apos;e Aktar
         </Button>
       </div>
     );
@@ -194,7 +194,7 @@ export default function TumHissedarlarPage() {
       <div className="flex items-center justify-between">
         <ShareholderSearch onSearch={handleSearch} />
       </div>
-      
+
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-8 w-full" />

@@ -1,20 +1,20 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { sacrificeSchema } from "@/types";
-import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { sacrificeSchema } from "@/types";
+import { supabase } from "@/utils/supabaseClient";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ShareSelectDialogProps {
   isOpen: boolean;
@@ -32,46 +32,46 @@ export function ShareSelectDialog({
   isLoading = false,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
-  
+
   // Get sacrifice data from the data store
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
-  
+
   // UI state remains in the component (not moved to store)
   const [selectedShareCount, setSelectedShareCount] = useState(1);
   const [isLocalLoading, setIsLocalLoading] = useState(false);
-  
+
   // Get transaction ID management
   const generateNewTransactionId = useReservationIDStore(state => state.generateNewTransactionId);
-  
+
   // Get the most up-to-date sacrifice information from the store
   const currentSacrifice = sacrifices.find(s => s.sacrifice_id === sacrifice.sacrifice_id) || sacrifice;
   const currentEmptyShare = currentSacrifice.empty_share;
-  
+
   const isButtonLoading = isLoading || isLocalLoading;
 
   // Reset state and fetch fresh data when dialog opens
   useEffect(() => {
     if (isOpen) {
       console.log("Share select dialog opened - Fetching fresh data");
-      
+
       // First fetch when dialog opens
       refetchSacrifices();
-      
+
       // Schedule a second fetch after a short delay to ensure we have the latest data
       const timer = setTimeout(() => {
         console.log("Secondary data refresh in ShareSelectDialog");
         refetchSacrifices();
       }, 300);
-      
+
       // Reset the selected share count to 1 (or max available if less than 1)
       setSelectedShareCount(1);
       setIsLocalLoading(false);
-      
+
       // Generate a new transaction ID when the dialog opens
       generateNewTransactionId();
-      console.log('Generated new transaction ID when dialog opened:', 
+      console.log('Generated new transaction ID when dialog opened:',
         useReservationIDStore.getState().transaction_id);
-        
+
       return () => clearTimeout(timer);
     }
   }, [isOpen, generateNewTransactionId, refetchSacrifices]);
@@ -124,11 +124,11 @@ export function ShareSelectDialog({
 
   const handleContinue = async () => {
     setIsLocalLoading(true);
-    
+
     try {
       // Fetch the latest sacrifice data directly from the server
       const response = await fetch(`/api/get-latest-sacrifice-share?id=${sacrifice.sacrifice_id}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         toast({
@@ -139,7 +139,7 @@ export function ShareSelectDialog({
         setIsLocalLoading(false);
         return;
       }
-      
+
       const latestSacrifice = await response.json();
 
       if (latestSacrifice.empty_share < selectedShareCount) {
@@ -158,7 +158,8 @@ export function ShareSelectDialog({
 
       // Seçilen hisse sayısını ana bileşene ilet
       onSelect(selectedShareCount);
-    } catch (error) {
+    } catch (err) {
+      console.error("Error in handleContinue:", err);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -217,13 +218,13 @@ export function ShareSelectDialog({
                   </Button>
                 ))}
               </div>
-              
+
               <div className="flex items-center justify-between gap-4">
                 <p className="text-xs sm:text-sm text-muted-foreground flex-1">
                   Hissedar bilgilerini girmek için lütfen devam butonuna
                   basınız.
                 </p>
-                <Button 
+                <Button
                   onClick={handleContinue}
                   disabled={isButtonLoading}
                   className="h-8 sm:h-10 text-xs sm:text-sm whitespace-nowrap"

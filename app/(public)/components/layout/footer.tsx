@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import websiteLogoWhite from "@/public/website-logo-white.svg";
-import { useEffect } from "react";
+import Image from "next/image";
 
-import { mediaLinks } from "../../constants";
 import CustomLink from "@/components/common/custom-link";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useEmptyShareCount } from "@/hooks/useEmptyShareCount";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { mediaLinks } from "../../constants";
 
 interface MediaLink {
   href: string;
@@ -16,7 +15,7 @@ interface MediaLink {
 
 const Footer = () => {
   // Use the hook to get empty shares count (sadece real-time güncellemeler için)
-  const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
+  const { data: apiEmptyShares } = useEmptyShareCount();
 
   // Zustand store'dan toplam boş hisse sayısını al - only use sacrifice store
   const { totalEmptyShares } = useSacrificeStore();

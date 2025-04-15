@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import Image from "next/image";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { useEffect, useRef, useState } from 'react';
 
 interface CounterProps {
   from: number;
@@ -51,8 +50,8 @@ const Counter = ({ from, to, duration = 1.5 }: CounterProps) => {
 const AnimatedCounter = () => {
   const sectionVariant = {
     hidden: { opacity: 0, y: 50 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.8,
@@ -64,7 +63,7 @@ const AnimatedCounter = () => {
   return (
     <div className="mb-12 py-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           className="flex flex-wrap justify-center md:justify-between gap-8"
           variants={sectionVariant}
           initial="hidden"
@@ -72,7 +71,7 @@ const AnimatedCounter = () => {
           viewport={{ once: true }}
         >
           {/* 7 Yıl+ Tecrübe */}
-          <motion.div 
+          <motion.div
             className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full sm:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -84,9 +83,9 @@ const AnimatedCounter = () => {
             </p>
             <p className="text-3xl">Tecrübe</p>
           </motion.div>
-          
+
           {/* 1000+ Kurban */}
-          <motion.div 
+          <motion.div
             className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-4 w-full sm:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -98,9 +97,9 @@ const AnimatedCounter = () => {
             </p>
             <p className="text-3xl">Kurban</p>
           </motion.div>
-          
+
           {/* 5000+ Hissedar */}
-          <motion.div 
+          <motion.div
             className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full sm:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}

@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -26,27 +24,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useUser } from "@/hooks/useUsers";
+import { supabase } from "@/utils/supabaseClient";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useSession } from "next-auth/react";
+import * as React from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/utils/supabaseClient";
-import { useSacrifices } from "@/hooks/useSacrifices";
-import { useSession } from "next-auth/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUser } from "@/hooks/useUsers";
 
 // Kesim zamanı için özel input bileşeni
 const TimeInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ onChange, value, ...props }, ref) => {
     const [time, setTime] = useState<string>(value as string || "");
-    
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value.replace(/\D/g, '').substring(0, 4);
       let formattedValue = "";
-      
+
       if (input.length > 2) {
         const hours = input.substring(0, 2);
         const minutes = input.substring(2, 4);
@@ -54,9 +53,9 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<H
       } else {
         formattedValue = input;
       }
-      
+
       setTime(formattedValue);
-      
+
       if (onChange) {
         const event = {
           target: { value: formattedValue }
@@ -64,7 +63,7 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<H
         onChange(event);
       }
     };
-    
+
     return (
       <Input
         ref={ref}
@@ -161,9 +160,8 @@ export function NewSacrificeAnimal() {
       toast({
         variant: "destructive",
         title: "Hata! ❌",
-        description: `Kurbanlık eklenirken bir hata oluştu: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        description: `Kurbanlık eklenirken bir hata oluştu: ${error instanceof Error ? error.message : String(error)
+          }`,
       });
     },
   });

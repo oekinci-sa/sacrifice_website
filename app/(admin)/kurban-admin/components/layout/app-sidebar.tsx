@@ -1,26 +1,23 @@
 "use client"
 
-import * as React from "react"
-import {
-  Home,
-  Users,
-  Wallet,
-  BarChart3,
-  FileSpreadsheet,
-  History,
-  UserCog,
-  LineChart,
-  ChevronDown,
-  ChevronRight,
-  Menu,
-} from "lucide-react"
-import { useSession } from "next-auth/react"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { useSidebarStore } from "@/stores/only-admin-pages/sidebar-store"
 import { UserRole } from "@/types"
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  FileSpreadsheet,
+  History,
+  Home,
+  Menu,
+  UserCog
+} from "lucide-react"
+import { useSession } from "next-auth/react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import * as React from "react"
 
 type NavItem = {
   id: string;
@@ -72,16 +69,15 @@ const navItems: NavItem[] = [
 export function AppSidebar() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const isAdmin = session?.user?.role === "admin"
-  
-  const { 
-    isCollapsed, 
-    toggleCollapsed, 
-    isSubMenuOpen, 
-    toggleSubMenu 
+
+  const {
+    isCollapsed,
+    toggleCollapsed,
+    isSubMenuOpen,
+    toggleSubMenu
   } = useSidebarStore()
 
-  const filteredNavItems = navItems.filter(item => 
+  const filteredNavItems = navItems.filter(item =>
     !item.roles || session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>)
   )
 
@@ -128,7 +124,7 @@ export function AppSidebar() {
             const isActive = pathname === item.url || pathname.startsWith(item.url + "/")
             const hasSubItems = item.items && item.items.length > 0
             const isOpen = isSubMenuOpen(item.id)
-            
+
             return (
               <div key={item.id} className="space-y-1">
                 {/* Main menu item */}
@@ -137,15 +133,15 @@ export function AppSidebar() {
                     href={item.url}
                     className={cn(
                       "flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive 
-                        ? "bg-accent text-accent-foreground" 
+                      isActive
+                        ? "bg-accent text-accent-foreground"
                         : "hover:bg-accent/50 hover:text-accent-foreground"
                     )}
                   >
                     <item.icon className="h-4 w-4" />
                     {!isCollapsed && <span>{item.title}</span>}
                   </Link>
-                  
+
                   {/* Dropdown toggle for submenus */}
                   {!isCollapsed && hasSubItems && (
                     <Button
@@ -162,13 +158,13 @@ export function AppSidebar() {
                     </Button>
                   )}
                 </div>
-                
+
                 {/* Submenu items */}
                 {!isCollapsed && hasSubItems && isOpen && (
                   <div className="ml-6 space-y-1">
                     {item.items?.map((subItem) => {
                       const isSubActive = pathname === subItem.url
-                      
+
                       return (
                         <Link
                           key={subItem.id}

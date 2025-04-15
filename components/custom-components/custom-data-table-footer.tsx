@@ -1,9 +1,6 @@
 "use client"
 
-import * as React from "react"
-import { Table as TableInstance } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -11,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Table as TableInstance } from "@tanstack/react-table"
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
 interface DataTableFooterProps<TData> {
   table: TableInstance<TData>

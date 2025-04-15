@@ -26,23 +26,22 @@ import {
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { sacrificeSchema } from "@/types";
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormView } from "./components/process-state/form-view";
+import { ReservationInfoDialog } from "./components/reservation-info-dialog";
 import { SuccessView } from "./components/success-state/success-view";
 import { columns } from "./components/table-step/columns";
 import { ShareSelectDialog } from "./components/table-step/share-select-dialog";
-import { ReservationInfoDialog } from "./components/reservation-info-dialog";
 
 const TIMEOUT_DURATION = 180; // 15 saniye
 const WARNING_THRESHOLD = 60; // 5 saniye kala uyarı göster
 
 const Page = () => {
   const { toast } = useToast();
-  const router = useRouter();
   const pathname = usePathname();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
@@ -50,10 +49,10 @@ const Page = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [showReservationInfo, setShowReservationInfo] = useState(false);
-  
+
   // Track if we came from a timeout (used for special handling to ensure interactivity)
   const [cameFromTimeout, setCameFromTimeout] = useState(false);
-  
+
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
 
@@ -102,15 +101,13 @@ const Page = () => {
   const {
     data: reservationStatus,
     isLoading: isStatusLoading,
-    error: statusError,
-    refetch: refetchStatus,
   } = useReservationStatus(shouldCheckStatus ? transaction_id : "");
 
   // Combined loading state - Yükleniyor göstergesini ilk yüklenme sırasında göstermeyelim
   // Sadece kullanıcı işlem yaparken (hisse seçimi, rezervasyon vb.) gösterelim
-  const isLoading = 
-    (currentStep !== "selection" && isLoadingSacrifices) || 
-    isStatusLoading || 
+  const isLoading =
+    (currentStep !== "selection" && isLoadingSacrifices) ||
+    isStatusLoading ||
     (currentStep !== "selection" && isRefetching);
 
   // Fetch data when the component mounts or when navigating to this page
@@ -129,7 +126,7 @@ const Page = () => {
     goToStep("selection");
     setCameFromTimeout(true);
     needsRerender.current = true;
-    
+
     // Also refresh data immediately after timeout
     refetchSacrifices();
   }, [resetStore, goToStep, refetchSacrifices]);
@@ -195,13 +192,13 @@ const Page = () => {
     try {
       // TypeScript hatalarını önlemek için daha güvenli bir kontrol yapalım
       const pendingState = createReservation.isPending === true;
-      // @ts-ignore - React Query'nin versiyona göre farklı özellikleri olabilir
+      // @ts-expect-error - React Query v4/v5 property compatibility - isLoading may not exist in all versions
       const loadingState = createReservation.isLoading === true;
-      // @ts-ignore
+      // @ts-expect-error - React Query v4/v5 property compatibility - isFetching may not exist in all versions
       const fetchingState = createReservation.isFetching === true;
-      
+
       const isLoading = pendingState || loadingState || fetchingState || false;
-      
+
       if (isLoading) {
         setIsReservationLoading(true);
       } else {
@@ -221,24 +218,24 @@ const Page = () => {
     // Check if we've returned to the selection step
     if (currentStep === "selection") {
       console.log("Returned to selection step - refreshing data");
-      
+
       // If we came from a timeout, apply special handling to ensure UI responsiveness
       if (cameFromTimeout) {
         console.log("Applying special handling for post-timeout state");
-        
+
         // Immediate data refresh
         refetchSacrifices();
-        
+
         // Apply a delayed second refresh for reliability
         const timeoutId = setTimeout(() => {
           console.log("Executing delayed refresh after timeout");
           refetchSacrifices();
-          
+
           // Force a state update to trigger re-render
           setCameFromTimeout(false);
           needsRerender.current = false;
         }, 300);
-        
+
         return () => clearTimeout(timeoutId);
       } else {
         // Regular refresh for normal navigation
@@ -254,32 +251,32 @@ const Page = () => {
       // For post-timeout case, apply special handling
       if (needsRerender.current) {
         console.log("Applying forced reattachment for event handlers");
-        
+
         // Create a sequence of micro-timeouts to ensure the UI thread gets updated
         const timer1 = setTimeout(() => {
           // Force a small update to help event handlers reattach
           setLastInteractionTime(Date.now());
         }, 100);
-        
+
         const timer2 = setTimeout(() => {
           // Secondary force update
           setTimeLeft(TIMEOUT_DURATION);
         }, 200);
-        
+
         return () => {
           clearTimeout(timer1);
           clearTimeout(timer2);
         };
       }
-      
+
       // Standard handling even without timeout
       const timer = setTimeout(() => {
         console.log("Ensuring UI responsiveness after data load");
       }, 50);
-      
+
       return () => clearTimeout(timer);
     }
-  }, [currentStep, isLoadingSacrifices, isRefetching, sacrifices.length, TIMEOUT_DURATION]);
+  }, [currentStep, isLoadingSacrifices, isRefetching, sacrifices.length]);
 
   // Check if we need to reset the success state due to navigation
   useEffect(() => {
@@ -308,7 +305,7 @@ const Page = () => {
       // Reset warning states
       setShowThreeMinuteWarning(false);
       setShowOneMinuteWarning(false);
-      
+
       // Reset timeout tracking
       setCameFromTimeout(false);
       needsRerender.current = false;
@@ -324,19 +321,19 @@ const Page = () => {
   // Special handler called from the interaction timeout hook
   const handleCustomTimeout = useCallback(async () => {
     console.log("Custom timeout handler triggered");
-    
+
     // First, immediately reset all UI states
     setShowWarning(false);
-    
+
     // Close any open dialogs
     setIsDialogOpen(false);
     setShowReservationInfo(false);
     setShowThreeMinuteWarning(false);
     setShowOneMinuteWarning(false);
-    
+
     // Small delay to ensure UI updates before further processing
     await new Promise(resolve => setTimeout(resolve, 50));
-    
+
     try {
       // Update the reservation status on the server if we have a transaction_id
       if (transaction_id) {
@@ -350,11 +347,11 @@ const Page = () => {
                 },
                 body: JSON.stringify({ transaction_id }),
               });
-              
+
               if (!response.ok) {
                 throw new Error("Failed to timeout reservation");
               }
-              
+
               return await response.json();
             } catch (error) {
               console.error("Error in timeout reservation:", error);
@@ -362,7 +359,7 @@ const Page = () => {
             }
           }
         };
-        
+
         await timeoutReservation.mutateAsync({ transaction_id });
       }
     } catch (error) {
@@ -371,18 +368,18 @@ const Page = () => {
       // Mark that we came from a timeout 
       setCameFromTimeout(true);
       needsRerender.current = true;
-      
+
       // Reset store and navigate to selection step
       resetStore();
       goToStep("selection");
-      
+
       // Show a toast notification
       toast({
         variant: "destructive",
         title: "Oturum Zaman Aşımına Uğradı",
         description: "Uzun süre işlem yapılmadığı için form sıfırlandı.",
       });
-      
+
       // Refresh data
       refetchSacrifices();
     }
@@ -500,7 +497,7 @@ const Page = () => {
     // When the user interacts with a sacrifice, we're definitely no longer in post-timeout state
     setCameFromTimeout(false);
     needsRerender.current = false;
-    
+
     setTempSelectedSacrifice(sacrifice);
     setIsDialogOpen(true);
   };

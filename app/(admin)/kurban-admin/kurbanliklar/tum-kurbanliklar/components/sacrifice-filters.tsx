@@ -16,11 +16,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { sacrificeSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Filter, PlusCircle } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
-import { sacrificeSchema } from "@/types";
+import { Check, PlusCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 // Filter Badge component for mobile
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -250,17 +250,17 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
   useEffect(() => {
     const columnFilters = table.getState().columnFilters;
     const emptyShareFilter = columnFilters.find(f => f.id === "empty_share");
-    
+
     // If empty_share filter is removed, reset the option to show "Hide filled ones"
     if (!emptyShareFilter) {
       setShowHideFullOption(true);
     }
-  }, [table.getState().columnFilters]);
+  }, [table]);
 
   // Generate price options from the data
   const priceOptions = useMemo(() => {
     const prices = new Set<number>();
-    
+
     table.getPreFilteredRowModel().rows.forEach((row) => {
       const price = row.getValue("share_price") as number;
       if (price) prices.add(price);

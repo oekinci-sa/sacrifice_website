@@ -1,17 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
+import { useCompleteReservation } from "@/hooks/useReservations"
+import { useCreateShareholders } from "@/hooks/useShareholders"
+import { useValidateShareholders } from "@/hooks/useValidateShareholders"
+import { cn } from "@/lib/utils"
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore"
 import { sacrificeSchema } from "@/types"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import SecurityCodeDialog from "./security-code-dialog"
 import TermsAgreementDialog from "./terms-agreement-dialog"
-import { useCreateShareholders } from "@/hooks/useShareholders"
-import { useCompleteReservation } from "@/hooks/useReservations"
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore"
-import { cn } from "@/lib/utils"
-import { useToast } from "@/components/ui/use-toast"
-import { useValidateShareholders } from "@/hooks/useValidateShareholders"
 
 type Step = "selection" | "details" | "confirmation"
 
@@ -152,7 +152,7 @@ export default function ShareholderSummary({
       });
 
       // Prepare shareholder data for the API
-      const shareholderDataForApi = shareholders.map((shareholder, index) => {
+      const shareholderDataForApi = shareholders.map((shareholder) => {
         // Clean and format phone number
         const cleanedPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
           .replace(/^90/, '') // Remove leading 90
@@ -210,10 +210,10 @@ export default function ShareholderSummary({
 
     } catch (error) {
       console.error("İşlem sırasında hata oluştu:", error);
-      
+
       // Close dialog on error
       setShowTermsDialog(false);
-      
+
       // Show appropriate error message based on the error type
       if (error instanceof Error) {
         toast({

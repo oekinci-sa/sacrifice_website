@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 
 interface PaymentAnalyticsProps {
@@ -10,27 +9,23 @@ interface PaymentAnalyticsProps {
 export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
   // Toplam hedeflenen tutar
   const totalTargetAmount = shareholders.reduce((sum, shareholder) => sum + shareholder.total_amount, 0);
-  
+
   // Toplanan tutar
   const totalCollectedAmount = shareholders.reduce((sum, shareholder) => sum + shareholder.paid_amount, 0);
-  
-  // Kalan tutar
-  const remainingAmount = totalTargetAmount - totalCollectedAmount;
-  
+
   // Eksik kapora sayısı (paid_amount < 2000)
   const missingDepositCount = shareholders.filter(s => s.paid_amount < 2000).length;
-  
+
   // Eksik ödeme sayısı (paid_amount >= 2000 && paid_amount < total_amount)
-  const missingPaymentCount = shareholders.filter(s => 
+  const missingPaymentCount = shareholders.filter(s =>
     s.paid_amount >= 2000 && s.paid_amount < s.total_amount
   ).length;
-  
+
   // Toplam hissedar sayısı
   const totalShareholderCount = shareholders.length;
-  
+
   // Yüzdelik hesaplamaları
   const collectedPercentage = Math.round((totalCollectedAmount / totalTargetAmount) * 100);
-  const remainingPercentage = Math.round((remainingAmount / totalTargetAmount) * 100);
   const missingDepositPercentage = Math.round((missingDepositCount / totalShareholderCount) * 100);
   const missingPaymentPercentage = Math.round((missingPaymentCount / totalShareholderCount) * 100);
 
@@ -49,8 +44,8 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
-            <div 
-              className="h-full bg-[#D22D2D] rounded-full" 
+            <div
+              className="h-full bg-[#D22D2D] rounded-full"
               style={{ width: `${collectedPercentage}%` }}
             />
           </div>
@@ -69,8 +64,8 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
-            <div 
-              className="h-full bg-[#D22D2D] rounded-full" 
+            <div
+              className="h-full bg-[#D22D2D] rounded-full"
               style={{ width: `${missingDepositPercentage}%` }}
             />
           </div>
@@ -89,8 +84,8 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
-            <div 
-              className="h-full bg-[#F9BC06] rounded-full" 
+            <div
+              className="h-full bg-[#F9BC06] rounded-full"
               style={{ width: `${missingPaymentPercentage}%` }}
             />
           </div>

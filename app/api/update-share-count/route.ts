@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Rezervasyon işlemindeki hisse adedini günceller
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     // İstek gövdesinden gerekli verileri al
     const { transaction_id, share_count, operation } = await request.json();
-    
+
     // Gelen veriyi kontrol et
     if (!transaction_id) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (typeof share_count !== 'number' || share_count < 1) {
       return NextResponse.json(
         { error: "share_count pozitif bir sayı olmalıdır" },
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Önce mevcut rezervasyonu kontrol et
-    const { data: existingReservation, error: fetchError } = await supabaseAdmin
+    const { error: fetchError } = await supabaseAdmin
       .from("reservation_transactions")
       .select("share_count, sacrifice_id")
       .eq("transaction_id", transaction_id)

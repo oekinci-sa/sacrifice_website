@@ -1,15 +1,5 @@
 "use client";
 
-import { ColumnDef, Row } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Pencil, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { shareholderSchema } from "@/types";
-import { useRouter } from "next/navigation";
-import { useDeleteShareholder } from "@/hooks/useShareholders";
-import { useToast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,17 +11,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import MyTooltip from "./my-tooltip";
-import { sortingFunctions } from "@/utils/table-sort-helpers";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { useDeleteShareholder } from "@/hooks/useShareholders";
+import { cn } from "@/lib/utils";
+import { shareholderSchema } from "@/types";
+import { sortingFunctions } from "@/utils/table-sort-helpers";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
+import { Loader2, Pencil, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
@@ -49,10 +47,10 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
           description: "Hissedar başarıyla silindi.",
         });
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         toast({
           title: "Hata",
-          description: error.message,
+          description: error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu",
           variant: "destructive",
         });
       }
@@ -73,9 +71,9 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-100"
           >
             <span className="sr-only">Sil</span>
@@ -91,8 +89,8 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
+            <AlertDialogAction
+              onClick={handleDelete}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -118,9 +116,11 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     sortingFn: sortingFunctions.text,
     cell: ({ row }) => row.getValue("shareholder_name"),
     filterFn: (row, id, value) => {
-      return row.getValue(id)
-        .toLowerCase()
-        .includes((value as string).toLowerCase())
+      const rowValue = row.getValue(id);
+      // Ensure the value is a string before calling toLowerCase
+      return typeof rowValue === 'string'
+        ? rowValue.toLowerCase().includes((value as string).toLowerCase())
+        : false;
     },
   },
   {
@@ -139,10 +139,10 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const phoneRaw = row.getValue("phone_number") as string;
-      const phoneFormatted = phoneRaw.startsWith("+9") 
-        ? `0${phoneRaw.substring(3)}` 
+      const phoneFormatted = phoneRaw.startsWith("+9")
+        ? `0${phoneRaw.substring(3)}`
         : phoneRaw;
-      
+
       return phoneFormatted.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
     },
   },
@@ -152,13 +152,13 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const location = row.getValue("delivery_location");
-      
+
       if (location === "yenimahalle-pazar-yeri") {
         return "Yenimahalle Pazar Yeri";
       } else if (location === "kecioren-otoparki") {
         return "Keçiören Otoparkı";
       }
-      
+
       return "Kesimhane";
     },
   },
@@ -186,13 +186,13 @@ export const columns: ColumnDef<shareholderSchema>[] = [
       const paid = parseFloat(row.original.paid_amount.toString());
       const total = parseFloat(row.original.total_amount.toString());
       const remaining = parseFloat(row.original.remaining_payment.toString());
-      
+
       const ratio = total > 0 ? (paid / total) * 100 : 0;
       const ratioString = ratio.toFixed(0);
-      
+
       let statusText = "";
       let statusColorClass = "";
-      
+
       if (paid < 2000) {
         statusText = "Kapora Bekleniyor";
         statusColorClass = "bg-[#FCEFEF] text-[#D22D2D]";
@@ -203,7 +203,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         statusText = "Tamamlandı";
         statusColorClass = "bg-[#F0FBF1] text-[#39C645]";
       }
-      
+
       // Format currency 
       const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -211,37 +211,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
           maximumFractionDigits: 0
         }).format(amount) + ' TL';
       };
-      
-      // Progress bar display
-      const progressBar = (
-        <div className="flex items-center gap-4">
-          <Progress
-            value={ratio}
-            className="min-w-[100px]"
-            style={{
-              ["--progress-background" as string]: ratio < 50 
-                ? "rgb(220 38 38 / 0.2)" 
-                : ratio < 100 
-                  ? "rgb(202 138 4 / 0.2)" 
-                  : "rgb(22 163 74 / 0.2)",
-              ["--progress-foreground" as string]: ratio < 50 
-                ? "rgb(220 38 38)" 
-                : ratio < 100 
-                  ? "rgb(202 138 4)" 
-                  : "rgb(22 163 74)",
-            } as React.CSSProperties}
-          />
-          <div
-            className={cn(
-              "text-sm tabular-nums w-[50px] text-left",
-              ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-green-600",
-            )}
-          >
-            %{ratioString}
-          </div>
-        </div>
-      );
-      
+
       return (
         <div className="flex justify-center">
           <TooltipProvider>
@@ -306,12 +276,12 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const sacrifice_consent = row.getValue("sacrifice_consent");
-      
+
       return (
         <span className={cn(
           "inline-block rounded-md px-2 py-1 min-w-[80px] text-center",
-          sacrifice_consent 
-            ? "bg-[#F0FBF1] text-[#39C645]" 
+          sacrifice_consent
+            ? "bg-[#F0FBF1] text-[#39C645]"
             : "bg-[#FCEFEF] text-[#D22D2D]"
         )}>
           {sacrifice_consent ? "Alındı" : "Alınmadı"}

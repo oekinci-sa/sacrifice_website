@@ -1,18 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, X } from "lucide-react";
-import { Table } from "@tanstack/react-table";
-import { sacrificeSchema } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState, useRef } from "react";
-import { SacrificeSearch } from "./components/sacrifice-search";
+import { sacrificeSchema } from "@/types";
+import { Table } from "@tanstack/react-table";
+import { SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SacrificeFilters } from "./components/sacrifice-filters";
+import { SacrificeSearch } from "./components/sacrifice-search";
 
 interface ToolbarAndFiltersProps {
   table: Table<sacrificeSchema>;
@@ -40,12 +40,18 @@ export function ToolbarAndFilters({
     resetFilterStateRef.current = resetFn;
   };
 
+  // Memoize the column filters to avoid complex expressions in dependency array
+  const columnFilters = useMemo(() =>
+    table.getState().columnFilters,
+    [table]
+  );
+
   // Check if any filters are active
   useEffect(() => {
-    const hasColumnFilters = table.getState().columnFilters.length > 0;
+    const hasColumnFilters = columnFilters.length > 0;
     const hasGlobalFilter = globalFilter.trim().length > 0;
     setIsFiltered(hasColumnFilters || hasGlobalFilter);
-  }, [table.getState().columnFilters, globalFilter]);
+  }, [columnFilters, globalFilter]);
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -58,7 +64,7 @@ export function ToolbarAndFilters({
     table.resetColumnFilters();
     setGlobalFilter("");
     table.setGlobalFilter("");
-    
+
     // Call the reset function if it exists
     if (resetFilterStateRef.current) {
       resetFilterStateRef.current();
@@ -84,10 +90,10 @@ export function ToolbarAndFilters({
               <X className="h-4 w-4 ml-1" />
             </Button>
           )}
-          
+
           {/* Filter components */}
-          <SacrificeFilters 
-            table={table} 
+          <SacrificeFilters
+            table={table}
             registerResetFunction={registerResetFunction}
           />
 

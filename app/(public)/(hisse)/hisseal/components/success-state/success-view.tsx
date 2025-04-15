@@ -1,31 +1,17 @@
-import { Button } from "@/components/ui/button";
 import { TripleInfo } from "@/app/(public)/components/triple-info";
-import { useRouter } from "next/navigation";
-import { PDFDownloadLink, BlobProvider } from "@react-pdf/renderer";
-import ReceiptPDF from "./ReceiptPDF";
-import { useState, useEffect } from "react";
-import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
-import { useGetShareholdersByTransactionId } from "@/hooks/useShareholders";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetShareholdersByTransactionId } from "@/hooks/useShareholders";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { BlobProvider } from "@react-pdf/renderer";
+import { AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import ReceiptPDF from "./ReceiptPDF";
 
-interface SuccessViewProps {
-  onPdfDownload?: () => void;
-}
-
-// Define proper type for formData items
-interface ShareholderData {
-  name: string;
-  phone: string;
-  delivery_location: string;
-  is_purchaser?: boolean;
-}
-
-export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
+export const SuccessView = () => {
   const router = useRouter();
-  const { formData, selectedSacrifice } = useShareSelectionFlowStore();
   const { transaction_id } = useReservationIDStore();
 
   const [isClient, setIsClient] = useState(false);
@@ -73,14 +59,20 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     return time.split(":").slice(0, 2).join(":");
   };
 
-  // Calculate delivery fee based on location
-  const calculateDeliveryFee = (location: string) => {
-    if (location === "kesimhane") return "0";
-    return "500"; // Other locations have a fee
-  };
-
   // Create receipt data from DB data for each shareholder
-  const createReceiptDataFromDb = (shareholder: any) => {
+  interface ShareholderData {
+    shareholder_name?: string;
+    name?: string;
+    phone_number?: string;
+    phone?: string;
+    delivery_location?: string;
+    sacrifice_consent?: boolean;
+    proxy_status?: string;
+    paid_amount?: number;
+    security_code?: string;
+  }
+
+  const createReceiptDataFromDb = (shareholder: ShareholderData) => {
     const sacrifice = dbData?.sacrifice || {};
     const reservation = dbData?.reservation || {};
 
@@ -95,7 +87,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     const totalAmount = sharePrice + deliveryFee;
 
     // Remaining payment calculation
-    const paidAmount = shareholder.paid_amount;
+    const paidAmount = shareholder.paid_amount || 0;
     const remainingPayment = totalAmount - paidAmount;
 
     const formattedPhoneNumber = formatPhoneNumber(
@@ -199,13 +191,13 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   }, [dbData]);
 
   // Shareholder isim ve telefon bilgilerini göstermek için yardımcı fonksiyon
-  const getShareholderDisplayName = (shareholder: any) => {
+  const getShareholderDisplayName = (shareholder: ShareholderData) => {
     return (
       shareholder.shareholder_name || shareholder.name || "İsimsiz Hissedar"
     );
   };
 
-  const getShareholderDisplayPhone = (shareholder: any) => {
+  const getShareholderDisplayPhone = (shareholder: ShareholderData) => {
     return formatPhoneNumber(
       shareholder.phone_number || shareholder.phone || ""
     );
@@ -255,7 +247,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
                     </h2>
                     <div className="grid gap-3 max-w-xl mx-auto">
                       {dbData.shareholders.map(
-                        (shareholder: any, index: number) => (
+                        (shareholder: ShareholderData, index: number) => (
                           <div
                             key={index}
                             className="border rounded-lg p-3 flex justify-between items-center bg-gray-50"
@@ -276,7 +268,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
                                 />
                               }
                             >
-                              {({ blob, url, loading, error }) => (
+                              {({ blob, loading, error }) => (
                                 <Button
                                   className="flex items-center justify-center gap-1 sm:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 sm:px-4 py-2 sm:py-3 h-auto text-xs sm:text-sm"
                                   onClick={() =>

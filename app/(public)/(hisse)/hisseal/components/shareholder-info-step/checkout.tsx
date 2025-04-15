@@ -10,21 +10,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { sacrificeSchema } from "@/types";
-import { useState, useEffect } from "react";
-import { z } from "zod";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  useUpdateShareCount,
   useCancelReservation,
+  useUpdateShareCount,
 } from "@/hooks/useReservations";
+import { cn } from "@/lib/utils";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import TripleButtons from "../common/triple-buttons";
 import SacrificeInfo from "./sacrifice-info";
 import ShareholderForm from "./shareholder-form";
-import TripleButtons from "../common/triple-buttons";
-import { cn } from "@/lib/utils";
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
@@ -69,16 +68,16 @@ export default function Checkout({
 
   // Get sacrifices data from Zustand store
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
-  
+
   // Get UI state from ShareSelectionFlowStore
-  const { 
-    selectedSacrifice, 
-    formData, 
+  const {
+    selectedSacrifice,
+    formData,
     setFormData,
     resetStore,
     goToStep
   } = useShareSelectionFlowStore();
-  
+
   const currentSacrifice = sacrifices?.find(
     (s) => s.sacrifice_id === selectedSacrifice?.sacrifice_id
   );

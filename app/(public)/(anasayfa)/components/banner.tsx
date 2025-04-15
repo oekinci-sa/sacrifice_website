@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import React from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 
 const Banner = () => {
 
@@ -60,7 +59,7 @@ const Banner = () => {
 
           {/* Açıklama */}
           <p className="md:text-xl text-black/70 font-normal md:leading-loose">
-          İMH Ankara Kurban organizasyonu olarak, Allah'a yakınlaşmak ve O'nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
+            İMH Ankara Kurban organizasyonu olarak, Allah&apos;a yakınlaşmak ve O&apos;nun rızasını kazanmak için yerine getirdiğimiz bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.
           </p>
 
           {/* Buttons */}
@@ -75,7 +74,7 @@ const Banner = () => {
               <Link href="/hissesorgula">Hisse Sorgula</Link>
             </Button>
           </div>
-          
+
           {/* Location information */}
           <div className="flex space-x-4 items-center mt-2">
             <Image

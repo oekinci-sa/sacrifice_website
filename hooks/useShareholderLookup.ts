@@ -14,7 +14,7 @@ export const useShareholderLookup = () => {
   return useMutation<ShareholderLookupResponse, Error, ShareholderLookupParams>({
     mutationFn: async ({ phone, securityCode }: ShareholderLookupParams) => {
       // Format phone for query
-      let formattedPhone = phone.replace(/\D/g, '');
+      const formattedPhone = phone.replace(/\D/g, '');
       
       // Ensure valid parameters
       if (!formattedPhone || !securityCode) {

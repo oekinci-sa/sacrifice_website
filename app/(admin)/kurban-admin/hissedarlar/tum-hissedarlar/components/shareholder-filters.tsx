@@ -7,8 +7,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
-  CommandSeparator,
+  CommandList
 } from "@/components/ui/command";
 import {
   Popover,
@@ -16,11 +15,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
-import { shareholderSchema } from "@/types";
+import { useEffect, useMemo } from "react";
 
 // Filter Badge component for mobile
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -177,7 +176,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
   // Generate sacrifice number options from the data
   const sacrificeOptions = useMemo(() => {
     const sacrificeNos = new Set<string>();
-    
+
     table.getPreFilteredRowModel().rows.forEach((row) => {
       const sacrifice = row.original.sacrifice;
       if (sacrifice?.sacrifice_no) {
@@ -204,7 +203,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
   // Delivery location options
   const deliveryOptions = useMemo(() => {
     const deliveryLocations = new Set<string>();
-    
+
     table.getPreFilteredRowModel().rows.forEach((row) => {
       const location = row.getValue("delivery_location") as string;
       if (location) deliveryLocations.add(location);
@@ -231,10 +230,10 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     if (paymentColumn) {
       paymentColumn.columnDef.filterFn = (row, _id, filterValues) => {
         if (!filterValues.length) return true;
-        
+
         const shareholder = row.original;
         let status = "none";
-        
+
         if (!shareholder.total_amount || !shareholder.paid_amount) {
           status = "none";
         } else if (shareholder.paid_amount >= shareholder.total_amount) {
@@ -244,7 +243,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
         } else {
           status = "deposit";
         }
-        
+
         return filterValues.includes(status);
       };
     }
@@ -256,12 +255,12 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     if (sacrificeColumn) {
       sacrificeColumn.columnDef.filterFn = (row, _id, filterValues) => {
         if (!filterValues.length) return true;
-        
+
         const shareholder = row.original;
         const sacrificeNo = shareholder.sacrifice?.sacrifice_no?.toString();
-        
+
         if (!sacrificeNo) return false;
-        
+
         return filterValues.includes(sacrificeNo);
       };
     }

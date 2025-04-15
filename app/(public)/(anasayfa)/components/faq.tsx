@@ -1,21 +1,20 @@
-import React, { useRef, useState } from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
 } from "@/components/ui/accordion";
+import { useRef, useState } from "react";
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
 
 import { faq_categories } from "../constants";
 
 // Accordion içeriği
 function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categories[0]['items'], categoryId: string }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
 
   const container = {
     hidden: { opacity: 0 },
@@ -52,7 +51,7 @@ function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categori
         <Accordion type="single" collapsible className="w-full -mt-4 px-4 md:mt-0 md:px-0" defaultValue={items[0]?.id}>
           {items.map((faqItem, index) => (
             <motion.div key={faqItem.id} variants={item}>
-              <AccordionItem 
+              <AccordionItem
                 value={faqItem.id}
                 className={`py-2 ${index === items.length - 1 ? 'border-b-0' : 'border-b'}`}
               >
@@ -92,11 +91,10 @@ function DesktopFaqContent() {
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
-            className={`text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${
-              activeCategory === category.id
-                ? "bg-sac-primary text-white"
-                : "bg-black/5 text-black hover:bg-black/10"
-            }`}
+            className={`text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${activeCategory === category.id
+              ? "bg-sac-primary text-white"
+              : "bg-black/5 text-black hover:bg-black/10"
+              }`}
           >
             {category.title}
           </button>
@@ -118,18 +116,18 @@ function MobileFaqContent() {
   // Animation for expandable sections
   const contentAnimation = {
     hidden: { opacity: 0, height: 0, overflow: 'hidden' },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       height: 'auto',
-      transition: { 
+      transition: {
         height: { duration: 0.3 },
         opacity: { duration: 0.3, delay: 0.1 }
       }
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       height: 0,
-      transition: { 
+      transition: {
         height: { duration: 0.3 },
         opacity: { duration: 0.2 }
       }
@@ -142,18 +140,17 @@ function MobileFaqContent() {
         <div key={category.id} className="w-full mb-4">
           <button
             onClick={() => toggleCategory(category.id)}
-            className={`w-full text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${
-              activeCategory === category.id
-                ? "bg-sac-primary text-white"
-                : "bg-black/5 text-black hover:bg-black/10"
-            }`}
+            className={`w-full text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${activeCategory === category.id
+              ? "bg-sac-primary text-white"
+              : "bg-black/5 text-black hover:bg-black/10"
+              }`}
           >
             {category.title}
           </button>
-          
+
           <AnimatePresence>
             {activeCategory === category.id && (
-              <motion.div 
+              <motion.div
                 className="mt-4 overflow-hidden"
                 initial="hidden"
                 animate="visible"
@@ -177,7 +174,7 @@ const Faq = () => {
       <h2 className="font-heading font-bold text-3xl md:hidden text-center">
         Sıkça Sorulan Sorular
       </h2>
-      
+
       {/* Responsive content switching */}
       <div className="block md:hidden">
         <MobileFaqContent />

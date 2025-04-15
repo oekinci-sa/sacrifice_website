@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Check, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { shareholderSchema } from "@/types";
-import { ShareholderDetails } from "../components/shareholder-details";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useGetShareholders, useUpdateShareholder, useDeleteShareholder } from "@/hooks/useShareholders";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import Link from "next/link";
-import { format } from "date-fns";
+import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
 import { useUser } from "@/hooks/useUsers";
+import { shareholderSchema } from "@/types";
+import { format } from "date-fns";
+import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ShareholderDetails } from "../components/shareholder-details";
 
 interface PageProps {
   params: {
@@ -32,10 +32,18 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const { toast } = useToast();
 
   // Add form data state for editing
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<{
+    shareholder_name: string;
+    phone_number: string;
+    delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
+    sacrifice_consent: boolean;
+    paid_amount: number;
+    notes: string;
+    delivery_fee: number;
+  }>({
     shareholder_name: "",
     phone_number: "",
-    delivery_location: "",
+    delivery_location: "kesimhane",
     sacrifice_consent: false,
     paid_amount: 0,
     notes: "",
@@ -54,7 +62,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       const found = shareholders.find(s => s.shareholder_id === params.id);
       if (found) {
         setShareholder(found);
-        
+
         // Initialize edit form data
         setEditFormData({
           shareholder_name: found.shareholder_name,
@@ -91,17 +99,18 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         delivery_fee: shareholder.delivery_fee || 0,
       });
     }
-    
+
     setIsEditing(true);
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number | boolean) => {
     // If delivery_location is changing, update delivery_fee as well
     if (field === 'delivery_location') {
-      const deliveryFee = value !== 'kesimhane' ? 500 : 0;
+      const deliveryLocation = value as "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
+      const deliveryFee = deliveryLocation !== 'kesimhane' ? 500 : 0;
       setEditFormData(prev => ({
         ...prev,
-        [field]: value,
+        delivery_location: deliveryLocation,
         delivery_fee: deliveryFee
       }));
     } else {
@@ -135,11 +144,11 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       last_edited_by: userData.name // Kullanıcı adını ekle
     };
 
-    updateMutation.mutate({ 
-      shareholderId: params.id, 
-      data: updatedData 
+    updateMutation.mutate({
+      shareholderId: params.id,
+      data: updatedData
     }, {
-      onSuccess: (data) => {
+      onSuccess: () => {
         setShareholder(prevState => {
           if (!prevState) return prevState;
           return {
@@ -153,7 +162,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           description: "Hissedar bilgileri güncellendi.",
         });
       },
-      onError: (error) => {
+      onError: () => {
         toast({
           title: "Hata",
           description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
@@ -180,7 +189,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         });
         router.push("/kurban-admin/hissedarlar/tum-hissedarlar");
       },
-      onError: (error) => {
+      onError: () => {
         toast({
           title: "Hata",
           description: "Hissedar silinirken bir hata oluştu.",
@@ -192,7 +201,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-          <div className="space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-12 w-1/2" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
@@ -215,12 +224,12 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Hissedar Ayrıntıları</h1>
-        
+
         {/* Son düzenleyen bilgisi */}
         <div className="text-sm text-muted-foreground">
-          Son düzenleyen: <span className="font-medium">{shareholder.last_modified_by || "Belirtilmemiş"}</span> - {shareholder.last_modified_at ? format(new Date(shareholder.last_modified_at), "dd.MM.yyyy HH:mm") : ""}
+          Son düzenleyen: <span className="font-medium">{shareholder.last_edited_by || "Belirtilmemiş"}</span> - {shareholder.last_edited_time ? format(new Date(shareholder.last_edited_time), "dd.MM.yyyy HH:mm") : ""}
         </div>
-        
+
         <Button asChild>
           <Link href={`/kurban-admin/hissedarlar/duzenle/${shareholder.shareholder_id}`}>
             Düzenle
@@ -232,65 +241,65 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost" 
-            size="icon" 
+            variant="ghost"
+            size="icon"
             onClick={handleBack}
             className="h-10 w-10"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold">Hissedar Ayrıntıları</h1>
-      </div>
+        </div>
 
         {/* Conditional rendering of buttons based on edit state */}
         <div className="flex items-center gap-3">
           {isEditing ? (
             <>
               {/* Save/Cancel buttons when in edit mode */}
-            <Button
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={handleCancel}
               >
                 <X className="h-4 w-4" />
                 İptal
-            </Button>
-            <Button
-                variant="default" 
+              </Button>
+              <Button
+                variant="default"
                 className="gap-2"
                 onClick={handleSave}
-            >
+              >
                 <Check className="h-4 w-4" />
                 Kaydet
-            </Button>
+              </Button>
             </>
           ) : (
             <>
               {/* Edit/Delete buttons when not in edit mode */}
-                  <Button
-                variant="outline" 
-                className="gap-2" 
+              <Button
+                variant="outline"
+                className="gap-2"
                 onClick={handleEdit}
-                  >
+              >
                 <Edit className="h-4 w-4" />
                 Düzenle
-                  </Button>
-                  <Button
-                variant="destructive" 
-                className="gap-2" 
+              </Button>
+              <Button
+                variant="destructive"
+                className="gap-2"
                 onClick={handleDelete}
-                  >
+              >
                 <Trash2 className="h-4 w-4" />
                 Sil
-                  </Button>
+              </Button>
             </>
           )}
         </div>
       </div>
 
       {/* Shareholder Details */}
-      <ShareholderDetails 
-        shareholderInfo={shareholder} 
+      <ShareholderDetails
+        shareholderInfo={shareholder}
         isEditing={isEditing}
         editFormData={editFormData}
         handleChange={handleChange}
@@ -309,7 +318,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

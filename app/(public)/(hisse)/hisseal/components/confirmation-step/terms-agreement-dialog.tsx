@@ -1,18 +1,18 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     Dialog,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
 } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft } from "lucide-react"
+import { useState } from "react"
 
 interface TermsAgreementDialogProps {
     open: boolean
@@ -104,76 +104,76 @@ export default function TermsAgreementDialog({
                             <h3 className="text-base font-semibold text-primary mb-4 text-center">
                                 KURBANLIK HİSSE SÖZLEŞMESİ
                             </h3>
-                            
+
                             <p className="mb-4 text-sm leading-relaxed">
-                                Bu sözleşme, kurban satın alan kişi ("Hissedar") ile kurban satış hizmeti sunan 
-                                şirket ("Şirket") arasında akdedilmiştir.
+                                Bu sözleşme, kurban satın alan kişi (&quot;Hissedar&quot;) ile kurban satış hizmeti sunan
+                                şirket (&quot;Şirket&quot;) arasında akdedilmiştir.
                             </p>
-                            
+
                             <div className="space-y-3">
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">1</div>
-                                    <p className="pt-0.5">Hissedar, şirket tarafından belirlenen kurban bedelini öder ve kurbanın 
-                                    belirtilen hisselerine sahip olur.</p>
+                                    <p className="pt-0.5">Hissedar, şirket tarafından belirlenen kurban bedelini öder ve kurbanın
+                                        belirtilen hisselerine sahip olur.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">2</div>
-                                    <p className="pt-0.5">Şirket, kurbanın teminini, kesimini ve teslimini bu sözleşmede belirtilen 
-                                    şartlara uygun olarak gerçekleştirmeyi taahhüt eder.</p>
+                                    <p className="pt-0.5">Şirket, kurbanın teminini, kesimini ve teslimini bu sözleşmede belirtilen
+                                        şartlara uygun olarak gerçekleştirmeyi taahhüt eder.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">3</div>
                                     <p className="pt-0.5">Hissedar, kurban kesimi için dini vekaleti şirkete verdiğini beyan eder.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">4</div>
                                     <p className="pt-0.5">Şirket, kurbanın İslami usullere uygun olarak kesilmesini sağlayacaktır.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">5</div>
                                     <p className="pt-0.5">Hissedar, kurban etinin teslim şeklini ve adresini belirtmekle yükümlüdür.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">6</div>
                                     <p className="pt-0.5">Kurban eti, kesim sonrası en kısa sürede ve hijyenik koşullarda teslim edilecektir.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">7</div>
                                     <p className="pt-0.5">Mücbir sebeplerden dolayı kurban kesimi veya eti tesliminde gecikmeler olabilir.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">8</div>
                                     <p className="pt-0.5">Bu hizmetle ilgili tüm bilgiler gizli tutulacak ve üçüncü şahıslarla paylaşılmayacaktır.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">9</div>
                                     <p className="pt-0.5">Tüm hisse sahipleri, bu sözleşmeyi kabul ederek kurban hissesine ortak olduklarını beyan ederler.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">10</div>
                                     <p className="pt-0.5">Teslimat adresi değişikliği, kesim günü öncesinde şirkete bildirilmelidir.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">11</div>
                                     <p className="pt-0.5">Şirket, kurbanlık hayvanların İslami usullere uygun bir şekilde kesileceğini taahhüt eder.</p>
                                 </div>
-                                
+
                                 <div className="flex gap-2">
                                     <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">12</div>
                                     <p className="pt-0.5">Ek ücret ödenmesi gereken durumlarda, bu ödeme kesim tarihinden önce yapılmalıdır.</p>
                                 </div>
                             </div>
-                            
+
                             {/* Add extra padding at the bottom for better scrolling experience */}
                             <div className="h-4"></div>
                         </div>

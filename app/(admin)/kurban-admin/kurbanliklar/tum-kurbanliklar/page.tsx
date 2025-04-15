@@ -1,32 +1,31 @@
 "use client";
 
-import * as React from "react";
-import { useMemo, useState } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { columns } from "./components/columns";
-import { shareholderSchema } from "@/types";
-import { ToolbarAndFilters } from "./ToolbarAndFilters";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSacrifices } from "@/hooks/useSacrifices";
 import { useGetShareholders } from "@/hooks/useShareholders";
-import { Skeleton } from "@/components/ui/skeleton";
+import { shareholderSchema } from "@/types";
+import { useMemo, useState } from "react";
+import { columns } from "./components/columns";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
+import { ToolbarAndFilters } from "./ToolbarAndFilters";
 
 export default function TumKurbanliklarPage() {
   // Search and filter state
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [globalFilter] = useState("");
 
   // Fetch sacrifices using React Query
-  const { 
-    data: sacrifices, 
-    isLoading: sacrificesLoading, 
+  const {
+    data: sacrifices,
+    isLoading: sacrificesLoading,
     error: sacrificesError,
   } = useSacrifices();
 
   // Fetch shareholders using React Query
-  const { 
-    data: shareholders, 
-    isLoading: shareholdersLoading, 
-    error: shareholdersError 
+  const {
+    data: shareholders,
+    isLoading: shareholdersLoading,
+    error: shareholdersError
   } = useGetShareholders();
 
   // Combine sacrifices with their shareholders
@@ -52,22 +51,22 @@ export default function TumKurbanliklarPage() {
   // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!globalFilter.trim()) return sacrificesWithShareholders;
-    
+
     const lowerCaseFilter = globalFilter.toLowerCase();
-    
+
     return sacrificesWithShareholders.filter(sacrifice => {
       // Search in sacrifice_no - ensure we convert to string and use lowercase comparison
       const sacrificeNoStr = sacrifice.sacrifice_no?.toString().toLowerCase() || '';
       if (sacrificeNoStr.includes(lowerCaseFilter)) {
         return true;
       }
-      
+
       // Search in notes
-      if (sacrifice.notes && 
-          sacrifice.notes.toLowerCase().includes(lowerCaseFilter)) {
+      if (sacrifice.notes &&
+        sacrifice.notes.toLowerCase().includes(lowerCaseFilter)) {
         return true;
       }
-      
+
       // Search only in the fields above, not in other columns
       return false;
     });
@@ -99,11 +98,11 @@ export default function TumKurbanliklarPage() {
         <h2 className="text-3xl font-bold tracking-tight">Tüm Kurbanlıklar</h2>
         <NewSacrificeAnimal />
       </div>
-      
+
       <p className="text-muted-foreground">
         Sistemde kayıtlı tüm kurbanlıkların listesi
       </p>
-      
+
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-8 w-full" />
@@ -113,11 +112,11 @@ export default function TumKurbanliklarPage() {
           <Skeleton className="h-8 w-full" />
         </div>
       ) : (
-        <CustomDataTable 
-          data={filteredData} 
-          columns={columns} 
+        <CustomDataTable
+          data={filteredData}
+          columns={columns}
           filters={({ table }) => (
-            <ToolbarAndFilters 
+            <ToolbarAndFilters
               table={table}
             />
           )}

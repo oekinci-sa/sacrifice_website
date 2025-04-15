@@ -1,27 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useSacrificeById } from "@/hooks/useSacrifices";
 import { Loading } from "@/components/ui/loading";
 import { NotFound } from "@/components/ui/not-found";
+import { useSacrificeById } from "@/hooks/useSacrifices";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function KurbanlikAyrintilariPage({ params }: { params: { id: string } }) {
   const { data: sacrifice, isLoading } = useSacrificeById(params.id);
-  const { toast } = useToast();
 
   if (isLoading) {
     return <Loading />;
   }
-  
+
   if (!sacrifice) {
     return <NotFound message="Kurbanlık bulunamadı" />;
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -33,14 +30,14 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
           </Button>
           <h1 className="text-2xl font-semibold tracking-tight">Kurbanlık Ayrıntıları</h1>
         </div>
-        
+
         <Button asChild>
           <Link href={`/kurban-admin/kurbanliklar/duzenle/${sacrifice.sacrifice_id}`}>
             Düzenle
           </Link>
         </Button>
       </div>
-      
+
       {/* 3 sütunlu grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-1">
@@ -64,13 +61,13 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
           <p className="font-medium">{sacrifice.share_price ? `${sacrifice.share_price.toLocaleString('tr-TR')} TL` : "-"}</p>
         </div>
       </div>
-      
+
       {/* Notlar */}
       <div className="mt-4 space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Notlar</p>
         <p className="font-medium">{sacrifice.notes || "-"}</p>
       </div>
-      
+
       {/* Sadece son düzenleyen bilgisi */}
       {sacrifice.last_modified_by && (
         <div className="mt-6 pt-4 border-t text-sm text-muted-foreground">

@@ -1,35 +1,45 @@
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { ShareFilters } from "../table-step/ShareFilters";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import Checkout from "../shareholder-info-step/checkout";
-import ShareholderSummary from "../confirmation-step/shareholder-summary";
-import { sacrificeSchema } from "@/types";
-import { supabase } from "@/utils/supabaseClient";
-import ProgressBar from "../common/progress-bar";
-import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Toast } from "@/components/ui/use-toast";
 import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { sacrificeSchema } from "@/types";
+import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import CountdownTimer from '../common/countdown-timer';
+import ProgressBar from "../common/progress-bar";
+import ShareholderSummary from "../confirmation-step/shareholder-summary";
+import Checkout from "../shareholder-info-step/checkout";
+import { ShareFilters } from "../table-step/ShareFilters";
+
+// Define a shareholder type for the form data
+interface ShareholderFormData {
+  shareholder_name: string;
+  phone_number: string;
+  delivery_location: string;
+  delivery_fee: number;
+  sacrifice_consent: boolean;
+}
 
 interface FormViewProps {
   currentStep: string;
   tabValue: string;
   timeLeft: number;
   showWarning: boolean;
-  columns: any[];
-  data: any[];
+  columns: ColumnDef<sacrificeSchema>[];
+  data: sacrificeSchema[];
   selectedSacrifice: sacrificeSchema | null;
-  formData: any[];
+  formData: ShareholderFormData[];
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
-  updateShareCount: any;
-  setFormData: (data: any[]) => void;
+  updateShareCount: (count: number) => void;
+  setFormData: (data: ShareholderFormData[]) => void;
   goToStep: (step: string) => void;
   resetStore: () => void;
   setLastInteractionTime: (time: number) => void;
   setTimeLeft: (time: number) => void;
   handleApprove: () => Promise<void>;
-  toast: any;
+  toast: (props: Toast) => void;
   isLoading?: boolean;
   serverTimeRemaining?: number | null; // Server-based remaining time
 }
@@ -44,66 +54,50 @@ export const FormView = ({
   selectedSacrifice,
   formData,
   onSacrificeSelect,
-  updateShareCount,
   setFormData,
   goToStep,
   resetStore,
   setLastInteractionTime,
   setTimeLeft,
   handleApprove,
-  toast,
   isLoading = false,
   serverTimeRemaining = null
 }: FormViewProps) => {
   const transaction_id = useReservationIDStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
   const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
-  
+
   // Check reservation status directly in component if needed
   const shouldCheckStatus = currentStep === "details" || currentStep === "confirmation";
   const { data: reservationStatus } = useReservationStatus(
     shouldCheckStatus ? transaction_id : ''
   );
-  
+
   // Update local time when server time changes
   useEffect(() => {
     if (reservationStatus?.timeRemaining !== undefined && reservationStatus?.timeRemaining !== null) {
       setLocalTimeRemaining(reservationStatus.timeRemaining);
     }
   }, [reservationStatus?.timeRemaining]);
-  
+
   // Canlı geri sayım için timer
   useEffect(() => {
     if (!shouldCheckStatus) return;
-    
+
     const timer = setInterval(() => {
       setLocalTimeRemaining(prevTime => {
         if (prevTime <= 0) return 0;
         return prevTime - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [shouldCheckStatus]);
-  
-  // Format remaining time for display in HH:MM:SS format
-  const formatRemainingTime = () => {
-    // Always use local time for display
-    const secondsRemaining = localTimeRemaining;
-    
-    if (secondsRemaining <= 0) return "00:00:00";
-    
-    const hours = Math.floor(secondsRemaining / 3600);
-    const minutes = Math.floor((secondsRemaining % 3600) / 60);
-    const seconds = secondsRemaining % 60;
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-  
+
   // Format expiration time
   const formatExpirationTime = () => {
     if (!reservationStatus?.expires_at) return "";
-    
+
     const expiryDate = new Date(reservationStatus.expires_at);
     return expiryDate.toLocaleTimeString('tr-TR', {
       hour: '2-digit',
@@ -116,7 +110,7 @@ export const FormView = ({
     <>
       <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 text-center mt-8">Hisse Al</h1>
       <ProgressBar currentStep={currentStep} />
-      
+
       {/* Süre göstergesi - formun üst kısmında gösteriliyor */}
       {(currentStep === "details" || currentStep === "confirmation") && (
         <CountdownTimer
@@ -162,7 +156,7 @@ export const FormView = ({
             resetStore={resetStore}
             setCurrentStep={goToStep}
             setLastInteractionTime={setLastInteractionTime}
-            onBack={async (shareCount) => {
+            onBack={async () => {
               if (!selectedSacrifice) return;
 
               try {
@@ -190,7 +184,7 @@ export const FormView = ({
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={showWarning} onOpenChange={() => {}}>
+      <AlertDialog open={showWarning} onOpenChange={() => { }}>
         <AlertDialogContent>
           <AlertDialogTitle>Uyarı</AlertDialogTitle>
           <AlertDialogDescription>

@@ -2,10 +2,10 @@
 
 import { sacrificeSchema } from "@/types";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
 
 interface SacrificeInfoProps {
   sacrifice: sacrificeSchema | null;
-  formData: any[];
 }
 
 // Helper function to format time
@@ -17,10 +17,12 @@ const formatTime = (time: string | null) => {
 
 export default function SacrificeInfo({
   sacrifice,
-  formData,
 }: SacrificeInfoProps) {
-  // Get sacrifices from Zustand store instead of React Query
+  // Get sacrifices from Zustand store
   const { sacrifices } = useSacrificeStore();
+  
+  // Get formData from the UI flow store
+  const { formData } = useShareSelectionFlowStore();
 
   // Get the most up-to-date sacrifice information from the store
   const currentSacrifice = sacrifice?.sacrifice_id

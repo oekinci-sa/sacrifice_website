@@ -24,6 +24,7 @@ import TripleButtons from "../common/triple-buttons";
 import { cn } from "@/lib/utils";
 import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
@@ -40,16 +41,9 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-type Step = "selection" | "details" | "confirmation";
-
 interface CheckoutProps {
-  sacrifice: sacrificeSchema | null;
-  formData: FormData[];
-  setFormData: (data: FormData[]) => void;
   onApprove: () => void;
   onBack: (shareCount: number) => void;
-  resetStore: () => void;
-  setCurrentStep: (step: Step) => void;
   setLastInteractionTime: (time: number) => void;
 }
 
@@ -61,12 +55,7 @@ type FormErrors = {
 };
 
 export default function Checkout({
-  sacrifice,
-  formData,
-  setFormData,
   onBack,
-  resetStore,
-  setCurrentStep,
   setLastInteractionTime,
 }: CheckoutProps) {
   const [showBackDialog, setShowBackDialog] = useState(false);
@@ -78,10 +67,20 @@ export default function Checkout({
   const [isAddingShare, setIsAddingShare] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
 
-  // Get sacrifices data from Zustand store instead of useSacrifices hook
+  // Get sacrifices data from Zustand store
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
+  
+  // Get UI state from ShareSelectionFlowStore
+  const { 
+    selectedSacrifice, 
+    formData, 
+    setFormData,
+    resetStore,
+    goToStep
+  } = useShareSelectionFlowStore();
+  
   const currentSacrifice = sacrifices?.find(
-    (s) => s.sacrifice_id === sacrifice?.sacrifice_id
+    (s) => s.sacrifice_id === selectedSacrifice?.sacrifice_id
   );
 
   // Refresh data when the component mounts or when users revisit it
@@ -230,7 +229,7 @@ export default function Checkout({
   const handleAddShareholder = async () => {
     // İşlem zaten devam ediyorsa veya mutation yükleme durumundaysa çık
     if (
-      !sacrifice ||
+      !selectedSacrifice ||
       !currentSacrifice?.empty_share ||
       isAddingShare ||
       updateShareCount.isPending
@@ -281,7 +280,7 @@ export default function Checkout({
       return;
     }
 
-    if (!sacrifice || updateShareCount.isPending) return;
+    if (!selectedSacrifice || updateShareCount.isPending) return;
 
     try {
       // Yeni hisse sayısı
@@ -329,6 +328,8 @@ export default function Checkout({
     } finally {
       setIsCanceling(false);
     }
+    resetStore();
+    goToStep("selection");
   };
 
   const cancelBack = () => {
@@ -344,7 +345,7 @@ export default function Checkout({
   }, [userAction, onBack, formData]);
 
   const handleLastShareAction = async (action: "return" | "stay") => {
-    if (action === "return" && sacrifice) {
+    if (action === "return" && selectedSacrifice) {
       if (isCanceling) return;
 
       try {
@@ -353,7 +354,7 @@ export default function Checkout({
         await cancelReservation.mutateAsync({ transaction_id });
 
         resetStore();
-        setCurrentStep("selection");
+        goToStep("selection");
       } catch (error) {
         console.error("Error handling last share action:", error);
       } finally {
@@ -430,13 +431,13 @@ export default function Checkout({
     }
 
     // Hata yoksa devam et
-    setCurrentStep("confirmation");
+    goToStep("confirmation");
   };
 
   return (
     <div className="space-y-16">
       <div className="w-full">
-        <SacrificeInfo sacrifice={sacrifice} formData={formData} />
+        <SacrificeInfo sacrifice={selectedSacrifice} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto mt-8">

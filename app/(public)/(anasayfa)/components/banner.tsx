@@ -5,7 +5,6 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 const Banner = () => {
-  // Get total empty shares from Zustand store
 
   const container = {
     hidden: { opacity: 0 },

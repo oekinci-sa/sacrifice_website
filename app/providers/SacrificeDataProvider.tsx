@@ -18,7 +18,7 @@ export function SacrificeDataProvider({
   const { toast } = useToast();
   const hasInitialized = useRef(false);
   
-  // Zustand store hooks
+  // Zustand store hooks - only data related methods
   const {
     refetchSacrifices,
     updateSacrifice,

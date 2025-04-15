@@ -11,9 +11,8 @@ export const useSacrifices = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get Zustand store methods and state
-  const { sacrifices, isLoadingSacrifices, totalEmptyShares } =
-    useSacrificeStore();
+  // Get Zustand store methods and state - data only
+  const { sacrifices, isLoadingSacrifices } = useSacrificeStore();
 
   // We're now using React Query as a wrapper around our Zustand store
   // since the data is already being loaded and updated by SacrificeDataProvider

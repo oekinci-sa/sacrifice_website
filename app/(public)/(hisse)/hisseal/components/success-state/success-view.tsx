@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { PDFDownloadLink, BlobProvider } from "@react-pdf/renderer";
 import ReceiptPDF from "./ReceiptPDF";
 import { useState, useEffect } from "react";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
 import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { useGetShareholdersByTransactionId } from "@/hooks/useShareholders";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +25,7 @@ interface ShareholderData {
 
 export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
-  const { formData, selectedSacrifice } = useSacrificeStore();
+  const { formData, selectedSacrifice } = useShareSelectionFlowStore();
   const { transaction_id } = useReservationIDStore();
 
   const [isClient, setIsClient] = useState(false);
@@ -111,6 +111,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
         shareholder.delivery_location || ""
       ),
       sacrifice_consent: shareholder.sacrifice_consent, // Typically this would come from the DB
+      vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
 
       // Hisse ve Ödeme Özeti
       share_price: sharePrice.toString(),

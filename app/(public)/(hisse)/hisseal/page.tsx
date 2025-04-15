@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useSacrificeStore } from "@/stores/useSacrificeStore";
+import { useShareSelectionFlowStore } from "@/stores/useShareSelectionFlowStore";
 import { useReservationIDStore } from "@/stores/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
@@ -60,7 +61,15 @@ const Page = () => {
   const [showThreeMinuteWarning, setShowThreeMinuteWarning] = useState(false);
   const [showOneMinuteWarning, setShowOneMinuteWarning] = useState(false);
 
-  // Zustand stores
+  // Zustand data store for sacrifices
+  const {
+    sacrifices,
+    isLoadingSacrifices,
+    isRefetching,
+    refetchSacrifices
+  } = useSacrificeStore();
+
+  // Zustand UI flow store
   const {
     selectedSacrifice,
     tempSelectedSacrifice,
@@ -69,18 +78,14 @@ const Page = () => {
     tabValue,
     isSuccess,
     hasNavigatedAway,
-    sacrifices,
-    isLoadingSacrifices,
-    isRefetching,
     setSelectedSacrifice,
     setTempSelectedSacrifice,
     setFormData,
     goToStep,
     resetStore,
     setSuccess,
-    setHasNavigatedAway,
-    refetchSacrifices
-  } = useSacrificeStore();
+    setHasNavigatedAway
+  } = useShareSelectionFlowStore();
 
   // Reservation store - transaction_id yönetimi
   const { transaction_id, generateNewTransactionId } = useReservationIDStore();
@@ -560,9 +565,6 @@ const Page = () => {
     console.log("PDF indirme işlemi");
   };
 
-  // Use only the Zustand store data - remove the fallback to React Query data
-  const sacrificeData = sacrifices;
-
   // Calculate remaining minutes for display in warnings
   const getRemainingMinutesText = () => {
     if (!reservationStatus || !reservationStatus.timeRemaining) return "";
@@ -582,7 +584,7 @@ const Page = () => {
           timeLeft={timeLeft}
           showWarning={showWarning}
           columns={columns}
-          data={sacrificeData}
+          data={sacrifices}
           selectedSacrifice={selectedSacrifice}
           formData={formData}
           onSacrificeSelect={handleSacrificeSelect}

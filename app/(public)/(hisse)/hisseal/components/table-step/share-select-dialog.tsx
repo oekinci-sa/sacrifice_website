@@ -32,9 +32,15 @@ export function ShareSelectDialog({
   isLoading = false,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
+  
+  // Get sacrifice data from the data store
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
+  
+  // UI state remains in the component (not moved to store)
   const [selectedShareCount, setSelectedShareCount] = useState(1);
   const [isLocalLoading, setIsLocalLoading] = useState(false);
+  
+  // Get transaction ID management
   const generateNewTransactionId = useReservationIDStore(state => state.generateNewTransactionId);
   
   // Get the most up-to-date sacrifice information from the store

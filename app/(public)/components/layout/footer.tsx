@@ -18,7 +18,7 @@ const Footer = () => {
   // Use the hook to get empty shares count (sadece real-time güncellemeler için)
   const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
 
-  // Zustand store'dan toplam boş hisse sayısını al
+  // Zustand store'dan toplam boş hisse sayısını al - only use sacrifice store
   const { totalEmptyShares } = useSacrificeStore();
 
   // Görüntülenecek boş hisse sayısı - Zustand store'u kullan, yoksa API'den gelen veriyi kullan

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { columns } from "./components/columns";
 import { shareholderSchema } from "@/types";
@@ -12,6 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
 
 export default function TumKurbanliklarPage() {
+  // Search and filter state
+  const [globalFilter, setGlobalFilter] = useState("");
+
   // Fetch sacrifices using React Query
   const { 
     data: sacrifices, 
@@ -45,6 +48,30 @@ export default function TumKurbanliklarPage() {
       shareholders: shareholdersByAnimal[sacrifice.sacrifice_id] || []
     }));
   }, [sacrifices, shareholders]);
+
+  // Filter data based on search term
+  const filteredData = useMemo(() => {
+    if (!globalFilter.trim()) return sacrificesWithShareholders;
+    
+    const lowerCaseFilter = globalFilter.toLowerCase();
+    
+    return sacrificesWithShareholders.filter(sacrifice => {
+      // Search in sacrifice_no - ensure we convert to string and use lowercase comparison
+      const sacrificeNoStr = sacrifice.sacrifice_no?.toString().toLowerCase() || '';
+      if (sacrificeNoStr.includes(lowerCaseFilter)) {
+        return true;
+      }
+      
+      // Search in notes
+      if (sacrifice.notes && 
+          sacrifice.notes.toLowerCase().includes(lowerCaseFilter)) {
+        return true;
+      }
+      
+      // Search only in the fields above, not in other columns
+      return false;
+    });
+  }, [sacrificesWithShareholders, globalFilter]);
 
   // Show loading state when either data is loading
   const isLoading = sacrificesLoading || shareholdersLoading;
@@ -87,7 +114,7 @@ export default function TumKurbanliklarPage() {
         </div>
       ) : (
         <CustomDataTable 
-          data={sacrificesWithShareholders} 
+          data={filteredData} 
           columns={columns} 
           filters={({ table }) => (
             <ToolbarAndFilters 

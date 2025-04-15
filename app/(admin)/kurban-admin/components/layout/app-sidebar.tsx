@@ -40,42 +40,17 @@ const navItems: NavItem[] = [
     roles: ["admin", "editor"],
   },
   {
-    id: "sacrifices",
+    id: "all-sacrifices",
     title: "Kurbanlıklar",
-    url: "/kurban-admin/kurbanliklar",
-    icon: Wallet,
+    url: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+    icon: FileSpreadsheet,
     roles: ["admin", "editor"],
-    items: [
-      {
-        id: "all-sacrifices",
-        title: "Tüm Kurbanlıklar",
-        url: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
-        icon: FileSpreadsheet,
-        roles: ["admin", "editor"],
-      },
-    ],
   },
   {
-    id: "shareholders",
+    id: "all-shareholders",
     title: "Hissedarlar",
-    url: "/kurban-admin/hissedarlar",
-    icon: Users,
-    roles: ["admin", "editor"],
-    items: [
-      {
-        id: "all-shareholders",
-        title: "Tüm Hissedarlar",
-        url: "/kurban-admin/hissedarlar/tum-hissedarlar",
-        icon: FileSpreadsheet,
-        roles: ["admin", "editor"],
-      },
-    ],
-  },
-  {
-    id: "payment-analysis",
-    title: "Ödeme Analizi",
-    url: "/kurban-admin/odeme-analizi",
-    icon: LineChart,
+    url: "/kurban-admin/hissedarlar/tum-hissedarlar",
+    icon: FileSpreadsheet,
     roles: ["admin", "editor"],
   },
   {

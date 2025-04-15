@@ -1,5 +1,6 @@
 import { Instrument_Sans } from "next/font/google";
 import "@/app/globals.css";
+import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <body className={`${instrumentSans.variable} font-heading`}>
-        {children}
+        <AdminDataProvider>
+          {children}
+        </AdminDataProvider>
       </body>
     </html>
   );

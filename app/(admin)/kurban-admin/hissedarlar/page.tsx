@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CustomStatistics } from "@/components/custom-components/custom-statistics";
+import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { supabase } from "@/utils/supabaseClient";
 
 interface RecentActivity {
@@ -81,7 +81,7 @@ export default function HissedarlarPage() {
     fetchData();
   }, []);
 
-  // Format activities for CustomStatistics
+  // Format activities for StatCardWithProgress
   const formattedActivities = recentActivities.map(activity => ({
     event_id: activity.event_id.toString(),
     changed_at: activity.changed_at,
@@ -100,7 +100,7 @@ export default function HissedarlarPage() {
           Hissedarların genel durumu ve detayları
         </p>
       </div>
-      <CustomStatistics stats={stats} recentActivities={formattedActivities} />
+      <StatCardWithProgress stats={stats} recentActivities={formattedActivities} />
     </div>
   );
 } 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { CustomStatistics } from "@/components/custom-components/custom-statistics";
+import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { CustomTabs } from "@/components/custom-components/custom-tabs";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { overdueDepositsColumns, pendingPaymentsColumns, completedPaymentsColumns } from "./components/columns";
@@ -104,19 +104,19 @@ export default function PaymentAnalysisPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <CustomStatistics
+        <StatCardWithProgress
           title="Toplanan Tutar"
           value={stats.collectedAmount}
           maxValue={stats.totalAmount}
           suffix=" ₺"
         />
-        <CustomStatistics
+        <StatCardWithProgress
           title="Kalan Tutar"
           value={stats.remainingAmount}
           maxValue={stats.totalAmount}
           suffix=" ₺"
         />
-        <CustomStatistics
+        <StatCardWithProgress
           title="Eksik Kapora"
           value={stats.overdueDeposits}
           maxValue={stats.overdueDeposits + stats.pendingPayments + stats.completedPayments}

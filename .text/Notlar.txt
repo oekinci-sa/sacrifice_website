@@ -71,7 +71,7 @@ Component Dizayn
 
 Şimdi search barı sola taşıma ve sağ ise tüm kurbanlıkların olduğu tablodaki gibi checkbox'lar aracılığı ile de filtreleme yapma özelliğini custom-componenets altındaki tabloma eklemek istiyorum. Bir de o an sayfada buluna sütunları gösterme ve gizleme özelliklerini de ekler misin? UI özellikleri olarak da tüm kurbanlıklar sayfasındaki gibi olabilir. Sütunlardaki en sağda bir adet buton yapmışsın yukarı aşağı ok şeklinde ona gerek yok. Sütun adının hemen yanındaki ok yeterli.
 
-Gene lBakış sayfasında card'lar statistics.tsx dosyasından oluşturulmuştu. Bu statistics dosyasını custom-componenets altında custom-statistics.tsx adıyla oluşturup oraya taşıyabilir misin? Ve bu dosyayı 
+Gene lBakış sayfasında card'lar statistics.tsx dosyasından oluşturulmuştu. Bu statistics dosyasını custom-componenets altında stat-card-with-progress.tsx adıyla oluşturup oraya taşıyabilir misin? Ve bu dosyayı 
 
 Ödeme oranı sütunundaki hücrelerin genişliği aynı olmalı. Progess bar sola yaslı ve yüzde ifadesi de sol yaslı olmalı.
 

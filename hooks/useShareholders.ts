@@ -230,14 +230,28 @@ export const useUpdateShareholder = () => {
       shareholderId: string
       data: Partial<shareholderSchema>
     }) => {
-      const { error } = await supabase
-        .from("shareholders")
-        .update(data)
-        .eq("shareholder_id", shareholderId)
+      // Include the shareholderId in the request body as shareholder_id
+      const payload = {
+        ...data,
+        shareholder_id: shareholderId,
+        // Make sure last_edited_by is included if not already in data
+        last_edited_by: data.last_edited_by || 'admin-user'
+      };
 
-      if (error) {
-        throw new Error(error.message)
+      const response = await fetch(`/api/update-shareholder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update shareholder');
       }
+      
+      return response.json();
     },
     onMutate: async (newData) => {
       await queryClient.cancelQueries({ queryKey: ["shareholders"] })

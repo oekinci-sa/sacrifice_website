@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
-import { CustomStatistics } from "@/components/custom-components/custom-statistics";
+import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 
 interface SacrificeStats {
   totalSacrifices: number;
@@ -156,7 +156,7 @@ export function SacrificeStatistics() {
   return (
     <div className="grid gap-16 md:grid-cols-2">
       <div>
-        <CustomStatistics
+        <StatCardWithProgress
           title="Kalan Kurbanlıklar"
           value={stats.totalSacrifices - stats.completedSacrifices}
           maxValue={stats.totalSacrifices}
@@ -165,13 +165,6 @@ export function SacrificeStatistics() {
             text: "Tümünü göster",
             href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
           }}
-        />
-      </div>
-      <div>
-        <CustomStatistics
-          title="Ödemesi Tamamlanan Kurbanlıklar"
-          value={stats.fullyPaidSacrifices}
-          maxValue={stats.activeSacrificesCount}
         />
       </div>
     </div>

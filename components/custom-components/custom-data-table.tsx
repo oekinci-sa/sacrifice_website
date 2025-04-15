@@ -25,6 +25,9 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   meta?: Record<string, unknown>
   pageSizeOptions?: number[]
+  initialState?: {
+    columnVisibility?: VisibilityState
+  }
   filters?: (props: { 
     table: TableInstance<TData>;
     columnFilters: ColumnFiltersState;
@@ -37,6 +40,7 @@ export function CustomDataTable<TData, TValue>({
   data,
   meta,
   pageSizeOptions = [20, 50, 100, 150],
+  initialState,
   filters,
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])
@@ -56,9 +60,9 @@ export function CustomDataTable<TData, TValue>({
   
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    notes: false,
-  })
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
+    initialState?.columnVisibility || { notes: false }
+  )
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: pageSizeOptions[0],

@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/tooltip";
 
 export type ChangeLog = {
-  event_id: string;
+  event_id: number;
   table_name: string;
   row_id: string;
   column_name: string;
-  old_value: string;
-  new_value: string;
+  old_value: string | null;
+  new_value: string | null;
   description: string;
   change_type: "Ekleme" | "Güncelleme" | "Silme";
   changed_at: string;

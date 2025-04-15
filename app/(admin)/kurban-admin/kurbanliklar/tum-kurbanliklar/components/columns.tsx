@@ -326,14 +326,43 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "sacrifice_no",
-    header: "Kurban No",
-    cell: ({ row }) => <div className="text-center">{row.getValue("sacrifice_no")}</div>,
-    size: 200,
-    filterFn: (row, id, value: string[]) => {
-      if (!value?.length) return true;
-      const sacrificeNo = row.getValue(id) as string;
-      return value.includes(sacrificeNo);
+    header: ({ column }) => {
+      return (
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            className="px-0"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Kurban No
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-1 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-1 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      );
     },
+    cell: ({ row }) => (
+      <div className="font-medium">
+        {row.getValue("sacrifice_no")}
+      </div>
+    ),
+    enableSorting: true,
+    filterFn: (row, id, value) => {
+      const rawValue = row.getValue(id) as number;
+      const stringValue = String(rawValue);
+      
+      // Handle both direct value matching and text search
+      if (typeof value === "string") {
+        return stringValue.includes(value);
+      }
+      
+      return false;
+    }
   },
   {
     accessorKey: "sacrifice_time",
@@ -358,54 +387,83 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "share_price",
-    header: "Hisse Bedeli",
-    cell: ({ row }) => {
-      const amount = row.getValue("share_price") as number;
-      const formatted = new Intl.NumberFormat("tr-TR", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(amount) + ' TL';
-      
-      return <div className="text-center">{formatted}</div>;
-    },
-    filterFn: (row, id, value) => {
-      if (!value?.length) return true;
-      const price = row.getValue(id) as number;
-      return value.includes(price.toString());
-    },
-    enableColumnFilter: true,
-    size: 200,
-  },
-  {
-    accessorKey: "empty_share",
-    header: "Boş Hisse",
-    cell: ({ row }) => {
-      const emptyShare = row.getValue("empty_share") as number;
-      
-      if (emptyShare === 0) {
-        return (
-          <div className="flex justify-center py-1">
-            <span className="inline-flex items-center min-w-[100px] bg-[#FCEFEF] text-[#D22D2D] px-4 py-1.5 rounded">
-              <Ban className="h-4 w-4 mr-1.5" />
-              Tükendi
-            </span>
-          </div>
-        );
-      }
-
+    header: ({ column }) => {
       return (
-        <div className="text-center">
-          <span>{emptyShare}</span>
+        <Button
+          variant="ghost"
+          className="px-0"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Hisse Bedeli
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-1 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-1 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-1 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const price = row.getValue("share_price") as number;
+      return (
+        <div>
+          {new Intl.NumberFormat("tr-TR", {
+            style: "currency",
+            currency: "TRY",
+            maximumFractionDigits: 0,
+          }).format(price)}
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      if (!value?.length) return true;
-      const emptyShare = row.getValue(id) as number;
-      return value.includes(emptyShare.toString());
+    enableSorting: true,
+    filterFn: (row, id, filterValues) => {
+      if (!filterValues || filterValues.length === 0) return true;
+
+      const rowValue = row.getValue(id) as number;
+
+      return filterValues.some((filterValue) => {
+        const numericFilterValue = typeof filterValue === "string" 
+          ? parseFloat(filterValue) 
+          : filterValue;
+        return rowValue === numericFilterValue;
+      });
     },
-    enableColumnFilter: true,
-    size: 200,
+  },
+  {
+    accessorKey: "empty_share",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="px-0"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Boş Hisse
+          {column.getIsSorted() === "asc" ? (
+            <ArrowUp className="ml-1 h-4 w-4" />
+          ) : column.getIsSorted() === "desc" ? (
+            <ArrowDown className="ml-1 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-1 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const empty = row.getValue("empty_share") as number;
+      return <div>{empty}</div>;
+    },
+    enableSorting: true,
+    filterFn: (row, id, filterValues) => {
+      if (!filterValues || filterValues.length === 0) return true;
+
+      const rowValue = row.getValue(id) as number;
+      const stringValue = String(rowValue);
+
+      return filterValues.includes(stringValue);
+    },
   },
   {
     accessorKey: "payment_status",

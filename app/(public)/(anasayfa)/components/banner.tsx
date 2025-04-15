@@ -3,11 +3,9 @@ import Link from "next/link";
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useSacrificeStore } from "@/stores/useSacrificeStore";
 
 const Banner = () => {
   // Get total empty shares from Zustand store
-  const { totalEmptyShares } = useSacrificeStore();
 
   const container = {
     hidden: { opacity: 0 },

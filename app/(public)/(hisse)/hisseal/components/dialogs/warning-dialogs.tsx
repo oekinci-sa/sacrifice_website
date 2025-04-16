@@ -19,9 +19,7 @@ interface WarningDialogsProps {
 
 export const WarningDialogs = ({
     showThreeMinuteWarning,
-    setShowThreeMinuteWarning,
     showOneMinuteWarning,
-    setShowOneMinuteWarning,
     handleDismissWarning,
     getRemainingMinutesText,
 }: WarningDialogsProps) => {

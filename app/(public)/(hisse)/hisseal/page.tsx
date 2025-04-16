@@ -210,6 +210,40 @@ const Page = () => {
     toast
   });
 
+  // Add a debug utility to test expire-reservation API (DEV only)
+  // This exposes a method that can be called from the browser console for testing
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    // @ts-ignore - Deliberately adding to window for debugging
+    window.testExpireReservation = (testId?: string) => {
+      const idToUse = testId || transaction_id;
+      console.log('Testing expire-reservation API with ID:', idToUse);
+
+      fetch('/api/expire-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id: idToUse }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('API TEST RESPONSE:', data);
+          toast({
+            title: 'API Test Result',
+            description: `Status: ${data.message || data.error || 'Unknown'}`
+          });
+        })
+        .catch(err => {
+          console.error('API TEST ERROR:', err);
+          toast({
+            variant: 'destructive',
+            title: 'API Test Failed',
+            description: err.message
+          });
+        });
+    };
+  }
+
   return (
     <PageLayout
       // Success state

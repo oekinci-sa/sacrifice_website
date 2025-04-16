@@ -18,7 +18,6 @@ export const SelectionDialogs = ({
     isDialogOpen,
     setIsDialogOpen,
     showReservationInfo,
-    setShowReservationInfo,
     handleShareCountSelect,
     handleReservationInfoClose,
     isReservationLoading,

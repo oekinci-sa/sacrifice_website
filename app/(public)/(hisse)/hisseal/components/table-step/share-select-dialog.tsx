@@ -20,7 +20,7 @@ interface ShareSelectDialogProps {
   isOpen: boolean;
   onClose: () => void;
   sacrifice: sacrificeSchema;
-  onSelect: (shareCount: number, resetLoading: () => void) => void;
+  onSelect: (shareCount: number) => void;
   isLoading?: boolean;
 }
 
@@ -76,10 +76,20 @@ export function ShareSelectDialog({
     }
   }, [isOpen, generateNewTransactionId, refetchSacrifices]);
 
+  // Monitor createReservation status to reset loading state if the handler reset it
+  useEffect(() => {
+    if (!isLoading && isLocalLoading) {
+      // Reset local loading state if parent loading state is reset
+      // This happens when the handler detects a share limit error
+      setIsLocalLoading(false);
+    }
+  }, [isLoading, isLocalLoading]);
+
   useEffect(() => {
     // Reset selected count when dialog is closed
     if (!isOpen) {
       setSelectedShareCount(1);
+      setIsLocalLoading(false); // Also reset loading state when dialog is closed
     }
 
     // Adjust selected count if it's more than available shares
@@ -125,6 +135,11 @@ export function ShareSelectDialog({
   const handleContinue = async () => {
     setIsLocalLoading(true);
 
+    // Safety timeout to ensure button doesn't get stuck in loading state
+    const safetyTimer = setTimeout(() => {
+      setIsLocalLoading(false);
+    }, 5000); // Reset after 5 seconds if still loading
+
     try {
       // Fetch the latest sacrifice data directly from the server
       const response = await fetch(`/api/get-latest-sacrifice-share?id=${sacrifice.sacrifice_id}`);
@@ -137,6 +152,7 @@ export function ShareSelectDialog({
           description: "Kurbanlık bilgileri alınamadı: " + (errorData.error || response.statusText),
         });
         setIsLocalLoading(false);
+        clearTimeout(safetyTimer);
         return;
       }
 
@@ -153,12 +169,13 @@ export function ShareSelectDialog({
         // Update the Zustand store with the latest data
         refetchSacrifices();
         setIsLocalLoading(false);
+        clearTimeout(safetyTimer);
         return;
       }
 
       // Seçilen hisse sayısını ana bileşene ilet
-      // Pass the resetLoading callback as the second parameter
-      onSelect(selectedShareCount, () => setIsLocalLoading(false));
+      onSelect(selectedShareCount);
+      clearTimeout(safetyTimer); // Clear the safety timer
     } catch (err) {
       console.error("Error in handleContinue:", err);
       toast({
@@ -167,6 +184,7 @@ export function ShareSelectDialog({
         description: "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.",
       });
       setIsLocalLoading(false);
+      clearTimeout(safetyTimer);
     }
   };
 

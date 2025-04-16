@@ -66,7 +66,7 @@ export const createHandleShareCountSelect = ({
     createReservation,
     setShowReservationInfo
 }: ShareCountSelectHandlerParams) => {
-    return async (shareCount: number, onValidationError?: () => void) => {
+    return async (shareCount: number) => {
         try {
             // First, check the current number of shareholders for this sacrifice
             if (tempSelectedSacrifice) {
@@ -92,12 +92,13 @@ export const createHandleShareCountSelect = ({
                                 description: `Bu hayvan için şu anda en fazla ${availableShareCount} adet hisse alabilirsiniz.`,
                             });
 
-                            // Call the validation error callback if provided
-                            if (onValidationError) {
-                                onValidationError();
+                            // Don't close the dialog, return early
+                            // We'll notify the ShareSelectDialog to re-enable its button
+                            if (createReservation && typeof createReservation.reset === 'function') {
+                                // Reset any loading state in the API mutation
+                                createReservation.reset();
                             }
 
-                            // Don't close the dialog, return early
                             return;
                         }
                     }
@@ -147,9 +148,9 @@ export const createHandleShareCountSelect = ({
                     "İşlem sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
             });
 
-            // Call the validation error callback to reset loading state if provided
-            if (onValidationError) {
-                onValidationError();
+            // Make sure to reset any loading state if there's an error
+            if (createReservation && typeof createReservation.reset === 'function') {
+                createReservation.reset();
             }
         }
     };

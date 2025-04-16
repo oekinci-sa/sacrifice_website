@@ -1,4 +1,5 @@
 import { ReservationStatus } from "@/hooks/useReservations";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Constants
@@ -35,6 +36,9 @@ export function useReservationAndWarningManager({
     const [showThreeMinuteWarning, setShowThreeMinuteWarning] = useState(false);
     const [showOneMinuteWarning, setShowOneMinuteWarning] = useState(false);
     const [remainingTime, setRemainingTime] = useState<string>("15:00");
+
+    // Track the current transaction ID to ensure it's available when needed
+    const [currentTransactionId, setCurrentTransactionId] = useState<string>("");
 
     // Refs for tracking warning states and animation frame
     const warningShownRef = useRef({
@@ -131,10 +135,55 @@ export function useReservationAndWarningManager({
         if (remainingSeconds > 0) {
             animationFrameRef.current = requestAnimationFrame(updateCountdown);
         } else {
-            // Handle timeout
-            handleTimeoutRedirect();
+            // Expire the reservation in the database
+            if (reservationStatus?.status !== ReservationStatus.EXPIRED && currentTransactionId) {
+                // Log the transaction ID to help with debugging
+                console.log('Expiring reservation with transaction_id:', currentTransactionId);
+
+                // Call the expire-reservation endpoint
+                fetch('/api/expire-reservation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transaction_id: currentTransactionId }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to expire reservation: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Reservation expired successfully:', data);
+                        // Redirect user AFTER the API call succeeds
+                        setTimeout(() => {
+                            handleTimeoutRedirect();
+                        }, 100); // Small delay to ensure DB update is complete
+                    })
+                    .catch(error => {
+                        console.error('Error expiring reservation:', error);
+
+                        // Show a toast notification to the user
+                        toast({
+                            variant: "destructive",
+                            title: "Sistem Hatası",
+                            description: "Rezervasyon durumu güncellenirken bir sorun oluştu. Lütfen sayfayı yenileyiniz."
+                        });
+
+                        // Still redirect the user after showing the error
+                        setTimeout(() => {
+                            handleTimeoutRedirect();
+                        }, 500); // Longer delay to allow user to see the error
+                    });
+            } else {
+                // Handle timeout without API call if no transaction_id or already expired
+                console.log('No API call needed for expiration. Status:', reservationStatus?.status,
+                    'Transaction ID:', currentTransactionId);
+                handleTimeoutRedirect();
+            }
         }
-    }, [reservationStatus?.timeRemaining, formatRemainingTime, handleTimeoutRedirect, showThreeMinuteWarning]);
+    }, [reservationStatus?.timeRemaining, reservationStatus?.status, formatRemainingTime, handleTimeoutRedirect, showThreeMinuteWarning, toast, currentTransactionId]);
 
     // Initialize and clean up countdown timer
     useEffect(() => {
@@ -149,6 +198,11 @@ export function useReservationAndWarningManager({
             // Reset warning flags and times when receiving new reservation status
             warningShownRef.current = { threeMinute: false, oneMinute: false };
             exactWarningTimeRef.current = { threeMinute: 0, oneMinute: 0 };
+
+            // Store the current transaction ID
+            const storeTransactionId = useReservationIDStore.getState().transaction_id;
+            setCurrentTransactionId(storeTransactionId);
+            console.log('Initializing countdown with transaction_id:', storeTransactionId);
 
             animationFrameRef.current = requestAnimationFrame(updateCountdown);
         }
@@ -201,6 +255,22 @@ export function useReservationAndWarningManager({
         }
     }, [createReservation]);
 
+    // A diagnostic test function that can be called to verify the API endpoint
+    const testExpireReservation = useCallback((testTransactionId: string) => {
+        console.log('Running test expire reservation with ID:', testTransactionId);
+
+        fetch('/api/expire-reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transaction_id: testTransactionId }),
+        })
+            .then(response => response.json())
+            .then(data => console.log('TEST RESPONSE:', data))
+            .catch(err => console.error('TEST ERROR:', err));
+    }, []);
+
     return {
         // State variables
         isDialogOpen,
@@ -221,10 +291,13 @@ export function useReservationAndWarningManager({
         showOneMinuteWarning,
         setShowOneMinuteWarning,
         remainingTime,
+        currentTransactionId,
+        setCurrentTransactionId,
 
         // Functions
         getRemainingMinutesText: () => remainingTime,
         handleDismissWarning,
+        testExpireReservation, // For debugging only
 
         // Constants
         TIMEOUT_DURATION,

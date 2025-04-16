@@ -1,4 +1,17 @@
-import { CustomTimeoutHandlerProps } from "@/types/timeout";
+interface CustomTimeoutHandlerProps {
+    resetStore: () => void;
+    goToStep: (step: any) => void;
+    toast: any;
+    refetchSacrifices: () => void;
+    transaction_id: string;
+    setShowWarning: (show: boolean) => void;
+    setIsDialogOpen: (open: boolean) => void;
+    setShowReservationInfo: (show: boolean) => void;
+    setShowThreeMinuteWarning: (show: boolean) => void;
+    setShowOneMinuteWarning: (show: boolean) => void;
+    setCameFromTimeout: (timeout: boolean) => void;
+    needsRerender: React.MutableRefObject<boolean>;
+}
 
 export function createHandleCustomTimeout({
     resetStore,
@@ -29,61 +42,54 @@ export function createHandleCustomTimeout({
         // Small delay to ensure UI updates before further processing
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        // Set timeout flag to trigger special handling in useEffect
-        setCameFromTimeout(true);
-        needsRerender.current = true;
-
         try {
-            // Call the expire-reservation API endpoint to update the DB status
+            // Update the reservation status on the server if we have a transaction_id
             if (transaction_id) {
-                const response = await fetch("/api/expire-reservation", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ transaction_id }),
-                });
+                const timeoutReservation = {
+                    mutateAsync: async ({ transaction_id }: { transaction_id: string }) => {
+                        try {
+                            const response = await fetch("/api/timeout-reservation", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ transaction_id }),
+                            });
 
-                if (!response.ok) {
-                    console.error("Failed to expire reservation:", await response.json());
-                }
+                            if (!response.ok) {
+                                throw new Error("Failed to timeout reservation");
+                            }
+
+                            return await response.json();
+                        } catch (error) {
+                            console.error("Error in timeout reservation:", error);
+                            throw error;
+                        }
+                    }
+                };
+
+                await timeoutReservation.mutateAsync({ transaction_id });
             }
-
-            // Show the timeout toast notification
-            toast({
-                variant: "destructive",
-                title: "İşlem Süresi Doldu",
-                description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
-            });
+        } catch (error) {
+            console.error("Error timing out reservation:", error);
+        } finally {
+            // Mark that we came from a timeout 
+            setCameFromTimeout(true);
+            needsRerender.current = true;
 
             // Reset store and navigate to selection step
             resetStore();
             goToStep("selection");
 
-            // Refresh sacrifice data to ensure latest state
-            if (refetchSacrifices) {
-                setTimeout(() => {
-                    refetchSacrifices();
-                }, 300);
-            }
-        } catch (error) {
-            console.error("Error in custom timeout handler:", error);
-
-            // Ensure state is reset even if API call fails
+            // Show a toast notification
             toast({
                 variant: "destructive",
-                title: "İşlem Süresi Doldu",
-                description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
+                title: "Oturum Zaman Aşımına Uğradı",
+                description: "Uzun süre işlem yapılmadığı için form sıfırlandı.",
             });
 
-            resetStore();
-            goToStep("selection");
-
-            if (refetchSacrifices) {
-                setTimeout(() => {
-                    refetchSacrifices();
-                }, 300);
-            }
+            // Refresh data
+            refetchSacrifices();
         }
     };
 } 

@@ -44,7 +44,6 @@ export function usePageEffects({
     isSuccess,
     hasNavigatedAway,
     currentStep,
-    transaction_id,
     setShowThreeMinuteWarning,
     setShowOneMinuteWarning,
     cameFromTimeout,

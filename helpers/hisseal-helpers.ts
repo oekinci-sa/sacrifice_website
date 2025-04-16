@@ -304,6 +304,7 @@ export const useHandleInteractionTimeout = (
   setTimeLeft: (time: number) => void,
   TIMEOUT_DURATION: number,
   WARNING_THRESHOLD: number,
+  toast: any,
   // Yeni parametreler - açık dialog kontrolü için
   openDialogs?: {
     isDialogOpen?: boolean;
@@ -384,9 +385,18 @@ export const useHandleInteractionTimeout = (
           // Eğer transaction_id varsa rezervasyonu zaman aşımına uğrat
           if (transaction_id) {
             try {
-              await timeoutReservation.mutateAsync({
-                transaction_id
+              // Use the expire-reservation endpoint to mark the reservation as expired in the DB
+              const response = await fetch("/api/expire-reservation", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ transaction_id }),
               });
+
+              if (!response.ok) {
+                console.error("Failed to expire reservation:", await response.json());
+              }
 
               // Store'u sıfırla ve selection adımına git
               resetStore();
@@ -427,6 +437,13 @@ export const useHandleInteractionTimeout = (
               }, 100);
             }
           }
+
+          // Show a toast notification about the session timeout
+          toast({
+            variant: "destructive",
+            title: "İşlem Süresi Doldu",
+            description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
+          });
         }
       }
     }, 1000);
@@ -451,7 +468,8 @@ export const useHandleInteractionTimeout = (
     timeoutReservation,
     openDialogs, // Yeni dependency
     refetchSacrifices, // Yeni dependency
-    customTimeoutHandler // Yeni custom handler dependency
+    customTimeoutHandler, // Yeni custom handler dependency
+    toast // Toast dependency added
   ]);
 };
 
@@ -552,6 +570,8 @@ export const handleShareCountSelect = async ({
       });
       return;
     }
+
+    // Note: Shareholder count validation has been moved to the createHandleShareCountSelect handler
 
     console.log('Creating reservation with:', {
       transaction_id,

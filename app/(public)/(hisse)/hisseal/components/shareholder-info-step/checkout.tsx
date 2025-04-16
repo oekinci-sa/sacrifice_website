@@ -32,13 +32,13 @@ interface ExtendedFormData extends StoreFormData {
 
 const formSchema = z.object({
   name: z.string().min(1, "Ad soyad zorunludur"),
-  phone: z.string().refine((val) => {
-    const digitsOnly = val.replace(/\D/g, "");
-    if (val.startsWith("05")) {
+  phone: z.string()
+    .refine(val => val.startsWith("0"), "Telefon numarası 0 ile başlamalıdır")
+    .refine(val => {
+      const digitsOnly = val.replace(/\D/g, "");
       return digitsOnly.length === 11;
-    }
-    return val.startsWith("5") && digitsOnly.length === 10;
-  }, "Lütfen telefon numaranızı kontrol ediniz"),
+    }, "Telefon numarası 11 haneli olmalıdır")
+    .refine(val => val.startsWith("05"), "Telefon numarası 05 ile başlamalıdır"),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
   is_purchaser: z.boolean().optional().default(false),
 });

@@ -1,8 +1,9 @@
 /* eslint-disable jsx-a11y/alt-text */
 // This file uses react-pdf's Image component which doesn't support alt attributes
 
+import { reminders } from '@/app/(public)/(hisse)/constants';
 import { logoBase64 } from '@/lib/logoBase64';
-import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
 Font.register({
@@ -86,8 +87,38 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 3,
   },
+  importantInfoSection: {
+    marginTop: 15,
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 3,
+    borderLeft: '3 solid #4CAF50',
+  },
+  importantInfoTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+  importantInfoItem: {
+    marginBottom: 8,
+  },
+  importantInfoHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 2,
+    color: '#333',
+  },
+  importantInfoText: {
+    fontSize: 10,
+    color: '#555',
+  },
   footer: {
-    marginTop: 30,
+    position: 'absolute',
+    bottom: 40,
+    left: 40,
+    right: 40,
     fontSize: 9,
     color: '#666666',
     borderTopWidth: 1,
@@ -102,7 +133,21 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#666666',
   },
+  websiteLink: {
+    color: '#2563eb',
+    textDecoration: 'underline',
+  },
 });
+
+// Format price with thousand separators
+const formatPrice = (price: string): string => {
+  if (!price) return '';
+
+  const numPrice = parseFloat(price.replace(/[^\d.-]/g, ''));
+  if (isNaN(numPrice)) return price;
+
+  return numPrice.toLocaleString('tr-TR') + ' TL';
+};
 
 // Create Document Component
 interface ReceiptPDFProps {
@@ -169,12 +214,6 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
             <Text style={styles.label}>Teslimat Noktası:</Text>
             <Text style={styles.value}>{data.delivery_location}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Vekalet Durumu:</Text>
-            <Text style={styles.value}>
-              {data.sacrifice_consent ? "Vekalet Verildi" : "Vekalet Verilmedi"}
-            </Text>
-          </View>
         </View>
 
         {/* 3. Hayvana Ait Bilgiler */}
@@ -202,15 +241,15 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
           <Text style={styles.sectionTitle}>Ödeme Bilgileri</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Hisse Fiyatı:</Text>
-            <Text style={styles.value}>{data.share_price} TL</Text>
+            <Text style={styles.value}>{formatPrice(data.share_price)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Teslimat Ücreti:</Text>
-            <Text style={styles.value}>{data.delivery_fee} TL</Text>
+            <Text style={styles.value}>{formatPrice(data.delivery_fee)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Toplam Tutar:</Text>
-            <Text style={styles.value}>{data.total_amount} TL</Text>
+            <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Satın Alma Tarihi:</Text>
@@ -236,12 +275,24 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
 
       {/* Warning - at the bottom */}
       <View style={styles.warning}>
-        <Text style={styles.warningText}>⚠️ Önemli Not:</Text>
+        <Text style={styles.warningText}>⚠️ Önemli Notlar:</Text>
         <Text>
           Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için
           gerekmektedir.{"\n"}
           Lütfen kodunuzu kimse ile paylaşmayınız.
         </Text>
+
+        {/* Add empty line before reminders */}
+        <Text>{"\n"}</Text>
+
+        {/* Render reminders with bullet points */}
+        {reminders.map((reminder, index) => (
+          <View key={index} style={{ marginBottom: 5 }}>
+            <Text>
+              • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\/>/g, ' ')}
+            </Text>
+          </View>
+        ))}
       </View>
 
       {/* 5. Kapanış Mesajı */}
@@ -250,10 +301,14 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
           Bu belge bilgilendirme amaçlıdır. Lütfen bilgilerinizi kontrol ediniz.
         </Text>
         <Text style={styles.footerText}>
-          Detaylı bilgiler için ankarakurban.com.tr adresine göz atınız.
+          Detaylı bilgiler için {' '}
+          <Link src="https://www.ankarakurban.com.tr/" style={styles.websiteLink}>
+            www.ankarakurban.com.tr
+          </Link> {' '}
+          adresine göz atınız.
         </Text>
         <Text style={styles.contact}>
-          Destek: 0552 652 90 00 / 0312 312 44 64{" "}
+          Destek: 0552 652 90 00 / 0312 312 44 64
         </Text>
       </View>
     </Page>

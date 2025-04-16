@@ -76,16 +76,15 @@ export default function SecurityCodeDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg text-center">
+          <DialogTitle className="text-lg md:text-xl text-center">
             Güvenlik Kodu Belirleme
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="space-y-6">
-            <p className="text-xs sm:text-sm text-muted-foreground text-center">
-              Lütfen hisse işleminiz için 6 haneli bir güvenlik kodu belirleyin.
-              Bu kod sizin işleminizin güvenliğini sağlamak için kullanılacaktır.
+            <p className="text-base md:text-lg text-muted-foreground text-center">
+              Lütfen daha sonra hisse sorgulama işleminizi güvenli bir şekilde yapmak için 6 rakamlı bir güvenlik kodu belirleyin.
             </p>
             <div className="flex justify-center">
               <InputOTP

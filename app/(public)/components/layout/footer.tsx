@@ -4,8 +4,7 @@ import websiteLogoWhite from "@/public/website-logo-white.svg";
 import Image from "next/image";
 
 import CustomLink from "@/components/common/custom-link";
-import { useEmptyShareCount } from "@/hooks/useEmptyShareCount";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import { mediaLinks } from "../../constants";
 
 interface MediaLink {
@@ -14,15 +13,6 @@ interface MediaLink {
 }
 
 const Footer = () => {
-  // Use the hook to get empty shares count (sadece real-time güncellemeler için)
-  const { data: apiEmptyShares } = useEmptyShareCount();
-
-  // Zustand store'dan toplam boş hisse sayısını al - only use sacrifice store
-  const { totalEmptyShares } = useSacrificeStore();
-
-  // Görüntülenecek boş hisse sayısı - Zustand store'u kullan, yoksa API'den gelen veriyi kullan
-  const displayEmptyShares = totalEmptyShares || apiEmptyShares || "...";
-
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
       <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-12 md:space-y-0">
@@ -82,9 +72,7 @@ const Footer = () => {
                 <div className="flex items-center flex-wrap">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <span className="bg-sac-red ml-2 text-white text-xs sm:text-xs px-2 py-1 rounded-[2px] whitespace-nowrap">
-                      Son {displayEmptyShares} Hisse
-                    </span>
+                    <EmptySharesBadge />
                   </CustomLink>
                 </div>
                 <CustomLink href="/hissesorgula">Hisse Sorgula</CustomLink>

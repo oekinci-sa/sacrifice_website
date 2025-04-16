@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react'
 import CustomLink from '@/components/common/custom-link';
-  
+import EmptySharesBadge from '@/components/common/empty-shares-badge';
+
 const DesktopNavigation = () => {
 
   return (
@@ -13,8 +13,9 @@ const DesktopNavigation = () => {
       <CustomLink href="/hakkimizda">
         Hakkımızda
       </CustomLink>
-      <CustomLink href="/hisseal">
+      <CustomLink href="/hisseal" className="flex items-center">
         Hisse Al
+        <EmptySharesBadge size="md" />
       </CustomLink>
       <CustomLink href="/hissesorgula">
         Hisse Sorgula

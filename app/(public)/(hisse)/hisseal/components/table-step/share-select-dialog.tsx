@@ -20,7 +20,7 @@ interface ShareSelectDialogProps {
   isOpen: boolean;
   onClose: () => void;
   sacrifice: sacrificeSchema;
-  onSelect: (shareCount: number) => void;
+  onSelect: (shareCount: number, resetLoading: () => void) => void;
   isLoading?: boolean;
 }
 
@@ -157,7 +157,8 @@ export function ShareSelectDialog({
       }
 
       // Seçilen hisse sayısını ana bileşene ilet
-      onSelect(selectedShareCount);
+      // Pass the resetLoading callback as the second parameter
+      onSelect(selectedShareCount, () => setIsLocalLoading(false));
     } catch (err) {
       console.error("Error in handleContinue:", err);
       toast({
@@ -182,7 +183,7 @@ export function ShareSelectDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xl sm:mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-center text-base sm:text-lg">Hisse Adedi Seçimi</DialogTitle>
+          <DialogTitle className="text-center text-base sm:text-xl font-bold">Hisse Adedi Seçimi</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 sm:space-y-8">
           {currentEmptyShare === 0 ? (
@@ -199,12 +200,12 @@ export function ShareSelectDialog({
             </div>
           ) : (
             <>
-              <p className="text-center text-muted-foreground text-xs sm:text-sm">
+              <p className="text-center text-muted-foreground font-medium text-xs md:text-lg">
                 Seçmiş olduğunuz{" "}
-                <span className="text-sac-primary font-medium">
-                  {currentSacrifice.share_price.toLocaleString("tr-TR")} ₺
+                <span className="text-sac-primary font-bold">
+                  {currentSacrifice.share_price.toLocaleString("tr-TR")} TL
                 </span>
-                &apos;lik kurbanlıktan kaç adet hisse almak istersiniz?
+                &apos;lik kurbanlıktan<br />kaç adet hisse almak istersiniz?
               </p>
               <div className="flex flex-wrap gap-2 sm:gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (
@@ -219,19 +220,13 @@ export function ShareSelectDialog({
                 ))}
               </div>
 
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs sm:text-sm text-muted-foreground flex-1">
-                  Hissedar bilgilerini girmek için lütfen devam butonuna
-                  basınız.
-                </p>
-                <Button
-                  onClick={handleContinue}
-                  disabled={isButtonLoading}
-                  className="h-8 sm:h-10 text-xs sm:text-sm whitespace-nowrap"
-                >
-                  {isButtonLoading ? "İşleminiz Yapılıyor..." : "Devam"}
-                </Button>
-              </div>
+              <Button
+                onClick={handleContinue}
+                disabled={isButtonLoading}
+                className="h-8 sm:h-10 text-xs md:text-base whitespace-nowrap mx-auto block"
+              >
+                {isButtonLoading ? "İşleminiz Yapılıyor..." : "Devam"}
+              </Button>
             </>
           )}
         </div>

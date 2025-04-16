@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -19,10 +18,12 @@ const formSchema = z.object({
     .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "İsim sadece harf içerebilir"),
   phone: z
     .string()
-    .regex(
-      /^(05)[0-9][0-9][1-9]([0-9]){6}$/,
-      "Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"
-    ),
+    .refine(val => val.startsWith("0"), "Telefon numarası 0 ile başlamalıdır")
+    .refine(val => {
+      const digitsOnly = val.replace(/\D/g, "");
+      return digitsOnly.length === 11;
+    }, "Telefon numarası 11 haneli olmalıdır")
+    .refine(val => val.startsWith("05"), "Telefon numarası 05 ile başlamalıdır"),
   email: z.string().email("Geçerli bir email adresi giriniz"),
   message: z
     .string()

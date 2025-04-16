@@ -1,7 +1,7 @@
 "use client";
 
-import Logo from "@/components/layout/Header/logo";
 import DesktopNavigation from "@/components/layout/Header/desktop-navigation";
+import Logo from "@/components/layout/Header/logo";
 import MobileNavigation from "@/components/layout/Header/mobile-navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -33,7 +33,9 @@ const Header = () => {
 
           {/* Desktop Button */}
           <Button className="hidden md:flex bg-sac-primary text-white hover:bg-sac-primary/90 text-md">
-            <Link href="/hisseal">Hemen al</Link>
+            <Link href="/hisseal" className="flex items-center">
+              Hemen al
+            </Link>
           </Button>
         </div>
       </div>

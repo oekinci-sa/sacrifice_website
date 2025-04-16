@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,13 +40,16 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
             >
               Hakkımızda
             </Link>
-            <Link 
-              href="/hisseal" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hisseal" ? "text-sac-primary font-medium" : ""}`}
-              onClick={onLinkClick}
-            >
-              Hisse Al
-            </Link>
+            <div className="flex items-center">
+              <Link 
+                href="/hisseal" 
+                className={`p-2 hover:bg-accent text-sm rounded-md transition-colors flex-grow ${pathname === "/hisseal" ? "text-sac-primary font-medium" : ""}`}
+                onClick={onLinkClick}
+              >
+                Hisse Al
+                <EmptySharesBadge size="md" className="ml-1 inline-block" />
+              </Link>
+            </div>
             <Link 
               href="/hissesorgula" 
               className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hissesorgula" ? "text-sac-primary font-medium" : ""}`}

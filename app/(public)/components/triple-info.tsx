@@ -1,9 +1,21 @@
 "use client"
 
-import Image from "next/image"
-import { reminders } from "@/app/(public)/(hisse)/constants"
+import { reminders } from "@/app/(public)/(hisse)/constants";
+import Image from "next/image";
 
 export function TripleInfo() {
+  // Function to process HTML and convert links to open in new tab
+  const processHtml = (html: string) => {
+    // If there's no HTML or no link text, return as is
+    if (!html || !html.includes('ankarakurban.com.tr')) return html;
+
+    // Replace ankarakurban.com.tr with a link that opens in a new tab
+    return html.replace(
+      /ankarakurban\.com\.tr/g,
+      '<a href="https://www.ankarakurban.com.tr/" target="_blank" rel="noopener noreferrer" class="text-sac-primary hover:underline">ankarakurban.com.tr</a>'
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-32 mt-8 md:mt-12">
       {reminders.map((reminder, index) => (
@@ -18,9 +30,9 @@ export function TripleInfo() {
             />
           </div>
           <h3 className="font-semibold text-base md:text-lg">{reminder.header}</h3>
-          <p 
+          <p
             className="text-muted-foreground text-sm md:text-base"
-            dangerouslySetInnerHTML={{ __html: reminder.description }}
+            dangerouslySetInnerHTML={{ __html: processHtml(reminder.description) }}
           />
         </div>
       ))}

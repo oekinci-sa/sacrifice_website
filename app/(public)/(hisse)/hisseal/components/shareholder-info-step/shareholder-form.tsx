@@ -1,8 +1,9 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import {
     Select,
     SelectContent,
@@ -10,9 +11,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Checkbox } from "@/components/ui/checkbox"
+import { X } from "lucide-react"
 
 interface ShareholderFormProps {
     data: {
@@ -38,26 +38,29 @@ interface ShareholderFormProps {
 }
 
 const formatPhoneNumber = (value: string) => {
-    // Sadece rakamları al
+    // Remove non-digits
     const numbers = value.replace(/\D/g, '');
-    
-    // Eğer numara boşsa, boş string döndür
+
+    // If empty, return empty string
     if (!numbers) return '';
 
-    // Başında 0 varsa
-    if (value.startsWith('0')) {
-        if (numbers.length <= 4) return numbers;
-        if (numbers.length <= 7) return `${numbers.slice(0, 4)} ${numbers.slice(4)}`;
-        if (numbers.length <= 9) return `${numbers.slice(0, 4)} ${numbers.slice(4, 7)} ${numbers.slice(7)}`;
-        return `${numbers.slice(0, 4)} ${numbers.slice(4, 7)} ${numbers.slice(7, 9)} ${numbers.slice(9, 11)}`;
+    // If first character is not 0, add it
+    let formattedNumbers = numbers;
+    if (!numbers.startsWith('0')) {
+        formattedNumbers = '0' + numbers;
     }
-    
-    // Başında 0 yoksa
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 6) return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
-    if (numbers.length <= 8) return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6)}`;
-    return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 8)} ${numbers.slice(8, 10)}`;
-}
+
+    // Ensure second character is 5
+    if (formattedNumbers.length >= 2 && formattedNumbers[1] !== '5') {
+        return formattedNumbers.slice(0, 1); // Only keep the first digit
+    }
+
+    // Format the number
+    if (formattedNumbers.length <= 4) return formattedNumbers;
+    if (formattedNumbers.length <= 7) return `${formattedNumbers.slice(0, 4)} ${formattedNumbers.slice(4)}`;
+    if (formattedNumbers.length <= 9) return `${formattedNumbers.slice(0, 4)} ${formattedNumbers.slice(4, 7)} ${formattedNumbers.slice(7)}`;
+    return `${formattedNumbers.slice(0, 4)} ${formattedNumbers.slice(4, 7)} ${formattedNumbers.slice(7, 9)} ${formattedNumbers.slice(9, 11)}`;
+};
 
 export default function ShareholderForm({
     data,
@@ -76,6 +79,27 @@ export default function ShareholderForm({
         onInputChange(index, "phone", formattedValue);
     };
 
+    const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const digitsOnly = value.replace(/\D/g, '');
+
+        if (!value.startsWith('0')) {
+            onInputChange(index, "phone", '0' + value);
+        }
+
+        if (!value.startsWith('05')) {
+            onInputBlur(index, "phone", value);
+            return;
+        }
+
+        if (digitsOnly.length !== 11) {
+            onInputBlur(index, "phone", value);
+            return;
+        }
+
+        onInputBlur(index, "phone", value);
+    };
+
     // Checkbox durumu için hesaplama
     const isCurrentPurchaser = data.is_purchaser === true;
 
@@ -84,15 +108,15 @@ export default function ShareholderForm({
             <div className="space-y-4">
                 {/* İlk satır */}
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
-                    <h3 className="text-base sm:text-lg font-semibold">
+                    <h3 className="text-lg sm:text-xl font-semibold">
                         {index + 1}. Hissedar
                     </h3>
                     <Button
                         variant="ghost"
-                        className="flex items-center justify-center gap-1 sm:gap-2 hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 text-xs sm:text-sm h-8 sm:h-10"
+                        className="flex items-center justify-center gap-1 sm:gap-2 hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 text-lg h-9 sm:h-11"
                         onClick={() => onRemove(index)}
                     >
-                        <X className="h-2 w-2 sm:h-3 sm:w-3" />
+                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>Hisseyi sil</span>
                     </Button>
                 </div>
@@ -100,25 +124,26 @@ export default function ShareholderForm({
                 {/* Formlar */}
                 <div className="space-y-3 sm:space-y-4">
                     <div>
-                        <Label htmlFor={`name-${index}`} className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block">
+                        <Label htmlFor={`name-${index}`} className="text-lg font-semibold mb-1.5 sm:mb-2 block">
                             Ad Soyad
                         </Label>
                         <Input
                             id={`name-${index}`}
+                            placeholder="Ad Soyad"
                             value={data.name}
                             onChange={(e) => onInputChange(index, "name", e.target.value)}
                             onBlur={(e) => onInputBlur(index, "name", e.target.value)}
                             className={cn(
-                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-9 sm:h-11 text-xs sm:text-sm",
+                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 sm:h-12 text-lg placeholder:text-muted-foreground",
                                 errors?.name ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
                         {errors?.name && (
-                            <p className="text-xs sm:text-sm text-destructive mt-1.5 sm:mt-2">{errors.name.join(', ')}</p>
+                            <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.name.join(', ')}</p>
                         )}
                     </div>
                     <div>
-                        <Label htmlFor={`phone-${index}`} className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block">
+                        <Label htmlFor={`phone-${index}`} className="text-lg font-semibold mb-1.5 sm:mb-2 block">
                             Telefon
                         </Label>
                         <Input
@@ -126,18 +151,18 @@ export default function ShareholderForm({
                             placeholder="05XX XXX XX XX"
                             value={data.phone}
                             onChange={handlePhoneChange}
-                            onBlur={(e) => onInputBlur(index, "phone", e.target.value)}
+                            onBlur={handlePhoneBlur}
                             className={cn(
-                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-9 sm:h-11 text-xs sm:text-sm placeholder:text-muted-foreground",
+                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 sm:h-12 text-lg placeholder:text-muted-foreground",
                                 errors?.phone ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
                         {errors?.phone && (
-                            <p className="text-xs sm:text-sm text-destructive mt-1.5 sm:mt-2">{errors.phone.join(', ')}</p>
+                            <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.phone.join(', ')}</p>
                         )}
                     </div>
                     <div>
-                        <Label htmlFor={`delivery-${index}`} className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 block">
+                        <Label htmlFor={`delivery-${index}`} className="text-lg font-semibold mb-1.5 sm:mb-2 block">
                             Teslimat Noktası
                         </Label>
                         <Select
@@ -146,7 +171,7 @@ export default function ShareholderForm({
                         >
                             <SelectTrigger
                                 className={cn(
-                                    "w-full border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-9 sm:h-11 text-xs sm:text-sm",
+                                    "w-full border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 sm:h-12 text-lg",
                                     errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : "",
                                     !data.delivery_location && "text-muted-foreground"
                                 )}
@@ -154,24 +179,24 @@ export default function ShareholderForm({
                                 <SelectValue placeholder="Teslimat noktası seçiniz" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="kesimhane" className="text-xs sm:text-sm">Kesimhanede Teslim</SelectItem>
-                                <SelectItem value="yenimahalle-pazar-yeri" className="text-xs sm:text-sm">Yenimahalle Pazar Yeri (+500₺)</SelectItem>
-                                <SelectItem value="kecioren-otoparki" className="text-xs sm:text-sm">Keçiören Otoparkı (+500₺)</SelectItem>
+                                <SelectItem value="kesimhane" className="text-lg">Kesimhanede Teslim</SelectItem>
+                                <SelectItem value="yenimahalle-pazar-yeri" className="text-lg">Yenimahalle Pazar Yeri (+500₺)</SelectItem>
+                                <SelectItem value="kecioren-otoparki" className="text-lg">Keçiören Otoparkı (+500₺)</SelectItem>
                             </SelectContent>
                         </Select>
                         {errors?.delivery_location && (
-                            <p className="text-xs sm:text-sm text-destructive mt-1.5 sm:mt-2">{errors.delivery_location.join(', ')}</p>
+                            <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.delivery_location.join(', ')}</p>
                         )}
                     </div>
-                    
+
                     {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
                     {totalForms > 1 && (
                         <div className={cn(
                             "flex items-center space-x-2 mt-3 pt-2 sm:pt-3",
                             isOtherPurchaserSelected && !isCurrentPurchaser ? "opacity-70" : ""
                         )}>
-                            <Checkbox 
-                                id={`is-purchaser-${index}`} 
+                            <Checkbox
+                                id={`is-purchaser-${index}`}
                                 checked={isCurrentPurchaser}
                                 onCheckedChange={(checked) => {
                                     // Eğer zaten seçiliyse ve tekrar tıklanırsa, seçimi kaldırabiliriz
@@ -182,20 +207,20 @@ export default function ShareholderForm({
                                     }
                                 }}
                                 className={cn(
-                                    isCurrentPurchaser 
-                                        ? "border-black bg-primary text-primary-foreground shadow-none" 
+                                    isCurrentPurchaser
+                                        ? "border-black bg-primary text-primary-foreground shadow-none"
                                         : "border-gray-400 shadow-none",
                                     "transition-colors duration-200 border"
                                 )}
                             />
-                            <Label 
+                            <Label
                                 htmlFor={`is-purchaser-${index}`}
                                 className={cn(
-                                    "text-xs sm:text-sm cursor-pointer transition-colors duration-200",
-                                    isCurrentPurchaser 
-                                        ? "font-medium" 
-                                        : isOtherPurchaserSelected 
-                                            ? "text-muted-foreground" 
+                                    "text-lg cursor-pointer transition-colors duration-200",
+                                    isCurrentPurchaser
+                                        ? "font-medium"
+                                        : isOtherPurchaserSelected
+                                            ? "text-muted-foreground"
                                             : ""
                                 )}
                             >

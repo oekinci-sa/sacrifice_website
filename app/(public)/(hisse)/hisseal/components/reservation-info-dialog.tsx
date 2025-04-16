@@ -30,7 +30,7 @@ export function ReservationInfoDialog({ isOpen, onClose }: ReservationInfoDialog
           </Alert>
           
           {/* Timeout warning */}
-          <Alert variant="default" className="border-yellow-500 bg-yellow-50">
+          <Alert variant="default" className="border-yellow-500">
             <ClockIcon className="h-4 w-4 text-yellow-500" />
             <AlertTitle>Oturum süresi</AlertTitle>
             <AlertDescription>
@@ -39,11 +39,11 @@ export function ReservationInfoDialog({ isOpen, onClose }: ReservationInfoDialog
           </Alert>
           
           {/* Reservation expiration warning */}
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="bg-white">
             <AlertCircleIcon className="h-4 w-4" />
-            <AlertTitle>Rezervasyon süresi</AlertTitle>
+            <AlertTitle>İşlem süresi</AlertTitle>
             <AlertDescription>
-              Toplam rezervasyon süresi 15 dakikadır. Bu süre içinde formu doldurup 
+              Toplam işlem süresi 15 dakikadır. Bu süre içinde formu doldurup 
               işlemi tamamlamazsanız, rezervasyonunuz otomatik olarak iptal edilecektir.
             </AlertDescription>
           </Alert>

@@ -243,7 +243,7 @@ export default function ShareholderSummary({
             >
               {/* Purchaser badge - only shown for the purchaser */}
               {isPurchaser && shareholders.length > 1 && (
-                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs py-1 px-2 rounded-full">
+                <div className="absolute -top-2 right-4 bg-blue-500 text-white text-[8px] md:text-xs py-1 px-2 rounded-full">
                   İşlemi Gerçekleştiren Kişi
                 </div>
               )}
@@ -262,7 +262,7 @@ export default function ShareholderSummary({
                   <div>
                     <span className="text-[#5b725e] block text-xs md:text-base">Teslimat Tercihi</span>
                     <span className="text-black text-sm md:text-lg">
-                      {shareholder.delivery_location} {shareholder.delivery_location !== "Kesimhane" && "(+750₺)"}
+                      {shareholder.delivery_location}
                     </span>
                   </div>
                 </div>
@@ -274,6 +274,7 @@ export default function ShareholderSummary({
                 </div>
               </div>
 
+              {/* Divider */}
               <div className="my-4 md:my-6 border-t border-dashed border-[#c7ddcd]" />
 
               {/* Alt Bilgiler */}
@@ -299,11 +300,13 @@ export default function ShareholderSummary({
                 </div>
               </div>
 
+              {/* Divider */}
               <div className="my-3 md:my-6 border-t border-dashed border-[#c7ddcd]" />
 
-              <div className="grid grid-cols-2 gap-2 md:gap-4">
-                <span className="text-[#5b725e] text-[10px] md:text-base">Toplam Ücret</span>
-                <span className="text-black text-xs md:text-lg font-medium text-right">
+              {/* Toplam Ücret */}
+              <div className="grid grid-cols-2 gap-2 md:gap-8">
+                <span className="col-span-1 text-[#5b725e] text-[10px] md:text-base">Toplam Ücret</span>
+                <span className="col-span-1 text-black text-xs md:text-lg font-medium">
                   {new Intl.NumberFormat('tr-TR').format(
                     shareholder.delivery_location !== "Kesimhane"
                       ? (sacrifice?.share_price || 0) + 750

@@ -23,7 +23,7 @@ export function CustomDataTableFooter<TData>({
   return (
     <div className="space-y-4">
       {/* Desktop Table Footer */}
-      <div className="hidden sm:flex items-center justify-between">
+      <div className="hidden md:flex items-center justify-between">
         {/* Row Number */}
         <div className="flex items-center gap-2">
           <p className="text-sm text-muted-foreground">Sayfa başına satır</p>
@@ -94,7 +94,7 @@ export function CustomDataTableFooter<TData>({
       </div>
 
       {/* Mobile Table Footer */}
-      <div className="sm:hidden space-y-4">
+      <div className="md:hidden space-y-4">
         {/* Total Rows */}
         <div className="text-center text-xs text-muted-foreground">
           Toplam {table.getFilteredRowModel().rows.length} adet sonuç bulundu.

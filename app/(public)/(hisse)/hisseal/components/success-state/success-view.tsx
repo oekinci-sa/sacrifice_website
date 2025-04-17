@@ -188,124 +188,123 @@ export const SuccessView = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 space-y-16">
-      <div className="flex flex-col items-center justify-center space-y-6">
+    <div className="flex flex-col items-center justify-center py-8 space-y-12 md:space-y-16">
+      {/* Icons + Thanks message */}
+      <div className="flex flex-col items-center justify-center space-y-4">
         {/* Icon */}
         <div className="rounded-full flex items-center justify-center">
           <i className="bi bi-patch-check-fill text-8xl text-sac-primary"></i>
         </div>
         {/* Teşekkürler mesajı */}
-        <div>
-          <h1 className="text-2xl md:text-4xl text-center font-bold mb-2 md:mb-4">
-            Teşekkürler...
-          </h1>
-          <p className="text-muted-foreground text-center text-base md:text-lg">
-            Hisse kaydınız başarıyla oluşturulmuştur.
-          </p>
-
-          {/* Ana butonlar */}
-          <div className="flex justify-center mt-4 md:mt-8">
-            <Button
-              className="flex items-center justify-center gap-1 md:gap-2 bg-black hover:bg-black/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-sm md:text-lg"
-              onClick={() => router.push("/hissesorgula")}
-            >
-              <i className="bi bi-search text-base md:text-xl"></i>
-              Hisse Sorgula
-            </Button>
-          </div>
-
-          {/* Veritabanı durumuna göre içerik gösterimi */}
-          {isClient && (
-            <>
-              {isDbLoading && renderLoadingSkeletons()}
-
-              {isDbError && renderErrorMessage()}
-
-              {/* Veritabanından veriler başarıyla alındıysa hissedar PDF'lerini göster */}
-              {dbData &&
-                dbData.shareholders &&
-                dbData.shareholders.length > 0 && (
-                  <div className="mt-8">
-                    <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
-                      Hissedar Bilgi Dökümanları
-                    </h2>
-                    <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-                      {dbData.shareholders.map(
-                        (shareholder: ShareholderData, index: number) => (
-                          <div
-                            key={index}
-                            className="border p-3 flex justify-between gap-8 items-center bg-gray-50"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {getShareholderDisplayName(shareholder)}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {getShareholderDisplayPhone(shareholder)}
-                              </p>
-                            </div>
-
-                            <BlobProvider
-                              document={
-                                <ReceiptPDF
-                                  data={createReceiptDataFromDb(shareholder)}
-                                />
-                              }
-                            >
-                              {({ blob, loading, error }) => (
-                                <Button
-                                  className="flex items-center justify-center gap-1 md:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
-                                  onClick={() =>
-                                    blob &&
-                                    downloadPdf(
-                                      blob,
-                                      getShareholderDisplayName(shareholder)
-                                    )
-                                  }
-                                  disabled={loading || !!error}
-                                >
-                                  {loading ? (
-                                    "Yükleniyor..."
-                                  ) : error ? (
-                                    "Hata!"
-                                  ) : (
-                                    <>
-                                      <i className="bi bi-cloud-download text-base md:text-xl"></i>
-                                      PDF İndir
-                                    </>
-                                  )}
-                                </Button>
-                              )}
-                            </BlobProvider>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-              {/* Veritabanından veri alınamazsa - Hata mesajı göster ama formData kullanma */}
-              {(!dbData ||
-                !dbData.shareholders ||
-                dbData.shareholders.length === 0) &&
-                !isDbLoading &&
-                !isDbError && (
-                  <Alert
-                    variant="destructive"
-                    className="mt-8 max-w-xl mx-auto"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Veri Bulunamadı</AlertTitle>
-                    <AlertDescription>
-                      Hissedar bilgileri veritabanından alınamadı. Lütfen sistem
-                      yöneticisiyle iletişime geçin.
-                    </AlertDescription>
-                  </Alert>
-                )}
-            </>
-          )}
-        </div>
+        <h1 className="text-2xl md:text-4xl text-center font-bold">
+          Teşekkürler...
+        </h1>
+        <p className="text-muted-foreground text-center text-base md:text-lg">
+          Hisse kaydınız <br className="md:hidden" /> başarıyla oluşturulmuştur.
+        </p>
       </div>
+
+      {/* Ana butonlar */}
+      <div className="flex justify-center mt-4 md:mt-8">
+        <Button
+          className="flex items-center justify-center gap-1 md:gap-2 bg-black hover:bg-black/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-sm md:text-lg"
+          onClick={() => router.push("/hissesorgula")}
+        >
+          <i className="bi bi-search text-base md:text-xl"></i>
+          Hisse Sorgula
+        </Button>
+      </div>
+
+      {/* Veritabanı durumuna göre içerik gösterimi */}
+      {isClient && (
+        <>
+          {isDbLoading && renderLoadingSkeletons()}
+
+          {isDbError && renderErrorMessage()}
+
+          {/* Veritabanından veriler başarıyla alındıysa hissedar PDF'lerini göster */}
+          {dbData &&
+            dbData.shareholders &&
+            dbData.shareholders.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
+                  Hissedar Bilgi Dökümanları
+                </h2>
+                <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+                  {dbData.shareholders.map(
+                    (shareholder: ShareholderData, index: number) => (
+                      <div
+                        key={index}
+                        className="border p-3 flex justify-between gap-8 items-center bg-gray-50"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {getShareholderDisplayName(shareholder)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {getShareholderDisplayPhone(shareholder)}
+                          </p>
+                        </div>
+
+                        <BlobProvider
+                          document={
+                            <ReceiptPDF
+                              data={createReceiptDataFromDb(shareholder)}
+                            />
+                          }
+                        >
+                          {({ blob, loading, error }) => (
+                            <Button
+                              className="flex items-center justify-center gap-1 md:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
+                              onClick={() =>
+                                blob &&
+                                downloadPdf(
+                                  blob,
+                                  getShareholderDisplayName(shareholder)
+                                )
+                              }
+                              disabled={loading || !!error}
+                            >
+                              {loading ? (
+                                "Yükleniyor..."
+                              ) : error ? (
+                                "Hata!"
+                              ) : (
+                                <>
+                                  <i className="bi bi-cloud-download text-base md:text-xl"></i>
+                                  PDF İndir
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </BlobProvider>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+          {/* Veritabanından veri alınamazsa - Hata mesajı göster ama formData kullanma */}
+          {(!dbData ||
+            !dbData.shareholders ||
+            dbData.shareholders.length === 0) &&
+            !isDbLoading &&
+            !isDbError && (
+              <Alert
+                variant="destructive"
+                className="mt-8 max-w-xl mx-auto"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Veri Bulunamadı</AlertTitle>
+                <AlertDescription>
+                  Hissedar bilgileri veritabanından alınamadı. Lütfen sistem
+                  yöneticisiyle iletişime geçin.
+                </AlertDescription>
+              </Alert>
+            )}
+        </>
+      )}
 
       <TripleInfo />
     </div>

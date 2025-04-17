@@ -21,7 +21,7 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
   const stepIndex = getCurrentStepIndex()
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-8 md:my-8">
+    <div className="w-full max-w-5xl mx-auto my-2 md:my-8">
       <div className="relative">
         {/* Steps */}
         <div className="relative flex justify-between md:justify-center md:gap-64">

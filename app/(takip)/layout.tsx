@@ -1,10 +1,5 @@
 import "@/app/globals.css";
-import { Instrument_Sans, Inter } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import { Instrument_Sans } from "next/font/google";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -17,7 +12,7 @@ export default function FollowLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${inter.variable} ${instrumentSans.variable} flex flex-col min-h-screen justify-between`}>
+    <div className={`${instrumentSans.variable} flex flex-col min-h-screen justify-between`}>
       {children}
     </div>
   );

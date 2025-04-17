@@ -17,7 +17,7 @@ export function CustomTableHeader<TData>({ table }: CustomTableHeaderProps<TData
           {headerGroup.headers.map((header) => (
             <TableHead 
               key={header.id} 
-              className="h-12 text-center text-base md:text-lg py-2"
+              className="h-12 text-center text-sm md:text-lg py-2"
             >
               {header.isPlaceholder ? null : (
                 <div className="flex items-center justify-center gap-2">
@@ -26,15 +26,15 @@ export function CustomTableHeader<TData>({ table }: CustomTableHeaderProps<TData
                       {header.column.columnDef.header}
                       {header.column.getCanSort() && (
                         <span 
-                          className="p-1 cursor-pointer rounded hover:bg-muted"
+                          className="-ml-1 md:-ml-0 cursor-pointer rounded hover:bg-muted"
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {header.column.getIsSorted() === "asc" ? (
-                            <ArrowUp className="h-4 w-4" />
+                            <ArrowUp className="h-4 w-4 md:h-5 md:w-5" />
                           ) : header.column.getIsSorted() === "desc" ? (
-                            <ArrowDown className="h-4 w-4" />
+                            <ArrowDown className="h-4 w-4 md:h-5 md:w-5" />
                           ) : (
-                            <ArrowUpDown className="h-4 w-4" />
+                            <ArrowUpDown className="h-4 w-4 md:h-5 md:w-5" />
                           )}
                         </span>
                       )}

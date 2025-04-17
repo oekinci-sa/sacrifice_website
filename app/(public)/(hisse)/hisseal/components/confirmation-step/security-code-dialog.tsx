@@ -76,34 +76,32 @@ export default function SecurityCodeDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="md:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-lg md:text-xl text-center">
+          <DialogTitle className="text-base md:text-lg text-center">
             Güvenlik Kodu Belirleme
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="space-y-6">
-            <p className="text-base md:text-lg text-muted-foreground text-center">
-              Lütfen daha sonra hisse sorgulama işleminizi güvenli bir şekilde yapmak için 6 rakamlı bir güvenlik kodu belirleyin.
-            </p>
-            <div className="flex justify-center">
-              <OTPOriginUI
-                value={securityCode}
-                onChange={handleSecurityCodeChange}
-                maxLength={6}
-              />
-            </div>
-            {error && <p className="text-xs md:text-sm text-destructive text-center">{error}</p>}
-            <div className="flex justify-center">
-              <Button
-                onClick={validateAndSubmit}
-                disabled={isLoading || securityCode.length !== 6}
-                className="w-40 h-10 md:h-12 text-sm"
-              >
-                Onayla
-              </Button>
-            </div>
+        <div className="space-y-4 mb-4">
+          <p className="text-sm md:text-base text-muted-foreground text-center">
+            Lütfen daha sonra hisse sorgulama işleminizi güvenli bir şekilde yapmak için 6 rakamlı bir güvenlik kodu belirleyin.
+          </p>
+          <div className="flex justify-center">
+            <OTPOriginUI
+              value={securityCode}
+              onChange={handleSecurityCodeChange}
+              maxLength={6}
+            />
           </div>
+        </div>
+        {error && <p className="text-xs md:text-sm text-destructive text-center">{error}</p>}
+        <div className="flex justify-center">
+          <Button
+            onClick={validateAndSubmit}
+            disabled={isLoading || securityCode.length !== 6}
+            className="h-8 md:h-10 text-xs md:text-base whitespace-nowrap mx-auto"
+          >
+            Onayla
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

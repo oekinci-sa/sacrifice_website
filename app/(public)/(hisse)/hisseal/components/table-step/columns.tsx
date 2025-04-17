@@ -48,7 +48,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       const share_weight = row.original.share_weight;
 
       return (
-        <div className="text-center text-xs md:text-lg py-0.5 md:py-1 whitespace-nowrap">
+        <div className="text-center text-xs md:text-lg py-0.5 md:py-1">
           {share_weight} kg. -{" "}
           {new Intl.NumberFormat("tr-TR", {
             style: "decimal",

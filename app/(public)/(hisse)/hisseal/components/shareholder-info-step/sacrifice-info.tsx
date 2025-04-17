@@ -51,7 +51,8 @@ export default function SacrificeInfo({
   if (!displaySacrifice) return null;
 
   return (
-    <div className="grid grid-cols-2 md:flex md:items-center md:justify-center px-4 min-w-full whitespace-nowrap gap-4 md:gap-0">
+    <div className="grid grid-cols-2 justify-items-center items-center md:flex md:items-center md:justify-center px-4 min-w-full whitespace-nowrap gap-4 md:gap-0">
+      {/* Kurbanlık Sırası */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-xs md:text-xl">
           Kurbanlık Sırası:
@@ -60,7 +61,11 @@ export default function SacrificeInfo({
           {displaySacrifice.sacrifice_no}
         </span>
       </div>
+
+      {/* Dik çubuk */}
       <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+
+      {/* Kesim Saati */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-xs md:text-xl">
           Kesim Saati:
@@ -69,7 +74,11 @@ export default function SacrificeInfo({
           {formatTime(displaySacrifice.sacrifice_time)}
         </span>
       </div>
+
+      {/* Dik çubuk */}
       <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+
+      {/* Hisse Bedeli */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-xs md:text-xl">
           Hisse Bedeli:
@@ -78,7 +87,11 @@ export default function SacrificeInfo({
           {formatPrice(displaySacrifice.share_price)}
         </span>
       </div>
+
+      {/* Dik çubuk */}
       <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+
+      {/* Kalan Hisse */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-xs md:text-xl">
           Kalan Hisse:

@@ -1,12 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplay } from "@/utils/formatters";
 import { addDays, format } from "date-fns";
-import { Download } from "lucide-react";
 import Image from "next/image";
 import { ProgressBar } from "./ProgressBar";
 
@@ -15,10 +13,6 @@ interface ShareholderDetailsProps {
 }
 
 export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps) {
-  const handleDownloadPDF = () => {
-    // PDF indirme işlemi burada yapılacak
-    console.log("PDF indiriliyor...");
-  };
 
   // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
   const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
@@ -26,16 +20,23 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   const formatSacrificeTime = (timeString: string | null | undefined) => {
     if (!timeString) return "Henüz belirlenmedi";
     try {
+      if (timeString.includes(':') && !timeString.includes('T')) {
+        const [hours, minutes] = timeString.split(':');
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+      }
+
       return format(new Date(timeString), 'HH:mm');
-    } catch {
+    } catch (error) {
+      console.error("Error formatting sacrifice time:", error, timeString);
       return "Henüz belirlenmedi";
     }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-6 md:space-x-12 w-full p-8 gap-8 md:p-12 border border-gray-200 rounded-lg">
+    <div className="grid grid-cols-1 md:grid-cols-[192px_1fr] gap-12 border border-gray-200 rounded-lg p-4 mx-auto md:w-2/3 mb-4">
       {/* Sol Bölüm - Kişisel Bilgiler */}
       <div className="space-y-6 md:space-y-8">
+        {/* Resim + İsim */}
         <div className="flex flex-col items-center text-center">
           <div className="w-16 md:w-20 h-16 md:h-20 flex items-center justify-center">
             <Image
@@ -49,28 +50,29 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
           <h2 className="text-xl md:text-2xl font-semibold">{shareholderInfo.shareholder_name}</h2>
         </div>
 
-        <div className="space-y-8 md:space-y-12">
+        {/* Telefon + Teslimat Tercihi */}
+        <div className="flex flex-row md:flex-col justify-between gap-4 md:gap-12">
           <div className="space-y-1 text-center">
-            <p className="text-slate-600">Telefon</p>
-            <p className="font-medium text-sm md:text-base">{formatPhoneForDisplay(shareholderInfo.phone_number)}</p>
+            <p className="text-xs md:text-lg text-slate-600">Telefon</p>
+            <p className="font-medium text-sm md:text-lg">{formatPhoneForDisplay(shareholderInfo.phone_number)}</p>
           </div>
 
           <div className="space-y-1 text-center">
-            <p className="text-slate-600">Teslimat Tercihi</p>
-            <p className="font-medium text-sm md:text-base">
-              {shareholderInfo.delivery_location === "Ulus" ? "Ulus (+750 TL)" : shareholderInfo.delivery_location}
+            <p className="text-xs md:text-lg text-slate-600">Teslimat Tercihi</p>
+            <p className="font-medium text-sm md:text-lg">
+              {shareholderInfo.delivery_location}
             </p>
           </div>
 
           <div className="space-y-1 text-center">
-            <p className="text-slate-600">Vekalet Durumu</p>
-            <p className="font-medium text-sm md:text-base">{shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}</p>
+            <p className="text-xs md:text-lg text-slate-600">Vekalet Durumu</p>
+            <p className="font-medium text-sm md:text-lg">{shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}</p>
           </div>
         </div>
       </div>
 
       {/* Sağ Bölüm - Kurbanlık ve Ödeme Bilgileri */}
-      <div className="col-span-1 md:col-span-5 space-y-8 md:space-y-12">
+      <div className="space-y-12 md:space-y-12">
         {/* Kurbanlık Bilgileri */}
         <div className="space-y-4">
           <h3 className="text-base md:text-xl font-semibold">Kurbanlık Bilgileri</h3>
@@ -112,13 +114,13 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
         <div className="space-y-4">
           <div className="flex flex-row justify-between items-start md:items-center gap-4 md:gap-0">
             <h3 className="text-base md:text-xl font-semibold">Ödeme Detayları</h3>
-            <Button
+            {/* <Button
               className="w-auto bg-[#f8f8f8] text-black text-sm md:text-base hover:bg-[#e8e8e8] hover:text-black border-[#39C645]"
               onClick={handleDownloadPDF}
             >
               <Download className="h-4 w-4 mr-0 md:mr-2" />
               PDF İndir
-            </Button>
+            </Button> */}
           </div>
           <Separator className="my-2" />
 

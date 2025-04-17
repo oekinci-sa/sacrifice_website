@@ -23,7 +23,7 @@ const formSchema = z.object({
       const digitsOnly = val.replace(/\D/g, "");
       return digitsOnly.length === 11;
     }, "Telefon numarası 11 haneli olmalıdır")
-    .refine(val => val.startsWith("05"), "Telefon numarası 05 ile başlamalıdır"),
+    .refine(val => val.startsWith("05"), "Telefon numarası 05XX ile başlamalıdır"),
   email: z.string().email("Geçerli bir email adresi giriniz"),
   message: z
     .string()

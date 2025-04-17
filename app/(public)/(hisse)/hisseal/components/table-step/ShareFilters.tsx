@@ -390,18 +390,20 @@ export function ShareFilters({
 
       {/* Temizle */}
       {isFiltered && (
-        <Button
-          variant="ghost"
-          onClick={() => {
-            table.resetColumnFilters();
-            onColumnFiltersChange([]);
-            setShowHideFullOption(true);
-          }}
-          className="h-8 px-2 lg:px-3 text-sm md:w-16"
-        >
-          Tüm filtreleri temizle
-          <X className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" />
-        </Button>
+        <div className="flex justify-center md:-mt-4">
+          <Button
+            variant="ghost"
+            onClick={() => {
+              table.resetColumnFilters();
+              onColumnFiltersChange([]);
+              setShowHideFullOption(true);
+            }}
+            className="h-8 px-2 lg:px-3 text-sm"
+          >
+            Tüm filtreleri temizle
+            <X className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" />
+          </Button>
+        </div>
       )}
       <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
         * Tüm tabloyu görmek için sağa kaydırınız.

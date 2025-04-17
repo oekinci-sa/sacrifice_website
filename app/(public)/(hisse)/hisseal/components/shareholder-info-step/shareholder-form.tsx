@@ -71,7 +71,7 @@ export default function ShareholderForm({
         const formattedValue = formatPhoneNumber(e.target.value);
         onInputChange(index, "phone", formattedValue);
     };
-    const deliveryOptions = ["Kesimhane", "Ulus"];
+    const deliveryOptions = ["Kesimhane", "Ulus (+750 TL)"];
     const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const digitsOnly = value.replace(/\D/g, '');
@@ -97,10 +97,10 @@ export default function ShareholderForm({
     const isCurrentPurchaser = data.is_purchaser === true;
 
     return (
-        <div className="space-y-4 rounded-[8px] border border-dashed border-[#c7ddcd] p-4 md:p-6 ">
+        <div className="max-w-3xl p-4 md:p-6 border border-dashed border-[#c7ddcd] rounded-[8px] md:space-y-4 ">
             {/* İlk satır */}
             <div className="flex items-center justify-between mb-2 md:mb-4">
-                <h3 className="text-lg md:text-xl font-semibold">
+                <h3 className="text-sm md:text-xl font-semibold">
                     {index + 1}. Hissedar
                 </h3>
                 <Button
@@ -109,15 +109,16 @@ export default function ShareholderForm({
                     onClick={() => onRemove(index)}
                 >
                     <X className="h-3 w-3 md:h-4 md:w-4" />
-                    <span>Hisseyi sil</span>
+                    <span className="text-sm md:text-base">Hisseyi sil</span>
                 </Button>
             </div>
 
-            {/* Formlar */}
-            <div className="space-y-3 md:space-y-4">
-                <div className="flex gap-4">
+            {/* Inputlar */}
+            <div className="flex flex-col gap-3 md:gap-4">
+                {/* Ad Soyad ve Telefon */}
+                <div className="flex gap-4 justify-between">
                     {/* Ad Soyad */}
-                    <div className="space-y-1.5 md:space-y-2">
+                    <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm md:text-base">
                             Ad Soyad
                         </Label>
@@ -133,11 +134,11 @@ export default function ShareholderForm({
                             )}
                         />
                         {errors?.name && (
-                            <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.name.join(', ')}</p>
+                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.name.join(', ')}</p>
                         )}
                     </div>
                     {/* Telefon */}
-                    <div className="space-y-1.5 md:space-y-2">
+                    <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label htmlFor={`phone-${index}`} className="text-slate-600 text-sm md:text-base">
                             Telefon
                         </Label>
@@ -153,41 +154,50 @@ export default function ShareholderForm({
                             )}
                         />
                         {errors?.phone && (
-                            <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.phone.join(', ')}</p>
+                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.phone.join(', ')}</p>
                         )}
                     </div>
                 </div>
+
                 {/* Teslimat Tercihi */}
-                <div className="space-y-1.5 md:space-y-2">
-                    <Label
-                        htmlFor={`delivery_location-${index}`}
-                        className="text-slate-600 text-sm md:text-base"
-                    >
-                        Teslimat Tercihi
-                    </Label>
+                <div className="flex gap-4 justify-between">
+                    <div className="space-y-1.5 md:space-y-2 w-full">
+                        <Label
+                            htmlFor={`delivery_location-${index}`}
+                            className="text-slate-600 text-sm md:text-base"
+                        >
+                            Teslimat Tercihi
+                        </Label>
 
-                    <div className="flex gap-4 w-1/2">
-                        {deliveryOptions.map((option) => (
-                            <Button
-                                key={option}
-                                type="button"
-                                onClick={() => onSelectChange(index, "delivery_location", option)}
-                                className={cn(
-                                    "flex-1 border border-gray-200 hover:text-white transition-all text-base h-12",
-                                    data.delivery_location === option
-                                        ? "bg-sac-primary text-white hover:bg-sac-primary"
-                                        : "bg-background text-foreground hover:bg-sac-primary",
-                                    errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
-                                )}
-                            >
-                                {option}
-                            </Button>
-                        ))}
+                        {/* Teslimat Tercihi Butonları */}
+                        <div className="flex gap-1 md:gap-4">
+                            <div className="flex gap-4 justify-between w-full">
+                                {deliveryOptions.map((option) => (
+                                    <Button
+                                        key={option}
+                                        type="button"
+                                        onClick={() => onSelectChange(index, "delivery_location", option)}
+                                        className={cn(
+                                            "w-1/2 border border-dashed border-[#c7ddcd] hover:text-white transition-all text-xs md:text-base h-8 md:h-12",
+                                            data.delivery_location === option
+                                                ? "bg-sac-primary border-none text-white hover:bg-sac-primary"
+                                                : "bg-background text-foreground hover:bg-sac-primary",
+                                            errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
+                                        )}
+                                    >
+                                        {option}
+                                    </Button>
+                                ))}
+                            </div>
+
+                        </div>
+
+
+                        {errors?.delivery_location && (
+                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(', ')}</p>
+                        )}
                     </div>
-
-                    {errors?.delivery_location && (
-                        <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(', ')}</p>
-                    )}
+                    <div className="w-full"></div>
                 </div>
 
                 {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
@@ -217,7 +227,7 @@ export default function ShareholderForm({
                         <Label
                             htmlFor={`is-purchaser-${index}`}
                             className={cn(
-                                "text-lg cursor-pointer transition-colors duration-200",
+                                "text-sm md:text-base cursor-pointer transition-colors duration-200",
                                 isCurrentPurchaser
                                     ? "font-medium"
                                     : isOtherPurchaserSelected

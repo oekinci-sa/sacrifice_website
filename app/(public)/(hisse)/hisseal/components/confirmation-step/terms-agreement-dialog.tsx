@@ -182,7 +182,7 @@ export default function TermsAgreementDialog({
 
                 {/* Fixed footer with checkbox and button */}
                 <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row items-start md:items-center gap-4">
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-2 items-center">
                         <Checkbox
                             id="terms"
                             checked={isAgreed}

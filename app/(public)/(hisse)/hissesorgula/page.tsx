@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useShareholderLookup } from "@/hooks/useShareholderLookup";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
-  import { motion } from "framer-motion"; // Import motion for animations
+import { motion } from "framer-motion"; // Import motion for animations
 import { Search } from "lucide-react";
 import { useState } from "react";
 import OTPOriginUI from "../hisseal/components/confirmation-step/otp-origin-ui";
@@ -54,6 +54,29 @@ export default function HisseSorgula() {
 
   // Use the shareholder lookup mutation
   const shareholderLookup = useShareholderLookup();
+
+  // Animation variants for results, matching the process.tsx animation style
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 50 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPhoneNumber(e.target.value);
@@ -137,9 +160,9 @@ export default function HisseSorgula() {
 
   return (
     <div className="container">
-      <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
-        {/* Form Section */}
-        <div className="flex flex-col items-center justify-center w-full md:w-1/2 lg:w-5/12">
+      <div className="flex flex-col items-start justify-center">
+        {/* Form Section - No animation */}
+        <div className="flex flex-col items-center justify-center w-full">
           {/* Başlık ve açıklama */}
           <div className="text-center space-y-6 md:space-y-12 w-full">
             <h1 className="text-3xl font-semibold mt-8">Hisse Sorgula</h1>
@@ -149,7 +172,7 @@ export default function HisseSorgula() {
           </div>
 
           {/* Telefon numarası ve güvenlik kodu alanları */}
-          <div className="flex flex-col gap-8 md:mt-12 border border-black/10 rounded-lg p-8 mt-8 w-full">
+          <div className="flex flex-col gap-8 md:mt-12 border border-black/10 rounded-lg p-8 mt-8 w-full max-w-md mx-auto">
             <div className="space-y-4">
               <label htmlFor="phone" className="font-medium">
                 Telefon Numarası
@@ -198,36 +221,30 @@ export default function HisseSorgula() {
           </div>
         </div>
 
-        {/* Results Section - responsive and animated */}
+        {/* Results Section - with animation matching process.tsx */}
         {shareholderInfoList.length > 0 && (
           <motion.div
-            className="w-full md:w-1/2 lg:w-7/12 space-y-8 mt-8 md:mt-28"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            className="w-full mt-12 md:mt-16"
+            variants={container}
+            initial="hidden"
+            animate="show"
           >
-            <h2 className="text-2xl font-semibold">
-              {shareholderInfoList.length > 1
-                ? `${shareholderInfoList.length} Adet Hisse Kaydı Bulundu`
-                : "Hisse Kaydı"}
-            </h2>
-
-            {shareholderInfoList.map((info, index) => (
-              <motion.div
-                key={info.shareholder_id}
-                className="mb-8"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                {shareholderInfoList.length > 1 && (
-                  <h3 className="text-xl font-medium mb-4 pb-2 border-b">
-                    Kayıt #{index + 1} - {new Date(info.purchase_time).toLocaleDateString('tr-TR')}
-                  </h3>
-                )}
-                <ShareholderDetails shareholderInfo={info} />
-              </motion.div>
-            ))}
+            <div className="grid grid-cols-1 gap-y-8">
+              {shareholderInfoList.map((info, index) => (
+                <motion.div
+                  key={info.shareholder_id}
+                  className="w-full"
+                  variants={item}
+                >
+                  {shareholderInfoList.length > 1 && (
+                    <h3 className="md:text-lg text-center font-medium mb-2 md:mb-4">
+                      {index + 1}. Kayıt - {new Date(info.purchase_time).toLocaleDateString('tr-TR')}
+                    </h3>
+                  )}
+                  <ShareholderDetails shareholderInfo={info} />
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
       </div>

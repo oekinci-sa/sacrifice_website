@@ -38,7 +38,7 @@ const formSchema = z.object({
       const digitsOnly = val.replace(/\D/g, "");
       return digitsOnly.length === 11;
     }, "Telefon numarası 11 haneli olmalıdır")
-    .refine(val => val.startsWith("05"), "Telefon numarası 05 ile başlamalıdır"),
+    .refine(val => val.startsWith("05"), "Telefon numarası 05XX ile başlamalıdır"),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
   is_purchaser: z.boolean().optional().default(false),
 });
@@ -439,22 +439,15 @@ export default function Checkout({
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-4 md:space-y-16">
       <div className="w-full">
         <SacrificeInfo sacrifice={selectedSacrifice} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-4 md:gap-12 w-full mx-auto mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 justify-items-stretch mx-auto">
         {formData.map((data, index) => (
           <div
             key={index}
-            className={cn(
-              "w-full",
-              formData.length === 1 ? "md:col-span-2 md:w-1/2 md:mx-auto" : "",
-              formData.length % 2 === 1 && index === formData.length - 1
-                ? "md:col-span-2 md:w-1/2 md:mx-auto"
-                : ""
-            )}
           >
             <ShareholderForm
               data={data}

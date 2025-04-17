@@ -1,6 +1,6 @@
-import { Instrument_Sans } from "next/font/google";
 import "@/app/globals.css";
 import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
+import { Instrument_Sans } from "next/font/google";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -12,18 +12,16 @@ export const metadata = {
   description: "Kurban yönetim sistemi admin paneli",
 };
 
-export default function RootLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" suppressHydrationWarning>
-      <body className={`${instrumentSans.variable} font-heading`}>
-        <AdminDataProvider>
-          {children}
-        </AdminDataProvider>
-      </body>
-    </html>
+    <div className={`${instrumentSans.variable} font-heading`}>
+      <AdminDataProvider>
+        {children}
+      </AdminDataProvider>
+    </div>
   );
 } 

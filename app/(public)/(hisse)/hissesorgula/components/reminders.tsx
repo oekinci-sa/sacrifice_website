@@ -15,7 +15,7 @@ const Reminders = () => {
             className='min-h-12'
           />
           <div className="flex flex-col justify-between items-center gap-1">
-            <p className="font-heading text-xl font-bold text-center">{item.header}</p>
+            <p className="text-xl font-bold text-center">{item.header}</p>
             <p
               className="text-foreground/75 text-center"
               dangerouslySetInnerHTML={{ __html: item.description }}

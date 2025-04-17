@@ -46,19 +46,7 @@ const formatPhoneNumber = (phone: string) => {
   return formatted
 }
 
-const getDeliveryLocationText = (location: string) => {
-  switch (location) {
-    case "kesimhane":
-      return "Kesimhanede Teslim"
-    case "yenimahalle-pazar-yeri":
-      return "Yenimahalle Pazar Yeri (+500₺)"
-    case "kecioren-otoparki":
-      return "Keçiören Otoparkı (+500₺)"
-    default:
-      return location
-  }
-}
-
+// Format sacrifice time function
 const formatSacrificeTime = (timeString: string | null) => {
   if (!timeString) return '-';
   try {
@@ -162,7 +150,7 @@ export default function ShareholderSummary({
           : '+90' + cleanedPhone
 
         // Calculate the delivery fee based on location
-        const delivery_fee = shareholder.delivery_location !== "kesimhane" ? 500 : 0
+        const delivery_fee = shareholder.delivery_location !== "Kesimhane" ? 750 : 0
 
         // Calculate total amount and remaining payment
         const share_price = sacrifice?.share_price || 0
@@ -274,7 +262,7 @@ export default function ShareholderSummary({
                   <div>
                     <span className="text-[#5b725e] block text-xs sm:text-base">Teslimat Tercihi</span>
                     <span className="text-black text-sm sm:text-lg">
-                      {getDeliveryLocationText(shareholder.delivery_location)}
+                      {shareholder.delivery_location} {shareholder.delivery_location !== "Kesimhane" && "(+750₺)"}
                     </span>
                   </div>
                 </div>
@@ -317,8 +305,8 @@ export default function ShareholderSummary({
                 <span className="text-[#5b725e] text-[10px] sm:text-base">Toplam Ücret</span>
                 <span className="text-black text-xs sm:text-lg font-medium text-right">
                   {new Intl.NumberFormat('tr-TR').format(
-                    shareholder.delivery_location !== "kesimhane"
-                      ? (sacrifice?.share_price || 0) + 500
+                    shareholder.delivery_location !== "Kesimhane"
+                      ? (sacrifice?.share_price || 0) + 750
                       : (sacrifice?.share_price || 0)
                   )} TL
                 </span>

@@ -9,7 +9,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
   const progress = (paidAmount / totalAmount) * 100;
-  const isDeposit = paidAmount >= 2000;
+  const isDeposit = paidAmount >= 5000;
   const isFullyPaid = paidAmount >= totalAmount;
 
   return (

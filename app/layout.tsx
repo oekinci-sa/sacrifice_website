@@ -1,8 +1,8 @@
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
-import { Inter, Instrument_Sans, Playfair_Display } from "next/font/google";
+import { Instrument_Sans, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const instrumentSans = Instrument_Sans({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body
-        className={`${inter.variable} ${instrumentSans.variable} ${playfairDisplay.variable}`}
+        className={`${instrumentSans.variable} ${playfairDisplay.variable} ${inter.variable}`}
       >
         <Providers>
           {children}

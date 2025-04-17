@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
-import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
+import { useMemo } from "react";
 
 export function SummaryCards() {
     // Get data from stores
@@ -53,13 +53,13 @@ export function SummaryCards() {
             0
         );
 
-        // Calculate remaining deposits (less than 2000 TL paid after 3 days)
+        // Calculate remaining deposits (less than 5000 TL paid after 3 days)
         const remainingDeposits = shareholders.filter((s) => {
             const purchaseDate = new Date(s.purchase_time);
             const threeDaysAfterPurchase = new Date(purchaseDate);
             threeDaysAfterPurchase.setDate(threeDaysAfterPurchase.getDate() + 3);
 
-            return s.paid_amount < 2000 && new Date() > threeDaysAfterPurchase;
+            return s.paid_amount < 5000 && new Date() > threeDaysAfterPurchase;
         }).length;
 
         // Calculate shareholders with incomplete payments

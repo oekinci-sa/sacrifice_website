@@ -201,28 +201,10 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
   ], []);
 
   // Delivery location options
-  const deliveryOptions = useMemo(() => {
-    const deliveryLocations = new Set<string>();
-
-    table.getPreFilteredRowModel().rows.forEach((row) => {
-      const location = row.getValue("delivery_location") as string;
-      if (location) deliveryLocations.add(location);
-    });
-
-    // Map location codes to display names
-    const locationMap: Record<string, string> = {
-      "yenimahalle-pazar-yeri": "Yenimahalle Pazar Yeri",
-      "kecioren-otoparki": "Keçiören Otoparkı",
-      "kesimhane": "Kesimhane"
-    };
-
-    return Array.from(deliveryLocations)
-      .sort()
-      .map((location) => ({
-        label: locationMap[location] || location,
-        value: location,
-      }));
-  }, [table]);
+  const deliveryLocationOptions = {
+    "Kesimhane": "Kesimhane",
+    "Ulus": "Ulus",
+  };
 
   // Filter column setup for payment status
   useEffect(() => {
@@ -238,7 +220,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
           status = "none";
         } else if (shareholder.paid_amount >= shareholder.total_amount) {
           status = "completed";
-        } else if (shareholder.paid_amount >= 2000) {
+        } else if (shareholder.paid_amount >= 5000) {
           status = "partial";
         } else {
           status = "deposit";
@@ -283,7 +265,10 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       <DataTableFacetedFilter
         column={table.getColumn("delivery_location")}
         title="Teslimat Noktası"
-        options={deliveryOptions}
+        options={Object.entries(deliveryLocationOptions).map(([label, value]) => ({
+          label,
+          value,
+        }))}
         type="delivery"
       />
     </div>

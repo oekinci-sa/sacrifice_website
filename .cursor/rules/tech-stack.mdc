@@ -50,12 +50,12 @@ Table 2: shareholders and its fields are:
   - transaction_id: foreign key to reservation_transactions table
   - security_code: It is used when making inquiries from the "Hisse Sorgula" page.
   - sacrifice_id: The associated sacrifice (foreign key). 
-  - delivery_fee: Delivery fee. If the delivery type is "Toplu Teslim Noktası," an additional fee of 500 TL will be charged.
+  - delivery_fee: Delivery fee. If the delivery_location is "Ulus" an additional fee of 750 TL will be charged.
   - share_price: The price of a share associated with the sacrifice. This will comes from the sacrifice_animals table.
   - total_amount: The total amount to be paid. (share_price + delivery_fee) (cannot be edited manually)
   - paid_amount: The paid amount. (initial value is 0)
   - remaining_payment: The remaining payment amount. (total_amount - paid_amount) (cannot be edited manually)
-  - delivery_location: "yenimahalle-pazar-yeri" or "kecioren-otoparki" or "kesimhane".
+  - delivery_location: "Kesimhane" or "Ulus".
   - sacrifice_consent: This a boolean value in db. But it is displayed as "vekalet" in UI and in forms, this field is shown in the drop-down menu as "vekalet-alindi" or "vekalet-alinmadi".
   - last_edited_time: The date and time when the shareholder information was last edited. There is a trigger in the database that updates this field when the shareholder information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).

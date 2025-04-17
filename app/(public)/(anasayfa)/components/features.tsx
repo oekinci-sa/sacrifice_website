@@ -1,7 +1,6 @@
-import React from "react";
 import { motion } from "framer-motion";
-import { features } from "../constants";
 import Image from "next/image";
+import { features } from "../constants";
 
 const Features = () => {
   const container = {
@@ -16,8 +15,8 @@ const Features = () => {
 
   const item = {
     hidden: { opacity: 0, y: 50 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.6,
@@ -27,7 +26,7 @@ const Features = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container grid grid-cols-2 sm:grid-cols-4 items-start lg:flex lg:flex-wrap lg:justify-between gap-8"
       variants={container}
       initial="hidden"
@@ -35,8 +34,8 @@ const Features = () => {
       viewport={{ once: true, margin: "-100px" }}
     >
       {features.map((feature) => (
-        <motion.div 
-          key={feature.src} 
+        <motion.div
+          key={feature.src}
           className="flex items-start gap-4 w-full sm:max-w-[300px]"
           variants={item}
         >
@@ -48,7 +47,7 @@ const Features = () => {
             className="mt-1"
           />
           <div className="flex flex-col gap-2">
-            <p className="font-heading text-lg md:text-xl font-bold">{feature.header}</p>
+            <p className="text-lg md:text-xl font-bold">{feature.header}</p>
             <p className="text-sm md:text-base">{feature.description}</p>
           </div>
         </motion.div>

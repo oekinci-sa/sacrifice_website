@@ -13,7 +13,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     accessorKey: "sacrifice_no",
     header: "Kurbanlık Sırası",
     cell: ({ row }) => (
-      <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">
+      <div className="text-center text-xs sm:text-lg py-0.5 sm:py-1">
         {row.getValue("sacrifice_no")}
       </div>
     ),
@@ -33,7 +33,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
 
       const [hours, minutes] = time.split(":");
       return (
-        <div className="text-center text-xs sm:text-base py-0.5 sm:py-1">
+        <div className="text-center text-xs sm:text-lg py-0.5 sm:py-1">
           {`${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`}
         </div>
       );
@@ -48,7 +48,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       const share_weight = row.original.share_weight;
 
       return (
-        <div className="text-center text-xs sm:text-base py-0.5 sm:py-1 whitespace-nowrap">
+        <div className="text-center text-xs sm:text-lg py-0.5 sm:py-1 whitespace-nowrap">
           {share_weight} kg. -{" "}
           {new Intl.NumberFormat("tr-TR", {
             style: "decimal",
@@ -80,7 +80,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       const emptyShare = row.getValue("empty_share") as number;
       return (
         <div className="text-center py-0.5 sm:py-1">
-          <span className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-md text-xs sm:text-base">
+          <span className="inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-md text-xs sm:text-lg">
             {emptyShare}
           </span>
         </div>
@@ -102,7 +102,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       if (emptyShare === 0) {
         return (
           <div className="flex justify-center py-0.5 sm:py-1">
-            <span className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#FCEFEF] text-[#D22D2D] px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-base">
+            <span className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#FCEFEF] text-[#D22D2D] px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-lg">
               <Ban className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
               Tükendi
             </span>
@@ -114,7 +114,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <div className="flex justify-center py-0.5 sm:py-1">
           <button
             onClick={() => meta?.onSacrificeSelect(sacrifice)}
-            className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#F0FBF1] hover:bg-[#22C55E] text-sac-primary font-medium hover:text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-base transition-colors duration-200"
+            className="inline-flex items-center justify-center min-w-[80px] sm:min-w-[100px] bg-[#F0FBF1] hover:bg-[#22C55E] text-sac-primary font-medium hover:text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded text-xs sm:text-lg transition-colors duration-200"
           >
             <Plus className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
             Hisse Al

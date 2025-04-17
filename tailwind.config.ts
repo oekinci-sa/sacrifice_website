@@ -21,7 +21,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)"],
+        sans: ["var(--font-instrument-sans)"],
         heading: ["var(--font-instrument-sans)"],
         serif: ["var(--font-playfair-display)"],
       },
@@ -32,7 +32,7 @@ const config: Config = {
         "sac-primary-more-lighter": "#e5f8ed",
         // buton with icon background
         "sac-green-lightest": "#F0FBF1",
-        
+
         "sac-icon-light-green": "#c1edd3",
         "sac-icon-bg-green": "#f0fcf6",
 

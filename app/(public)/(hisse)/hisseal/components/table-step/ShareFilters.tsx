@@ -351,18 +351,19 @@ export function ShareFilters({
   }, [table, searchParams, pathname]);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
-      <div className="flex flex-col sm:flex-row items-center justify-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+    <div className="flex flex-col justify-center gap-2 sm:gap-4">
+      {/* Filtreler */}
+      <div className="flex flex-row items-center justify-center gap-2 sm:my-4 sm:gap-4">
         {[
           {
             column: "share_price",
-            title: "Hisse Bedeline Göre Filtrele",
+            title: "Hisse Bedeli",
             options: sharePrices,
             type: "price" as const,
           },
           {
             column: "empty_share",
-            title: "Boş Hisse Sayısına Göre Filtrele",
+            title: "Boş Hisse",
             options: emptyShares,
             type: "share" as const,
             showHideFullOption,
@@ -371,7 +372,7 @@ export function ShareFilters({
         ].map(({ column, title, options, type, ...rest }) => {
           const col = table.getColumn(column);
           return (
-            <div key={column} className="relative w-full sm:w-auto">
+            <div key={column} className="relative">
               <FilterCountBadge
                 count={(col?.getFilterValue() as string[])?.length || 0}
               />
@@ -386,6 +387,8 @@ export function ShareFilters({
           );
         })}
       </div>
+
+      {/* Temizle */}
       {isFiltered && (
         <Button
           variant="ghost"
@@ -394,12 +397,15 @@ export function ShareFilters({
             onColumnFiltersChange([]);
             setShowHideFullOption(true);
           }}
-          className="h-8 px-2 lg:px-3 text-xs sm:text-sm w-full sm:w-auto"
+          className="h-8 px-2 lg:px-3 text-sm sm:w-16"
         >
           Tüm filtreleri temizle
           <X className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
         </Button>
       )}
+      <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
+        * Tüm tabloyu görmek için sağa kaydırınız.
+      </p>
     </div>
   );
 }

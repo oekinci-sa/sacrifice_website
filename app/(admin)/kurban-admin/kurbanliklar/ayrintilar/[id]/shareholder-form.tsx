@@ -1,5 +1,4 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -9,18 +8,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ShareholderFormValues } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
-import { Separator } from "@/components/ui/separator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 interface ShareholderFormProps {
@@ -75,13 +69,13 @@ export function ShareholderForm({
     const formattedValues: ShareholderFormValues = {
       shareholder_name: values.name,
       phone_number: formatPhoneForDB(values.phone),
-      delivery_location: values.delivery_location as "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki",
+      delivery_location: values.delivery_location as "Kesimhane" | "Ulus",
       notes: values.notes || "",
       // Preserve existing values from the shareholder
       total_amount: shareholder.total_amount,
       paid_amount: shareholder.paid_amount,
       remaining_payment: shareholder.total_amount - shareholder.paid_amount,
-      delivery_fee: values.delivery_location === "kesimhane" ? 0 : 500,
+      delivery_fee: values.delivery_location === "Kesimhane" ? 0 : 750,
       sacrifice_consent: shareholder.sacrifice_consent
     };
     onSubmit(formattedValues, shareholder.shareholder_id);
@@ -127,8 +121,8 @@ export function ShareholderForm({
                     <FormItem>
                       <FormLabel>Telefon Numarası</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           placeholder="05XX XXX XX XX"
                           onKeyPress={(e) => {
                             // Sadece rakam ve backspace'e izin ver
@@ -160,7 +154,7 @@ export function ShareholderForm({
                   Teslimat Bilgileri
                 </h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Mevcut Teslimat Türü: {shareholder.delivery_location === "kesimhane" ? "Kesimhane'de Teslim" : "Yenimahalle Pazar Yeri" + (shareholder.delivery_location === "yenimahalle-pazar-yeri" ? " (+500₺)" : "")}
+                  Mevcut Teslimat Türü: {shareholder.delivery_location === "Kesimhane" ? "Kesimhane" : "Ulus (+750 TL)"}
                 </p>
               </div>
               <div className="col-span-9">
@@ -170,18 +164,32 @@ export function ShareholderForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Teslimat Noktası</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Teslimat noktası seçin" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="kesimhane">Kesimhanede Teslim</SelectItem>
-                          <SelectItem value="yenimahalle-pazar-yeri">Yenimahalle Pazar Yeri (+500₺)</SelectItem>
-                          <SelectItem value="kecioren-otoparki">Keçiören Otoparkı (+500₺)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex gap-4 mt-1">
+                        <Button
+                          type="button"
+                          onClick={() => field.onChange("Kesimhane")}
+                          className={cn(
+                            "flex-1 border border-gray-200 transition-all",
+                            field.value === "Kesimhane"
+                              ? "bg-primary text-white"
+                              : "bg-background hover:bg-muted text-foreground"
+                          )}
+                        >
+                          Kesimhane
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => field.onChange("Ulus")}
+                          className={cn(
+                            "flex-1 border border-gray-200 transition-all",
+                            field.value === "Ulus"
+                              ? "bg-primary text-white"
+                              : "bg-background hover:bg-muted text-foreground"
+                          )}
+                        >
+                          Ulus (+750 TL)
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}

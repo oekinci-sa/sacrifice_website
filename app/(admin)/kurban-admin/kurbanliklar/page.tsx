@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { format, subDays, eachDayOfInterval } from "date-fns";
-import { tr } from "date-fns/locale";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SacrificeStatistics } from "./components/statistics";
-import { supabase } from "@/utils/supabaseClient";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { supabase } from "@/utils/supabaseClient";
+import { eachDayOfInterval, format, subDays } from "date-fns";
+import { tr } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import {
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
   Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
+import { SacrificeStatistics } from "./components/statistics";
 
 interface ChartData {
   sharePrice: number;
@@ -103,7 +103,7 @@ export default function KurbanliklarPage() {
         // Calculate shares distribution data
         const sharesData = sacrifices.map(sacrifice => {
           const sacrificeHolders = shareholders.filter(s => s.sacrifice_id === sacrifice.sacrifice_id);
-          
+
           const fullPayment = sacrificeHolders.filter(s => s.paid_amount >= s.total_amount).length;
           const noPayment = sacrificeHolders.filter(s => s.paid_amount === 0).length;
           const partialPayment = sacrificeHolders.filter(s => s.paid_amount > 0 && s.paid_amount < s.total_amount).length;
@@ -189,7 +189,7 @@ export default function KurbanliklarPage() {
             if (activeChart === "today") {
               // Saat bazında kontrol
               return format(purchaseDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd") &&
-                     purchaseDate.getHours() === date.getHours();
+                purchaseDate.getHours() === date.getHours();
             }
             // Gün bazında kontrol
             return format(purchaseDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
@@ -241,7 +241,7 @@ export default function KurbanliklarPage() {
           }}
         >
           <CartesianGrid vertical={false} className="z-0" />
-          <XAxis 
+          <XAxis
             dataKey="sacrifice_no"
             tickLine={false}
             axisLine={false}
@@ -276,7 +276,7 @@ export default function KurbanliklarPage() {
             className="z-30"
           />
           <ChartTooltip
-            cursor={{ 
+            cursor={{
               fill: 'rgba(0, 0, 0, 0.1)',
               strokeWidth: 0,
               className: 'z-10'
@@ -287,7 +287,7 @@ export default function KurbanliklarPage() {
                 const fullPayment = payload[0].payload.full_payment;
                 const partialPayment = payload[1].payload.partial_payment;
                 const noPayment = payload[2].payload.no_payment;
-                
+
                 return (
                   <div className="rounded-lg border bg-background p-2 shadow-md">
                     <div className="grid gap-1">
@@ -338,7 +338,7 @@ export default function KurbanliklarPage() {
         }}
       >
         <CartesianGrid vertical={false} className="z-0" />
-        <XAxis 
+        <XAxis
           dataKey="date"
           tickLine={false}
           axisLine={false}
@@ -359,7 +359,7 @@ export default function KurbanliklarPage() {
           className="z-30"
         />
         <ChartTooltip
-          cursor={{ 
+          cursor={{
             fill: 'rgba(0, 0, 0, 0.1)',
             strokeWidth: 0,
             className: 'z-10'
@@ -443,14 +443,14 @@ export default function KurbanliklarPage() {
               }}
             >
               <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} className="z-0" />
-              <XAxis 
+              <XAxis
                 dataKey="sharePrice"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
                 className="z-0"
-                tickFormatter={(value) => `${value.toLocaleString('tr-TR')} ₺`}
+                tickFormatter={(value) => `${value.toLocaleString('tr-TR')}  TL`}
               />
               <YAxis
                 tickLine={false}
@@ -466,13 +466,13 @@ export default function KurbanliklarPage() {
                     const price = payload[0].payload.sharePrice;
                     const emptyValue = payload[0].payload.emptyShares;
                     const completedValue = payload[0].payload.completedAnimals;
-                    
+
                     return (
                       <div className="rounded-lg border bg-background p-2 shadow-md">
                         <div className="grid gap-1">
                           <div className="text-left">
                             <span className="text-[0.70rem] font-semibold">
-                              {`${price.toLocaleString('tr-TR')} ₺`}
+                              {`${price.toLocaleString('tr-TR')}  TL`}
                             </span>
                           </div>
                           <div className="flex flex-col gap-1">

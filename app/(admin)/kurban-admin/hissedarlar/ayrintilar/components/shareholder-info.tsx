@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -20,19 +20,6 @@ interface ShareholderInfoProps {
   labelClass: string;
   valueClass: string;
 }
-
-const getDeliveryLocationText = (location: string) => {
-  switch (location) {
-    case "kesimhane":
-      return "Kesimhanede Teslim";
-    case "yenimahalle-pazar-yeri":
-      return "Yenimahalle Pazar Yeri";
-    case "kecioren-otoparki":
-      return "Keçiören Otoparkı";
-    default:
-      return location;
-  }
-};
 
 export function ShareholderInfo({
   shareholderInfo,
@@ -84,21 +71,36 @@ export function ShareholderInfo({
         <div className="space-y-1">
           <p className={labelClass}>Teslimat Tercihi</p>
           {isEditing ? (
-            <Select
-              value={editFormData?.delivery_location}
-              onValueChange={(value) => handleChange?.('delivery_location', value)}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Teslimat tercihi seçin" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="kesimhane">Kesimhanede Teslim</SelectItem>
-                <SelectItem value="yenimahalle-pazar-yeri">Yenimahalle Pazar Yeri</SelectItem>
-                <SelectItem value="kecioren-otoparki">Keçiören Otoparkı</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-4 mt-1">
+              <Button
+                type="button"
+                onClick={() => handleChange?.('delivery_location', 'Kesimhane')}
+                className={cn(
+                  "flex-1 border border-gray-200 transition-all",
+                  editFormData?.delivery_location === "Kesimhane"
+                    ? "bg-primary text-white"
+                    : "bg-background hover:bg-muted text-foreground"
+                )}
+              >
+                Kesimhane
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleChange?.('delivery_location', 'Ulus')}
+                className={cn(
+                  "flex-1 border border-gray-200 transition-all",
+                  editFormData?.delivery_location === "Ulus"
+                    ? "bg-primary text-white"
+                    : "bg-background hover:bg-muted text-foreground"
+                )}
+              >
+                Ulus (+750 TL)
+              </Button>
+            </div>
           ) : (
-            <p className={valueClass}>{getDeliveryLocationText(shareholderInfo.delivery_location)}</p>
+            <p className={valueClass}>
+              {shareholderInfo.delivery_location === "Ulus" ? "Ulus (+750 TL)" : shareholderInfo.delivery_location}
+            </p>
           )}
         </div>
 

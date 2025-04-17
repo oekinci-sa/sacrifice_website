@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -8,17 +7,18 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-  VisibilityState,
   SortingState,
   Table as TableInstance,
+  useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table"
+import * as React from "react"
 
 import { Table } from "@/components/ui/table"
 import { supabase } from "@/utils/supabaseClient"
 import { CustomDataTableFooter } from "./custom-data-table-footer"
-import { CustomTableHeader } from "./custom-table-header"
 import { CustomTableBody } from "./custom-table-body"
+import { CustomTableHeader } from "./custom-table-header"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -28,7 +28,7 @@ interface DataTableProps<TData, TValue> {
   initialState?: {
     columnVisibility?: VisibilityState
   }
-  filters?: (props: { 
+  filters?: (props: {
     table: TableInstance<TData>;
     columnFilters: ColumnFiltersState;
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
@@ -44,11 +44,11 @@ export function CustomDataTable<TData, TValue>({
   filters,
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])
-  
+
   // Force re-render when data changes
   const dataRef = React.useRef<TData[]>([]);
   const [dataVersion, setDataVersion] = React.useState(0);
-  
+
   // Check if data has changed
   React.useEffect(() => {
     if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
@@ -57,7 +57,7 @@ export function CustomDataTable<TData, TValue>({
       console.log('Data changed, forcing CustomDataTable re-render');
     }
   }, [data]);
-  
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
@@ -114,10 +114,10 @@ export function CustomDataTable<TData, TValue>({
         const uniquePrices = Array.from(new Set(prices.map((p) => p.share_price)));
         // Store prices in state if needed for future use
         uniquePrices.map((price) => ({
-          label: `${new Intl.NumberFormat('tr-TR', { 
+          label: `${new Intl.NumberFormat('tr-TR', {
             style: 'decimal',
-            maximumFractionDigits: 0 
-          }).format(price)} ₺`,
+            maximumFractionDigits: 0
+          }).format(price)}  TL`,
           value: price.toString(),
         }));
       }
@@ -129,7 +129,7 @@ export function CustomDataTable<TData, TValue>({
   return (
     <div>
       <div className="space-y-4">
-        {typeof filters === 'function' ? filters({ 
+        {typeof filters === 'function' ? filters({
           table,
           columnFilters,
           onColumnFiltersChange: setColumnFilters
@@ -141,9 +141,9 @@ export function CustomDataTable<TData, TValue>({
             <CustomTableBody table={table} columns={tableColumns} />
           </Table>
         </div>
-        
+
         {/* Table Footer */}
-        <CustomDataTableFooter 
+        <CustomDataTableFooter
           table={table}
           pageSizeOptions={pageSizeOptions}
         />

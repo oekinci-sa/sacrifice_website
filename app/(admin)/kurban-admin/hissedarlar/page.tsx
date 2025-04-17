@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { supabase } from "@/utils/supabaseClient";
+import { useEffect, useState } from "react";
 
 interface RecentActivity {
   event_id: number;
@@ -49,7 +49,7 @@ export default function HissedarlarPage() {
       if (shareholders) {
         // Calculate statistics
         const totalShareholders = shareholders.length;
-        const missingDeposits = shareholders.filter(s => s.paid_amount < 2000).length;
+        const missingDeposits = shareholders.filter(s => s.paid_amount < 5000).length;
         const missingPayments = shareholders.filter(s => s.remaining_payment > 0).length;
         const vekaletAlindiCount = shareholders.filter(s => s.sacrifice_consent === true).length;
         const vekaletAlinmadiCount = shareholders.filter(s => s.sacrifice_consent === false).length;

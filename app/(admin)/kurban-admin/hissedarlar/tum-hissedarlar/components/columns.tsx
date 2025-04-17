@@ -151,15 +151,29 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     header: "Teslimat Noktası",
     enableSorting: false,
     cell: ({ row }) => {
-      const location = row.getValue("delivery_location");
+      const location = row.getValue("delivery_location") as string;
 
-      if (location === "yenimahalle-pazar-yeri") {
-        return "Yenimahalle Pazar Yeri";
-      } else if (location === "kecioren-otoparki") {
-        return "Keçiören Otoparkı";
+      let displayText = location;
+      let feeText = "";
+
+      if (location === "Kesimhane") {
+        displayText = "Kesimhane";
+        feeText = "";
+      } else if (location === "Ulus") {
+        displayText = "Ulus";
+        feeText = "750₺";
       }
 
-      return "Kesimhane";
+      return (
+        <div className="space-y-0.5">
+          <div className="flex items-center">
+            <span className="text-sm">{displayText}</span>
+          </div>
+          {feeText && <div className="flex items-center">
+            <span className="text-[10px] p-1 bg-primary/10 inline-block rounded-sm text-primary">{feeText}</span>
+          </div>}
+        </div>
+      );
     },
   },
   {
@@ -193,7 +207,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
       let statusText = "";
       let statusColorClass = "";
 
-      if (paid < 2000) {
+      if (paid < 5000) {
         statusText = "Kapora Bekleniyor";
         statusColorClass = "bg-[#FCEFEF] text-[#D22D2D]";
       } else if (paid < total) {

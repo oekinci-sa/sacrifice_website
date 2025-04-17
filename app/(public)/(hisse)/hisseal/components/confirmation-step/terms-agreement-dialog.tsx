@@ -82,7 +82,7 @@ export default function TermsAgreementDialog({
 
                 {/* Main scrollable content area */}
                 <div className="flex-1 overflow-hidden px-6">
-                    <div className="flex items-center gap-2 bg-muted/50 p-3 rounded-md mb-4">
+                    <div className="flex items-center gap-2 p-3 rounded-md mb-4">
                         <span className="text-xs sm:text-sm font-medium">Güvenlik Kodunuz:</span>
                         <span className="text-sm sm:text-base font-bold">{securityCode}</span>
 

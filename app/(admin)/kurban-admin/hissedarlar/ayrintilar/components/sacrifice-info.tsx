@@ -46,7 +46,7 @@ export function SacrificeInfo({
         <div className="space-y-1">
           <p className={labelClass}>Hisse Bedeli</p>
           <p className={valueClass}>
-            {new Intl.NumberFormat('tr-TR').format(shareholderInfo.sacrifice?.share_price || 0)}₺
+            {new Intl.NumberFormat('tr-TR').format(shareholderInfo.sacrifice?.share_price || 0)} TL
           </p>
         </div>
         <div className="space-y-1">

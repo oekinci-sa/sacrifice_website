@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import { ShareholderDetails } from "./components/shareholder-details";
-import { shareholderSchema } from "@/types";
 import { useShareholderLookup } from "@/hooks/useShareholderLookup";
+import { cn } from "@/lib/utils";
+import { shareholderSchema } from "@/types";
+  import { motion } from "framer-motion"; // Import motion for animations
+import { Search } from "lucide-react";
+import { useState } from "react";
+import OTPOriginUI from "../hisseal/components/confirmation-step/otp-origin-ui";
+import { ShareholderDetails } from "./components/shareholder-details";
 
 // Telefon numarası formatlama fonksiyonu
 const formatPhoneNumber = (value: string) => {
@@ -49,7 +51,7 @@ export default function HisseSorgula() {
   const [error, setError] = useState<string | null>(null);
   const [shareholderInfoList, setShareholderInfoList] = useState<shareholderSchema[]>([]);
   const { toast } = useToast();
-  
+
   // Use the shareholder lookup mutation
   const shareholderLookup = useShareholderLookup();
 
@@ -99,32 +101,32 @@ export default function HisseSorgula() {
     try {
       setError(null);
       setShareholderInfoList([]);
-      
+
       // Use our mutation to lookup shareholders
       const result = await shareholderLookup.mutateAsync({
         phone,
         securityCode
       });
-      
+
       // If we get here, the lookup was successful
       const shareholders = result.shareholders;
-      
+
       setShareholderInfoList(shareholders);
-      
+
       toast({
         title: "Başarılı",
         description: `${shareholders.length} adet hissedar kaydı bulundu.`,
       });
     } catch (err) {
       console.error("Error fetching shareholder:", err);
-      
+
       // Show the error message from the API or a fallback
-      const errorMessage = err instanceof Error 
-        ? err.message 
+      const errorMessage = err instanceof Error
+        ? err.message
         : "Bilgiler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.";
-        
+
       setError(errorMessage);
-      
+
       toast({
         variant: "destructive",
         title: "Hata",
@@ -134,12 +136,12 @@ export default function HisseSorgula() {
   };
 
   return (
-    <div>
-      <div className="container">
-        <div className="flex flex-col items-center justify-center mx-auto">
-
+    <div className="container">
+      <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
+        {/* Form Section */}
+        <div className="flex flex-col items-center justify-center w-full md:w-1/2 lg:w-5/12">
           {/* Başlık ve açıklama */}
-          <div className="text-center space-y-6 md:space-y-12">
+          <div className="text-center space-y-6 md:space-y-12 w-full">
             <h1 className="text-3xl font-semibold mt-8">Hisse Sorgula</h1>
             <div className="text-black/75 font-medium md:text-lg">
               Hisse bilgilerinizi sorgulamak için telefon numaranızı ve güvenlik kodunuzu giriniz.
@@ -147,7 +149,7 @@ export default function HisseSorgula() {
           </div>
 
           {/* Telefon numarası ve güvenlik kodu alanları */}
-          <div className="flex flex-col gap-8 md:mt-12 border border-black/10 rounded-lg p-8 mt-16">
+          <div className="flex flex-col gap-8 md:mt-12 border border-black/10 rounded-lg p-8 mt-8 w-full">
             <div className="space-y-4">
               <label htmlFor="phone" className="font-medium">
                 Telefon Numarası
@@ -165,44 +167,24 @@ export default function HisseSorgula() {
               />
             </div>
 
-            {/* Güvenlik kodu alanı */}
+            {/* Güvenlik kodu alanı - OTPOriginUI kullanarak */}
             <div className="space-y-4">
               <label htmlFor="securityCode" className="font-medium">
                 Güvenlik Kodu (6 Haneli)
               </label>
-              <div className="flex gap-2 justify-center">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Input
-                    key={i}
-                    className="w-10 h-10 text-center"
-                    maxLength={1}
-                    value={securityCode[i] || ''}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      if (/^\d*$/.test(newValue)) {
-                        const newCode = securityCode.split('');
-                        newCode[i] = newValue;
-                        handleSecurityCodeChange(newCode.join(''));
-
-                        // Auto-focus next input if a digit was entered
-                        if (newValue && i < 5) {
-                          const nextInput = document.querySelector(`input[name="otp-${i + 1}"]`);
-                          if (nextInput) {
-                            (nextInput as HTMLInputElement).focus();
-                          }
-                        }
-                      }
-                    }}
-                    name={`otp-${i}`}
-                  />
-                ))}
+              <div className="flex justify-center">
+                <OTPOriginUI
+                  value={securityCode}
+                  onChange={handleSecurityCodeChange}
+                  maxLength={6}
+                />
               </div>
             </div>
             {/* Sorgula butonu */}
             <Button
               onClick={handleSearch}
-              className=""
-              disabled={!phone || shareholderLookup.isPending}
+              className="w-full"
+              disabled={shareholderLookup.isPending}
             >
               {shareholderLookup.isPending ? (
                 "Yükleniyor..."
@@ -216,26 +198,37 @@ export default function HisseSorgula() {
           </div>
         </div>
 
-        {/* Hissedar Detayları - Tüm kayıtları göster */}
+        {/* Results Section - responsive and animated */}
         {shareholderInfoList.length > 0 && (
-          <div className="max-w-5xl mx-auto space-y-8">
-            <h2 className="text-2xl font-semibold text-center">
+          <motion.div
+            className="w-full md:w-1/2 lg:w-7/12 space-y-8 mt-8 md:mt-28"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-2xl font-semibold">
               {shareholderInfoList.length > 1
                 ? `${shareholderInfoList.length} Adet Hisse Kaydı Bulundu`
                 : "Hisse Kaydı"}
             </h2>
 
             {shareholderInfoList.map((info, index) => (
-              <div key={info.shareholder_id} className="mb-8">
+              <motion.div
+                key={info.shareholder_id}
+                className="mb-8"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
                 {shareholderInfoList.length > 1 && (
                   <h3 className="text-xl font-medium mb-4 pb-2 border-b">
                     Kayıt #{index + 1} - {new Date(info.purchase_time).toLocaleDateString('tr-TR')}
                   </h3>
                 )}
                 <ShareholderDetails shareholderInfo={info} />
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

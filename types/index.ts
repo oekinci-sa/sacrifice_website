@@ -8,7 +8,7 @@ export const shareholderFormSchema = z.object({
   paid_amount: z.number(),
   remaining_payment: z.number(),
   delivery_fee: z.number(),
-  delivery_location: z.enum(["kesimhane", "yenimahalle-pazar-yeri", "kecioren-otoparki"]),
+  delivery_location: z.enum(["Kesimhane", "Ulus"]),
   sacrifice_consent: z.boolean(),
   notes: z.string(),
 });
@@ -33,7 +33,7 @@ export interface shareholderSchema {
   remaining_payment: number;
   
   // Teslimat ve onay
-  delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
+  delivery_location: "Kesimhane" | "Ulus";
   sacrifice_consent: boolean;
   
   // Düzenleme bilgileri

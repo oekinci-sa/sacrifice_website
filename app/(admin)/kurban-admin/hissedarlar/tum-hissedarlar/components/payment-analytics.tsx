@@ -13,12 +13,12 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
   // Toplanan tutar
   const totalCollectedAmount = shareholders.reduce((sum, shareholder) => sum + shareholder.paid_amount, 0);
 
-  // Eksik kapora sayısı (paid_amount < 2000)
-  const missingDepositCount = shareholders.filter(s => s.paid_amount < 2000).length;
+  // Eksik kapora sayısı (paid_amount < 5000)
+  const missingDepositCount = shareholders.filter(s => s.paid_amount < 5000).length;
 
-  // Eksik ödeme sayısı (paid_amount >= 2000 && paid_amount < total_amount)
+  // Eksik ödeme sayısı (paid_amount >= 5000 && paid_amount < total_amount)
   const missingPaymentCount = shareholders.filter(s =>
-    s.paid_amount >= 2000 && s.paid_amount < s.total_amount
+    s.paid_amount >= 5000 && s.paid_amount < s.total_amount
   ).length;
 
   // Toplam hissedar sayısı

@@ -49,17 +49,6 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
     }
   }, [sacrificeId, isDialogOpen]);
 
-  const formatDeliveryLocation = (location: string) => {
-    switch (location) {
-      case "yenimahalle-pazar-yeri":
-        return "Yenimahalle Pazar Yeri";
-      case "kecioren-otoparki":
-        return "Keçiören Otoparkı";
-      default:
-        return "Kesimhane";
-    }
-  };
-
   const handleDelete = async () => {
     try {
       // Önce bağlı hissedarları kontrol et
@@ -184,12 +173,12 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                   className="flex-1"
                                   style={{
                                     ["--progress-background" as string]: (shareholder.remaining_payment > 0)
-                                      ? shareholder.paid_amount < 2000
+                                      ? shareholder.paid_amount < 5000
                                         ? "rgb(220 38 38 / 0.2)"
                                         : "rgb(202 138 4 / 0.2)"
                                       : "rgb(22 163 74 / 0.2)",
                                     ["--progress-foreground" as string]: (shareholder.remaining_payment > 0)
-                                      ? shareholder.paid_amount < 2000
+                                      ? shareholder.paid_amount < 5000
                                         ? "rgb(220 38 38)"
                                         : "rgb(202 138 4)"
                                       : "rgb(22 163 74)",
@@ -197,7 +186,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                 />
                                 <span className={cn(
                                   "text-sm tabular-nums",
-                                  shareholder.paid_amount < 2000 ? "text-red-600" : "text-green-600"
+                                  shareholder.paid_amount < 5000 ? "text-red-600" : "text-green-600"
                                 )}>
                                   %{Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100).toString().padStart(3)}
                                 </span>
@@ -264,7 +253,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                           </Tooltip>
                         </TooltipProvider>
                         <div className="text-[#698c78] text-sm text-right">
-                          {formatDeliveryLocation(shareholder.delivery_location)}
+                          {shareholder.delivery_location}
                         </div>
                       </div>
                     </div>

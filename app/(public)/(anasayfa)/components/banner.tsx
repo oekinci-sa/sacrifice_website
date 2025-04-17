@@ -46,13 +46,13 @@ const Banner = () => {
         </motion.div>
 
         {/* Left */}
-        <motion.div variants={item} className="flex flex-col gap-4 md:gap-6 md:gap-8 font-heading basis-full md:basis-3/5 text-left">
+        <motion.div variants={item} className="flex flex-col gap-4 md:gap-6 md:gap-8 basis-full md:basis-3/5 text-left">
           {/* Ana başlık */}
           <div>
-            <p className="text-3xl md:text-6xl font-heading font-bold md:mb-2">
+            <p className="text-3xl md:text-6xl font-bold md:mb-2">
               Kurban ibadetini
             </p>
-            <p className="text-3xl md:text-6xl font-heading font-bold text-sac-primary">
+            <p className="text-3xl md:text-6xl font-bold text-sac-primary">
               birlikte gerçekleştirelim.
             </p>
           </div>

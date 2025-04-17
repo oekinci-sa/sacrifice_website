@@ -1,7 +1,6 @@
 "use client"
 
-import React from "react";
-import { AppSidebar } from "./components/layout/app-sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,25 +9,25 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
+import { AppSidebar } from "./components/layout/app-sidebar";
 
 function UserNav() {
   const { data: session } = useSession();
 
   const handleLogout = async () => {
-    await signOut({ 
+    await signOut({
       redirect: true,
       callbackUrl: "/giris"
     });
@@ -63,7 +62,7 @@ function UserNav() {
 
 function DynamicBreadcrumb() {
   const pathname = usePathname();
-  
+
   // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
   const turkishCorrections = (text: string): string => {
     const corrections: Record<string, string> = {
@@ -74,47 +73,45 @@ function DynamicBreadcrumb() {
       "hissedarlar": "Hissedarlar",
       "tum-hissedarlar": "Tüm Hissedarlar",
       "ayrintilar": "Ayrıntılar",
-      "kullanici-yonetimi": "Kullanıcı Yönetimi", 
+      "kullanici-yonetimi": "Kullanıcı Yönetimi",
       "degisiklik-kayitlari": "Değişiklik Kayıtları",
       "odeme-analizi": "Ödeme Analizi",
       "yazilar": "Yazılar",
-      "iletisim": "İletişim",
-      "kecioren": "Keçiören",
-      "yenimahalle": "Yenimahalle"
+      "iletisim": "İletişim"
     };
-    
+
     // Eğer kelime düzeltme sözlüğünde varsa direkt olarak değiştirelim
     if (corrections[text]) {
       return corrections[text];
     }
-    
+
     // Yoksa temel formatlama yapalım (boşluklar ve büyük harfler)
     return text
       .replace(/-/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
-  
+
   const breadcrumbs = useMemo(() => {
     const paths = pathname.split('/').filter(Boolean);
-    
+
     const pathItems = paths.map((path, index) => {
       // Türkçe karakter düzeltmeleri ile formatlama
       const formattedPath = turkishCorrections(path);
-      
+
       const fullPath = `/${paths.slice(0, index + 1).join('/')}`;
-      
+
       const isActive = index === paths.length - 1;
-      
+
       return {
         name: formattedPath,
         path: fullPath,
         isActive,
       };
     });
-    
+
     return pathItems;
   }, [pathname]);
-  
+
   return (
     <Breadcrumb>
       <BreadcrumbList>

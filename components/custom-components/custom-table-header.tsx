@@ -17,7 +17,7 @@ export function CustomTableHeader<TData>({ table }: CustomTableHeaderProps<TData
           {headerGroup.headers.map((header) => (
             <TableHead 
               key={header.id} 
-              className="h-12 text-center py-2"
+              className="h-12 text-center text-base md:text-lg py-2"
             >
               {header.isPlaceholder ? null : (
                 <div className="flex items-center justify-center gap-2">

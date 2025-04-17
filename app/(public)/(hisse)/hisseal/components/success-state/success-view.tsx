@@ -34,20 +34,6 @@ export const SuccessView = () => {
       .replace(/\D/g, "")
       .replace(/^90(\d{3})(\d{3})(\d{2})(\d{2})$/, "0$1 $2 $3 $4");
 
-  // Format delivery location
-  const formatDeliveryLocation = (location: string) => {
-    switch (location) {
-      case "kesimhane":
-        return "Kesimhanede Teslim";
-      case "yenimahalle-pazar-yeri":
-        return "Yenimahalle Pazar Yeri";
-      case "kecioren-otoparki":
-        return "Keçiören Otoparkı";
-      default:
-        return location || "Belirtilmemiş";
-    }
-  };
-
   // Generate a security code (this would typically come from backend)
   const generateSecurityCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit number
@@ -83,7 +69,7 @@ export const SuccessView = () => {
 
     // Toplam tutarı hesapla
     const sharePrice = sacrifice.share_price || 0;
-    const deliveryFee = shareholder.delivery_location !== "kesimhane" ? 500 : 0;
+    const deliveryFee = shareholder.delivery_location !== "Kesimhane" ? 750 : 0;
     const totalAmount = sharePrice + deliveryFee;
 
     // Remaining payment calculation
@@ -99,9 +85,7 @@ export const SuccessView = () => {
       shareholder_name:
         shareholder.shareholder_name || shareholder.name || "Müşteri",
       phone_number: formattedPhoneNumber,
-      delivery_location: formatDeliveryLocation(
-        shareholder.delivery_location || ""
-      ),
+      delivery_location: shareholder.delivery_location || "Belirtilmemiş",
       sacrifice_consent: !!shareholder.sacrifice_consent, // Convert to boolean with double negation
       vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
 
@@ -245,12 +229,12 @@ export const SuccessView = () => {
                     <h2 className="text-lg sm:text-xl font-semibold text-center mb-4">
                       Hissedar Bilgi Dökümanları
                     </h2>
-                    <div className="grid gap-3 max-w-xl mx-auto">
+                    <div className="flex flex-col md:flex-row gap-4 md:gap-8">
                       {dbData.shareholders.map(
                         (shareholder: ShareholderData, index: number) => (
                           <div
                             key={index}
-                            className="border rounded-lg p-3 flex justify-between items-center bg-gray-50"
+                            className="border p-3 flex justify-between gap-8 items-center bg-gray-50"
                           >
                             <div>
                               <p className="font-medium">

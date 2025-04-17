@@ -58,14 +58,14 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row gap-4 md:gap-24">
           {/* Hızlı Linkler */}
           <div>
-            <p className="font-heading text-lg md:text-xl font-semibold mb-4">
+            <p className="text-lg md:text-xl font-semibold mb-4">
               Hızlı Linkler
             </p>
             <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75 text-sm md:text-base">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
-                <CustomLink href="/yazilar">Yazılar</CustomLink>
+                <CustomLink href="/iletisim">İletişim</CustomLink>
               </div>
 
               <div className="flex flex-col gap-3 relative">
@@ -76,14 +76,13 @@ const Footer = () => {
                   </CustomLink>
                 </div>
                 <CustomLink href="/hissesorgula">Hisse Sorgula</CustomLink>
-                <CustomLink href="/iletisim">İletişim</CustomLink>
               </div>
             </div>
           </div>
 
           {/* İletişim */}
           <div className="mt-8 md:mt-0">
-            <p className="font-heading text-lg md:text-xl font-semibold mb-4">
+            <p className="text-lg md:text-xl font-semibold mb-4">
               İletişim
             </p>
             <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">

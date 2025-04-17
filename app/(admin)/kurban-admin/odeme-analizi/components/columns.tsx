@@ -1,14 +1,5 @@
 "use client"
 
-import { ColumnDef, Row } from "@tanstack/react-table"
-import { Pencil, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { format } from "date-fns"
-import { tr } from "date-fns/locale"
-import { useRouter } from "next/navigation"
-import { Progress } from "@/components/ui/progress"
-import { shareholderSchema } from "@/types"
-import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,8 +11,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { supabase } from "@/utils/supabaseClient"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
+import { shareholderSchema } from "@/types"
+import { supabase } from "@/utils/supabaseClient"
+import { ColumnDef, Row } from "@tanstack/react-table"
+import { format } from "date-fns"
+import { tr } from "date-fns/locale"
+import { Pencil, X } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const baseColumns: ColumnDef<shareholderSchema>[] = [
   {
@@ -82,7 +82,7 @@ const totalAmountColumn = {
       <div className="flex justify-center ">
         {new Intl.NumberFormat('tr-TR', {
           maximumFractionDigits: 0,
-        }).format(amount)} ₺
+        }).format(amount)}  TL
       </div>
     );
   },
@@ -97,7 +97,7 @@ const paidAmountColumn = {
       <div className="flex justify-center ">
         {new Intl.NumberFormat('tr-TR', {
           maximumFractionDigits: 0,
-        }).format(amount)} ₺
+        }).format(amount)}  TL
       </div>
     );
   },
@@ -112,7 +112,7 @@ const remainingPaymentColumn = {
       <div className="flex justify-center ">
         {new Intl.NumberFormat('tr-TR', {
           maximumFractionDigits: 0,
-        }).format(amount)} ₺
+        }).format(amount)}  TL
       </div>
     );
   },
@@ -209,8 +209,8 @@ const ActionCell = ({ row }: { row: Row<shareholderSchema> }) => {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="hover:bg-destructive/10 hover:text-destructive"
           >
@@ -226,7 +226,7 @@ const ActionCell = ({ row }: { row: Row<shareholderSchema> }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive hover:bg-destructive/90"
             >

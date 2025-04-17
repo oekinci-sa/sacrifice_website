@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
-import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
-import { CustomTabs } from "@/components/custom-components/custom-tabs";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { overdueDepositsColumns, pendingPaymentsColumns, completedPaymentsColumns } from "./components/columns";
+import { CustomTabs } from "@/components/custom-components/custom-tabs";
+import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { shareholderSchema } from "@/types";
+import { supabase } from "@/utils/supabaseClient";
+import { useEffect, useState } from "react";
+import { completedPaymentsColumns, overdueDepositsColumns, pendingPaymentsColumns } from "./components/columns";
 
 interface PaymentStats {
   totalAmount: number;
@@ -47,14 +47,14 @@ export default function PaymentAnalysisPage() {
         const overdue = shareholders.filter(shareholder => {
           const purchaseDate = new Date(shareholder.purchase_time);
           const threeDaysAfterPurchase = new Date(purchaseDate.getTime() + (3 * 24 * 60 * 60 * 1000));
-          return shareholder.paid_amount < 2000 && new Date() > threeDaysAfterPurchase;
+          return shareholder.paid_amount < 5000 && new Date() > threeDaysAfterPurchase;
         });
 
-        const pending = shareholders.filter(shareholder => 
+        const pending = shareholders.filter(shareholder =>
           shareholder.remaining_payment > 0
         );
 
-        const completed = shareholders.filter(shareholder => 
+        const completed = shareholders.filter(shareholder =>
           shareholder.remaining_payment === 0
         );
 
@@ -108,13 +108,13 @@ export default function PaymentAnalysisPage() {
           title="Toplanan Tutar"
           value={stats.collectedAmount}
           maxValue={stats.totalAmount}
-          suffix=" ₺"
+          suffix="  TL"
         />
         <StatCardWithProgress
           title="Kalan Tutar"
           value={stats.remainingAmount}
           maxValue={stats.totalAmount}
-          suffix=" ₺"
+          suffix="  TL"
         />
         <StatCardWithProgress
           title="Eksik Kapora"

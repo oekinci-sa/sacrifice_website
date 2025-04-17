@@ -35,7 +35,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const [editFormData, setEditFormData] = useState<{
     shareholder_name: string;
     phone_number: string;
-    delivery_location: "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
+    delivery_location: "Kesimhane" | "Ulus";
     sacrifice_consent: boolean;
     paid_amount: number;
     notes: string;
@@ -43,7 +43,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   }>({
     shareholder_name: "",
     phone_number: "",
-    delivery_location: "kesimhane",
+    delivery_location: "Kesimhane",
     sacrifice_consent: false,
     paid_amount: 0,
     notes: "",
@@ -106,8 +106,8 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const handleChange = (field: string, value: string | number | boolean) => {
     // If delivery_location is changing, update delivery_fee as well
     if (field === 'delivery_location') {
-      const deliveryLocation = value as "kesimhane" | "yenimahalle-pazar-yeri" | "kecioren-otoparki";
-      const deliveryFee = deliveryLocation !== 'kesimhane' ? 500 : 0;
+      const deliveryLocation = value as "Kesimhane" | "Ulus";
+      const deliveryFee = deliveryLocation !== 'Kesimhane' ? 750 : 0;
       setEditFormData(prev => ({
         ...prev,
         delivery_location: deliveryLocation,

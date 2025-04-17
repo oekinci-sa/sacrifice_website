@@ -45,7 +45,7 @@ const Process = () => {
     <div id="process" className="md:bg-transparent bg-sac-section-background">
       {/* Heading - white on mobile, hidden on desktop */}
       <motion.p 
-        className="font-heading text-3xl md:text-4xl font-bold text-center text-white my-12 md:hidden"
+        className="text-3xl md:text-4xl font-bold text-center text-white my-12 md:hidden"
         variants={item}
         initial="hidden"
         whileInView="show"
@@ -71,12 +71,12 @@ const Process = () => {
             >
               {/* Numaralandırma */}
               <motion.div 
-                className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-sac-primary w-14 h-14 md:w-20 md:h-20 font-heading text-2xl md:text-4xl font-semibold"
+                className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-sac-primary w-14 h-14 md:w-20 md:h-20 text-2xl md:text-4xl font-semibold"
                 variants={numberVariant}
               >
                 {process.number}
               </motion.div>
-              <p className="font-heading text-xl md:text-2xl font-bold text-white md:text-black">
+              <p className="text-xl md:text-2xl font-bold text-white md:text-black">
                 {process.header}
               </p>
               <p className="text-sm md:text-base text-white/90 md:text-black/80">

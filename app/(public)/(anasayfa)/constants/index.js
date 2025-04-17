@@ -189,7 +189,7 @@ export const faq_categories = [
         id: "7",
         title: "Kapora var mı, hisse bedelini taksitle ödeyebilir miyim?",
         content:
-          "İlk etapta minimum 2.000₺ kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 1 Haziran Cuma gününe kadar tamamlamanız gerekmektedir.",
+          "İlk etapta minimum 2.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 1 Haziran Cuma gününe kadar tamamlamanız gerekmektedir.",
       },
       {
         id: "9",

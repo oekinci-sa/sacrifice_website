@@ -56,7 +56,7 @@ function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categori
                 className={`py-2 ${index === items.length - 1 ? 'border-b-0' : 'border-b'}`}
               >
                 <AccordionPrimitive.Header className="flex">
-                  <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-2 font-heading text-left text-base md:text-xl font-bold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180">
+                  <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-2 text-left text-base md:text-xl font-bold leading-6 transition-all [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 [&[data-state=open]>svg]:rotate-180">
                     {faqItem.title}
                     <Plus
                       size={16}
@@ -171,7 +171,7 @@ function MobileFaqContent() {
 const Faq = () => {
   return (
     <div id="faq" className="container w-full space-y-8 md:space-y-12">
-      <h2 className="font-heading font-bold text-3xl md:hidden text-center">
+      <h2 className="font-bold text-3xl md:hidden text-center">
         Sıkça Sorulan Sorular
       </h2>
 

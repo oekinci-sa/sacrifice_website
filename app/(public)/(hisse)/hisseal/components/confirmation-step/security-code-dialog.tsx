@@ -74,7 +74,7 @@ export default function SecurityCodeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="md:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg md:text-xl text-center">
             Güvenlik Kodu Belirleme
@@ -93,12 +93,12 @@ export default function SecurityCodeDialog({
                 maxLength={6}
               />
             </div>
-            {error && <p className="text-xs sm:text-sm text-destructive text-center">{error}</p>}
+            {error && <p className="text-xs md:text-sm text-destructive text-center">{error}</p>}
             <div className="flex justify-center">
               <Button
                 onClick={validateAndSubmit}
                 disabled={isLoading || securityCode.length !== 6}
-                className="w-40 h-10 sm:h-12 text-sm"
+                className="w-40 h-10 md:h-12 text-sm"
               >
                 Onayla
               </Button>

@@ -27,7 +27,7 @@ const Features = () => {
 
   return (
     <motion.div
-      className="container grid grid-cols-2 sm:grid-cols-4 items-start lg:flex lg:flex-wrap lg:justify-between gap-8"
+      className="container grid grid-cols-2 md:grid-cols-4 items-start lg:flex lg:flex-wrap lg:justify-between gap-8"
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -36,7 +36,7 @@ const Features = () => {
       {features.map((feature) => (
         <motion.div
           key={feature.src}
-          className="flex items-start gap-4 w-full sm:max-w-[300px]"
+          className="flex items-start gap-4 w-full md:max-w-[300px]"
           variants={item}
         >
           <Image

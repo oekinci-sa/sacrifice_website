@@ -62,7 +62,7 @@ const AnimatedCounter = () => {
 
   return (
     <div className="mb-12 py-16">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
         <motion.div
           className="flex flex-wrap justify-center md:justify-between gap-8"
           variants={sectionVariant}
@@ -72,7 +72,7 @@ const AnimatedCounter = () => {
         >
           {/* 7 Yıl+ Tecrübe */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full sm:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full md:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -86,7 +86,7 @@ const AnimatedCounter = () => {
 
           {/* 1000+ Kurban */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-4 w-full sm:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-4 w-full md:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -100,7 +100,7 @@ const AnimatedCounter = () => {
 
           {/* 5000+ Hissedar */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full sm:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full md:w-64 h-48"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}

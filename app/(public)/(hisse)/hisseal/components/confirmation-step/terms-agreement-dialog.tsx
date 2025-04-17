@@ -70,12 +70,12 @@ export default function TermsAgreementDialog({
     return (
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent
-                className="sm:max-w-xl max-w-[95%] h-[80vh] flex flex-col p-0 gap-0"
+                className="md:max-w-xl max-w-[95%] h-[80vh] flex flex-col p-0 gap-0"
                 // Make the dialog take 80% of screen height
                 style={{ maxHeight: '80vh' }}
             >
                 <DialogHeader className="px-6 pt-6 pb-2">
-                    <DialogTitle className="text-base sm:text-lg text-center">
+                    <DialogTitle className="text-base md:text-lg text-center">
                         Kullanıcı Sözleşmesi
                     </DialogTitle>
                 </DialogHeader>
@@ -83,8 +83,8 @@ export default function TermsAgreementDialog({
                 {/* Main scrollable content area */}
                 <div className="flex-1 overflow-hidden px-6">
                     <div className="flex items-center gap-2 p-3 rounded-md mb-4">
-                        <span className="text-xs sm:text-sm font-medium">Güvenlik Kodunuz:</span>
-                        <span className="text-sm sm:text-base font-bold">{securityCode}</span>
+                        <span className="text-xs md:text-sm font-medium">Güvenlik Kodunuz:</span>
+                        <span className="text-sm md:text-base font-bold">{securityCode}</span>
 
                         <Button
                             variant="ghost"
@@ -181,7 +181,7 @@ export default function TermsAgreementDialog({
                 </div>
 
                 {/* Fixed footer with checkbox and button */}
-                <DialogFooter className="px-6 py-4 border-t flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row items-start md:items-center gap-4">
                     <div className="flex items-start gap-2">
                         <Checkbox
                             id="terms"
@@ -191,7 +191,7 @@ export default function TermsAgreementDialog({
                         />
                         <label
                             htmlFor="terms"
-                            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+                            className="text-xs md:text-sm text-muted-foreground cursor-pointer"
                         >
                             Kullanıcı sözleşmesini okudum, kabul ediyorum.
                         </label>
@@ -200,7 +200,7 @@ export default function TermsAgreementDialog({
                     <Button
                         onClick={handleConfirm}
                         disabled={isLoading || !isAgreed}
-                        className="w-full sm:w-auto h-10 sm:h-12 text-sm"
+                        className="w-full md:w-auto h-10 md:h-12 text-sm"
                     >
                         Onaylıyorum
                     </Button>

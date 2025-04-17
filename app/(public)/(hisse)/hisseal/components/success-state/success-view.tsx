@@ -196,20 +196,20 @@ export const SuccessView = () => {
         </div>
         {/* Teşekkürler mesajı */}
         <div>
-          <h1 className="text-2xl sm:text-4xl text-center font-bold mb-2 sm:mb-4">
+          <h1 className="text-2xl md:text-4xl text-center font-bold mb-2 md:mb-4">
             Teşekkürler...
           </h1>
-          <p className="text-muted-foreground text-center text-base sm:text-lg">
+          <p className="text-muted-foreground text-center text-base md:text-lg">
             Hisse kaydınız başarıyla oluşturulmuştur.
           </p>
 
           {/* Ana butonlar */}
-          <div className="flex justify-center mt-4 sm:mt-8">
+          <div className="flex justify-center mt-4 md:mt-8">
             <Button
-              className="flex items-center justify-center gap-1 sm:gap-2 bg-black hover:bg-black/90 text-white px-2 sm:px-4 py-2 sm:py-3 h-auto text-sm sm:text-lg"
+              className="flex items-center justify-center gap-1 md:gap-2 bg-black hover:bg-black/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-sm md:text-lg"
               onClick={() => router.push("/hissesorgula")}
             >
-              <i className="bi bi-search text-base sm:text-xl"></i>
+              <i className="bi bi-search text-base md:text-xl"></i>
               Hisse Sorgula
             </Button>
           </div>
@@ -226,7 +226,7 @@ export const SuccessView = () => {
                 dbData.shareholders &&
                 dbData.shareholders.length > 0 && (
                   <div className="mt-8">
-                    <h2 className="text-lg sm:text-xl font-semibold text-center mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
                       Hissedar Bilgi Dökümanları
                     </h2>
                     <div className="flex flex-col md:flex-row gap-4 md:gap-8">
@@ -254,7 +254,7 @@ export const SuccessView = () => {
                             >
                               {({ blob, loading, error }) => (
                                 <Button
-                                  className="flex items-center justify-center gap-1 sm:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 sm:px-4 py-2 sm:py-3 h-auto text-xs sm:text-sm"
+                                  className="flex items-center justify-center gap-1 md:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
                                   onClick={() =>
                                     blob &&
                                     downloadPdf(
@@ -270,7 +270,7 @@ export const SuccessView = () => {
                                     "Hata!"
                                   ) : (
                                     <>
-                                      <i className="bi bi-cloud-download text-base sm:text-xl"></i>
+                                      <i className="bi bi-cloud-download text-base md:text-xl"></i>
                                       PDF İndir
                                     </>
                                   )}

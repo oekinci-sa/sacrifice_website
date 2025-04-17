@@ -97,28 +97,28 @@ export default function ShareholderForm({
     const isCurrentPurchaser = data.is_purchaser === true;
 
     return (
-        <div className="space-y-4 rounded-[8px] border border-dashed border-[#c7ddcd] p-4 sm:p-6 ">
+        <div className="space-y-4 rounded-[8px] border border-dashed border-[#c7ddcd] p-4 md:p-6 ">
             {/* İlk satır */}
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-semibold">
+            <div className="flex items-center justify-between mb-2 md:mb-4">
+                <h3 className="text-lg md:text-xl font-semibold">
                     {index + 1}. Hissedar
                 </h3>
                 <Button
                     variant="ghost"
-                    className="flex items-center justify-center gap-1 sm:gap-2 hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 text-lg h-9 sm:h-11"
+                    className="flex items-center justify-center gap-1 md:gap-2 hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 text-lg h-9 md:h-11"
                     onClick={() => onRemove(index)}
                 >
-                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <X className="h-3 w-3 md:h-4 md:w-4" />
                     <span>Hisseyi sil</span>
                 </Button>
             </div>
 
             {/* Formlar */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 md:space-y-4">
                 <div className="flex gap-4">
                     {/* Ad Soyad */}
-                    <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm sm:text-base">
+                    <div className="space-y-1.5 md:space-y-2">
+                        <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm md:text-base">
                             Ad Soyad
                         </Label>
                         <Input
@@ -128,17 +128,17 @@ export default function ShareholderForm({
                             onChange={(e) => onInputChange(index, "name", e.target.value)}
                             onBlur={(e) => onInputBlur(index, "name", e.target.value)}
                             className={cn(
-                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 sm:h-12 placeholder:text-muted-foreground placeholder:text-sm sm:placeholder:text-base",
+                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 md:h-12 placeholder:text-muted-foreground placeholder:text-sm md:placeholder:text-base",
                                 errors?.name ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
                         {errors?.name && (
-                            <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.name.join(', ')}</p>
+                            <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.name.join(', ')}</p>
                         )}
                     </div>
                     {/* Telefon */}
-                    <div className="space-y-1.5 sm:space-y-2">
-                        <Label htmlFor={`phone-${index}`} className="text-slate-600 text-sm sm:text-base">
+                    <div className="space-y-1.5 md:space-y-2">
+                        <Label htmlFor={`phone-${index}`} className="text-slate-600 text-sm md:text-base">
                             Telefon
                         </Label>
                         <Input
@@ -148,20 +148,20 @@ export default function ShareholderForm({
                             onChange={handlePhoneChange}
                             onBlur={handlePhoneBlur}
                             className={cn(
-                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 sm:h-12 placeholder:text-muted-foreground placeholder:text-sm sm:placeholder:text-base",
+                                "border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] h-10 md:h-12 placeholder:text-muted-foreground placeholder:text-sm md:placeholder:text-base",
                                 errors?.phone ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
                         {errors?.phone && (
-                            <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.phone.join(', ')}</p>
+                            <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.phone.join(', ')}</p>
                         )}
                     </div>
                 </div>
                 {/* Teslimat Tercihi */}
-                <div className="space-y-1.5 sm:space-y-2">
+                <div className="space-y-1.5 md:space-y-2">
                     <Label
                         htmlFor={`delivery_location-${index}`}
-                        className="text-slate-600 text-sm sm:text-base"
+                        className="text-slate-600 text-sm md:text-base"
                     >
                         Teslimat Tercihi
                     </Label>
@@ -186,14 +186,14 @@ export default function ShareholderForm({
                     </div>
 
                     {errors?.delivery_location && (
-                        <p className="text-lg text-destructive mt-1.5 sm:mt-2">{errors.delivery_location.join(', ')}</p>
+                        <p className="text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(', ')}</p>
                     )}
                 </div>
 
                 {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
                 {totalForms > 1 && (
                     <div className={cn(
-                        "flex items-center space-x-2 mt-3 pt-2 sm:pt-3",
+                        "flex items-center space-x-2 mt-3 pt-2 md:pt-3",
                         isOtherPurchaserSelected && !isCurrentPurchaser ? "opacity-70" : ""
                     )}>
                         <Checkbox

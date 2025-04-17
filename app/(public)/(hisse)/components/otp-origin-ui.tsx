@@ -24,7 +24,7 @@ export default function OTPOriginUI({
       onChange?.(numeric);
     }
   };
-  
+
   return (
     <div className="*:not-first:mt-2">
       <OTPInput
@@ -50,7 +50,7 @@ function Slot(props: SlotProps) {
   return (
     <div
       className={cn(
-        "border-input bg-background text-foreground flex size-9 sm:size-12 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow] text-xl",
+        "border-input bg-background text-foreground flex size-9 md:size-12 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow] text-xl",
         { "border-ring ring-ring/50 z-10 ring-[3px]": props.isActive }
       )}
     >

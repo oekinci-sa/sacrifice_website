@@ -1,16 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, subDays, eachDayOfInterval } from "date-fns";
-import { tr } from "date-fns/locale";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid
-} from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -18,6 +8,16 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { eachDayOfInterval, format, subDays } from "date-fns";
+import { tr } from "date-fns/locale";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis
+} from "recharts";
 
 const chartConfig = {
   today: {
@@ -159,8 +159,8 @@ export function SummaryGraphs() {
 
   return (
     <Card className="shadow-none">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-4 sm:py-5">
+      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 md:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-4 md:py-5">
           <CardTitle>Satış Grafikleri</CardTitle>
           <CardDescription>
             Dönemlere göre hisse satış sayıları
@@ -173,13 +173,13 @@ export function SummaryGraphs() {
               <button
                 key={chart}
                 data-active={activeChart === chart}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-8 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-12 sm:py-4"
+                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-8 py-3 text-left even:border-l data-[active=true]:bg-muted/50 md:border-l md:border-t-0 md:px-12 md:py-4"
                 onClick={() => setActiveChart(chart)}
               >
                 <span className="text-xs text-muted-foreground px-2">
                   {chartConfig[chart].label}
                 </span>
-                <span className="text-lg font-bold leading-none sm:text-2xl px-2">
+                <span className="text-lg font-bold leading-none md:text-2xl px-2">
                   {chartTotals[chart].toLocaleString()}
                 </span>
               </button>
@@ -187,7 +187,7 @@ export function SummaryGraphs() {
           })}
         </div>
       </CardHeader>
-      <CardContent className="px-2 sm:p-6">
+      <CardContent className="px-2 md:p-6">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"

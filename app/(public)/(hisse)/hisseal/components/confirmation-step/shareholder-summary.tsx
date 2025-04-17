@@ -225,7 +225,7 @@ export default function ShareholderSummary({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12 w-full mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 w-full mx-auto">
         {shareholders.map((shareholder, index) => {
           // Check if this shareholder is the purchaser
           const isPurchaser = index === effectivePurchaserIndex
@@ -236,9 +236,9 @@ export default function ShareholderSummary({
               className={cn(
                 "bg-[#fcfcfa] rounded-lg border border-dashed",
                 isPurchaser ? "border-[#b8c7dd]" : "border-[#c7ddcd]", // Different border for purchaser
-                "p-4 sm:p-6 w-full relative", // Added relative for badge positioning
-                shareholders.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
-                shareholders.length % 2 === 1 && index === shareholders.length - 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : ""
+                "p-4 md:p-6 w-full relative", // Added relative for badge positioning
+                shareholders.length === 1 ? "md:col-span-2 md:w-1/2 md:mx-auto" : "",
+                shareholders.length % 2 === 1 && index === shareholders.length - 1 ? "md:col-span-2 md:w-1/2 md:mx-auto" : ""
               )}
             >
               {/* Purchaser badge - only shown for the purchaser */}
@@ -248,20 +248,20 @@ export default function ShareholderSummary({
                 </div>
               )}
 
-              <h3 className="text-sm sm:text-lg font-semibold text-center mb-4 sm:mb-6">
+              <h3 className="text-sm md:text-lg font-semibold text-center mb-4 md:mb-6">
                 {index + 1}. Hissedar Bilgileri
               </h3>
 
-              <div className="grid grid-cols-2 gap-4 sm:gap-8">
+              <div className="grid grid-cols-2 gap-4 md:gap-8">
                 {/* Sol Sütun */}
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-xs sm:text-base">Ad Soyad</span>
-                    <span className="text-black text-sm sm:text-lg">{shareholder.name}</span>
+                    <span className="text-[#5b725e] block text-xs md:text-base">Ad Soyad</span>
+                    <span className="text-black text-sm md:text-lg">{shareholder.name}</span>
                   </div>
                   <div>
-                    <span className="text-[#5b725e] block text-xs sm:text-base">Teslimat Tercihi</span>
-                    <span className="text-black text-sm sm:text-lg">
+                    <span className="text-[#5b725e] block text-xs md:text-base">Teslimat Tercihi</span>
+                    <span className="text-black text-sm md:text-lg">
                       {shareholder.delivery_location} {shareholder.delivery_location !== "Kesimhane" && "(+750₺)"}
                     </span>
                   </div>
@@ -269,41 +269,41 @@ export default function ShareholderSummary({
 
                 {/* Sağ Sütun */}
                 <div>
-                  <span className="text-[#5b725e] block text-xs sm:text-base">Telefon</span>
-                  <span className="text-black text-sm sm:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+                  <span className="text-[#5b725e] block text-xs md:text-base">Telefon</span>
+                  <span className="text-black text-sm md:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
                 </div>
               </div>
 
-              <div className="my-4 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
+              <div className="my-4 md:my-6 border-t border-dashed border-[#c7ddcd]" />
 
               {/* Alt Bilgiler */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-8">
-                <div className="space-y-2 sm:space-y-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-8">
+                <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Kurbanlık No</span>
-                    <span className="text-black text-xs sm:text-lg">{sacrifice?.sacrifice_no}</span>
+                    <span className="text-[#5b725e] block text-[10px] md:text-base">Kurbanlık No</span>
+                    <span className="text-black text-xs md:text-lg">{sacrifice?.sacrifice_no}</span>
                   </div>
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Hisse Bedeli</span>
-                    <span className="text-black text-xs sm:text-lg">{sacrifice?.share_price} TL</span>
+                    <span className="text-[#5b725e] block text-[10px] md:text-base">Hisse Bedeli</span>
+                    <span className="text-black text-xs md:text-lg">{sacrifice?.share_price} TL</span>
                   </div>
                 </div>
 
-                <div className="space-y-2 sm:space-y-4">
+                <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] sm:text-base">Kesim Saati</span>
-                    <span className="text-black text-xs sm:text-lg">
+                    <span className="text-[#5b725e] block text-[10px] md:text-base">Kesim Saati</span>
+                    <span className="text-black text-xs md:text-lg">
                       {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="my-3 sm:my-6 border-t border-dashed border-[#c7ddcd]" />
+              <div className="my-3 md:my-6 border-t border-dashed border-[#c7ddcd]" />
 
-              <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                <span className="text-[#5b725e] text-[10px] sm:text-base">Toplam Ücret</span>
-                <span className="text-black text-xs sm:text-lg font-medium text-right">
+              <div className="grid grid-cols-2 gap-2 md:gap-4">
+                <span className="text-[#5b725e] text-[10px] md:text-base">Toplam Ücret</span>
+                <span className="text-black text-xs md:text-lg font-medium text-right">
                   {new Intl.NumberFormat('tr-TR').format(
                     shareholder.delivery_location !== "Kesimhane"
                       ? (sacrifice?.share_price || 0) + 750
@@ -319,22 +319,22 @@ export default function ShareholderSummary({
       <div className="flex justify-between items-center gap-4 w-full max-w-2xl mx-auto">
         <Button
           variant="ghost"
-          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
+          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 flex-1 rounded-full"
           onClick={() => setCurrentStep("details")}
           disabled={isProcessing}
         >
-          <ArrowLeft className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-2" />
-          <span className="text-xs sm:text-base">Hissedar Bilgileri</span>
+          <ArrowLeft className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-0.5 md:mr-2" />
+          <span className="text-xs md:text-base">Hissedar Bilgileri</span>
         </Button>
 
         <Button
           variant="ghost"
-          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 sm:h-10 px-3 sm:px-4 flex-1 rounded-full"
+          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 flex-1 rounded-full"
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >
-          <span className="text-xs sm:text-base">Hisseleri Onayla</span>
-          <ArrowRight className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ml-0.5 sm:ml-2" />
+          <span className="text-xs md:text-base">Hisseleri Onayla</span>
+          <ArrowRight className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 ml-0.5 md:ml-2" />
         </Button>
       </div>
 

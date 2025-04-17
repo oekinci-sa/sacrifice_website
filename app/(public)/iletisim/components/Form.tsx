@@ -66,7 +66,7 @@ const Form = () => {
             <p className="text-red-500 text-xs lg:text-sm">{errors.name.message}</p>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Telefon */}
           <div>
             <Label htmlFor="phone" className="text-xs lg:text-sm">Telefon Numarası *</Label>

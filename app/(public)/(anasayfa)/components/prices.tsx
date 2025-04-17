@@ -101,7 +101,7 @@ const Prices = () => {
                 {item.kg} KG
               </motion.div>
               <motion.div
-                className="text-base sm:text-2xl font-semibold bg-sac-primary text-white px-2 py-1 rounded-md w-full text-center"
+                className="text-base md:text-2xl font-semibold bg-sac-primary text-white px-2 py-1 rounded-md w-full text-center"
                 variants={boxVariant}
               >
                 {item.price.toLocaleString('tr-TR')} TL
@@ -111,7 +111,7 @@ const Prices = () => {
         </motion.div>
 
         {/* Centered note */}
-        <p className="text-sm sm:text-base text-center max-w-2xl mt-4">
+        <p className="text-sm md:text-base text-center max-w-2xl mt-4">
           * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik
           gösterebilmektedir.
         </p>

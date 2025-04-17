@@ -27,7 +27,7 @@ import { useEffect, useMemo, useState } from "react";
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
-    <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs sm:hidden">
+    <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs md:hidden">
       {count}
     </div>
   ) : null;
@@ -53,7 +53,7 @@ const SelectedFiltersDisplay = ({
   if (type === "price") {
     if (selectedValues.size <= 3) {
       return (
-        <div className="hidden sm:flex gap-1 ml-2">
+        <div className="hidden md:flex gap-1 ml-2">
           <AnimatePresence>
             {sortedValues.map((value, index) => {
               const option = options.find((opt) => opt.value === value);
@@ -79,7 +79,7 @@ const SelectedFiltersDisplay = ({
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.5 }}
-        className="hidden sm:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
+        className="hidden md:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
       >
         {selectedValues.size} seçili
       </motion.span>
@@ -88,7 +88,7 @@ const SelectedFiltersDisplay = ({
 
   // Boş hisse sayısı filtreleri için
   return (
-    <div className="hidden sm:flex gap-1 ml-2">
+    <div className="hidden md:flex gap-1 ml-2">
       <AnimatePresence>
         {sortedValues.map((value, index) => (
           <motion.span
@@ -150,9 +150,9 @@ function DataTableFacetedFilter<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 sm:h-10 w-full border text-xs sm:text-sm whitespace-normal sm:whitespace-nowrap flex items-center justify-start"
+          className="h-8 md:h-10 w-full border text-xs md:text-sm whitespace-normal md:whitespace-nowrap flex items-center justify-start"
         >
-          <PlusCircle className="mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+          <PlusCircle className="mr-2 h-3 w-3 md:h-4 md:w-4 shrink-0" />
           <span className="mr-auto">{title}</span>
           <SelectedFiltersDisplay
             selectedValues={selectedValues}
@@ -351,9 +351,9 @@ export function ShareFilters({
   }, [table, searchParams, pathname]);
 
   return (
-    <div className="flex flex-col justify-center gap-2 sm:gap-4">
+    <div className="flex flex-col justify-center gap-2 md:gap-4">
       {/* Filtreler */}
-      <div className="flex flex-row items-center justify-center gap-2 sm:my-4 sm:gap-4">
+      <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
         {[
           {
             column: "share_price",
@@ -397,10 +397,10 @@ export function ShareFilters({
             onColumnFiltersChange([]);
             setShowHideFullOption(true);
           }}
-          className="h-8 px-2 lg:px-3 text-sm sm:w-16"
+          className="h-8 px-2 lg:px-3 text-sm md:w-16"
         >
           Tüm filtreleri temizle
-          <X className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
+          <X className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" />
         </Button>
       )}
       <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">

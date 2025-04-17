@@ -25,7 +25,7 @@ import { useEffect, useMemo, useState } from "react";
 // Filter Badge component for mobile
 const FilterCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
-    <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs sm:hidden">
+    <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs md:hidden">
       {count}
     </div>
   ) : null;
@@ -50,7 +50,7 @@ const SelectedFiltersDisplay = ({
   if (type === "price") {
     if (selectedValues.size <= 3) {
       return (
-        <div className="hidden sm:flex gap-1 ml-2">
+        <div className="hidden md:flex gap-1 ml-2">
           <AnimatePresence>
             {sortedValues.map((value, index) => {
               const option = options.find((opt) => opt.value === value);
@@ -76,7 +76,7 @@ const SelectedFiltersDisplay = ({
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.5 }}
-        className="hidden sm:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
+        className="hidden md:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
       >
         {selectedValues.size} seçili
       </motion.span>
@@ -85,7 +85,7 @@ const SelectedFiltersDisplay = ({
 
   // For empty shares filter
   return (
-    <div className="hidden sm:flex gap-1 ml-2">
+    <div className="hidden md:flex gap-1 ml-2">
       <AnimatePresence>
         {sortedValues.map((value, index) => (
           <motion.span

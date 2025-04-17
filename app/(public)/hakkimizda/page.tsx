@@ -1,17 +1,16 @@
 'use client';
 
-import React from 'react';
 
-import { MoveRight, PhoneCall } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MoveRight, PhoneCall } from "lucide-react";
 
 import AnimatedCounter from './components/AnimatedCounter';
 import PhotoGallery from './components/PhotoGallery';
 
 const AboutPage = () => {
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="w-full mx-auto px-4 md:px-6 lg:px-8 py-12">
       <div className="container mx-auto">
         <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-8 text-center">Hakkımızda</h1>
 

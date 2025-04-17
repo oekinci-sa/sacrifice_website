@@ -444,15 +444,15 @@ export default function Checkout({
         <SacrificeInfo sacrifice={selectedSacrifice} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 justify-items-center gap-4 sm:gap-12 w-full mx-auto mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-4 md:gap-12 w-full mx-auto mt-8">
         {formData.map((data, index) => (
           <div
             key={index}
             className={cn(
               "w-full",
-              formData.length === 1 ? "sm:col-span-2 sm:w-1/2 sm:mx-auto" : "",
+              formData.length === 1 ? "md:col-span-2 md:w-1/2 md:mx-auto" : "",
               formData.length % 2 === 1 && index === formData.length - 1
-                ? "sm:col-span-2 sm:w-1/2 sm:mx-auto"
+                ? "md:col-span-2 md:w-1/2 md:mx-auto"
                 : ""
             )}
           >
@@ -490,20 +490,20 @@ export default function Checkout({
 
       <AlertDialog open={showBackDialog} onOpenChange={setShowBackDialog}>
         <AlertDialogContent className="max-w-2xl">
-          <AlertDialogHeader className="space-y-4 sm:space-y-6">
-            <AlertDialogTitle className="text-base sm:text-xl font-semibold">
+          <AlertDialogHeader className="space-y-4 md:space-y-6">
+            <AlertDialogTitle className="text-base md:text-xl font-semibold">
               Emin misiniz?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs sm:text-base leading-relaxed">
+            <AlertDialogDescription className="text-xs md:text-base leading-relaxed">
               Eğer geri dönerseniz, yaptığınız değişiklikler kaybolacaktır.
               Ayrıca, daha önce seçmiş olduğunuz hisseler başkaları tarafından
               seçilebilir hale gelecektir. Devam etmek istediğinize emin
               misiniz?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6">
+          <AlertDialogFooter className="flex flex-col md:flex-row gap-2 md:gap-4 pt-4 md:pt-6">
             <AlertDialogAction
-              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 sm:h-10 text-xs sm:text-base"
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 md:h-10 text-xs md:text-base"
               onClick={confirmBack}
               disabled={isCanceling || cancelReservation.isPending}
             >
@@ -512,7 +512,7 @@ export default function Checkout({
                 : "Evet, geri dönmek istiyorum"}
             </AlertDialogAction>
             <AlertDialogCancel
-              className="flex-1 h-8 sm:h-10 text-xs sm:text-base"
+              className="flex-1 h-8 md:h-10 text-xs md:text-base"
               onClick={cancelBack}
               disabled={isCanceling || cancelReservation.isPending}
             >

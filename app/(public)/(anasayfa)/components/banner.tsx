@@ -83,7 +83,7 @@ const Banner = () => {
               width={24}
               height={24}
             />
-            <p className="text-sm sm:text-base text-black/70">
+            <p className="text-sm md:text-base text-black/70">
               Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
               <br />
               <Link

@@ -34,7 +34,7 @@ export function ShareholderInfo({
     <div className={sectionClass}>
       <h3 className="text-lg md:text-xl font-semibold mb-4">Hissedar Bilgileri</h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* İsim Soyisim */}
         <div className="space-y-1">
           <p className={labelClass}>İsim Soyisim</p>

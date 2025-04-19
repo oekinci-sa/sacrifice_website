@@ -6,6 +6,45 @@ import { sacrificeSchema, Step } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
 import { useEffect } from "react";
 
+// Define common types to replace 'any' usage
+type ToastFunction = {
+  (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
+};
+
+// Type for UpdateShareCount
+interface UpdateShareCountType {
+  mutate: (data: {
+    transaction_id: string;
+    share_count: number;
+    operation: 'add' | 'remove';
+  }) => Promise<{
+    success: boolean;
+    message: string;
+  }>;
+  reset?: () => void;
+  mutateAsync?: (data: any) => Promise<any>;
+}
+
+// Type for CreateReservation
+interface CreateReservationType {
+  mutate: (data: any) => Promise<any>;
+  reset?: () => void;
+  isPending?: boolean;
+  isLoading?: boolean;
+  isFetching?: boolean;
+  mutateAsync?: (data: any) => Promise<any>;
+}
+
+// Type for CreateShareholders
+interface CreateShareholdersType {
+  mutate: (data: any) => Promise<any>;
+  reset?: () => void;
+  isPending?: boolean;
+  isLoading?: boolean;
+  isFetching?: boolean;
+  mutateAsync?: (data: any) => Promise<any>;
+}
+
 // Define a more generic type for form data that matches what's used in the page component
 export interface FormData {
   name: string;
@@ -108,12 +147,14 @@ export const useHandlePageUnload = ({
 type NavigationHandlerParams = {
   currentStep: string;
   selectedSacrifice: sacrificeSchema | null;
-  formData: any[];
-  updateSacrifice: any;
+  formData: FormData[];
+  updateSacrifice: {
+    mutateAsync: (data: { sacrificeId: string; emptyShare: number }) => Promise<any>;
+  };
   resetStore: () => void;
   goToStep: (step: string) => void;
   isSuccess: boolean;
-  toast: any;
+  toast: ToastFunction;
 };
 
 // Sayfa navigasyon değişikliklerini işleme
@@ -294,8 +335,8 @@ export const useHandleInteractionTimeout = (
   isSuccess: boolean,
   currentStep: string,
   selectedSacrifice: sacrificeSchema | null,
-  formData: any[],
-  updateShareCount: any,
+  formData: FormData[],
+  updateShareCount: UpdateShareCountType,
   goToStep: (step: string) => void,
   resetStore: () => void,
   lastInteractionTime: number,
@@ -316,7 +357,7 @@ export const useHandleInteractionTimeout = (
     setShowOneMinuteWarning?: (show: boolean) => void;
   },
   // Veri yenileme fonksiyonu (isteğe bağlı)
-  refetchSacrifices?: () => Promise<any>,
+  refetchSacrifices?: () => Promise<void>,
   // Özel timeout handler fonksiyonu (isteğe bağlı)
   customTimeoutHandler?: () => void
 ) => {
@@ -516,15 +557,15 @@ export const handleShareCountSelect = async ({
 }: {
   shareCount: number;
   tempSelectedSacrifice: sacrificeSchema | null;
-  updateShareCount: any;
+  updateShareCount: UpdateShareCountType;
   setSelectedSacrifice: (sacrifice: sacrificeSchema) => void;
-  setFormData: (data: any[]) => void;
+  setFormData: (data: FormData[]) => void;
   goToStep: (step: string) => void;
   setIsDialogOpen: (open: boolean) => void;
   setLastInteractionTime: (time: number) => void;
-  toast: any;
+  toast: ToastFunction;
   transaction_id: string;
-  createReservation: any;
+  createReservation: CreateReservationType;
 }) => {
   try {
     console.log('Starting handleShareCountSelect function', {
@@ -561,12 +602,28 @@ export const handleShareCountSelect = async ({
       share_count: shareCount
     });
 
-    // Rezervasyon oluştur
-    const result = await createReservation.mutateAsync({
-      transaction_id,
-      sacrifice_id: tempSelectedSacrifice.sacrifice_id,
-      share_count: shareCount,
-    });
+    let result;
+    if (createReservation && createReservation.mutateAsync) {
+      // Call mutateAsync
+      result = await createReservation.mutateAsync({
+        transaction_id,
+        sacrifice_id: tempSelectedSacrifice.sacrifice_id,
+        share_count: shareCount,
+      });
+    } else if (createReservation && createReservation.mutate) {
+      // Fallback to mutate if mutateAsync doesn't exist
+      const promise = new Promise<any>((resolve) => {
+        createReservation.mutate({
+          transaction_id,
+          sacrifice_id: tempSelectedSacrifice.sacrifice_id,
+          share_count: shareCount,
+        });
+        resolve({ success: true });
+      });
+      result = await promise;
+    } else {
+      throw new Error("createReservation has no mutate or mutateAsync method");
+    }
 
     console.log('Reservation created successfully', result);
 
@@ -628,11 +685,11 @@ export const handleApprove = async ({
   toast,
 }: {
   selectedSacrifice: sacrificeSchema | null;
-  formData: any[];
-  createShareholders: any;
+  formData: FormData[];
+  createShareholders: CreateShareholdersType;
   setSuccess: (success: boolean) => void;
   goToStep: (step: string) => void;
-  toast: any;
+  toast: ToastFunction;
 }) => {
   // The actual approval and shareholder creation now happens in shareholder-summary.tsx
   // This function is now just handling the success state transition

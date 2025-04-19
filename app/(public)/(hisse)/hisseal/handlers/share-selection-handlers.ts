@@ -1,4 +1,5 @@
 import {
+    FormData as HelperFormData,
     handleApprove as helperHandleApprove,
     handleShareCountSelect as helperHandleShareCountSelect
 } from "@/helpers/hisseal-helpers";
@@ -11,6 +12,14 @@ type FormDataType = {
     phone: string;
     delivery_location: string;
     is_purchaser?: boolean;
+};
+
+// Define a simplified router type with the methods we need
+type RouterType = {
+    push: (href: string, options?: { scroll?: boolean }) => void;
+    replace: (href: string, options?: { scroll?: boolean }) => void;
+    refresh: () => void;
+    back: () => void;
 };
 
 type ReservationData = {
@@ -106,6 +115,7 @@ interface CreateShareholdersMutationWrapper {
     isPending?: boolean;
     isLoading?: boolean;
     isFetching?: boolean;
+    mutateAsync?: (data: ShareholderInput[]) => Promise<ShareholderResponse>;
 }
 
 // Toast interface
@@ -129,7 +139,7 @@ type ShareCountSelectHandlerParams = {
     tempSelectedSacrifice: sacrificeSchema | null;
     updateShareCount: UpdateShareCountMutationWrapper;
     setSelectedSacrifice: (sacrifice: sacrificeSchema) => void;
-    setFormData: (data: FormDataType[]) => void;
+    setFormData: (data: HelperFormData[]) => void;
     goToStep: (step: string) => void;
     setIsDialogOpen: (open: boolean) => void;
     setLastInteractionTime: (time: number) => void;
@@ -137,7 +147,7 @@ type ShareCountSelectHandlerParams = {
     transaction_id: string;
     createReservation: CreateReservationMutationWrapper;
     setShowReservationInfo: (show: boolean) => void;
-    router?: { push: (url: string) => void };
+    router?: RouterType;
     sacrifice_id?: string;
 };
 
@@ -148,7 +158,7 @@ type ApproveHandlerParams = {
     setSuccess: (success: boolean) => void;
     goToStep: (step: string) => void;
     toast: ToastFunction;
-    router?: { push: (url: string) => void };
+    router?: RouterType;
     transaction_id?: string;
     nextStep?: () => void;
     setLoading?: (loading: boolean) => void;

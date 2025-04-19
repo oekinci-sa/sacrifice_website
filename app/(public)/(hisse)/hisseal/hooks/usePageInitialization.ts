@@ -7,6 +7,7 @@ import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { useEffect } from "react";
 
 export function usePageInitialization() {
     // Zustand data store for sacrifices
@@ -34,6 +35,10 @@ export function usePageInitialization() {
         setSuccess,
         setHasNavigatedAway
     } = useShareSelectionFlowStore();
+
+    useEffect(() => {
+        refetchSacrifices()
+      }, [])
 
     // Reservation store - transaction_id yönetimi
     const { transaction_id, generateNewTransactionId } = useReservationIDStore();

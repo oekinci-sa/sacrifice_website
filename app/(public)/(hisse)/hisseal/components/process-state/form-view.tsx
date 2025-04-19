@@ -144,6 +144,7 @@ export const FormView = ({
                 onColumnFiltersChange={onColumnFiltersChange}
               />
             )}
+            tableSize="large"
           />
         </TabsContent>
         <TabsContent value="tab-2">

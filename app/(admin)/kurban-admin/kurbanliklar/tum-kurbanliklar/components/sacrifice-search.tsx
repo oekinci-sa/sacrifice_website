@@ -7,9 +7,14 @@ import { useEffect, useState } from "react";
 interface SacrificeSearchProps {
   onSearch: (value: string) => void;
   searchValue?: string;
+  placeholder?: string;
 }
 
-export function SacrificeSearch({ onSearch, searchValue: externalSearchValue }: SacrificeSearchProps) {
+export function SacrificeSearch({
+  onSearch,
+  searchValue: externalSearchValue,
+  placeholder = "Notlarda ara..."
+}: SacrificeSearchProps) {
   const [searchValue, setSearchValue] = useState("");
 
   // Update internal state when external value changes
@@ -26,10 +31,10 @@ export function SacrificeSearch({ onSearch, searchValue: externalSearchValue }: 
   };
 
   return (
-    <div className="relative w-full md:w-1/4">
+    <div className="relative md:w-1/2">
       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        placeholder="Kurban numarası veya notlar ile ara..."
+        placeholder={placeholder}
         value={searchValue}
         onChange={handleSearch}
         className="pl-8 w-full"

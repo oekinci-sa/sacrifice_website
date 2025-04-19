@@ -61,10 +61,10 @@ const AnimatedCounter = () => {
   };
 
   return (
-    <div className="mb-12 py-16">
-      <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
+    <div className="py-8 md:py-16">
+      <div className="mx-auto">
         <motion.div
-          className="flex flex-wrap justify-center md:justify-between gap-8"
+          className="flex flex-wrap justify-between md:gap-16"
           variants={sectionVariant}
           initial="hidden"
           whileInView="show"
@@ -72,44 +72,44 @@ const AnimatedCounter = () => {
         >
           {/* 7 Yıl+ Tecrübe */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full md:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-black text-white rounded-md px-4 py-2 md:px-8 md:py-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <p className="text-4xl font-bold">
+            <p className="text-xl md:text-4xl font-bold">
               <Counter from={0} to={7} duration={1.5} />
               &nbsp;Yıl<span className="text-sac-primary">+</span>
             </p>
-            <p className="text-3xl">Tecrübe</p>
+            <p className="text-lg md:text-3xl">Tecrübe</p>
           </motion.div>
 
           {/* 1000+ Kurban */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md p-4 w-full md:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md px-4 py-2 md:px-8 md:py-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <p className="text-4xl font-bold">
+            <p className="text-xl md:text-4xl font-bold">
               <Counter from={0} to={1000} duration={1.5} />
               <span>+</span>
             </p>
-            <p className="text-3xl">Kurban</p>
+            <p className="text-lg md:text-3xl">Kurban</p>
           </motion.div>
 
           {/* 5000+ Hissedar */}
           <motion.div
-            className="flex flex-col items-center justify-center bg-black text-white rounded-md p-4 w-full md:w-64 h-48"
+            className="flex flex-col items-center justify-center bg-black text-white rounded-md px-4 py-2 md:px-8 md:py-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <p className="text-4xl font-bold">
+            <p className="text-xl md:text-4xl font-bold">
               <Counter from={0} to={5000} duration={1.5} />
               <span>+</span>
             </p>
-            <p className="text-3xl">Hissedar</p>
+            <p className="text-lg md:text-3xl">Hissedar</p>
           </motion.div>
         </motion.div>
       </div>

@@ -49,39 +49,28 @@ const SelectedFiltersDisplay = ({
     return a.localeCompare(b);
   });
 
-  if (selectedValues.size <= 3) {
-    return (
-      <div className="hidden md:flex gap-1 ml-2">
-        <AnimatePresence>
-          {sortedValues.map((value, index) => {
-            const option = options.find((opt) => opt.value === value);
-            return option ? (
-              <motion.span
-                key={value}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-[#f4f4f5] text-xs px-2 py-0.5"
-              >
-                {option.label}
-              </motion.span>
-            ) : null;
-          })}
-        </AnimatePresence>
-      </div>
-    );
-  }
-
+  // Always display all selected values regardless of count
   return (
-    <motion.span
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.5 }}
-      className="hidden md:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
-    >
-      {selectedValues.size} seçili
-    </motion.span>
+    <div className="hidden md:flex gap-1 ml-2 flex-wrap max-w-[300px]">
+      <AnimatePresence>
+        {sortedValues.map((value, index) => {
+          const option = options.find((opt) => opt.value === value);
+          return option ? (
+            <motion.span
+              key={value}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ delay: index * 0.05 }}
+              className="bg-[#f4f4f5] text-xs px-2 py-0.5 truncate max-w-[100px]"
+              title={option.label}
+            >
+              {option.label}
+            </motion.span>
+          ) : null;
+        })}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -100,13 +89,26 @@ function DataTableFacetedFilter<TData, TValue>({
   const selectedValues = new Set(column?.getFilterValue() as string[]);
   const facets = column?.getFacetedUniqueValues();
 
+  const handleSelect = (value: string) => {
+    const newSelectedValues = new Set(selectedValues);
+    if (newSelectedValues.has(value)) {
+      newSelectedValues.delete(value);
+    } else {
+      newSelectedValues.add(value);
+    }
+    const filterValues = Array.from(newSelectedValues);
+    column?.setFilterValue(
+      filterValues.length ? filterValues : undefined
+    );
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          className="h-8 border text-xs whitespace-nowrap flex items-center justify-start"
+          className="h-8 border-dashed text-xs whitespace-nowrap flex items-center justify-start"
         >
           <PlusCircle className="mr-2 h-3 w-3 shrink-0" />
           {title}
@@ -129,17 +131,7 @@ function DataTableFacetedFilter<TData, TValue>({
                 return (
                   <CommandItem
                     key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value);
-                      } else {
-                        selectedValues.add(option.value);
-                      }
-                      const filterValues = Array.from(selectedValues);
-                      column?.setFilterValue(
-                        filterValues.length ? filterValues : undefined
-                      );
-                    }}
+                    onSelect={() => handleSelect(option.value)}
                   >
                     <div
                       className={cn(
@@ -192,12 +184,11 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       }));
   }, [table]);
 
-  // Payment status options with text exactly matching the displayed values
+  // Payment status options with text exactly matching the displayed values - remove "Ödeme Yapılmadı"
   const paymentStatusOptions = useMemo(() => [
     { label: "Tamamlandı", value: "completed" },
     { label: "Tüm Ödeme Bekleniyor", value: "partial" },
-    { label: "Kapora Bekleniyor", value: "deposit" },
-    { label: "Ödeme Yapılmadı", value: "none" }
+    { label: "Kapora Bekleniyor", value: "deposit" }
   ], []);
 
   // Delivery location options
@@ -205,6 +196,12 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     "Kesimhane": "Kesimhane",
     "Ulus": "Ulus",
   };
+
+  // Vekalet options
+  const vekaletOptions = useMemo(() => [
+    { label: "Alındı", value: "true" },
+    { label: "Alınmadı", value: "false" }
+  ], []);
 
   // Filter column setup for payment status
   useEffect(() => {
@@ -233,14 +230,16 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
 
   // Filter column setup for sacrifice number
   useEffect(() => {
-    const sacrificeColumn = table.getColumn("sacrifice.sacrifice_no");
+    const sacrificeColumn = table.getColumn("sacrifice_no");
     if (sacrificeColumn) {
       sacrificeColumn.columnDef.filterFn = (row, _id, filterValues) => {
-        if (!filterValues.length) return true;
+        if (!filterValues || filterValues.length === 0) return true;
 
         const shareholder = row.original;
-        const sacrificeNo = shareholder.sacrifice?.sacrifice_no?.toString();
+        // If sacrifice is null or undefined, return false when filters are active
+        if (!shareholder.sacrifice) return false;
 
+        const sacrificeNo = shareholder.sacrifice.sacrifice_no?.toString();
         if (!sacrificeNo) return false;
 
         return filterValues.includes(sacrificeNo);
@@ -248,29 +247,57 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     }
   }, [table]);
 
+  // Filter column setup for vekalet
+  useEffect(() => {
+    const vekaletColumn = table.getColumn("sacrifice_consent");
+    if (vekaletColumn) {
+      vekaletColumn.columnDef.filterFn = (row, _id, filterValues) => {
+        if (!filterValues.length) return true;
+
+        const consent = row.getValue("sacrifice_consent");
+        return filterValues.includes(consent ? "true" : "false");
+      };
+    }
+  }, [table]);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <DataTableFacetedFilter
-        column={table.getColumn("sacrifice.sacrifice_no")}
-        title="Kurban No"
-        options={sacrificeOptions}
-        type="sacrifice"
-      />
-      <DataTableFacetedFilter
-        column={table.getColumn("payment_status")}
-        title="Ödeme Durumu"
-        options={paymentStatusOptions}
-        type="payment"
-      />
-      <DataTableFacetedFilter
-        column={table.getColumn("delivery_location")}
-        title="Teslimat Noktası"
-        options={Object.entries(deliveryLocationOptions).map(([label, value]) => ({
-          label,
-          value,
-        }))}
-        type="delivery"
-      />
+      {/* Always render Kurban No filter first */}
+      {table.getColumn("sacrifice_no") && (
+        <DataTableFacetedFilter
+          column={table.getColumn("sacrifice_no")}
+          title="Kurban No"
+          options={sacrificeOptions}
+          type="sacrifice"
+        />
+      )}
+      {table.getColumn("payment_status") && (
+        <DataTableFacetedFilter
+          column={table.getColumn("payment_status")}
+          title="Ödeme Durumu"
+          options={paymentStatusOptions}
+          type="payment"
+        />
+      )}
+      {table.getColumn("delivery_location") && (
+        <DataTableFacetedFilter
+          column={table.getColumn("delivery_location")}
+          title="Teslimat Noktası"
+          options={Object.entries(deliveryLocationOptions).map(([label, value]) => ({
+            label,
+            value,
+          }))}
+          type="delivery"
+        />
+      )}
+      {table.getColumn("sacrifice_consent") && (
+        <DataTableFacetedFilter
+          column={table.getColumn("sacrifice_consent")}
+          title="Vekalet"
+          options={vekaletOptions}
+          type="vekalet"
+        />
+      )}
     </div>
   );
 } 

@@ -33,15 +33,17 @@ interface DataTableProps<TData, TValue> {
     columnFilters: ColumnFiltersState;
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
   }) => React.ReactNode | null
+  tableSize?: "small" | "medium" | "large"
 }
 
 export function CustomDataTable<TData, TValue>({
   columns,
   data,
   meta,
-  pageSizeOptions = [20, 50, 100, 150],
+  pageSizeOptions = [20, 50, 100, 200, 500, 1000],
   initialState,
   filters,
+  tableSize = "medium",
 }: DataTableProps<TData, TValue>) {
   const tableColumns = React.useMemo(() => columns, [columns])
 
@@ -51,7 +53,7 @@ export function CustomDataTable<TData, TValue>({
 
   // Check if data has changed
   React.useEffect(() => {
-    if (JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
+    if (Array.isArray(data) && JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
       dataRef.current = [...data];
       setDataVersion(prev => prev + 1);
       console.log('Data changed, forcing CustomDataTable re-render');
@@ -137,8 +139,8 @@ export function CustomDataTable<TData, TValue>({
 
         <div className="rounded-md">
           <Table>
-            <CustomTableHeader table={table} />
-            <CustomTableBody table={table} columns={tableColumns} />
+            <CustomTableHeader table={table} tableSize={tableSize} />
+            <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} />
           </Table>
         </div>
 

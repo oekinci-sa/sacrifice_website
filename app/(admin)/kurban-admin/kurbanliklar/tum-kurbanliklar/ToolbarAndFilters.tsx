@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
-import { SlidersHorizontal, X } from "lucide-react";
+import { Download, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SacrificeFilters } from "./components/sacrifice-filters";
 import { SacrificeSearch } from "./components/sacrifice-search";
@@ -53,17 +53,19 @@ export function ToolbarAndFilters({
     setIsFiltered(hasColumnFilters || hasGlobalFilter);
   }, [columnFilters, globalFilter]);
 
-  // Handle search
+  // Handle search - update to only search in notes
   const handleSearch = (value: string) => {
     setGlobalFilter(value);
-    table.setGlobalFilter(value);
+
+    // Apply the search filter only to the notes column
+    table.getColumn("notes")?.setFilterValue(value);
   };
 
   // Handle reset all filters
   const handleResetFilters = () => {
     table.resetColumnFilters();
     setGlobalFilter("");
-    table.setGlobalFilter("");
+    table.getColumn("notes")?.setFilterValue("");
 
     // Call the reset function if it exists
     if (resetFilterStateRef.current) {
@@ -71,14 +73,24 @@ export function ToolbarAndFilters({
     }
   };
 
+  const exportToExcel = () => {
+    // Export functionality can be implemented here
+    // You'll need to convert the sacrifices data to Excel format
+    console.log("Export to Excel clicked");
+  };
+
   return (
     <div className="flex flex-col gap-4 py-4">
-      <div className="flex flex-col md:flex-row gap-3 justify-between">
-        {/* Search component */}
-        <SacrificeSearch onSearch={handleSearch} searchValue={globalFilter} />
+      {/* Top row with filters on left and search on right */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        {/* Filter components and reset button */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <SacrificeFilters
+            table={table}
+            registerResetFunction={registerResetFunction}
+          />
 
-        <div className="flex items-center gap-2">
-          {/* Reset filters button */}
+          {/* Reset filters button - visible only when filters are active */}
           {isFiltered && (
             <Button
               variant="ghost"
@@ -86,51 +98,65 @@ export function ToolbarAndFilters({
               onClick={handleResetFilters}
               className="h-8 px-2 flex items-center gap-1"
             >
+              <X className="h-4 w-4 mr-1" />
               Tüm filtreleri temizle
-              <X className="h-4 w-4 ml-1" />
             </Button>
           )}
-
-          {/* Filter components */}
-          <SacrificeFilters
-            table={table}
-            registerResetFunction={registerResetFunction}
-          />
-
-          {/* Columns dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 flex items-center gap-2"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Sütunlar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" && column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                    >
-                      {columnHeaderMap[column.id] || column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+
+        {/* Search bar on right */}
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* Search bar */}
+          <SacrificeSearch onSearch={handleSearch} searchValue={globalFilter} placeholder="Notlara göre ara..." />
+        </div>
+      </div>
+
+      {/* Bottom row with column visibility and excel export */}
+      <div className="flex justify-end items-center gap-3">
+        {/* Columns dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-dashed flex items-center gap-2"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Sütunlar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter(
+                (column) =>
+                  typeof column.accessorFn !== "undefined" && column.getCanHide()
+              )
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  >
+                    {columnHeaderMap[column.id] || column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Export to Excel button */}
+        <Button
+          onClick={exportToExcel}
+          variant="outline"
+          size="sm"
+          className="h-8 border-dashed flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Excel&apos;e Aktar
+        </Button>
       </div>
     </div>
   );

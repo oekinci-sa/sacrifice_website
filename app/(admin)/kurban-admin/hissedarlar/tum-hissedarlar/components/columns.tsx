@@ -124,13 +124,31 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     },
   },
   {
-    accessorKey: "sacrifice.sacrifice_no",
+    id: "sacrifice_no",
+    accessorFn: (row) => row.sacrifice?.sacrifice_no || "-",
     header: "Kur. Sır.",
     enableSorting: true,
     sortingFn: sortingFunctions.number,
     cell: ({ row }) => {
       const sacrifice = row.original.sacrifice;
-      return sacrifice?.sacrifice_no || "-";
+      const sacrificeNo = sacrifice?.sacrifice_no || "-";
+
+      if (sacrificeNo === "-") return sacrificeNo;
+
+      const router = useRouter();
+      return (
+        <Button
+          variant="link"
+          className="p-0 h-auto"
+          onClick={() => {
+            if (sacrifice?.sacrifice_id) {
+              router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrifice.sacrifice_id}`);
+            }
+          }}
+        >
+          {sacrificeNo}
+        </Button>
+      );
     },
   },
   {
@@ -153,25 +171,9 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     cell: ({ row }) => {
       const location = row.getValue("delivery_location") as string;
 
-      let displayText = location;
-      let feeText = "";
-
-      if (location === "Kesimhane") {
-        displayText = "Kesimhane";
-        feeText = "";
-      } else if (location === "Ulus") {
-        displayText = "Ulus";
-        feeText = "750₺";
-      }
-
       return (
-        <div className="space-y-0.5">
-          <div className="flex items-center">
-            <span className="text-sm">{displayText}</span>
-          </div>
-          {feeText && <div className="flex items-center">
-            <span className="text-[10px] p-1 bg-primary/10 inline-block rounded-sm text-primary">{feeText}</span>
-          </div>}
+        <div className="text-center">
+          {location}
         </div>
       );
     },
@@ -301,6 +303,48 @@ export const columns: ColumnDef<shareholderSchema>[] = [
           {sacrifice_consent ? "Alındı" : "Alınmadı"}
         </span>
       );
+    },
+  },
+  {
+    accessorKey: "security_code",
+    header: "Güvenlik Kodu",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const securityCode = row.getValue("security_code") as string;
+      return securityCode || "-";
+    },
+  },
+  {
+    accessorKey: "notes",
+    header: "Notlar",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const notes = row.getValue("notes") as string;
+      return notes ? (
+        <div className="max-w-[200px] truncate" title={notes}>
+          {notes}
+        </div>
+      ) : "-";
+    },
+  },
+  {
+    accessorKey: "last_edited_time",
+    header: "Son Güncelleme",
+    enableSorting: true,
+    sortingFn: sortingFunctions.date,
+    cell: ({ row }) => {
+      const date = row.getValue("last_edited_time");
+      if (!date) return "-";
+      return format(new Date(date as string), "dd MMM yyyy - HH:mm", { locale: tr });
+    },
+  },
+  {
+    accessorKey: "last_edited_by",
+    header: "Son Güncelleyen",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const editor = row.getValue("last_edited_by") as string;
+      return editor || "-";
     },
   },
   {

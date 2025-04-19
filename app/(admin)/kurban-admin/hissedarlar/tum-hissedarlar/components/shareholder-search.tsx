@@ -33,7 +33,7 @@ export function ShareholderSearch({ onSearch }: ShareholderSearchProps) {
     <div className="relative w-full md:w-1/2">
       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
-        placeholder="İsim, telefon numarası veya kurban numarası ile ara..."
+        placeholder="İsim veya telefon numarası ile ara..."
         value={searchValue}
         onChange={handleSearch}
         className="pl-8 w-full"

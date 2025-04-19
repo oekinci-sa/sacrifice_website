@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
-import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { columns } from "./components/columns";
+import { DataTable } from "./components/data-table";
 
 interface User {
   id: string;
@@ -22,44 +21,40 @@ interface User {
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { data: session } = useSession();
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        setLoading(true);
+        const response = await fetch('/api/users');
 
-      if (error) {
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
         console.error("Error fetching users:", error);
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      setUsers(data || []);
     };
 
     fetchUsers();
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel("users-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "users",
-        },
-        () => {
-          fetchUsers();
-        }
-      )
-      .subscribe();
+    // Set up event listener for changes
+    const handleUserChange = () => {
+      fetchUsers();
+    };
+
+    window.addEventListener('user-updated', handleUserChange);
 
     return () => {
-      channel.unsubscribe();
+      window.removeEventListener('user-updated', handleUserChange);
     };
   }, []);
 

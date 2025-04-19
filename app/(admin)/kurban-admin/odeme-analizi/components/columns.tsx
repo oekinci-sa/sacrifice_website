@@ -63,7 +63,7 @@ const baseColumns: ColumnDef<shareholderSchema>[] = [
     },
   },
   {
-    accessorKey: "sacrifice.sacrifice_no",
+    accessorKey: "sacrifice_no",
     header: "Kurban No",
     cell: ({ row }: { row: Row<shareholderSchema> }) => (
       <div className="flex justify-center ">

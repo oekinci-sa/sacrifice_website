@@ -26,7 +26,7 @@ export default function EmptySharesBadge({
 
     // Size-based classes
     const sizeClasses = {
-        sm: "text-[9px] px-1.5 py-0.5 ml-1",
+        sm: "text-[11px] px-1.5 ml-3",
         md: "text-xs px-2 py-1 ml-2",
         lg: "text-sm px-2.5 py-1.5 ml-2.5"
     };

@@ -72,6 +72,12 @@ export default function ShareholderForm({
         onInputChange(index, "phone", formattedValue);
     };
     const deliveryOptions = ["Kesimhane", "Ulus (+750 TL)"];
+
+    // Function to clean delivery location text
+    const cleanDeliveryLocation = (location: string) => {
+        return location.replace(/\s\([^)]*\)\s*/g, "");
+    };
+
     const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const digitsOnly = value.replace(/\D/g, '');
@@ -176,7 +182,7 @@ export default function ShareholderForm({
                                     <Button
                                         key={option}
                                         type="button"
-                                        onClick={() => onSelectChange(index, "delivery_location", option)}
+                                        onClick={() => onSelectChange(index, "delivery_location", cleanDeliveryLocation(option))}
                                         className={cn(
                                             "w-1/2 border border-dashed border-[#c7ddcd] hover:text-white transition-all text-xs md:text-base h-8 md:h-12",
                                             data.delivery_location === option

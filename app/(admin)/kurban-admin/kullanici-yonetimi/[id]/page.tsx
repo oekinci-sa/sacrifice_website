@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { supabase } from "@/utils/supabaseClient";
-import { useToast } from "@/components/ui/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,9 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { ArrowLeft, Loader2, Upload } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface User {
   id: string;
@@ -44,23 +43,33 @@ export default function UserProfilePage() {
     const fetchUser = async () => {
       if (!id) return;
 
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", id)
-        .single();
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/users/${id}`);
 
-      if (error) {
+        if (!response.ok) {
+          if (response.status === 404) {
+            toast({
+              variant: "destructive",
+              title: "Hata",
+              description: "Kullanıcı bulunamadı.",
+            });
+            return;
+          }
+          throw new Error("Failed to fetch user");
+        }
+
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
         toast({
           variant: "destructive",
           title: "Hata",
           description: "Kullanıcı bilgileri yüklenirken bir hata oluştu.",
         });
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      setUser(data);
-      setLoading(false);
     };
 
     fetchUser();
@@ -82,35 +91,50 @@ export default function UserProfilePage() {
 
       // Upload new image if selected
       if (imageFile) {
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${id}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(fileName, imageFile, { upsert: true });
+        const formData = new FormData();
+        formData.append("file", imageFile);
+        formData.append("userId", id as string);
 
-        if (uploadError) throw uploadError;
+        const uploadResponse = await fetch("/api/users/upload-image", {
+          method: "POST",
+          body: formData,
+        });
 
-        const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
-        imageUrl = data.publicUrl;
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadResult = await uploadResponse.json();
+        imageUrl = uploadResult.url;
       }
 
       // Update user data
-      const { error } = await supabase
-        .from("users")
-        .update({
-          name: user.name,
-          role: isAdmin ? user.role : undefined,
-          image: imageUrl,
-        })
-        .eq("id", id);
+      const updateData = {
+        name: user.name,
+        role: isAdmin ? user.role : undefined,
+        image: imageUrl,
+      };
 
-      if (error) throw error;
+      const updateResponse = await fetch(`/api/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      // Dispatch an event to notify other components about the user update
+      window.dispatchEvent(new CustomEvent('user-updated'));
 
       toast({
         title: "Başarılı",
         description: "Kullanıcı bilgileri güncellendi.",
       });
-    } catch {
+    } catch (error) {
       toast({
         title: "Hata",
         description: "Kullanıcı bilgileri güncellenirken bir hata oluştu.",

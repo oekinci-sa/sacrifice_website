@@ -1,18 +1,5 @@
 "use client";
 
-import { Row } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Check, Ban, Trash2 } from "lucide-react";
-import { supabase } from "@/utils/supabaseClient";
-import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +11,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import { Row } from "@tanstack/react-table";
+import { Ban, Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -46,12 +45,20 @@ export function DataTableRowActions<TData>({
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from("users")
-        .update({ status: newStatus })
-        .eq("id", userId);
+      const response = await fetch(`/api/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to update user status');
+      }
+
+      // Dispatch an event to notify other components about the user update
+      window.dispatchEvent(new CustomEvent('user-updated'));
 
       toast({
         title: "Durum güncellendi",
@@ -68,12 +75,16 @@ export function DataTableRowActions<TData>({
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
-        .from("users")
-        .delete()
-        .eq("id", user.id);
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      // Dispatch an event to notify other components about the user update
+      window.dispatchEvent(new CustomEvent('user-updated'));
 
       toast({
         title: "Kullanıcı silindi",

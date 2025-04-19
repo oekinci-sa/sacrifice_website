@@ -8,8 +8,8 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata = {
-  title: "Admin Panel",
-  description: "Kurban yönetim sistemi admin paneli",
+  title: "Yönetim Paneli",
+  description: "Kurban yönetim sistemi yönetim paneli",
 };
 
 export default function AdminLayout({

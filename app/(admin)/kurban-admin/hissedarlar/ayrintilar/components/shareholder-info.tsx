@@ -136,6 +136,21 @@ export function ShareholderInfo({
           )}
         </div>
 
+        {/* Güvenlik Kodu - add after vekalet */}
+        <div className="space-y-1">
+          <p className={labelClass}>Güvenlik Kodu</p>
+          {isEditing ? (
+            <Input
+              value={editFormData?.security_code || ''}
+              onChange={(e) => handleChange?.('security_code', e.target.value)}
+              placeholder="Güvenlik kodu..."
+              className="h-9"
+            />
+          ) : (
+            <p className={valueClass}>{shareholderInfo.security_code || "Kod bulunmuyor"}</p>
+          )}
+        </div>
+
         {/* Notlar - moved next to vekalet */}
         <div className="space-y-1">
           <p className={labelClass}>Notlar</p>

@@ -27,10 +27,10 @@ const Footer = () => {
             />
           </CustomLink>
 
-          <div className="text-sm text-white/75">
+          <div className="text-base text-white/75">
             <p>
               İnsan ve Medeniyet Hareketi Ankara&apos;nın
-              <br className="hidden md:block" />
+              <br />
               katkılarıyla düzenlenmektedir.
             </p>
           </div>
@@ -72,7 +72,7 @@ const Footer = () => {
                 <div className="flex items-center flex-wrap">
                   <CustomLink href="/hisseal">
                     Hisse Al{" "}
-                    <EmptySharesBadge />
+                    <EmptySharesBadge size="md" />
                   </CustomLink>
                 </div>
                 <CustomLink href="/hissesorgula">Hisse Sorgula</CustomLink>

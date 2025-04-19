@@ -15,7 +15,7 @@ const DesktopNavigation = () => {
       </CustomLink>
       <CustomLink href="/hisseal" className="flex items-center">
         Hisse Al
-        <EmptySharesBadge size="md" />
+        <EmptySharesBadge size="sm" />
       </CustomLink>
       <CustomLink href="/hissesorgula">
         Hisse Sorgula

@@ -10,8 +10,8 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Sacrifice Website",
-  description: "Sacrifice Website",
+  title: "Ankara Kurban",
+  description: "Ankara Kurban",
 };
 
 export default function RootLayout({

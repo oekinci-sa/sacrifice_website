@@ -2,10 +2,10 @@
 
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSacrifices } from "@/hooks/useSacrifices";
-import { useGetShareholders } from "@/hooks/useShareholders";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { columns } from "./components/columns";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
@@ -14,26 +14,48 @@ export default function TumKurbanliklarPage() {
   // Search and filter state
   const [globalFilter] = useState("");
 
-  // Fetch sacrifices using React Query
+  // Get sacrifices data from Zustand store
   const {
-    data: sacrifices,
-    isLoading: sacrificesLoading,
-    error: sacrificesError,
-  } = useSacrifices();
+    sacrifices,
+    isLoadingSacrifices,
+    isInitialized: sacrificesInitialized,
+    refetchSacrifices
+  } = useSacrificeStore();
 
-  // Fetch shareholders using React Query
+  // Get shareholders data from Zustand store
   const {
-    data: shareholders,
+    shareholders,
     isLoading: shareholdersLoading,
-    error: shareholdersError
-  } = useGetShareholders();
+    isInitialized: shareholdersInitialized,
+    fetchShareholders
+  } = useShareholderStore();
+
+  // Initialize data if not already loaded
+  useEffect(() => {
+    // Load sacrifices if not initialized
+    if (!sacrificesInitialized || sacrifices.length === 0) {
+      refetchSacrifices();
+    }
+
+    // Load shareholders if not initialized
+    if (!shareholdersInitialized || shareholders.length === 0) {
+      fetchShareholders();
+    }
+  }, [
+    sacrificesInitialized,
+    sacrifices.length,
+    refetchSacrifices,
+    shareholdersInitialized,
+    shareholders.length,
+    fetchShareholders
+  ]);
 
   // Combine sacrifices with their shareholders
   const sacrificesWithShareholders = useMemo(() => {
     if (!sacrifices || !shareholders) return [];
 
     // Group shareholders by sacrifice_id
-    const shareholdersByAnimal = shareholders.reduce((acc, shareholder) => {
+    const shareholdersByAnimal = (shareholders || []).reduce((acc, shareholder) => {
       if (!acc[shareholder.sacrifice_id]) {
         acc[shareholder.sacrifice_id] = [];
       }
@@ -73,10 +95,10 @@ export default function TumKurbanliklarPage() {
   }, [sacrificesWithShareholders, globalFilter]);
 
   // Show loading state when either data is loading
-  const isLoading = sacrificesLoading || shareholdersLoading;
+  const isLoading = isLoadingSacrifices || shareholdersLoading;
 
   // Show error state if there's an error fetching data
-  if (sacrificesError || shareholdersError) {
+  if (useShareholderStore(state => state.error)) {
     return (
       <div className="space-y-8">
         <div>
@@ -120,6 +142,7 @@ export default function TumKurbanliklarPage() {
               table={table}
             />
           )}
+          tableSize="medium"
         />
       )}
     </div>

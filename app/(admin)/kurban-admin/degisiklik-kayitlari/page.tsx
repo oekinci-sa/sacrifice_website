@@ -1,30 +1,47 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
-import { columns } from "./components/columns";
-import { useChangeLogs } from "@/hooks/useChangeLogs";
-import { ChangeLogSearch } from "./components/change-log-search";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useChangeLogs } from "@/hooks/useChangeLogs";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { ChangeLogFilters } from "./components/change-log-filters";
+import { ChangeLogSearch } from "./components/change-log-search";
+import { columns } from "./components/columns";
 
 export default function ChangeLogsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Fetch change logs using React Query
   const { data = [], isLoading, error } = useChangeLogs();
 
   // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data;
-    
+
     const lowerCaseSearch = searchTerm.toLowerCase();
-    
+
     return data.filter(log => {
       // Search only in the description column
       const description = log.description?.toLowerCase() || '';
       return description.includes(lowerCaseSearch);
     });
   }, [data, searchTerm]);
+
+  // Create a table instance for filters
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      columnFilters: [],
+    },
+  });
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -45,13 +62,14 @@ export default function ChangeLogsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Değişiklik Kayıtları</h1>
+        <h1 className="text-2xl font-semibold tracking-tight mt-0">Değişiklik Kayıtları</h1>
         <p className="text-muted-foreground">
           Sistemde yapılan tüm değişikliklerin kayıtları
         </p>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <ChangeLogFilters table={table} />
         <ChangeLogSearch onSearch={handleSearch} />
       </div>
 
@@ -68,6 +86,7 @@ export default function ChangeLogsPage() {
           data={filteredData}
           columns={columns}
           pageSizeOptions={[10, 20, 50, 100]}
+          tableSize="medium"
         />
       )}
     </div>

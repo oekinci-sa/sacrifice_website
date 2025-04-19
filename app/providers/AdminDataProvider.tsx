@@ -37,7 +37,12 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
   } = useReservationTransactionsStore();
 
   // Get sacrifice store methods for realtime updates
-  const { updateSacrifice, refetchSacrifices } = useSacrificeStore();
+  const {
+    sacrifices,
+    isInitialized: sacrificesInitialized,
+    updateSacrifice,
+    refetchSacrifices
+  } = useSacrificeStore();
 
   // Fetch shareholders data with React Query
   const {
@@ -156,6 +161,12 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
         refetchTransactions();
       }
 
+      // Initialize sacrifice data if not already loaded
+      if (!sacrificesInitialized || sacrifices.length === 0) {
+        console.log("AdminDataProvider: Fetching sacrifice animals data");
+        refetchSacrifices();
+      }
+
       // Setup Supabase Realtime subscription
       setupRealtimeSubscription();
     }
@@ -177,7 +188,17 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
         channelRef.current = null;
       }
     };
-  }, [shareholders.length, transactions.length, refetchShareholders, refetchTransactions, updateSacrifice, refetchSacrifices, queryClient]);
+  }, [
+    shareholders.length,
+    transactions.length,
+    sacrifices.length,
+    sacrificesInitialized,
+    refetchShareholders,
+    refetchTransactions,
+    updateSacrifice,
+    refetchSacrifices,
+    queryClient
+  ]);
 
   return <>{children}</>;
 } 

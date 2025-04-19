@@ -12,6 +12,7 @@ interface ShareholderUpdateInput {
   notes?: string;
   remaining_payment?: number;
   paid_amount?: number;
+  security_code?: string;
   last_edited_by: string; // Required to track who made the changes
 }
 
@@ -25,6 +26,7 @@ interface UpdateFields {
   notes?: string;
   remaining_payment?: number;
   paid_amount?: number;
+  security_code?: string;
   last_edited_by: string;
   last_edited_time?: string;
 }
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest) {
     if (updateData.notes !== undefined) updateFields.notes = updateData.notes;
     if (updateData.remaining_payment !== undefined) updateFields.remaining_payment = updateData.remaining_payment;
     if (updateData.paid_amount !== undefined) updateFields.paid_amount = updateData.paid_amount;
+    if (updateData.security_code !== undefined) updateFields.security_code = updateData.security_code;
 
     // Add last_edited_time
     updateFields.last_edited_time = new Date().toISOString();

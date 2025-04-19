@@ -15,7 +15,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSacrifices } from "@/hooks/useSacrifices";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema, shareholderSchema } from "@/types";
-import { supabase } from "@/utils/supabaseClient";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Pencil, X } from "lucide-react";
 import Link from "next/link";
@@ -34,47 +33,45 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
 
   useEffect(() => {
     const fetchShareholderDetails = async () => {
-      const { data: shareholders } = await supabase
-        .from("shareholders")
-        .select("*")
-        .eq("sacrifice_id", sacrificeId);
+      try {
+        const response = await fetch(`/api/sacrifices/${sacrificeId}/shareholders`);
 
-      if (shareholders) {
-        setShareholders(shareholders);
+        if (!response.ok) {
+          toast({
+            variant: "destructive",
+            title: "Hata",
+            description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
+          });
+          return;
+        }
+
+        const data = await response.json();
+        setShareholders(data);
+      } catch (error) {
+        console.error("Error fetching shareholder details:", error);
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
+        });
       }
     };
 
     if (isDialogOpen) {
       fetchShareholderDetails();
     }
-  }, [sacrificeId, isDialogOpen]);
+  }, [sacrificeId, isDialogOpen, toast]);
 
   const handleDelete = async () => {
     try {
-      // Önce bağlı hissedarları kontrol et
-      const { data: shareholders } = await supabase
-        .from("shareholders")
-        .select("shareholder_id")
-        .eq("sacrifice_id", sacrificeId);
+      // Delete the sacrifice using API
+      const response = await fetch(`/api/sacrifices/${sacrificeId}`, {
+        method: 'DELETE',
+      });
 
-      // Kurbanlık ve ilişkili hissedarları silme işlemi
-      if (shareholders && shareholders.length > 0) {
-        // Önce hissedarları sil
-        const { error: shareholderError } = await supabase
-          .from("shareholders")
-          .delete()
-          .eq("sacrifice_id", sacrificeId);
-
-        if (shareholderError) throw shareholderError;
+      if (!response.ok) {
+        throw new Error('Failed to delete sacrifice');
       }
-
-      // Şimdi kurbanlığı sil
-      const { error } = await supabase
-        .from("sacrifice_animals")
-        .delete()
-        .eq("sacrifice_id", sacrificeId);
-
-      if (error) throw error;
 
       toast({
         title: "Başarılı",
@@ -94,7 +91,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   };
 
   return (
-    <div className="flex items-center justify-end gap-2">
+    <div className="flex items-center justify-center gap-2">
       <div className="flex items-center justify-center gap-2">
         <Button
           variant="ghost"
@@ -385,13 +382,14 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
     cell: ({ row }) => {
       const price = row.getValue("share_price") as number;
+      const shareWeight = row.original.share_weight;
+
       return (
         <div>
-          {new Intl.NumberFormat("tr-TR", {
-            style: "currency",
-            currency: "TRY",
+          {shareWeight} kg. - {new Intl.NumberFormat("tr-TR", {
+            style: "decimal",
             maximumFractionDigits: 0,
-          }).format(price)}
+          }).format(price)} TL
         </div>
       );
     },

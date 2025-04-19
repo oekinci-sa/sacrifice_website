@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Instrument_Sans } from 'next/font/google';
 import "../globals.css";
 
@@ -13,11 +12,6 @@ const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
 });
-
-export const metadata: Metadata = {
-  title: "Sacrifice Website",
-  description: "Sacrifice Website",
-};
 
 export default function PublicLayout({
   children,

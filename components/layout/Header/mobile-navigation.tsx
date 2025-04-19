@@ -47,7 +47,7 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
                 onClick={onLinkClick}
               >
                 Hisse Al
-                <EmptySharesBadge size="md" className="ml-1 inline-block" />
+                <EmptySharesBadge size="sm" className="ml-1 inline-block" />
               </Link>
             </div>
             <Link 

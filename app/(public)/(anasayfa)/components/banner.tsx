@@ -1,3 +1,4 @@
+import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -98,13 +99,18 @@ const Banner = () => {
 
         {/* Right - Desktop Image */}
         <motion.div variants={item} className="hidden md:block w-1/3 relative aspect-square">
-          <Image
-            src="/images/main-image.jpg"
-            alt="Main Page Image"
-            fill
-            priority
-            className="object-cover rounded-lg"
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src="/images/main-image.jpg"
+              alt="Main Page Image"
+              fill
+              priority
+              className="object-cover rounded-lg"
+            />
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <EmptySharesBadge size="lg" />
+            </div>
+          </div>
           <div className="absolute -left-16 -top-8 z-10">
             <Image
               src="/icons/three-lines.svg"

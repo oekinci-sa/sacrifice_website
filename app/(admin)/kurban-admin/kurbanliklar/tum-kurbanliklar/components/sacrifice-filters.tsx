@@ -38,7 +38,7 @@ const SelectedFiltersDisplay = ({
 }: {
   selectedValues: Set<string>;
   options: { label: string; value: string }[];
-  type: "price" | "share";
+  type: "price" | "share" | "kurbanNo";
 }) => {
   if (selectedValues.size === 0) return null;
 
@@ -47,58 +47,44 @@ const SelectedFiltersDisplay = ({
     return parseFloat(a) - parseFloat(b);
   });
 
-  if (type === "price") {
-    if (selectedValues.size <= 3) {
-      return (
-        <div className="hidden md:flex gap-1 ml-2">
-          <AnimatePresence>
-            {sortedValues.map((value, index) => {
-              const option = options.find((opt) => opt.value === value);
-              return option ? (
-                <motion.span
-                  key={value}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-[#f4f4f5] text-xs px-2 py-0.5"
-                >
-                  {option.label}
-                </motion.span>
-              ) : null;
-            })}
-          </AnimatePresence>
-        </div>
-      );
-    }
-    return (
-      <motion.span
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.5 }}
-        className="hidden md:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
-      >
-        {selectedValues.size} seçili
-      </motion.span>
-    );
-  }
-
-  // For empty shares filter
+  // Always display all selected values regardless of type or count
   return (
-    <div className="hidden md:flex gap-1 ml-2">
+    <div className="hidden md:flex gap-1 ml-2 flex-wrap max-w-[300px]">
       <AnimatePresence>
-        {sortedValues.map((value, index) => (
-          <motion.span
-            key={value}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-[#f4f4f5] text-xs px-2 py-0.5"
-          >
-            {value}
-          </motion.span>
-        ))}
+        {sortedValues.map((value, index) => {
+          // For price type, use label from options
+          if (type === "price") {
+            const option = options.find((opt) => opt.value === value);
+            return option ? (
+              <motion.span
+                key={value}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-[#f4f4f5] text-xs px-2 py-0.5 truncate max-w-[100px]"
+                title={option.label}
+              >
+                {option.label}
+              </motion.span>
+            ) : null;
+          }
+
+          // For other types (share, kurbanNo), use the value directly
+          return (
+            <motion.span
+              key={value}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ delay: index * 0.05 }}
+              className="bg-[#f4f4f5] text-xs px-2 py-0.5 truncate max-w-[100px]"
+              title={value}
+            >
+              {value}
+            </motion.span>
+          );
+        })}
       </AnimatePresence>
     </div>
   );
@@ -116,7 +102,7 @@ function DataTableFacetedFilter<TData, TValue>({
   column?: Column<TData, TValue>;
   title?: string;
   options: { label: string; value: string }[];
-  type: "price" | "share";
+  type: "price" | "share" | "kurbanNo";
   showHideFullOption?: boolean;
   setShowHideFullOption?: (show: boolean) => void;
 }) {
@@ -152,7 +138,7 @@ function DataTableFacetedFilter<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 border text-xs whitespace-nowrap flex items-center justify-start"
+          className="h-8 border-dashed text-xs whitespace-nowrap flex items-center justify-start"
         >
           <PlusCircle className="mr-2 h-3 w-3 shrink-0" />
           {title}
@@ -242,9 +228,10 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
     if (registerResetFunction) {
       registerResetFunction(() => {
         setShowHideFullOption(true);
+        table.getColumn("sacrifice_no")?.setFilterValue(undefined);
       });
     }
-  }, [registerResetFunction]);
+  }, [registerResetFunction, table]);
 
   // Reset showHideFullOption when column filters are cleared
   useEffect(() => {
@@ -286,8 +273,46 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
     return options;
   }, []);
 
+  // Generate Kurban No options
+  const kurbanNoOptions = useMemo(() => {
+    const kurbanNos = new Set<number>();
+
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const kurbanNo = row.getValue("sacrifice_no") as number;
+      if (kurbanNo) kurbanNos.add(kurbanNo);
+    });
+
+    return Array.from(kurbanNos)
+      .sort((a, b) => a - b)
+      .map((kurbanNo) => ({
+        label: kurbanNo.toString(),
+        value: kurbanNo.toString(),
+      }));
+  }, [table]);
+
+  // Add filter function for Kurban No column
+  useEffect(() => {
+    const kurbanNoColumn = table.getColumn("sacrifice_no");
+    if (kurbanNoColumn) {
+      kurbanNoColumn.columnDef.filterFn = (row, id, filterValues: string[]) => {
+        if (!filterValues || filterValues.length === 0) return true;
+
+        const rowValue = row.getValue(id) as number;
+        const stringValue = rowValue.toString();
+
+        return filterValues.includes(stringValue);
+      };
+    }
+  }, [table]);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <DataTableFacetedFilter
+        column={table.getColumn("sacrifice_no")}
+        title="Kurban No"
+        options={kurbanNoOptions}
+        type="kurbanNo"
+      />
       <DataTableFacetedFilter
         column={table.getColumn("share_price")}
         title="Hisse Bedeli"

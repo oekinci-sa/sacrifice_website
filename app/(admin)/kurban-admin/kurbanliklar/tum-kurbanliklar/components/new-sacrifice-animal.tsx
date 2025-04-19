@@ -27,7 +27,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/useUsers";
-import { supabase } from "@/utils/supabaseClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -138,13 +137,20 @@ export function NewSacrificeAnimal() {
         last_edited_by: userData.name
       };
 
-      const { data, error } = await supabase
-        .from("sacrifice_animals")
-        .insert([newSacrifice])
-        .select();
+      const response = await fetch('/api/sacrifices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSacrifice),
+      });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create sacrifice');
+      }
+
+      return await response.json();
     },
     onSuccess: () => {
       toast({

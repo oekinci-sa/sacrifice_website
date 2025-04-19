@@ -40,6 +40,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     paid_amount: number;
     notes: string;
     delivery_fee: number;
+    security_code: string;
   }>({
     shareholder_name: "",
     phone_number: "",
@@ -48,6 +49,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     paid_amount: 0,
     notes: "",
     delivery_fee: 0,
+    security_code: "",
   });
 
   // Fetch all shareholders
@@ -72,6 +74,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
           paid_amount: found.paid_amount,
           notes: found.notes || "",
           delivery_fee: found.delivery_fee || 0,
+          security_code: found.security_code || "",
         });
       }
     }
@@ -97,6 +100,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         paid_amount: shareholder.paid_amount,
         notes: shareholder.notes || "",
         delivery_fee: shareholder.delivery_fee || 0,
+        security_code: shareholder.security_code || "",
       });
     }
 
@@ -141,6 +145,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       paid_amount: editFormData.paid_amount,
       notes: editFormData.notes,
       delivery_fee: editFormData.delivery_fee,
+      security_code: editFormData.security_code,
       last_edited_by: userData.name // Kullanıcı adını ekle
     };
 

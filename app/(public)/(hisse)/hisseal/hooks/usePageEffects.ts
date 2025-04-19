@@ -1,3 +1,4 @@
+import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { useEffect } from "react";
 
 interface UsePageEffectsProps {
@@ -6,7 +7,7 @@ interface UsePageEffectsProps {
 
     // Store actions
     resetStore: () => void;
-    goToStep: (step: any) => void;
+    goToStep: (step: Step) => void;
     setSuccess: (success: boolean) => void;
     setHasNavigatedAway: (navigated: boolean) => void;
 

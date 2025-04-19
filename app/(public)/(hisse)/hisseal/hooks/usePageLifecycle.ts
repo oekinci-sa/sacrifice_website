@@ -6,9 +6,32 @@ import {
 } from "@/helpers/hisseal-helpers";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { sacrificeSchema } from "@/types";
+import { MutationFunction } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { usePageEffects } from "./usePageEffects";
 import { useUIResponsiveness } from "./useUIResponsiveness";
+
+// Form data type
+type FormDataType = {
+    name: string;
+    phone: string;
+    delivery_location: string;
+    is_purchaser?: boolean;
+};
+
+// Toast function type
+type ToastFunction = {
+    (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
+};
+
+// Update share count mutation type
+type UpdateShareCountMutation = {
+    mutate: MutationFunction<
+        { success: boolean; message: string },
+        { transaction_id: string; share_count: number; operation: 'add' | 'remove' }
+    >;
+    reset?: () => void;
+};
 
 interface UsePageLifecycleProps {
     pathname: string;
@@ -22,8 +45,8 @@ interface UsePageLifecycleProps {
     currentStep: string;
     transaction_id: string;
     selectedSacrifice: sacrificeSchema | null;
-    formData: any;
-    updateShareCount: any;
+    formData: FormDataType[];
+    updateShareCount: UpdateShareCountMutation;
     sacrifices: sacrificeSchema[];
     isLoadingSacrifices: boolean;
     isRefetching: boolean;
@@ -46,8 +69,8 @@ interface UsePageLifecycleProps {
     setCameFromTimeout: (timeout: boolean) => void;
     TIMEOUT_DURATION: number;
     WARNING_THRESHOLD: number;
-    handleCustomTimeout: () => Promise<any>;
-    toast: any;
+    handleCustomTimeout: () => Promise<void>;
+    toast: ToastFunction;
 }
 
 export function usePageLifecycle({

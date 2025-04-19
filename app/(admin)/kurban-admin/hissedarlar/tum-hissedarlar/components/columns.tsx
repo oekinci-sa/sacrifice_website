@@ -108,6 +108,27 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
   );
 };
 
+// Create a separate component for the sacrifice number cell
+const SacrificeNumberCell = ({ sacrificeNo, sacrificeId }: { sacrificeNo: string | number, sacrificeId?: string }) => {
+  const router = useRouter();
+
+  if (sacrificeNo === "-") return <div>{sacrificeNo}</div>;
+
+  return (
+    <Button
+      variant="link"
+      className="p-0 h-auto"
+      onClick={() => {
+        if (sacrificeId) {
+          router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
+        }
+      }}
+    >
+      {sacrificeNo}
+    </Button>
+  );
+};
+
 export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "shareholder_name",
@@ -132,23 +153,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     cell: ({ row }) => {
       const sacrifice = row.original.sacrifice;
       const sacrificeNo = sacrifice?.sacrifice_no || "-";
-
-      if (sacrificeNo === "-") return sacrificeNo;
-
-      const router = useRouter();
-      return (
-        <Button
-          variant="link"
-          className="p-0 h-auto"
-          onClick={() => {
-            if (sacrifice?.sacrifice_id) {
-              router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrifice.sacrifice_id}`);
-            }
-          }}
-        >
-          {sacrificeNo}
-        </Button>
-      );
+      return <SacrificeNumberCell sacrificeNo={sacrificeNo} sacrificeId={sacrifice?.sacrifice_id} />;
     },
   },
   {

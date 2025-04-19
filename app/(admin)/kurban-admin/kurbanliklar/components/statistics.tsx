@@ -45,12 +45,12 @@ export function SacrificeStatistics() {
     fullyPaidSacrifices: 0,
     activeSacrificesCount: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        setLoading(true);
+        setIsLoading(true);
 
         // Assuming there's an endpoint for sacrifice statistics
         const response = await fetch('/api/sacrifices/statistics');
@@ -64,7 +64,7 @@ export function SacrificeStatistics() {
       } catch (error) {
         console.error("Error fetching sacrifice statistics:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
 
@@ -74,16 +74,22 @@ export function SacrificeStatistics() {
   return (
     <div className="grid gap-16 md:grid-cols-2">
       <div>
-        <StatCardWithProgress
-          title="Kalan Kurbanlıklar"
-          value={stats.totalSacrifices - stats.completedSacrifices}
-          maxValue={stats.totalSacrifices}
-          displayValue={stats.completedSacrifices}
-          actionLink={{
-            text: "Tümünü göster",
-            href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
-          }}
-        />
+        {isLoading ? (
+          <div className="h-[160px] rounded-md border border-dashed flex items-center justify-center">
+            <p className="text-muted-foreground">Yükleniyor...</p>
+          </div>
+        ) : (
+          <StatCardWithProgress
+            title="Kalan Kurbanlıklar"
+            value={stats.totalSacrifices - stats.completedSacrifices}
+            maxValue={stats.totalSacrifices}
+            displayValue={stats.completedSacrifices}
+            actionLink={{
+              text: "Tümünü göster",
+              href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+            }}
+          />
+        )}
       </div>
     </div>
   );

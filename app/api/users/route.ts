@@ -13,17 +13,17 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { data, error } = await supabase
+        const { data, error: _error } = await supabase
             .from("users")
             .select("*")
             .order("created_at", { ascending: false });
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (_error) {
+            return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
         return NextResponse.json(data);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -43,17 +43,17 @@ export async function POST(request: Request) {
 
         const userData = await request.json();
 
-        const { data, error } = await supabase
+        const { data, error: _error } = await supabase
             .from("users")
             .insert([userData])
             .select();
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (_error) {
+            return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
         return NextResponse.json(data[0], { status: 201 });
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

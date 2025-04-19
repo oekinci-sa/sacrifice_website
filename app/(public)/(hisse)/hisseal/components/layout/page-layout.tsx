@@ -1,9 +1,23 @@
+import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { FormStep, ISacrifice } from "../../types";
 import { SelectionDialogs } from "../dialogs/selection-dialogs";
 import { WarningDialogs } from "../dialogs/warning-dialogs";
-import { FormView } from "../process-state/form-view";
+import { FormView, Step } from "../process-state/form-view";
 import { SuccessView } from "../success-state/success-view";
+
+// Define the form data type
+export type FormDataType = {
+    name: string;
+    phone: string;
+    delivery_location: string;
+    is_purchaser?: boolean;
+};
+
+// Define a toast function type
+export type ToastFunction = (props: Parameters<typeof import("@/components/ui/use-toast").toast>[0]) => void;
+
+// Define the form step type if it doesn't exist in types
+export type FormStep = Step;
 
 export interface PageLayoutProps {
     // Success state
@@ -15,26 +29,26 @@ export interface PageLayoutProps {
     tabValue?: string;
     timeLeft?: number;
     showWarning?: boolean;
-    columns?: ColumnDef<ISacrifice>[];
-    data?: ISacrifice[];
-    selectedSacrifice?: ISacrifice | null;
-    formData?: any;
+    columns?: ColumnDef<sacrificeSchema>[];
+    data?: sacrificeSchema[];
+    selectedSacrifice?: sacrificeSchema | null;
+    formData?: FormDataType[];
     isLoading?: boolean;
     serverTimeRemaining?: number;
 
     // Form handlers
-    onSacrificeSelect?: (sacrifice: ISacrifice) => void;
+    onSacrificeSelect?: (sacrifice: sacrificeSchema) => void;
     updateShareCount?: (shareCount: number) => void;
-    setFormData?: (data: any) => void;
-    goToStep?: (step: FormStep) => void;
+    setFormData?: (data: FormDataType[]) => void;
+    goToStep?: (step: Step) => void;
     resetStore?: () => void;
     setLastInteractionTime?: (time: number) => void;
     setTimeLeft?: (time: number) => void;
     handleApprove?: () => void;
-    toast?: Toast;
+    toast?: ToastFunction;
 
     // Dialog states
-    tempSelectedSacrifice?: ISacrifice | null;
+    tempSelectedSacrifice?: sacrificeSchema | null;
     isDialogOpen?: boolean;
     setIsDialogOpen?: (isOpen: boolean) => void;
     showReservationInfo?: boolean;
@@ -47,7 +61,7 @@ export interface PageLayoutProps {
     // Dialog handlers
     handleShareCountSelect?: (shareCount: number) => void;
     handleReservationInfoClose?: () => void;
-    handleDismissWarning?: () => void;
+    handleDismissWarning?: (warningType?: "three-minute" | "one-minute") => void;
     getRemainingMinutesText?: () => string;
     isReservationLoading?: boolean;
 }
@@ -104,48 +118,62 @@ export const PageLayout = ({
                 <SuccessView onPdfDownload={onPdfDownload} />
             ) : (
                 <FormView
-                    currentStep={currentStep}
-                    tabValue={tabValue}
-                    timeLeft={timeLeft}
-                    showWarning={showWarning}
-                    columns={columns}
-                    data={data}
-                    selectedSacrifice={selectedSacrifice}
-                    formData={formData}
-                    onSacrificeSelect={onSacrificeSelect}
-                    updateShareCount={updateShareCount}
-                    setFormData={setFormData}
-                    goToStep={goToStep}
-                    resetStore={resetStore}
-                    setLastInteractionTime={setLastInteractionTime}
-                    setTimeLeft={setTimeLeft}
-                    handleApprove={handleApprove}
-                    toast={toast}
-                    isLoading={isLoading}
+                    currentStep={currentStep as Step || "selection"}
+                    tabValue={tabValue || "tab-1"}
+                    timeLeft={timeLeft || 0}
+                    showWarning={showWarning || false}
+                    columns={columns || []}
+                    data={data || []}
+                    selectedSacrifice={selectedSacrifice || null}
+                    formData={(formData || []).map(item => ({
+                        ...item,
+                        delivery_fee: 0,
+                        sacrifice_consent: false
+                    }))}
+                    onSacrificeSelect={(sacrifice) => onSacrificeSelect?.(sacrifice)}
+                    updateShareCount={updateShareCount || undefined}
+                    setFormData={setFormData || (() => { })}
+                    goToStep={(step) => goToStep?.(step as Step)}
+                    resetStore={resetStore || (() => { })}
+                    setLastInteractionTime={(time) => setLastInteractionTime?.(time)}
+                    setTimeLeft={(value) => setTimeLeft?.(typeof value === 'function' ? value(timeLeft || 0) : value)}
+                    handleApprove={handleApprove ? async () => await handleApprove() : async () => { }}
+                    toast={(props) => toast?.(props) || (() => { })}
+                    isLoading={isLoading || false}
                     serverTimeRemaining={serverTimeRemaining}
                 />
             )}
 
             {/* Selection and Reservation Dialogs */}
             <SelectionDialogs
-                tempSelectedSacrifice={tempSelectedSacrifice}
-                isDialogOpen={isDialogOpen}
-                setIsDialogOpen={setIsDialogOpen}
-                showReservationInfo={showReservationInfo}
-                setShowReservationInfo={setShowReservationInfo}
-                handleShareCountSelect={handleShareCountSelect}
-                handleReservationInfoClose={handleReservationInfoClose}
-                isReservationLoading={isReservationLoading}
+                tempSelectedSacrifice={tempSelectedSacrifice || null}
+                isDialogOpen={!!isDialogOpen}
+                setIsDialogOpen={(open) => setIsDialogOpen?.(open) || undefined}
+                showReservationInfo={!!showReservationInfo}
+                setShowReservationInfo={(show) => setShowReservationInfo?.(show) || undefined}
+                handleShareCountSelect={async (count) => {
+                    if (handleShareCountSelect) {
+                        return Promise.resolve(handleShareCountSelect(count));
+                    }
+                    return Promise.resolve();
+                }}
+                handleReservationInfoClose={handleReservationInfoClose || (() => { })}
+                isReservationLoading={!!isReservationLoading}
             />
 
             {/* Warning Dialogs */}
             <WarningDialogs
-                showThreeMinuteWarning={showThreeMinuteWarning}
-                setShowThreeMinuteWarning={setShowThreeMinuteWarning}
-                showOneMinuteWarning={showOneMinuteWarning}
-                setShowOneMinuteWarning={setShowOneMinuteWarning}
-                handleDismissWarning={handleDismissWarning}
-                getRemainingMinutesText={getRemainingMinutesText}
+                showThreeMinuteWarning={!!showThreeMinuteWarning}
+                setShowThreeMinuteWarning={(show) => setShowThreeMinuteWarning?.(show) || undefined}
+                showOneMinuteWarning={!!showOneMinuteWarning}
+                setShowOneMinuteWarning={(show) => setShowOneMinuteWarning?.(show) || undefined}
+                handleDismissWarning={(warningType) => {
+                    if (handleDismissWarning) {
+                        return handleDismissWarning(warningType);
+                    }
+                    return undefined;
+                }}
+                getRemainingMinutesText={getRemainingMinutesText || (() => "")}
             />
         </div>
     );

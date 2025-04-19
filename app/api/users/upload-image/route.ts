@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
 
         return NextResponse.json({ url: data.publicUrl });
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

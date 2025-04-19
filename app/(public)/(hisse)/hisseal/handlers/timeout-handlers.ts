@@ -1,8 +1,13 @@
+// Define toast function type
+type ToastFunction = {
+    (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
+};
+
 interface CustomTimeoutHandlerProps {
     resetStore: () => void;
-    goToStep: (step: any) => void;
-    toast: any;
-    refetchSacrifices: () => void;
+    goToStep: (step: string) => void;
+    toast: ToastFunction;
+    refetchSacrifices: () => Promise<void>;
     transaction_id: string;
     setShowWarning: (show: boolean) => void;
     setIsDialogOpen: (open: boolean) => void;

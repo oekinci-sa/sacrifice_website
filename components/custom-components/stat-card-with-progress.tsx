@@ -194,7 +194,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), "dd MMM yy HH:mm");
-    } catch (_) {
+    } catch {
       // Return the original string if date parsing fails
       return dateString;
     }

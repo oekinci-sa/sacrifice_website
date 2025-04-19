@@ -78,6 +78,12 @@ export default function ShareholderForm({
         return location.replace(/\s\([^)]*\)\s*/g, "");
     };
 
+    // Check if the current option is selected by comparing cleaned values
+    const isOptionSelected = (option: string) => {
+        const cleanedOption = cleanDeliveryLocation(option);
+        return data.delivery_location === cleanedOption;
+    };
+
     const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const digitsOnly = value.replace(/\D/g, '');
@@ -185,7 +191,7 @@ export default function ShareholderForm({
                                         onClick={() => onSelectChange(index, "delivery_location", cleanDeliveryLocation(option))}
                                         className={cn(
                                             "w-1/2 border border-dashed border-[#c7ddcd] hover:text-white transition-all text-xs md:text-base h-8 md:h-12",
-                                            data.delivery_location === option
+                                            isOptionSelected(option)
                                                 ? "bg-sac-primary border-none text-white hover:bg-sac-primary"
                                                 : "bg-background text-foreground hover:bg-sac-primary",
                                             errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""

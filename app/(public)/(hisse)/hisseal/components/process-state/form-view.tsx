@@ -13,7 +13,7 @@ import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import Checkout from "../shareholder-info-step/checkout";
 import { ShareFilters } from "../table-step/ShareFilters";
 
-type Step = "selection" | "details" | "confirmation" | "success";
+export type Step = "selection" | "details" | "confirmation" | "success";
 
 // Define a shareholder type for the form data
 interface ShareholderFormData {
@@ -27,7 +27,7 @@ interface ShareholderFormData {
 }
 
 interface FormViewProps {
-  currentStep: string;
+  currentStep: Step;
   tabValue: string;
   timeLeft: number;
   showWarning: boolean;
@@ -36,6 +36,8 @@ interface FormViewProps {
   selectedSacrifice: sacrificeSchema | null;
   formData: ShareholderFormData[];
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
+  updateShareCount?: (shareCount: number) => void;
+  setFormData?: (data: ShareholderFormData[]) => void;
   goToStep: (step: Step) => void;
   resetStore: () => void;
   setLastInteractionTime: (time: number) => void;

@@ -19,14 +19,14 @@ export async function GET(request: Request, { params }: RouteParams) {
 
         const { id } = params;
 
-        const { data, error } = await supabase
+        const { data, error: _error } = await supabase
             .from("users")
             .select("*")
             .eq("id", id)
             .single();
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (_error) {
+            return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
         if (!data) {
@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         }
 
         return NextResponse.json(data);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -65,18 +65,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
             delete userData.role;
         }
 
-        const { data, error } = await supabase
+        const { data, error: _error } = await supabase
             .from("users")
             .update(userData)
             .eq("id", id)
             .select();
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (_error) {
+            return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
         return NextResponse.json(data[0]);
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -96,17 +96,17 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
         const { id } = params;
 
-        const { error } = await supabase
+        const { error: _error } = await supabase
             .from("users")
             .delete()
             .eq("id", id);
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (_error) {
+            return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

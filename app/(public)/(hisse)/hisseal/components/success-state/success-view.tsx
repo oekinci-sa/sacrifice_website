@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReceiptPDF from "./ReceiptPDF";
 
-export const SuccessView = () => {
+interface SuccessViewProps {
+  onPdfDownload?: () => void;
+}
+
+export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
   const { transaction_id } = useReservationIDStore();
 
@@ -129,6 +133,11 @@ export const SuccessView = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Call the onPdfDownload callback if provided
+    if (onPdfDownload) {
+      onPdfDownload();
+    }
   };
 
   // Render loading skeletons

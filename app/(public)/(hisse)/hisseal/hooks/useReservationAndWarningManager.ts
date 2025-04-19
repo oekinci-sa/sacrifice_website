@@ -1,56 +1,66 @@
-import { useCallback, useEffect, useState } from "react";
+import { ReservationStatus } from "@/hooks/useReservations";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { MutationFunction } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-// Define ReservationStatus enum since it's not in @/types
-export enum ReservationStatus {
-    ACTIVE = "active",
-    PENDING = "pending",
-    EXPIRED = "expired"
-}
-
-// Define constant values
-const WARNING_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
-const THREE_MINUTE_WARNING = 3 * 60 * 1000; // 3 minutes in milliseconds
-const ONE_MINUTE_WARNING = 1 * 60 * 1000; // 1 minute in milliseconds
-const TIMEOUT_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
-const COUNTDOWN_INTERVAL = 1000; // 1 second
+// Constants
+const TIMEOUT_DURATION = 180; // 15 minutes in seconds (15 * 60)
+const THREE_MINUTE_WARNING = 180; // 3 minutes in seconds 
+const ONE_MINUTE_WARNING = 60; // 1 minute in seconds
 
 // Define toast function type
 type ToastFunction = {
     (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
 };
 
-// Define type for reservation status
-interface ReservationStatusData {
-    status: ReservationStatus | string;
-    timeRemaining: number | null;
-    transaction_id?: string;
-}
+// Define reservation types
+type ReservationData = {
+    transaction_id: string;
+    sacrifice_id: string;
+    share_count: number;
+    status?: string;
+};
 
-// Define the interface for the hook props
-interface UseReservationAndWarningManagerProps {
-    reservationStatus: ReservationStatusData | null | undefined;
-    shouldCheckStatus: boolean;
-    createReservation: {
-        mutate: (data: unknown) => Promise<void>;
-        reset?: () => void;
-        isPending?: boolean;
-        isLoading?: boolean;
-        isFetching?: boolean;
+type ReservationResponse = {
+    success: boolean;
+    message: string;
+    reservation_id?: string;
+    data?: {
+        success?: boolean;
+        message?: string;
+        reservation_id?: string;
+        transaction_id?: string;
+        updated_at?: string;
     };
+};
+
+type CreateReservationMutation = {
+    mutate: MutationFunction<ReservationResponse, ReservationData>;
+    reset?: () => void;
+    isPending?: boolean;
+    isLoading?: boolean;
+    isFetching?: boolean;
+};
+
+interface UseReservationAndWarningManagerProps {
+    reservationStatus: {
+        status: ReservationStatus;
+        timeRemaining: number | null;
+    } | null | undefined;
+    shouldCheckStatus: boolean;
+    createReservation: CreateReservationMutation;
     handleTimeoutRedirect: () => void;
     toast: ToastFunction;
 }
 
-// The main hook
 export function useReservationAndWarningManager({
     reservationStatus,
     shouldCheckStatus,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createReservation,
     handleTimeoutRedirect,
     toast,
 }: UseReservationAndWarningManagerProps) {
-    // Internal states
+    // Dialog and warning states
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(TIMEOUT_DURATION);
     const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
@@ -60,133 +70,244 @@ export function useReservationAndWarningManager({
     const [cameFromTimeout, setCameFromTimeout] = useState(false);
     const [showThreeMinuteWarning, setShowThreeMinuteWarning] = useState(false);
     const [showOneMinuteWarning, setShowOneMinuteWarning] = useState(false);
+    const [remainingTime, setRemainingTime] = useState<string>("15:00");
 
-    // Format remaining time for display in warnings
-    const getRemainingMinutesText = useCallback(() => {
-        const minutes = Math.ceil(timeLeft / 60000);
-        if (minutes <= 1) return "1 dakika";
-        return `${minutes} dakika`;
-    }, [timeLeft]);
+    // Track the current transaction ID to ensure it's available when needed
+    const [currentTransactionId, setCurrentTransactionId] = useState<string>("");
 
-    // Handle server-based reservation status
-    useEffect(() => {
-        if (shouldCheckStatus && reservationStatus) {
-            // If server reports an active reservation
-            if (reservationStatus.status === ReservationStatus.ACTIVE && reservationStatus.timeRemaining !== null) {
-                console.log(`Server reservation remaining: ${reservationStatus.timeRemaining}ms`);
+    // Refs for tracking warning states and animation frame
+    const warningShownRef = useRef({
+        threeMinute: false,
+        oneMinute: false
+    });
+    // Permanent flag to track if one-minute warning was dismissed (won't reset between status updates)
+    const permanentlyDismissedOneMinuteWarning = useRef(false);
+    const animationFrameRef = useRef<number>();
+    const startTimeRef = useRef<number | null>(null);
+    const exactWarningTimeRef = useRef({
+        threeMinute: 0,
+        oneMinute: 0
+    });
 
-                // Update our time left based on the server's remaining time
-                // But never increase the time from what we have locally
-                if (reservationStatus.timeRemaining < timeLeft) {
-                    setTimeLeft(reservationStatus.timeRemaining);
-                }
-
-                // Update last interaction time to now, as we've just checked
-                setLastInteractionTime(Date.now());
-            }
-
-            // Set loading state based on status
-            setIsReservationLoading(reservationStatus.status === ReservationStatus.PENDING);
-        }
-    }, [reservationStatus, shouldCheckStatus, timeLeft]);
-
-    // Countdown timer effect
-    useEffect(() => {
-        // Start the countdown only if dialog is open or reservation info is shown
-        if (!isDialogOpen && !showReservationInfo) return;
-
-        // Use NodeJS.Timeout type instead of any
-        let countdownId: NodeJS.Timeout | null = null;
-
-        const updateTimeLeft = () => {
-            const elapsed = Date.now() - lastInteractionTime;
-            const remaining = Math.max(0, TIMEOUT_DURATION - elapsed);
-
-            setTimeLeft(remaining);
-
-            // Show warning if time is running low
-            if (remaining <= WARNING_THRESHOLD && remaining > 0) {
-                setShowWarning(true);
-
-                // Show specific warnings at certain thresholds
-                if (remaining <= THREE_MINUTE_WARNING && remaining > THREE_MINUTE_WARNING - 10000) {
-                    setShowThreeMinuteWarning(true);
-                }
-
-                if (remaining <= ONE_MINUTE_WARNING && remaining > ONE_MINUTE_WARNING - 10000) {
-                    setShowOneMinuteWarning(true);
-                }
-            }
-
-            // Handle timeout
-            if (remaining === 0) {
-                if (countdownId) clearInterval(countdownId);
-
-                // Auto-expire the reservation on the server
-                if (reservationStatus?.status === ReservationStatus.ACTIVE && reservationStatus.transaction_id) {
-                    try {
-                        // Update status on server
-                        fetch('/api/expire-reservation', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ transaction_id: reservationStatus.transaction_id }),
-                        });
-                    } catch (error) {
-                        console.error("Error expiring reservation:", error);
-                    }
-                }
-
-                // Redirect the user
-                handleTimeoutRedirect();
-
-                // Reset all warnings and dialogs
-                setShowWarning(false);
+    // Handler for dismissing expiration warnings
+    const handleDismissWarning = useCallback(
+        (warningType: "three-minute" | "one-minute") => {
+            if (warningType === "three-minute") {
                 setShowThreeMinuteWarning(false);
+                warningShownRef.current.threeMinute = true;
+            } else {
                 setShowOneMinuteWarning(false);
-                setIsDialogOpen(false);
-                setShowReservationInfo(false);
-
-                // Show timeout notification
-                toast({
-                    variant: "destructive",
-                    title: "Zaman Aşımı",
-                    description: "İşlem süresi doldu. Lütfen tekrar deneyin.",
-                });
+                warningShownRef.current.oneMinute = true;
+                // Set permanent flag to prevent showing this warning again in current session
+                permanentlyDismissedOneMinuteWarning.current = true;
             }
-        };
+        },
+        []
+    );
 
-        // Initial update
-        updateTimeLeft();
-
-        // Set up interval
-        countdownId = setInterval(updateTimeLeft, COUNTDOWN_INTERVAL);
-
-        // Clean up
-        return () => {
-            if (countdownId) clearInterval(countdownId);
-        };
-    }, [
-        isDialogOpen,
-        showReservationInfo,
-        lastInteractionTime,
-        handleTimeoutRedirect,
-        reservationStatus,
-        toast
-    ]);
-
-    // Handle dismissing warnings
-    const handleDismissWarning = useCallback((warningType: "three-minute" | "one-minute" = "three-minute") => {
-        if (warningType === "three-minute") {
-            setShowThreeMinuteWarning(false);
-        } else if (warningType === "one-minute") {
-            setShowOneMinuteWarning(false);
-        }
+    // Calculate remaining time in MM:SS format
+    const formatRemainingTime = useCallback((seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }, []);
 
-    // Return everything needed for reservation and warning management
+    // Update countdown timer using requestAnimationFrame
+    const updateCountdown = useCallback(() => {
+        if (!startTimeRef.current || !reservationStatus?.timeRemaining) {
+            return;
+        }
+
+        const currentTime = Date.now();
+        const elapsedSeconds = (currentTime - startTimeRef.current) / 1000;
+        const initialRemainingSeconds = reservationStatus.timeRemaining;
+        const remainingSeconds = Math.max(0, initialRemainingSeconds - elapsedSeconds);
+
+        // Update the formatted time string
+        setRemainingTime(formatRemainingTime(remainingSeconds));
+
+        // Handle 3-minute warning precisely at exactly 3 minutes
+        if (!warningShownRef.current.threeMinute &&
+            remainingSeconds <= THREE_MINUTE_WARNING &&
+            remainingSeconds > THREE_MINUTE_WARNING - 1) {
+
+            // Set exact warning time once
+            if (exactWarningTimeRef.current.threeMinute === 0) {
+                exactWarningTimeRef.current.threeMinute = Math.ceil(remainingSeconds);
+            }
+
+            // Show warning only when we're at the exact warning threshold
+            if (Math.ceil(remainingSeconds) === exactWarningTimeRef.current.threeMinute) {
+                setShowThreeMinuteWarning(true);
+                setShowOneMinuteWarning(false);
+            }
+        }
+
+        // Handle 1-minute warning precisely at exactly 1 minute
+        else if (!warningShownRef.current.oneMinute &&
+            !permanentlyDismissedOneMinuteWarning.current &&
+            remainingSeconds <= ONE_MINUTE_WARNING &&
+            remainingSeconds > ONE_MINUTE_WARNING - 1) {
+
+            // Set exact warning time once
+            if (exactWarningTimeRef.current.oneMinute === 0) {
+                exactWarningTimeRef.current.oneMinute = Math.ceil(remainingSeconds);
+            }
+
+            // Show warning only when we're at the exact warning threshold
+            if (Math.ceil(remainingSeconds) === exactWarningTimeRef.current.oneMinute) {
+                // Auto-close 3-minute warning if it's still showing
+                if (showThreeMinuteWarning) {
+                    setShowThreeMinuteWarning(false);
+                    warningShownRef.current.threeMinute = true;
+                }
+
+                setShowOneMinuteWarning(true);
+            }
+        }
+
+        // Continue animation if time remains
+        if (remainingSeconds > 0) {
+            animationFrameRef.current = requestAnimationFrame(updateCountdown);
+        } else {
+            // Expire the reservation in the database
+            if (reservationStatus?.status !== ReservationStatus.EXPIRED && currentTransactionId) {
+                // Log the transaction ID to help with debugging
+                console.log('Expiring reservation with transaction_id:', currentTransactionId);
+
+                // Call the expire-reservation endpoint
+                fetch('/api/expire-reservation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transaction_id: currentTransactionId }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to expire reservation: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Reservation expired successfully:', data);
+                        // Redirect user AFTER the API call succeeds
+                        setTimeout(() => {
+                            handleTimeoutRedirect();
+                        }, 100); // Small delay to ensure DB update is complete
+                    })
+                    .catch(error => {
+                        console.error('Error expiring reservation:', error);
+
+                        // Show a toast notification to the user
+                        toast({
+                            variant: "destructive",
+                            title: "Sistem Hatası",
+                            description: "Rezervasyon durumu güncellenirken bir sorun oluştu. Lütfen sayfayı yenileyiniz."
+                        });
+
+                        // Still redirect the user after showing the error
+                        setTimeout(() => {
+                            handleTimeoutRedirect();
+                        }, 500); // Longer delay to allow user to see the error
+                    });
+            } else {
+                // Handle timeout without API call if no transaction_id or already expired
+                console.log('No API call needed for expiration. Status:', reservationStatus?.status,
+                    'Transaction ID:', currentTransactionId);
+                handleTimeoutRedirect();
+            }
+        }
+    }, [reservationStatus?.timeRemaining, reservationStatus?.status, formatRemainingTime, handleTimeoutRedirect, showThreeMinuteWarning, toast, currentTransactionId]);
+
+    // Initialize and clean up countdown timer
+    useEffect(() => {
+        if (reservationStatus?.timeRemaining && shouldCheckStatus) {
+            startTimeRef.current = Date.now();
+
+            // Initialize default remaining time to full value from server
+            if (reservationStatus.timeRemaining) {
+                setRemainingTime(formatRemainingTime(reservationStatus.timeRemaining));
+            }
+
+            // Reset warning flags and times when receiving new reservation status
+            warningShownRef.current = { threeMinute: false, oneMinute: false };
+            exactWarningTimeRef.current = { threeMinute: 0, oneMinute: 0 };
+
+            // Store the current transaction ID
+            const storeTransactionId = useReservationIDStore.getState().transaction_id;
+            setCurrentTransactionId(storeTransactionId);
+            console.log('Initializing countdown with transaction_id:', storeTransactionId);
+
+            animationFrameRef.current = requestAnimationFrame(updateCountdown);
+        }
+
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, [reservationStatus?.timeRemaining, shouldCheckStatus, updateCountdown, formatRemainingTime]);
+
+    // Handle reservation status changes
+    useEffect(() => {
+        if (!reservationStatus || !shouldCheckStatus) return;
+
+        if (reservationStatus.status === ReservationStatus.EXPIRED) {
+            // Close all dialogs
+            setIsDialogOpen(false);
+            setShowReservationInfo(false);
+            setShowThreeMinuteWarning(false);
+            setShowOneMinuteWarning(false);
+
+            toast({
+                variant: "destructive",
+                title: "İşlem Süresi Doldu",
+                description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
+            });
+
+            handleTimeoutRedirect();
+        }
+    }, [reservationStatus, shouldCheckStatus, handleTimeoutRedirect, toast]);
+
+    // Handle reservation loading state
+    useEffect(() => {
+        try {
+            const pendingState = createReservation.isPending === true;
+            const loadingState = createReservation.isLoading === true;
+            const fetchingState = createReservation.isFetching === true;
+            const isLoading = pendingState || loadingState || fetchingState || false;
+
+            if (isLoading) {
+                setIsReservationLoading(true);
+            } else {
+                const timer = setTimeout(() => setIsReservationLoading(false), 300);
+                return () => clearTimeout(timer);
+            }
+        } catch (error) {
+            console.warn("React Query loading state check failed:", error);
+            setIsReservationLoading(false);
+        }
+    }, [createReservation]);
+
+    // A diagnostic test function that can be called to verify the API endpoint
+    const testExpireReservation = useCallback((testTransactionId: string) => {
+        console.log('Running test expire reservation with ID:', testTransactionId);
+
+        fetch('/api/expire-reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transaction_id: testTransactionId }),
+        })
+            .then(response => response.json())
+            .then(data => console.log('TEST RESPONSE:', data))
+            .catch(err => console.error('TEST ERROR:', err));
+    }, []);
+
     return {
+        // State variables
         isDialogOpen,
         setIsDialogOpen,
         timeLeft,
@@ -204,9 +325,17 @@ export function useReservationAndWarningManager({
         setShowThreeMinuteWarning,
         showOneMinuteWarning,
         setShowOneMinuteWarning,
-        getRemainingMinutesText,
+        remainingTime,
+        currentTransactionId,
+        setCurrentTransactionId,
+
+        // Functions
+        getRemainingMinutesText: () => remainingTime,
         handleDismissWarning,
+        testExpireReservation, // For debugging only
+
+        // Constants
         TIMEOUT_DURATION,
-        WARNING_THRESHOLD
+        WARNING_THRESHOLD: ONE_MINUTE_WARNING
     };
 } 

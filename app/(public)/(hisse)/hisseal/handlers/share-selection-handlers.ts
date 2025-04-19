@@ -1,12 +1,11 @@
 import {
-    FormData as HelperFormData,
     handleApprove as helperHandleApprove,
     handleShareCountSelect as helperHandleShareCountSelect
 } from "@/helpers/hisseal-helpers";
 import { sacrificeSchema } from "@/types";
-import React from "react";
+import { MutationFunction } from "@tanstack/react-query";
 
-// Common types
+// Define types for the form data
 type FormDataType = {
     name: string;
     phone: string;
@@ -14,12 +13,13 @@ type FormDataType = {
     is_purchaser?: boolean;
 };
 
-// Define a simplified router type with the methods we need
-type RouterType = {
-    push: (href: string, options?: { scroll?: boolean }) => void;
-    replace: (href: string, options?: { scroll?: boolean }) => void;
-    refresh: () => void;
-    back: () => void;
+// Define types for API mutations
+type UpdateShareCountMutation = {
+    mutate: MutationFunction<
+        { success: boolean; message: string },
+        { transaction_id: string; share_count: number; operation: 'add' | 'remove' }
+    >;
+    reset?: () => void;
 };
 
 type ReservationData = {
@@ -34,6 +34,16 @@ type ReservationResponse = {
     reservation_id?: string;
 };
 
+type CreateReservationMutation = {
+    mutate: MutationFunction<ReservationResponse, ReservationData>;
+    reset?: () => void;
+};
+
+type ShareholderData = {
+    transaction_id: string;
+    sacrifice_id: string;
+    shareholders: FormDataType[];
+};
 
 type ShareholderResponse = {
     success: boolean;
@@ -43,89 +53,9 @@ type ShareholderResponse = {
     };
 };
 
-// Define ShareholderFormData type to match the one used in form-view.tsx
-interface ShareholderFormData {
-    name: string;
-    phone: string;
-    delivery_location: string;
-    delivery_fee: number;
-    sacrifice_consent: boolean;
-    is_purchaser?: boolean;
-    shareCount?: number;
-    delivery?: {
-        location: string;
-        useTeslimat: boolean;
-        date: string;
-        address: string;
-        notes?: string;
-    };
-    shareholders?: Record<string, {
-        name: string;
-        phone: string;
-        shareCount: number;
-    }>;
-}
-
-// Define a proper ShareholderInput type for API submission
-interface ShareholderInput {
-    shareholder_name: string;
-    phone_number: string;
-    transaction_id: string;
-    sacrifice_id: string;
-    share_price: number;
-    shares_count: number;
-    delivery_location: string;
-    delivery_fee?: number; // Optional
-    delivery_date: string;
-    delivery_address: string;
-    delivery_notes: string;
-    security_code: string;
-    purchased_by: string;
-    last_edited_by: string;
-    is_purchaser?: boolean; // Optional
-    sacrifice_consent?: boolean; // Optional
-    total_amount: number;
-    remaining_payment: number;
-}
-
-// Mutation types with proper interfaces
-interface UpdateShareCountMutationWrapper {
-    mutate: (data: {
-        transaction_id: string;
-        share_count: number;
-        operation: 'add' | 'remove';
-    }) => Promise<{
-        success: boolean;
-        message: string;
-    }>;
-    reset?: () => void;
-}
-
-interface CreateReservationMutationWrapper {
-    mutate: (data: ReservationData) => Promise<ReservationResponse>;
-    reset?: () => void;
-    isPending?: boolean;
-    isLoading?: boolean;
-    isFetching?: boolean;
-}
-
-interface CreateShareholdersMutationWrapper {
-    mutate: (data: ShareholderInput[]) => Promise<ShareholderResponse>;
-    reset?: () => void;
-    isPending?: boolean;
-    isLoading?: boolean;
-    isFetching?: boolean;
-    mutateAsync?: (data: ShareholderInput[]) => Promise<ShareholderResponse>;
-}
-
-// Toast interface
-interface ToastOptions {
-    variant?: 'default' | 'destructive';
-    title?: string;
-    description?: string;
-}
-
-type ToastFunction = (options: ToastOptions) => void;
+type CreateShareholdersMutation = {
+    mutate: MutationFunction<ShareholderResponse, ShareholderData>;
+};
 
 // Types for handler creators
 type SacrificeSelectHandlerParams = {
@@ -137,31 +67,34 @@ type SacrificeSelectHandlerParams = {
 
 type ShareCountSelectHandlerParams = {
     tempSelectedSacrifice: sacrificeSchema | null;
-    updateShareCount: UpdateShareCountMutationWrapper;
+    updateShareCount: UpdateShareCountMutation;
     setSelectedSacrifice: (sacrifice: sacrificeSchema) => void;
-    setFormData: (data: HelperFormData[]) => void;
+    setFormData: (data: FormDataType[]) => void;
     goToStep: (step: string) => void;
     setIsDialogOpen: (open: boolean) => void;
     setLastInteractionTime: (time: number) => void;
-    toast: ToastFunction;
+    toast: {
+        (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void
+    };
     transaction_id: string;
-    createReservation: CreateReservationMutationWrapper;
+    createReservation: CreateReservationMutation;
     setShowReservationInfo: (show: boolean) => void;
-    router?: RouterType;
+    router: { push: (path: string) => void };
     sacrifice_id?: string;
 };
 
 type ApproveHandlerParams = {
     selectedSacrifice: sacrificeSchema | null;
-    formData: ShareholderFormData[];
-    createShareholders: CreateShareholdersMutationWrapper;
+    formData: FormDataType[];
+    createShareholders: CreateShareholdersMutation;
     setSuccess: (success: boolean) => void;
     goToStep: (step: string) => void;
-    toast: ToastFunction;
-    router?: RouterType;
+    toast: {
+        (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void
+    };
+    router: { push: (path: string) => void };
     transaction_id?: string;
-    nextStep?: () => void;
-    setLoading?: (loading: boolean) => void;
+    nextStep: () => void;
 };
 
 // Create handler for sacrifice selection
@@ -318,9 +251,7 @@ export const createHandleApprove = ({
             goToStep,
             toast,
         });
-        if (nextStep) {
-            nextStep();
-        }
+        nextStep();
     };
 };
 

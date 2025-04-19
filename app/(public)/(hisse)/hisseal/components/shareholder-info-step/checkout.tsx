@@ -24,11 +24,6 @@ import TripleButtons from "../common/triple-buttons";
 import SacrificeInfo from "./sacrifice-info";
 import ShareholderForm from "./shareholder-form";
 
-// Define Toast function type to improve type safety
-type ToastFunction = {
-  (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
-};
-
 // Define an extended form data interface for component use
 interface ExtendedFormData extends StoreFormData {
   is_purchaser?: boolean;
@@ -111,7 +106,7 @@ export default function Checkout({
   // Reservation store'dan transaction_id'yi alalım
   const transaction_id = useReservationIDStore((state) => state.transaction_id);
 
-  const { toast } = useToast() as { toast: ToastFunction };
+  const { toast } = useToast();
 
   const handleInputChange = (
     index: number,

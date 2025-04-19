@@ -1,7 +1,5 @@
-export const dynamic = 'force-dynamic';
-
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-latest-sacrifice-share

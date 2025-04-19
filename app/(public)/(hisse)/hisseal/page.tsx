@@ -1,13 +1,12 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-import { Step as StoreStep } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { usePathname } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { PageLayout } from "./components/layout/page-layout";
-import { Step as FormViewStep } from "./components/process-state/form-view";
 import { columns } from "./components/table-step/columns";
 import {
+  createHandleApprove,
   createHandlePdfDownload,
   createHandleReservationInfoClose,
   createHandleSacrificeSelect,
@@ -18,69 +17,9 @@ import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import { useReservationAndWarningManager } from "./hooks/useReservationAndWarningManager";
 
-// Define a proper ShareholderInput type for API submission
-interface ShareholderInput {
-  shareholder_name: string;
-  phone_number: string;
-  transaction_id: string;
-  sacrifice_id: string;
-  share_price: number;
-  shares_count: number;
-  delivery_location: string;
-  delivery_fee?: number; // Optional
-  delivery_date: string;
-  delivery_address: string;
-  delivery_notes: string;
-  security_code: string;
-  purchased_by: string;
-  last_edited_by: string;
-  is_purchaser?: boolean; // Optional
-  sacrifice_consent?: boolean; // Optional
-  total_amount: number;
-  remaining_payment: number;
-}
-
-// Define types for the reservation and shareholder data
-interface ReservationData {
-  transaction_id: string;
-  sacrifice_id: string;
-  share_count: number;
-}
-
-interface ReservationResponse {
-  success: boolean;
-  message: string;
-  reservation_id?: string;
-}
-
-// Define ShareholderFormData interface to match the type used in form-view.tsx
-interface ShareholderFormData {
-  name: string;
-  phone: string;
-  delivery_location: string;
-  delivery_fee: number;
-  sacrifice_consent: boolean;
-  is_purchaser?: boolean;
-  paid_amount?: number;
-  delivery?: {
-    location: string;
-    useTeslimat: boolean;
-    date: string;
-    address: string;
-    notes?: string;
-  };
-  shareholders?: Record<string, {
-    name: string;
-    phone: string;
-    shareCount: number;
-  }>;
-}
-
 const Page = () => {
   const { toast } = useToast();
   const pathname = usePathname();
-  // Add loading state for handleApprove
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
@@ -114,29 +53,6 @@ const Page = () => {
     shouldCheckStatus,
     isLoading
   } = usePageInitialization();
-
-  // Create a string-accepting goToStep wrapper for handlers that handles mapping between different step naming systems
-  const goToStepAsString = (step: string) => {
-    if (step === "info") {
-      goToStep("details" as StoreStep);
-    } else if (step === "payment") {
-      goToStep("confirmation" as StoreStep);
-    } else if (step === "complete" || step === "success") {
-      // Now "success" is a valid value for StoreStep
-      goToStep("success" as StoreStep);
-    } else {
-      goToStep(step as StoreStep);
-    }
-  };
-
-  // Create a wrapper for updateShareCount to resolve type issues
-  const updateShareCountWrapper = {
-    mutate: (data: { transaction_id: string; share_count: number; operation: 'add' | 'remove' }) => {
-      updateShareCount.mutate(data);
-      return Promise.resolve({ success: true, message: "Operation successful" });
-    },
-    reset: updateShareCount.reset
-  };
 
   // Create key handlers directly in the component to avoid circular dependencies
   const handleTimeoutRedirect = useCallback(() => {
@@ -173,15 +89,7 @@ const Page = () => {
   } = useReservationAndWarningManager({
     reservationStatus,
     shouldCheckStatus,
-    createReservation: {
-      mutate: async (data: unknown) => {
-        return createReservation.mutate(data as ReservationData);
-      },
-      reset: createReservation.reset,
-      isPending: createReservation.isPending,
-      // Match the properties according to React Query version
-      isLoading: createReservation.isPending
-    },
+    createReservation,
     handleTimeoutRedirect,
     toast
   });
@@ -196,24 +104,15 @@ const Page = () => {
 
   const handleShareCountSelect = createHandleShareCountSelect({
     tempSelectedSacrifice,
-    updateShareCount: updateShareCountWrapper,
+    updateShareCount,
     setSelectedSacrifice,
     setFormData,
-    goToStep: goToStepAsString,
+    goToStep,
     setIsDialogOpen,
     setLastInteractionTime,
     toast,
     transaction_id,
-    createReservation: {
-      mutate: async (data: ReservationData): Promise<ReservationResponse> => {
-        createReservation.mutate(data);
-        return Promise.resolve({ success: true, message: "Reservation created successfully" });
-      },
-      reset: createReservation.reset,
-      isPending: createReservation.isPending,
-      // Match the properties according to React Query version
-      isLoading: createReservation.isPending
-    },
+    createReservation,
     setShowReservationInfo
   });
 
@@ -221,93 +120,23 @@ const Page = () => {
     setShowReservationInfo
   );
 
-  const handleApprove = async (data: ShareholderFormData) => {
-    // Convert to array of ShareholderFormData if needed
-    const formDataArray = Array.isArray(data) ? data : [data];
-    setFormData(formDataArray);
-    setIsSubmitting(true);
-
-    try {
-      // Transform ShareholderData to ShareholderInput[] format for API
-      const shareholderInputs: ShareholderInput[] = [];
-
-      // Only process if shareholders exist
-      if (data.shareholders) {
-        Object.keys(data.shareholders).forEach((key) => {
-          const shareholder = data.shareholders?.[key];
-
-          if (!selectedSacrifice || !shareholder) {
-            throw new Error("No sacrifice selected or shareholder data is invalid");
-          }
-
-          // Ensure required properties exist on selectedSacrifice
-          if (!selectedSacrifice.sacrifice_id || selectedSacrifice.share_price === undefined) {
-            throw new Error("Sacrifice data is incomplete");
-          }
-
-          // Create the shareholder input object with all required fields
-          const shareholderInput: ShareholderInput = {
-            shareholder_name: shareholder.name,
-            phone_number: shareholder.phone,
-            transaction_id: reservationStatus?.transaction_id || "",
-            sacrifice_id: selectedSacrifice.sacrifice_id,
-            share_price: parseFloat(selectedSacrifice.share_price.toString()),
-            shares_count: shareholder.shareCount,
-            delivery_location: data.delivery?.location || "Kesimhane",
-            delivery_fee: data.delivery?.useTeslimat ? 750 : 0, // Hardcoded fee value
-            delivery_date: data.delivery?.date || "",
-            delivery_address: data.delivery?.address || "",
-            delivery_notes: data.delivery?.notes || "",
-            // Add required fields for ShareholderInput
-            security_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-            purchased_by: "Web Portal",
-            last_edited_by: "Web Portal",
-            is_purchaser: data.is_purchaser,
-            sacrifice_consent: data.sacrifice_consent,
-            total_amount: 0, // Will be calculated on the server
-            remaining_payment: 0 // Will be calculated on the server
-          };
-
-          shareholderInputs.push(shareholderInput);
-        });
-      }
-
-      await createShareholders.mutateAsync(shareholderInputs);
-
-      // Success handling
-      goToStep("success");
-
-      // Provide success response data matching expected return type
-      return Promise.resolve({
-        success: true,
-        data: {
-          shareholders: shareholderInputs
-        }
-      });
-    } catch (error) {
-      console.error("Error in handleApprove:", error);
-      toast({
-        variant: "destructive",
-        title: "İşlem Hatası",
-        description: "Hissedar bilgileri kaydedilirken bir hata oluştu."
-      });
-      return Promise.reject(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleApprove = createHandleApprove({
+    selectedSacrifice,
+    formData,
+    createShareholders,
+    setSuccess,
+    goToStep,
+    toast
+  });
 
   const handlePdfDownload = createHandlePdfDownload();
 
   // Create custom timeout handler
   const handleCustomTimeout = createHandleCustomTimeout({
     resetStore,
-    goToStep: goToStepAsString,
+    goToStep,
     toast,
-    refetchSacrifices: async () => {
-      await refetchSacrifices();
-      return;
-    },
+    refetchSacrifices,
     transaction_id,
     setShowWarning,
     setIsDialogOpen,
@@ -319,9 +148,8 @@ const Page = () => {
   });
 
   // Create a promise-returning version for the lifecycle
-  const handleCustomTimeoutWithPromise = async () => {
-    await handleCustomTimeout();
-    return;
+  const handleCustomTimeoutWithPromise = () => {
+    return Promise.resolve(handleCustomTimeout());
   };
 
   // Safe server time remaining
@@ -355,7 +183,7 @@ const Page = () => {
     transaction_id,
     selectedSacrifice,
     formData,
-    updateShareCount: updateShareCountWrapper,
+    updateShareCount,
     sacrifices,
     isLoadingSacrifices,
     isRefetching,
@@ -416,16 +244,6 @@ const Page = () => {
     };
   }
 
-  // When passing goToStep to the PageLayout, map our store's Step to FormViewStep
-  const goToStepWrapper = (step: FormViewStep) => {
-    if (step === "success") {
-      // Now both types have "success" so we can just pass it directly
-      goToStep("success" as StoreStep);
-    } else {
-      goToStep(step as StoreStep);
-    }
-  };
-
   return (
     <PageLayout
       // Success state
@@ -441,51 +259,18 @@ const Page = () => {
       data={sacrifices}
       selectedSacrifice={selectedSacrifice}
       formData={formData}
-      isLoading={isLoading || isSubmitting}
+      isLoading={isLoading || isReservationLoading}
       serverTimeRemaining={safeServerTimeRemaining}
 
       // Form handlers
       onSacrificeSelect={handleSacrificeSelect}
       updateShareCount={handleUpdateShareCount}
       setFormData={setFormData}
-      goToStep={goToStepWrapper}
+      goToStep={goToStep}
       resetStore={resetStore}
       setLastInteractionTime={setLastInteractionTime}
       setTimeLeft={setTimeLeft}
-      handleApprove={async () => {
-        try {
-          // Create a mock ShareholderFormData from formData if needed
-          const mockData: ShareholderFormData = {
-            name: formData[0]?.name || "",
-            phone: formData[0]?.phone || "",
-            delivery_location: formData[0]?.delivery_location || "",
-            delivery_fee: 0,
-            sacrifice_consent: false,
-            // Add mock shareholders data based on formData
-            shareholders: formData.reduce((acc, item, index) => {
-              acc[`shareholder_${index}`] = {
-                name: item.name,
-                phone: item.phone,
-                shareCount: 1
-              };
-              return acc;
-            }, {} as Record<string, { name: string; phone: string; shareCount: number }>),
-            // Add mock delivery data
-            delivery: {
-              location: formData[0]?.delivery_location || "Kesimhane",
-              useTeslimat: formData[0]?.delivery_location === "Ulus",
-              date: new Date().toISOString().split('T')[0],
-              address: "",
-              notes: ""
-            }
-          };
-
-          return handleApprove(mockData);
-        } catch (error) {
-          console.error("Error in handleApprove wrapper:", error);
-          return Promise.reject(error);
-        }
-      }}
+      handleApprove={handleApprove}
       toast={toast}
 
       // Dialog states

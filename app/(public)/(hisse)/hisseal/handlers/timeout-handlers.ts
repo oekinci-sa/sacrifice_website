@@ -1,3 +1,5 @@
+import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+
 // Define toast function type
 type ToastFunction = {
     (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
@@ -5,7 +7,7 @@ type ToastFunction = {
 
 interface CustomTimeoutHandlerProps {
     resetStore: () => void;
-    goToStep: (step: string) => void;
+    goToStep: (step: Step) => void;
     toast: ToastFunction;
     refetchSacrifices: () => Promise<void>;
     transaction_id: string;

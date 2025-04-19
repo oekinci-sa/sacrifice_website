@@ -22,7 +22,7 @@ import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -239,8 +239,8 @@ interface ShareFiltersProps {
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }
 
-// 🔹 Client-side fonksiyonları içeren bileşen
-function ClientShareFilters({
+// 🔹 Ana bileşen
+export function ShareFilters({
   table,
   columnFilters,
   onColumnFiltersChange,
@@ -300,151 +300,114 @@ function ClientShareFilters({
     return priceOptions;
   }, [sacrifices]);
 
-  // Varsayılan olarak tüm filtreleri görüntüleyeceğiz
-  const [showPriceFilters, setShowPriceFilters] = useState(true);
-  const [showShareFilters, setShowShareFilters] = useState(true);
+  const [showHideFullOption, setShowHideFullOption] = useState(true);
 
-  // Özel "dolmuş kurbanları gizle" seçeneğini gösterip göstermeyeceğimizi belirleyen durum
-  const [showHideFullOption, setShowHideFullOption] = useState(false);
-
-  // Sayfa açıldığında URL'deki parametrelere göre filtreleri ayarla
-  useEffect(() => {
-    // URL'deki filtreleri kontrol et
-    handleURLFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // URL'deki parametrelere göre filtreleri ayarlayan fonksiyon
-  const handleURLFilters = () => {
-    if (!searchParams) return;
-
-    const priceParam = searchParams.get("price");
-    const shareParam = searchParams.get("share");
-
-    if (priceParam) {
-      // URL'den gelen fiyat filtrelerini ayarla
-      const priceValues = priceParam.split(",");
-      table.getColumn("share_price")?.setFilterValue(priceValues);
-    }
-
-    if (shareParam) {
-      // URL'den gelen boş hisse filtrelerini ayarla
-      const shareValues = shareParam.split(",");
-      table.getColumn("empty_share")?.setFilterValue(shareValues);
-    }
-  };
-
-  // Fiyat aralığı seçeneklerini oluştur - bu statik olacak
-  const priceOptions = useMemo(
-    () => [
-      { label: "4.000₺", value: "4000" },
-      { label: "5.000₺", value: "5000" },
-      { label: "5.500₺", value: "5500" },
-      { label: "6.000₺", value: "6000" },
-      { label: "7.000₺", value: "7000" },
-    ],
+  const emptyShares = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        label: i.toString(),
+        value: i.toString(),
+      })),
     []
   );
 
-  // Boş hisse sayısı seçeneklerini dinamik olarak oluştur
-  const shareOptions = useMemo(() => {
-    // Kurbanların boş hisse sayılarını toplayalım
-    const shareCounts = new Set<number>();
+  const isFiltered = columnFilters.length > 0;
 
-    if (sacrifices && sacrifices.length > 0) {
-      sacrifices.forEach((sacrifice) => {
-        if (
-          typeof sacrifice.empty_share === "number" &&
-          sacrifice.empty_share >= 0
-        ) {
-          shareCounts.add(sacrifice.empty_share);
+  // Improved URL filtering handling for price filters
+  useEffect(() => {
+    const handleURLFilters = () => {
+      const priceFilter = searchParams.get("price");
+
+      if (priceFilter) {
+        try {
+          // Handle both comma-separated values and single values
+          const prices = priceFilter.includes(",")
+            ? priceFilter.split(",").map((p) => p.trim())
+            : [priceFilter.trim()];
+
+          const priceColumn = table.getColumn("share_price");
+          if (priceColumn) {
+            // Apply the filter directly to the table's state
+            table.setColumnFilters((prev) => {
+              // Remove any existing share_price filter
+              const filtered = prev.filter((f) => f.id !== "share_price");
+              // Add the new filter
+              return [
+                ...filtered,
+                {
+                  id: "share_price",
+                  value: prices,
+                },
+              ];
+            });
+          }
+        } catch (error) {
+          console.error("Error parsing URL price filter:", error);
         }
-      });
-    }
+      }
+    };
 
-    // Sıralı bir dizi oluşturalım ve her değer için bir seçenek oluşturalım
-    return Array.from(shareCounts)
-      .sort((a, b) => a - b)
-      .map((count) => ({
-        label: count === 0 ? "0 (Dolu)" : count.toString(),
-        value: count.toString(),
-      }));
-  }, [sacrifices]);
-
-  // Aktif filtre sayısını hesapla
-  const activeFilterCount =
-    (table.getColumn("share_price")?.getFilterValue() ? 1 : 0) +
-    (table.getColumn("empty_share")?.getFilterValue() ? 1 : 0);
-
-  // Tüm filtreleri temizle
-  const handleResetFilters = () => {
-    table.resetColumnFilters();
-  };
+    handleURLFilters();
+  }, [table, searchParams, pathname]);
 
   return (
-    <div className="flex flex-col md:flex-row gap-2">
-      <div className="relative flex flex-1 items-center gap-2">
-        {/* Fiyat filtresi */}
-        {showPriceFilters && (
-          <div className="w-full md:w-auto">
-            <DataTableFacetedFilter
-              column={table.getColumn("share_price")}
-              title="Fiyat Aralığı"
-              options={priceOptions}
-              type="price"
-            />
-          </div>
-        )}
+    <div className="flex flex-col justify-center gap-2 md:gap-4">
+      {/* Filtreler */}
+      <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
+        {[
+          {
+            column: "share_price",
+            title: "Hisse Bedeli",
+            options: sharePrices,
+            type: "price" as const,
+          },
+          {
+            column: "empty_share",
+            title: "Boş Hisse",
+            options: emptyShares,
+            type: "share" as const,
+            showHideFullOption,
+            setShowHideFullOption,
+          },
+        ].map(({ column, title, options, type, ...rest }) => {
+          const col = table.getColumn(column);
+          return (
+            <div key={column} className="relative">
+              <FilterCountBadge
+                count={(col?.getFilterValue() as string[])?.length || 0}
+              />
+              <DataTableFacetedFilter
+                column={col}
+                title={title}
+                options={options}
+                type={type}
+                {...rest}
+              />
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Boş hisse filtresi */}
-        {showShareFilters && (
-          <div className="w-full md:w-auto">
-            <DataTableFacetedFilter
-              column={table.getColumn("empty_share")}
-              title="Boş Hisse Sayısı"
-              options={shareOptions}
-              type="share"
-              showHideFullOption={showHideFullOption}
-              setShowHideFullOption={setShowHideFullOption}
-            />
-          </div>
-        )}
-
-        {/* Filtre temizleme butonu - yalnızca aktif filtre varsa göster */}
-        {activeFilterCount > 0 && (
-          <div className="hidden md:block ml-auto">
-            <Button
-              variant="ghost"
-              onClick={handleResetFilters}
-              className="h-8 px-2 lg:px-3 text-xs md:text-sm"
-            >
-              Filtreleri temizle
-              <X className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* Mobil için filtre temizleme butonu */}
-        {activeFilterCount > 0 && (
+      {/* Temizle */}
+      {isFiltered && (
+        <div className="flex justify-center md:-mt-4">
           <Button
             variant="ghost"
-            onClick={handleResetFilters}
-            className="ml-auto md:hidden h-8 w-8 p-0 focus-visible:ring-0"
+            onClick={() => {
+              table.resetColumnFilters();
+              onColumnFiltersChange([]);
+              setShowHideFullOption(true);
+            }}
+            className="h-8 px-2 lg:px-3 text-sm"
           >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Filtreleri temizle</span>
+            Tüm filtreleri temizle
+            <X className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" />
           </Button>
-        )}
-      </div>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
+        * Tüm tabloyu görmek için sağa kaydırınız.
+      </p>
     </div>
-  );
-}
-
-// 🔹 Ana bileşen - Suspense ile sarılmış
-export function ShareFilters(props: ShareFiltersProps) {
-  return (
-    <Suspense fallback={<div className="h-8 w-full bg-gray-100 animate-pulse rounded-md"></div>}>
-      <ClientShareFilters {...props} />
-    </Suspense>
   );
 }

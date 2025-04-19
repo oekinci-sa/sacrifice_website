@@ -13,11 +13,6 @@ import { useState } from "react"
 import SecurityCodeDialog from "./security-code-dialog"
 import TermsAgreementDialog from "./terms-agreement-dialog"
 
-// Define ToastFunction type to avoid 'any' usage
-type ToastFunction = {
-  (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
-};
-
 type Step = "selection" | "details" | "confirmation"
 
 interface ShareholderSummaryProps {
@@ -89,7 +84,7 @@ export default function ShareholderSummary({
   const completeReservationMutation = useCompleteReservation()
   const validateShareholdersMutation = useValidateShareholders()
   const { transaction_id } = useReservationIDStore()
-  const { toast } = useToast() as { toast: ToastFunction }
+  const { toast } = useToast()
 
   // Find the purchaser
   const purchaserIndex = shareholders.findIndex(shareholder => shareholder.is_purchaser === true)

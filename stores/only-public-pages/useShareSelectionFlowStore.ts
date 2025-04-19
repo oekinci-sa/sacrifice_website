@@ -1,6 +1,6 @@
-import { sacrificeSchema } from "@/types";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { sacrificeSchema } from "@/types";
 
 export interface FormData {
   name: string;
@@ -12,10 +12,9 @@ export const STEP_MAPPING = {
   selection: { number: 1, value: "tab-1" },
   details: { number: 2, value: "tab-2" },
   confirmation: { number: 3, value: "tab-3" },
-  success: { number: 4, value: "tab-4" },
 } as const;
 
-export type Step = "selection" | "details" | "confirmation" | "success";
+export type Step = "selection" | "details" | "confirmation";
 
 interface ShareSelectionFlowState {
   selectedSacrifice: sacrificeSchema | null;

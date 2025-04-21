@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 
+// ✅ Force Node.js runtime to access process.env
+export const runtime = "nodejs";
 
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-sacrifice-animals

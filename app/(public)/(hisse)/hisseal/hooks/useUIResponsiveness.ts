@@ -27,8 +27,6 @@ export function useUIResponsiveness({
         if (currentStep === "selection" && !isLoadingSacrifices && !isRefetching && sacrificesLength > 0) {
             // For post-timeout case, apply special handling
             if (needsRerender.current) {
-                console.log("Applying forced reattachment for event handlers");
-
                 // Create a sequence of micro-timeouts to ensure the UI thread gets updated
                 const timer1 = setTimeout(() => {
                     // Force a small update to help event handlers reattach
@@ -48,7 +46,6 @@ export function useUIResponsiveness({
 
             // Standard handling even without timeout
             const timer = setTimeout(() => {
-                console.log("Ensuring UI responsiveness after data load");
             }, 50);
 
             return () => clearTimeout(timer);

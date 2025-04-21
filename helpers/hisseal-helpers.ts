@@ -60,9 +60,6 @@ export const setupPageUnloadHandlers = ({
 
     // sendBeacon API kullan - sayfa kapanırken bile çalışır
     navigator.sendBeacon(CANCEL_RESERVATION_API, blob);
-
-    // Debug amaçlı loglama (sayfa kapanıyor olsa da konsolda loglar)
-    console.log("Sayfa kapatma/ayrılma işlemi: Rezervasyon iptal ediliyor", cancelData);
   };
 
   return { handleBeforeUnload, handleUnload };
@@ -164,7 +161,6 @@ export const setupNavigationHandler = ({
       goToStep("selection");
       return true;
     } catch (err) {
-      console.error('Error handling route change:', err);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -232,7 +228,6 @@ export const useHandleNavigation = (
         goToStep("selection");
         return true;
       } catch (err) {
-        console.error('Error handling route change:', err);
         toast({
           variant: "destructive",
           title: "Hata",
@@ -377,10 +372,8 @@ export const useHandleInteractionTimeout = (
 
         // Özel timeout handler varsa onu kullan, yoksa standart işlemi yap
         if (customTimeoutHandler) {
-          console.log("Using custom timeout handler");
           customTimeoutHandler();
         } else {
-          console.log("Using default timeout handler");
           // Eğer transaction_id varsa rezervasyonu zaman aşımına uğrat
           if (transaction_id) {
             try {
@@ -396,12 +389,10 @@ export const useHandleInteractionTimeout = (
               if (refetchSacrifices) {
                 // setTimeout kullanarak resetStore işleminin tamamlanmasını bekleyelim
                 setTimeout(() => {
-                  console.log("Timeout sonrası veri yenileniyor...");
                   refetchSacrifices();
                 }, 100);
               }
             } catch (err) {
-              console.error('Error timing out reservation:', err);
               // Hata olsa bile reset yapmaya çalış
               resetStore();
               goToStep("selection");
@@ -409,7 +400,6 @@ export const useHandleInteractionTimeout = (
               // Hata durumunda da veri yenileme fonksiyonunu çağır
               if (refetchSacrifices) {
                 setTimeout(() => {
-                  console.log("Hata durumunda veri yenileniyor...");
                   refetchSacrifices();
                 }, 100);
               }
@@ -422,7 +412,6 @@ export const useHandleInteractionTimeout = (
             // Bu durumda da veri yenileme fonksiyonunu çağır
             if (refetchSacrifices) {
               setTimeout(() => {
-                console.log("transaction_id yokken veri yenileniyor...");
                 refetchSacrifices();
               }, 100);
             }
@@ -527,14 +516,7 @@ export const handleShareCountSelect = async ({
   createReservation: any;
 }) => {
   try {
-    console.log('Starting handleShareCountSelect function', {
-      shareCount,
-      transaction_id_length: transaction_id?.length,
-      sacrifice_id: tempSelectedSacrifice?.sacrifice_id
-    });
-
     if (!tempSelectedSacrifice) {
-      console.error('No sacrifice selected');
       toast({
         variant: "destructive",
         title: "Hata",
@@ -544,7 +526,6 @@ export const handleShareCountSelect = async ({
     }
 
     if (!transaction_id || transaction_id.length !== 16) {
-      console.error(`Invalid transaction_id: ${transaction_id}, length: ${transaction_id?.length}`);
       toast({
         variant: "destructive",
         title: "Sistem Hatası",
@@ -554,21 +535,12 @@ export const handleShareCountSelect = async ({
     }
 
     // Note: Shareholder count validation has been moved to the createHandleShareCountSelect handler
-
-    console.log('Creating reservation with:', {
-      transaction_id,
-      sacrifice_id: tempSelectedSacrifice.sacrifice_id,
-      share_count: shareCount
-    });
-
     // Rezervasyon oluştur
     const result = await createReservation.mutateAsync({
       transaction_id,
       sacrifice_id: tempSelectedSacrifice.sacrifice_id,
       share_count: shareCount,
     });
-
-    console.log('Reservation created successfully', result);
 
     // Set selected sacrifice and form data
     setSelectedSacrifice(tempSelectedSacrifice);
@@ -590,8 +562,6 @@ export const handleShareCountSelect = async ({
     // Note: We no longer automatically navigate to the details step or show the toast
     // This is now handled in the page component by showing the ReservationInfoDialog first
   } catch (err) {
-    console.error('Error selecting share count:', err);
-
     // Daha detaylı hata mesajı göster
     let errorMessage = "İşlem sırasında bir hata oluştu.";
 
@@ -719,12 +689,11 @@ export const useHandleNavigationHistory = ({
 
         resetStore();
       } catch (err) {
-        console.error('Error canceling reservation during navigation:', err);
+        // Removed console.error
       }
 
       // If we're in success state, mark that we've navigated away
       if (isSuccess) {
-        console.log('Navigation detected in success state, setting navigated away flag');
         setHasNavigatedAway(true);
       }
 

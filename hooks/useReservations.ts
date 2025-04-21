@@ -78,7 +78,6 @@ export const useReservationStatus = (transaction_id: string) => {
         const data = await response.json();
         return data as ReservationStatusData;
       } catch (error) {
-        console.error('Error in reservation status check:', error);
         if (error instanceof Error) {
           throw error;
         } else {
@@ -197,7 +196,6 @@ export const useUpdateShareCount = () => {
         // Başarısız yanıt durumunda
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Update share count API error:', errorData);
           throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
         }
 
@@ -223,8 +221,6 @@ export const useUpdateShareCount = () => {
 
     // Mutation hata verdiğinde
     onError: (error: Error) => {
-      console.error('Share count update error:', error);
-
       toast({
         variant: "destructive",
         title: "Hata",
@@ -330,7 +326,6 @@ export const useTimeoutReservation = () => {
         // Başarısız yanıt durumunda
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Timeout reservation API error:', errorData);
           throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
         }
 
@@ -357,7 +352,6 @@ export const useTimeoutReservation = () => {
 
     // Mutation hata verdiğinde
     onError: (error: Error) => {
-
       toast({
         variant: "destructive",
         title: "Hata",
@@ -396,7 +390,6 @@ export const useCompleteReservation = () => {
         // Handle non-OK responses
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Complete reservation API error:', errorData);
           throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
         }
 

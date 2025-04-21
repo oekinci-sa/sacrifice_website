@@ -44,8 +44,6 @@ export function SacrificeDataProvider({
             table: "sacrifice_animals",
           },
           (payload) => {
-            console.log("Realtime update received:", payload);
-
             // Update Zustand store based on the event type
             if (
               payload.eventType === "INSERT" ||
@@ -60,8 +58,7 @@ export function SacrificeDataProvider({
             }
           }
         )
-        .subscribe((status) => {
-          console.log("Global subscription status:", status);
+        .subscribe(() => {
         });
     };
 
@@ -74,7 +71,6 @@ export function SacrificeDataProvider({
     // Check subscription status periodically
     const checkSubscription = setInterval(() => {
       if (!channelRef.current) {
-        console.log("Reestablishing lost subscription");
         setupRealtimeSubscription();
       }
     }, 10000); // Check every 10 seconds
@@ -83,7 +79,6 @@ export function SacrificeDataProvider({
     return () => {
       clearInterval(checkSubscription);
       if (channelRef.current) {
-        console.log("Unsubscribing from global channel");
         channelRef.current.unsubscribe();
         channelRef.current = null;
       }

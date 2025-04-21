@@ -3,15 +3,12 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET() {
   try {
-    console.log('API: Fetching empty share count');
-    
     // Query total empty shares
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("empty_share");
 
     if (error) {
-      console.error("API Error fetching empty shares:", error);
       return NextResponse.json(
         { error: "Failed to fetch empty shares" },
         { 
@@ -29,8 +26,6 @@ export async function GET() {
       0
     );
     
-    console.log('API: Returning total empty shares:', totalEmptyShares);
-
     // Return response with cache control headers
     return NextResponse.json(
       { totalEmptyShares },
@@ -42,7 +37,6 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error("API Server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { 

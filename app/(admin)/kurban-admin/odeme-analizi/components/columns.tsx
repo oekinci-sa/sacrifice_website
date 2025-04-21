@@ -183,7 +183,6 @@ const ActionCell = ({ row }: { row: Row<shareholderSchema> }) => {
       });
       router.refresh();
     } catch (err) {
-      console.error('Error deleting shareholder:', err);
       toast({
         variant: "destructive",
         title: "Hata",

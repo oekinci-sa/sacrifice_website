@@ -101,7 +101,6 @@ export const createHandleShareCountSelect = ({
 
                         // Check if the user is trying to select more shares than available
                         if (shareCount > availableShareCount) {
-                            console.log(`Too many shares selected: ${shareCount}, available: ${availableShareCount}`);
                             toast({
                                 variant: "destructive",
                                 title: "Hisse Sınırı Aşıldı",
@@ -114,7 +113,6 @@ export const createHandleShareCountSelect = ({
                         }
                     }
                 } catch (error) {
-                    console.error('Error checking shareholder count:', error);
                     // Continue with the process even if we couldn't check the count
                 }
             }
@@ -124,12 +122,6 @@ export const createHandleShareCountSelect = ({
             if (!tempSelectedSacrifice) {
                 throw new Error("No sacrifice selected");
             }
-
-            console.log('Creating reservation with:', {
-                transaction_id,
-                sacrifice_id: tempSelectedSacrifice.sacrifice_id,
-                share_count: shareCount
-            });
 
             // Create the reservation using mutateAsync (returns a Promise)
             const reservationResult = await createReservation.mutateAsync({
@@ -180,7 +172,6 @@ export const createHandleShareCountSelect = ({
                 }, 300);
             }, 500);
         } catch (error) {
-            console.error("Error in handleShareCountSelect:", error);
             toast({
                 variant: "destructive",
                 title: "Hata",
@@ -211,28 +202,20 @@ export const createHandleApprove = ({
     nextStep
 }: ApproveHandlerParams) => {
     return async () => {
-        console.log("createHandleApprove başlangıç - UI güncelleme işlemi");
-
         try {
             // Sadece UI güncelleme işlemlerini yapalım
             // Veritabanı işlemlerini YAPMA, çünkü bunlar shareholder-summary.tsx içindeki 
             // handleTermsConfirm fonksiyonunda zaten yapılıyor
 
             // Başarı durumunu güncelle
-            console.log("setSuccess true yapılıyor");
             setSuccess(true);
-            console.log("setSuccess true yapıldı");
 
             // Success adımına geç
-            console.log("goToStep('success') çağrılıyor");
             goToStep("success");
-            console.log("goToStep('success') çağrıldı");
 
             // Call nextStep if it exists
             if (nextStep) {
-                console.log("nextStep çağrılıyor");
                 nextStep();
-                console.log("nextStep çağrıldı");
             }
 
             // Başarı mesajı göster
@@ -241,7 +224,6 @@ export const createHandleApprove = ({
                 description: "Hissedar kayıtları başarıyla oluşturuldu.",
             });
         } catch (error) {
-            console.error("Error in handleApprove UI update:", error);
             toast({
                 variant: "destructive",
                 title: "Hata",
@@ -255,6 +237,5 @@ export const createHandleApprove = ({
 export const createHandlePdfDownload = () => {
     return () => {
         // PDF indirme işlemi buraya eklenecek
-        console.log("PDF indirme işlemi");
     };
 }; 

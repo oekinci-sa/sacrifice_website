@@ -27,7 +27,6 @@ export const useShareholderCount = () => {
       const data = await response.json();
       return data.count;
     } catch (error) {
-      console.error("Error fetching shareholder count:", error);
       setError(error instanceof Error ? error.message : 'Unknown error occurred');
       return null;
     } finally {

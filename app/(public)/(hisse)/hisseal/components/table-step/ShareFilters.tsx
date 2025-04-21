@@ -253,7 +253,7 @@ export function ShareFilters({
   const sharePrices = useMemo(() => {
     // First, let's log a sample sacrifice to see its structure
     if (sacrifices.length > 0) {
-      console.log("Sample sacrifice:", sacrifices[0]);
+      // Log removed
     }
 
     // Create a map to group sacrifices by price
@@ -342,7 +342,7 @@ export function ShareFilters({
             });
           }
         } catch (error) {
-          console.error("Error parsing URL price filter:", error);
+          // Log removed
         }
       }
     };

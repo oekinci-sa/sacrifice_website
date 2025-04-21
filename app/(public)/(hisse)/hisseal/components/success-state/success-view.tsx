@@ -66,11 +66,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     const sacrifice = dbData?.sacrifice || {};
     const reservation = dbData?.reservation || {};
 
-    // Debug için veri yapısını logla
-    console.log("Shareholder data from DB:", shareholder);
-    console.log("Sacrifice data from DB:", sacrifice);
-    console.log("Reservation data from DB:", reservation);
-
     // Toplam tutarı hesapla
     const sharePrice = sacrifice.share_price || 0;
     const deliveryFee = shareholder.delivery_location !== "Kesimhane" ? 750 : 0;
@@ -179,7 +174,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   // Veritabanı durumuna göre içerik gösterimi
   useEffect(() => {
     if (dbData && dbData.shareholders && dbData.shareholders.length > 0) {
-      console.log("Shareholders data received:", dbData.shareholders);
+      // Log removed
     }
   }, [dbData]);
 

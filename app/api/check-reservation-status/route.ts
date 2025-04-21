@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 // This endpoint checks the status of a reservation and returns expiration details
 export async function GET(request: NextRequest) {
@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error fetching reservation status:', error);
       return NextResponse.json(
         { error: "Failed to fetch reservation status" },
         { status: 500 }
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Return the status and expiration info
     return NextResponse.json({
       status: data.status,
-      transaction_id: data.transaction_id, 
+      transaction_id: data.transaction_id,
       sacrifice_id: data.sacrifice_id,
       share_count: data.share_count,
       expires_at: data.expires_at,
@@ -56,7 +55,6 @@ export async function GET(request: NextRequest) {
       updated_at: data.updated_at
     });
   } catch (error) {
-    console.error('Unexpected error checking reservation status:', error);
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

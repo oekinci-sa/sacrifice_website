@@ -161,10 +161,10 @@ export const FormView = ({
                   resetStore();
                   goToStep("selection");
                 }).catch(err => {
-                  console.error('Error handling back action:', err);
+                  // Log removed
                 });
               } catch (err) {
-                console.error('Error handling back action:', err);
+                // Log removed
               }
             }}
             setLastInteractionTime={setLastInteractionTime}

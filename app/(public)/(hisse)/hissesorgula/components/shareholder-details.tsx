@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplay } from "@/utils/formatters";
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 import Image from "next/image";
 import { ProgressBar } from "./ProgressBar";
 
@@ -17,18 +17,20 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
   const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
 
+  // Format sacrifice time (remove seconds)
   const formatSacrificeTime = (timeString: string | null | undefined) => {
-    if (!timeString) return "Henüz belirlenmedi";
+    if (!timeString) return "-";
+    
     try {
-      if (timeString.includes(':') && !timeString.includes('T')) {
-        const [hours, minutes] = timeString.split(':');
-        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+      // If there are seconds (format: HH:MM:SS), remove them
+      if (timeString.split(':').length > 2) {
+        const parts = timeString.split(':');
+        return `${parts[0]}:${parts[1]}`;
       }
-
-      return format(new Date(timeString), 'HH:mm');
+      return timeString;
     } catch (error) {
-      console.error("Error formatting sacrifice time:", error, timeString);
-      return "Henüz belirlenmedi";
+      // Log removed
+      return timeString;
     }
   };
 

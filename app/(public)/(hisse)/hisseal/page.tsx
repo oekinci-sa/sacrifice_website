@@ -57,7 +57,6 @@ const Page = () => {
 
   // Create key handlers directly in the component to avoid circular dependencies
   const handleTimeoutRedirect = useCallback(async () => {
-    console.log("Timeout occurred, redirecting to selection step");
     resetStore();
     goToStep("selection");
     needsRerender.current = true;
@@ -65,10 +64,8 @@ const Page = () => {
       const result = await refetchSacrifices();
       // result void olabilir
       if (result && !result.success) {
-        console.warn("Sacrifice refetch was not successful in timeout redirect");
       }
     } catch (error) {
-      console.error("Error refetching sacrifices in timeout redirect:", error);
     }
     return Promise.resolve();
   }, [resetStore, goToStep, refetchSacrifices]);
@@ -160,7 +157,6 @@ const Page = () => {
         }
         return result;
       } catch (error) {
-        console.error("Error refetching sacrifices in custom timeout:", error);
         // Return a failed result object instead of void
         return {
           data: undefined,
@@ -197,7 +193,6 @@ const Page = () => {
           operation: 'add'
         });
       } else {
-        console.error("updateShareCount mutation is not properly initialized");
         toast({
           variant: "destructive",
           title: "Hata",
@@ -205,7 +200,6 @@ const Page = () => {
         });
       }
     } catch (error) {
-      console.error("Error updating share count:", error);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -266,7 +260,6 @@ const Page = () => {
     // @ts-expect-error - Deliberately adding to window for debugging
     window.testExpireReservation = (testId?: string) => {
       const idToUse = testId || transaction_id;
-      console.log('Testing expire-reservation API with ID:', idToUse);
 
       fetch('/api/expire-reservation', {
         method: 'POST',
@@ -277,14 +270,12 @@ const Page = () => {
       })
         .then(response => response.json())
         .then(data => {
-          console.log('API TEST RESPONSE:', data);
           toast({
             title: 'API Test Result',
             description: `Status: ${data.message || data.error || 'Unknown'}`
           });
         })
         .catch(err => {
-          console.error('API TEST ERROR:', err);
           toast({
             variant: 'destructive',
             title: 'API Test Failed',

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Rezervasyon zaman aşımı durumunu yöneten API endpoint
@@ -10,16 +10,15 @@ export async function POST(request: NextRequest) {
   try {
     // İstek gövdesinden transaction_id'yi al
     const { transaction_id } = await request.json();
-    
+
     // transaction_id kontrol et
     if (!transaction_id) {
-      console.error('Timeout reservation API: transaction_id yok');
       return NextResponse.json(
         { error: "transaction_id gereklidir" },
         { status: 400 }
       );
     }
-    
+
     // İşlem öncesi mevcut rezervasyonu kontrol et
     const { data: existingReservation, error: fetchError } = await supabaseAdmin
       .from("reservation_transactions")
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error('Timeout reservation API: Rezervasyon bulunamadı:', fetchError);
       return NextResponse.json(
         { error: "Rezervasyon bulunamadı" },
         { status: 404 }
@@ -37,7 +35,6 @@ export async function POST(request: NextRequest) {
 
     // Eğer rezervasyon zaten işlenmişse (timed out, canceled, completed vb.)
     if (existingReservation.status !== 'active') {
-      console.warn(`Timeout reservation API: Rezervasyon zaten ${existingReservation.status} durumunda:`, transaction_id);
       return NextResponse.json({
         success: true,
         message: `Rezervasyon zaten ${existingReservation.status} durumunda`,
@@ -53,15 +50,11 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Timeout reservation API: Rezervasyon zaman aşımı güncellemesi sırasında hata oluştu:', error);
       return NextResponse.json(
         { error: "Rezervasyon zaman aşımı güncellemesi sırasında hata oluştu" },
         { status: 500 }
       );
     }
-
-    // Başarılı işlem logunu yaz
-    console.log(`Rezervasyon başarıyla zaman aşımına uğradı: ${transaction_id}`);
 
     return NextResponse.json({
       success: true,
@@ -69,7 +62,6 @@ export async function POST(request: NextRequest) {
       data
     });
   } catch (error) {
-    console.error('Timeout reservation API: Beklenmeyen hata:', error);
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

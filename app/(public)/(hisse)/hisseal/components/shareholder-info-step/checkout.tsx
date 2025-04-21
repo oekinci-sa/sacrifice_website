@@ -89,13 +89,11 @@ export default function Checkout({
 
   // Refresh data when the component mounts or when users revisit it
   useEffect(() => {
-    console.log("Checkout component - Fetching fresh sacrifice data");
     refetchSacrifices();
   }, [refetchSacrifices]);
 
   // Also refresh data when the formData changes
   useEffect(() => {
-    console.log("formData changed - Refreshing sacrifice data");
     refetchSacrifices();
   }, [formData.length, refetchSacrifices]);
 
@@ -186,14 +184,12 @@ export default function Checkout({
     field: keyof ExtendedFormData,
     value: string
   ) => {
-    console.log("handleSelectChange called with:", { index, field, value });
     setLastInteractionTime(Date.now()); // Reset timeout
     const newFormData = [...extendedFormData];
     newFormData[index] = {
       ...newFormData[index],
       [field]: value,
     };
-    console.log("Updated form data:", newFormData);
     setFormData(newFormData as StoreFormData[]);
     handleInputBlur(index, field, value);
   };
@@ -264,13 +260,10 @@ export default function Checkout({
       setFormData([...formData, newShareholderData] as StoreFormData[]);
       setErrors([...errors, {}]);
     } catch (error) {
-      console.error("Error adding shareholder:", error);
-      // Hata durumunda kullanıcıyı bilgilendir
       toast({
         variant: "destructive",
         title: "Hata",
-        description:
-          "Hissedar eklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+        description: "Hissedar eklenirken bir hata oluştu. Lütfen tekrar deneyin.",
       });
     } finally {
       setIsAddingShare(false);
@@ -305,12 +298,10 @@ export default function Checkout({
       newErrors.splice(index, 1);
       setErrors(newErrors);
     } catch (error) {
-      console.error("Error removing shareholder:", error);
       toast({
         variant: "destructive",
         title: "Hata",
-        description:
-          "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+        description: "Hissedar silinirken bir hata oluştu. Lütfen tekrar deneyin.",
       });
     }
   };
@@ -326,7 +317,11 @@ export default function Checkout({
       setUserAction("confirm");
       setShowBackDialog(false);
     } catch (error) {
-      console.error("Error canceling reservation in confirmBack:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "İşlem iptal edilirken bir hata oluştu. Lütfen tekrar deneyin.",
+      });
       setShowBackDialog(false);
     } finally {
       setIsCanceling(false);
@@ -359,7 +354,7 @@ export default function Checkout({
         resetStore();
         goToStep("selection");
       } catch (error) {
-        console.error("Error handling last share action:", error);
+        // Log removed
       } finally {
         setShowLastShareDialog(false);
         setIsCanceling(false);

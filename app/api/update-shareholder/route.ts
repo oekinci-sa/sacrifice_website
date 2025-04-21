@@ -74,9 +74,6 @@ export async function POST(request: NextRequest) {
     // Add last_edited_time
     updateFields.last_edited_time = new Date().toISOString();
 
-    console.log(`[API] Updating shareholder: ${updateData.shareholder_id}`);
-    console.log(`[API] Update fields: ${JSON.stringify(updateFields)}`);
-
     // Update the shareholder in the database
     const { data, error } = await supabaseAdmin
       .from("shareholders")
@@ -85,7 +82,6 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('[API] Error updating shareholder:', error);
       return NextResponse.json(
         { error: "Failed to update shareholder", details: error.message },
         { status: 500 }
@@ -99,8 +95,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[API] Shareholder updated successfully: ${updateData.shareholder_id}`);
-
     return NextResponse.json({
       success: true,
       message: "Shareholder updated successfully",
@@ -108,7 +102,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (err) {
-    console.error("[API] Unexpected error updating shareholder:", err);
     const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
     return NextResponse.json(
       { error: "Internal Server Error", details: errorMessage },

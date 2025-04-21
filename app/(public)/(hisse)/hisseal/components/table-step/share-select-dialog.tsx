@@ -52,14 +52,11 @@ export function ShareSelectDialog({
   // Reset state and fetch fresh data when dialog opens
   useEffect(() => {
     if (isOpen) {
-      console.log("Share select dialog opened - Fetching fresh data");
-
       // First fetch when dialog opens
       refetchSacrifices();
 
       // Schedule a second fetch after a short delay to ensure we have the latest data
       const timer = setTimeout(() => {
-        console.log("Secondary data refresh in ShareSelectDialog");
         refetchSacrifices();
       }, 300);
 
@@ -69,8 +66,6 @@ export function ShareSelectDialog({
 
       // Generate a new transaction ID when the dialog opens
       generateNewTransactionId();
-      console.log('Generated new transaction ID when dialog opened:',
-        useReservationIDStore.getState().transaction_id);
 
       return () => clearTimeout(timer);
     }
@@ -177,7 +172,6 @@ export function ShareSelectDialog({
       onSelect(selectedShareCount);
       clearTimeout(safetyTimer); // Clear the safety timer
     } catch (err) {
-      console.error("Error in handleContinue:", err);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -190,7 +184,6 @@ export function ShareSelectDialog({
 
   // Add a retry mechanism for button clicks
   const handleButtonClick = (count: number) => {
-    console.log(`Button ${count} clicked`);
     // Force a state update to ensure the button click is registered
     setTimeout(() => {
       setSelectedShareCount(count);

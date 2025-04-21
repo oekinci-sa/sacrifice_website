@@ -30,6 +30,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   const { refetch } = useSacrifices();
   const sacrificeId = row.original.sacrifice_id;
   const [shareholders, setShareholders] = useState<shareholderSchema[]>([]);
+  const [shareholderDetailsLoading, setShareholderDetailsLoading] = useState(false);
 
   useEffect(() => {
     const fetchShareholderDetails = async () => {
@@ -48,7 +49,6 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         const data = await response.json();
         setShareholders(data);
       } catch (error) {
-        console.error("Error fetching shareholder details:", error);
         toast({
           variant: "destructive",
           title: "Hata",
@@ -81,7 +81,6 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
       setIsDeleteConfirmOpen(false);
       refetch(); // Tabloyu yenile
     } catch (error) {
-      console.error("Kurbanlık silme hatası:", error);
       toast({
         variant: "destructive",
         title: "Hata",
@@ -354,7 +353,6 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
           </div>
         );
       } catch (error) {
-        console.error('Error formatting time:', error);
         return <div className="text-center">-</div>;
       }
     },

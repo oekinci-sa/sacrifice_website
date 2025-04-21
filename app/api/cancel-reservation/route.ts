@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Rezervasyon işlemini iptal eden API endpoint
@@ -26,29 +26,23 @@ export async function POST(request: NextRequest) {
         const parsedData = JSON.parse(text);
         transaction_id = parsedData.transaction_id;
       } catch (e) {
-        console.error('Beacon request parsing error:', e);
       }
     } else {
       // Diğer istek tipleri için
-      console.warn('Unsupported content type:', contentType);
       const formData = await request.formData().catch(() => null);
       if (formData) {
         transaction_id = formData.get('transaction_id')?.toString();
       }
     }
-    
+
     // transaction_id kontrol et
     if (!transaction_id) {
-      console.error('Cancel reservation API: transaction_id yok');
       return NextResponse.json(
         { error: "transaction_id gereklidir" },
         { status: 400 }
       );
     }
 
-    // İsteğin kaynağını loglama (debug için)
-    console.log(`Cancel reservation API: İstek alındı - transaction_id: ${transaction_id}, Content-Type: ${contentType}`);
-    
     // İşlem öncesi mevcut rezervasyonu kontrol et
     const { data: existingReservation, error: fetchError } = await supabaseAdmin
       .from("reservation_transactions")
@@ -57,7 +51,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error('Cancel reservation API: Rezervasyon bulunamadı:', fetchError);
       return NextResponse.json(
         { error: "Rezervasyon bulunamadı" },
         { status: 404 }
@@ -66,7 +59,6 @@ export async function POST(request: NextRequest) {
 
     // Eğer rezervasyon zaten iptal edilmişse, bir hata dönme
     if (existingReservation.status === 'canceled') {
-      console.warn('Cancel reservation API: Rezervasyon zaten iptal edilmiş:', transaction_id);
       return NextResponse.json({
         success: true,
         message: "Rezervasyon zaten iptal edilmiş",
@@ -82,15 +74,11 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Cancel reservation API: Rezervasyon iptal edilirken hata oluştu:', error);
       return NextResponse.json(
         { error: "Rezervasyon iptal edilirken hata oluştu" },
         { status: 500 }
       );
     }
-
-    // Başarılı işlem logunu yaz
-    console.log(`Rezervasyon başarıyla iptal edildi: ${transaction_id}`);
 
     return NextResponse.json({
       success: true,
@@ -98,7 +86,6 @@ export async function POST(request: NextRequest) {
       data
     });
   } catch (error) {
-    console.error('Cancel reservation API: Beklenmeyen hata:', error);
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

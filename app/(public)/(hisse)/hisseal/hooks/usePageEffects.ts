@@ -58,8 +58,6 @@ export function usePageEffects({
     useEffect(() => {
         // Always reset success state when navigating to the hisseal page
         if (pathname === "/hisseal") {
-            console.log("Navigated to hisseal page - resetting state");
-
             // Reset the entire store - this ensures fresh start every time
             resetStore();
 
@@ -88,7 +86,6 @@ export function usePageEffects({
                 try {
                     await refetchSacrifices();
                 } catch (error) {
-                    console.error("Error fetching sacrifices on navigation:", error);
                 }
             })();
         }
@@ -110,12 +107,11 @@ export function usePageEffects({
     useEffect(() => {
         // Fetch fresh data when mounting the component
         if (pathname === "/hisseal") {
-            console.log("Fetching fresh sacrifice data on page navigation");
+            // Fetch fresh data when mounting the component
             (async () => {
                 try {
                     await refetchSacrifices();
                 } catch (error) {
-                    console.error("Error fetching sacrifices on page mount:", error);
                 }
             })();
         }
@@ -123,33 +119,19 @@ export function usePageEffects({
 
     // Handle the return to selection step with special handling for timeout cases
     useEffect(() => {
-        // Check if we've returned to the selection step
         if (currentStep === "selection") {
-            console.log("Returned to selection step - refreshing data");
-
-            // If we came from a timeout, apply special handling to ensure UI responsiveness
             if (cameFromTimeout) {
-                console.log("Applying special handling for post-timeout state");
-
-                // Immediate data refresh
                 (async () => {
                     try {
                         await refetchSacrifices();
-                    } catch (error) {
-                        console.error("Error in immediate data refresh:", error);
-                    }
+                    } catch (e) { }
                 })();
 
-                // Apply a delayed second refresh for reliability
                 const timeoutId = setTimeout(() => {
-                    console.log("Executing delayed refresh after timeout");
                     (async () => {
                         try {
                             await refetchSacrifices();
-                        } catch (error) {
-                            console.error("Error in delayed refresh:", error);
-                        }
-                        // Force a state update to trigger re-render
+                        } catch (e) { }
                         setCameFromTimeout(false);
                         needsRerender.current = false;
                     })();
@@ -157,22 +139,19 @@ export function usePageEffects({
 
                 return () => clearTimeout(timeoutId);
             } else {
-                // Regular refresh for normal navigation
                 (async () => {
                     try {
                         await refetchSacrifices();
-                    } catch (error) {
-                        console.error("Error in regular navigation refresh:", error);
-                    }
+                    } catch (e) { }
                 })();
             }
         }
     }, [currentStep, refetchSacrifices, cameFromTimeout, setCameFromTimeout, needsRerender]);
 
+
     // Check if we need to reset the success state due to navigation
     useEffect(() => {
         if (hasNavigatedAway && isSuccess) {
-            console.log("Resetting success state due to previous navigation");
             resetStore();
             setSuccess(false);
             setHasNavigatedAway(false);

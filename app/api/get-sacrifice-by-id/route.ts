@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error fetching sacrifice animal:', error);
       return NextResponse.json(
         { error: "Failed to fetch sacrifice animal" },
         { status: 500 }
@@ -33,7 +32,6 @@ export async function GET(request: NextRequest) {
     // Return the data
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Unexpected error:', error);
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

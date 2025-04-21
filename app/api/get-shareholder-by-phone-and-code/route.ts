@@ -49,7 +49,6 @@ export async function GET(request: Request) {
       .order("purchase_time", { ascending: false });
 
     if (error) {
-      console.error("Error fetching shareholders:", error);
       return NextResponse.json(
         { error: "Failed to fetch shareholder information" },
         { status: 500 }
@@ -75,7 +74,6 @@ export async function GET(request: Request) {
     // Security code is valid, return all shareholder records
     return NextResponse.json({ shareholders });
   } catch (error) {
-    console.error("Server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -40,6 +40,20 @@ interface SacrificeSharesData {
   no_payment: number;
 }
 
+interface SacrificeData {
+  sacrifice_id: string;
+  sacrifice_no: number;
+  share_price: number;
+  empty_share: number;
+}
+
+interface ShareholderData {
+  sacrifice_id: string;
+  paid_amount: number;
+  total_amount: number;
+  purchase_time: string;
+}
+
 const chartConfig = {
   today: {
     label: "Bugün",
@@ -75,6 +89,8 @@ export default function KurbanliklarPage() {
     all: 0,
     shares: 0,
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -86,7 +102,6 @@ export default function KurbanliklarPage() {
           .order('sacrifice_no');
 
         if (sacrificesError) {
-          console.error('Error fetching sacrifices:', sacrificesError);
           return;
         }
 
@@ -96,17 +111,16 @@ export default function KurbanliklarPage() {
           .select('*');
 
         if (shareholdersError) {
-          console.error('Error fetching shareholders:', shareholdersError);
           return;
         }
 
         // Calculate shares distribution data
-        const sharesData = sacrifices.map(sacrifice => {
-          const sacrificeHolders = shareholders.filter(s => s.sacrifice_id === sacrifice.sacrifice_id);
+        const sharesData = sacrifices.map((sacrifice: SacrificeData) => {
+          const sacrificeHolders = shareholders.filter((s: ShareholderData) => s.sacrifice_id === sacrifice.sacrifice_id);
 
-          const fullPayment = sacrificeHolders.filter(s => s.paid_amount >= s.total_amount).length;
-          const noPayment = sacrificeHolders.filter(s => s.paid_amount === 0).length;
-          const partialPayment = sacrificeHolders.filter(s => s.paid_amount > 0 && s.paid_amount < s.total_amount).length;
+          const fullPayment = sacrificeHolders.filter((s: ShareholderData) => s.paid_amount >= s.total_amount).length;
+          const noPayment = sacrificeHolders.filter((s: ShareholderData) => s.paid_amount === 0).length;
+          const partialPayment = sacrificeHolders.filter((s: ShareholderData) => s.paid_amount > 0 && s.paid_amount < s.total_amount).length;
 
           return {
             sacrifice_no: sacrifice.sacrifice_no,
@@ -123,7 +137,7 @@ export default function KurbanliklarPage() {
         }));
 
         // Calculate price chart data
-        const priceData = sacrifices.reduce((acc: Record<number, ChartData>, sacrifice) => {
+        const priceData = sacrifices.reduce((acc: Record<number, ChartData>, sacrifice: SacrificeData) => {
           const sharePrice = sacrifice.share_price;
           if (!acc[sharePrice]) {
             acc[sharePrice] = {
@@ -141,7 +155,8 @@ export default function KurbanliklarPage() {
           return acc;
         }, {});
 
-        setPriceChartData(Object.values(priceData).sort((a, b) => a.sharePrice - b.sharePrice));
+        const chartDataArray: ChartData[] = Object.values(priceData);
+        setPriceChartData(chartDataArray.sort((a, b) => a.sharePrice - b.sharePrice));
 
         // Calculate daily shares data based on active chart
         const today = new Date();
@@ -172,7 +187,7 @@ export default function KurbanliklarPage() {
             dates = eachDayOfInterval({ start: startDate, end: today });
             break;
           case "all": {
-            const allDates = shareholders.map(s => new Date(s.purchase_time).getTime());
+            const allDates = shareholders.map((s: ShareholderData) => new Date(s.purchase_time).getTime());
             if (allDates.length > 0) {
               startDate = new Date(Math.min(...allDates));
               dateFormat = "dd MMM";
@@ -184,7 +199,7 @@ export default function KurbanliklarPage() {
 
         const dailySharesData = dates.map(date => {
           const formattedDate = format(date, dateFormat, { locale: tr });
-          const count = shareholders.filter(s => {
+          const count = shareholders.filter((s: ShareholderData) => {
             const purchaseDate = new Date(s.purchase_time);
             if (activeChart === "today") {
               // Saat bazında kontrol
@@ -210,12 +225,12 @@ export default function KurbanliklarPage() {
 
         setChartTotals(prev => ({
           ...prev,
-          today: shareholders.filter(s => format(new Date(s.purchase_time), "yyyy-MM-dd") === todayStr).length,
-          week: shareholders.filter(s => {
+          today: shareholders.filter((s: ShareholderData) => format(new Date(s.purchase_time), "yyyy-MM-dd") === todayStr).length,
+          week: shareholders.filter((s: ShareholderData) => {
             const purchaseDate = format(new Date(s.purchase_time), "yyyy-MM-dd");
             return purchaseDate >= weekAgoStr && purchaseDate <= todayStr;
           }).length,
-          month: shareholders.filter(s => {
+          month: shareholders.filter((s: ShareholderData) => {
             const purchaseDate = format(new Date(s.purchase_time), "yyyy-MM-dd");
             return purchaseDate >= monthAgoStr && purchaseDate <= todayStr;
           }).length,
@@ -223,7 +238,9 @@ export default function KurbanliklarPage() {
         }));
 
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // Error handling without console.error
+      } finally {
+        setLoading(false);
       }
     }
 

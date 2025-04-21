@@ -59,7 +59,6 @@ export default function SecurityCodeDialog({
       // Keep the dialog open because we'll control closing in the parent
       setIsLoading(false)
     } catch (error) {
-      console.error("Güvenlik kodu ayarlanırken hata:", error)
       setError("İşlem sırasında bir hata oluştu.")
       setIsLoading(false)
     }

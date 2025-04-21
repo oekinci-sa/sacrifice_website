@@ -41,7 +41,6 @@ export function usePageInitialization() {
             try {
                 await refetchSacrifices();
             } catch (error) {
-                console.error("Error fetching sacrifices:", error);
             }
         };
 

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/update-sacrifice-share
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Error updating sacrifice animal:', error);
       return NextResponse.json(
         { error: "Failed to update sacrifice animal" },
         { status: 500 }
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
     // Return the updated data
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Unexpected error:', error);
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

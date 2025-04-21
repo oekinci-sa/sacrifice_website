@@ -79,7 +79,6 @@ export const useSacrificeStore = create<SacrificeState>()(
         try {
           set({ isRefetching: true });
           set({ isLoadingSacrifices: true });
-          console.log("Zustand store: Fetching sacrifice data");
 
           const response = await fetch("/api/get-sacrifice-animals");
 
@@ -109,7 +108,6 @@ export const useSacrificeStore = create<SacrificeState>()(
             success: true
           };
         } catch (error) {
-          console.error("Error fetching sacrifices:", error);
           return {
             data: undefined,
             success: false,

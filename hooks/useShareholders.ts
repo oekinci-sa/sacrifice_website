@@ -45,7 +45,6 @@ export const useCreateShareholders = () => {
         throw new Error("Hissedar bilgileri boş olamaz");
       }
 
-      console.log('[HOOK] Calling /api/create-shareholders with:', shareholdersData);
 
       const response = await fetch("/api/create-shareholders", {
         method: "POST",
@@ -58,11 +57,9 @@ export const useCreateShareholders = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        console.error('[HOOK] API Error creating shareholders:', result);
         throw new Error(result.error || "Hissedarlar oluşturulamadı.");
       }
 
-      console.log('[HOOK] API Success creating shareholders:', result);
       return result.data;
     },
     onMutate: async () => {
@@ -71,7 +68,6 @@ export const useCreateShareholders = () => {
       // Optionally return snapshot value here if needed for optimistic updates
     },
     onError: (error) => {
-      console.error("[HOOK] Error creating shareholders:", error);
       toast({
         variant: "destructive",
         title: "Hata",

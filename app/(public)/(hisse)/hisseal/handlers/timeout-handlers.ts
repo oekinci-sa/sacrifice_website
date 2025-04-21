@@ -36,8 +36,6 @@ export const createHandleCustomTimeout = ({
     needsRerender
 }: CustomTimeoutHandlerProps) => {
     return async () => {
-        console.log("Custom timeout handler executing");
-
         // Close any open dialogs
         setShowWarning(false);
         setIsDialogOpen(false);
@@ -69,7 +67,6 @@ export const createHandleCustomTimeout = ({
                 });
             }
         } catch (error) {
-            console.error("Error calling expire-reservation API:", error);
             apiError = true;
         }
 
@@ -78,10 +75,8 @@ export const createHandleCustomTimeout = ({
             const result = await refetchSacrifices();
             // result undefined olabilir (void dönüş durumu)
             if (result && !result.success) {
-                console.warn("Failed to refresh sacrifices:", result.error);
             }
         } catch (refreshError) {
-            console.error("Error refreshing sacrifices data:", refreshError);
         }
 
         // Show appropriate toast message based on API success

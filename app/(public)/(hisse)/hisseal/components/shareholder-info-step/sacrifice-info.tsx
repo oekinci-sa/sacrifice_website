@@ -20,7 +20,7 @@ const formatTime = (time: string | null) => {
       return `${parts[0]}:${parts[1]}`;
     }
   } catch (error) {
-    console.error("Error formatting time:", error);
+    // Log removed
   }
 
   return time;

@@ -33,7 +33,6 @@ export const useShareholderStore = create<ShareholderState>((set, get) => ({
 
     try {
       set({ isLoading: true, error: null });
-      console.log("Fetching shareholders data from API");
 
       const response = await fetch('/api/get-shareholders');
 
@@ -50,7 +49,6 @@ export const useShareholderStore = create<ShareholderState>((set, get) => ({
         isInitialized: true
       });
     } catch (error) {
-      console.error("Error fetching shareholders:", error);
       set({
         error: error instanceof Error ? error.message : "Unknown error",
         isLoading: false

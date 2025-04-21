@@ -44,7 +44,7 @@ const Form = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    // Form submission logic will be implemented here
   };
 
   return (

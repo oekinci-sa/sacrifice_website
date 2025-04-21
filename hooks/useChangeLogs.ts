@@ -24,7 +24,6 @@ export const useChangeLogs = () => {
   return useQuery<changeLogSchema[], Error, ChangeLog[]>({
     queryKey: ["change-logs"],
     queryFn: async () => {
-      console.log("Fetching change logs from API");
       const response = await fetch("/api/get-change-logs");
       
       if (!response.ok) {

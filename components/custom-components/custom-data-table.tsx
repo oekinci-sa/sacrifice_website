@@ -56,7 +56,6 @@ export function CustomDataTable<TData, TValue>({
     if (Array.isArray(data) && JSON.stringify(dataRef.current) !== JSON.stringify(data)) {
       dataRef.current = [...data];
       setDataVersion(prev => prev + 1);
-      console.log('Data changed, forcing CustomDataTable re-render');
     }
   }, [data]);
 

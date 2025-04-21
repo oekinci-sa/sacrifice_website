@@ -141,7 +141,7 @@ export default function HisseSorgula() {
         description: `${shareholders.length} adet hissedar kaydı bulundu.`,
       });
     } catch (err) {
-      console.error("Error fetching shareholder:", err);
+      // Log removed
 
       // Show the error message from the API or a fallback
       const errorMessage = err instanceof Error

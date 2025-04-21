@@ -63,7 +63,6 @@ const formatSacrificeTime = (timeString: string | null) => {
       hour12: false
     });
   } catch (error) {
-    console.error('Tarih formatlanırken hata oluştu:', error);
     return timeString; // Hata durumunda orijinal string'i gösterelim
   }
 }
@@ -114,9 +113,7 @@ export default function ShareholderSummary({
 
   // Terms agreement dialog handler
   const handleTermsConfirm = async () => {
-    console.log('handleTermsConfirm başlangıç', { isProcessing, transaction_id });
     if (isProcessing || !transaction_id) {
-      console.error('İşlem zaten devam ediyor veya transaction_id yok', { isProcessing, transaction_id });
       toast({
         variant: "destructive",
         title: "Hata",
@@ -135,20 +132,8 @@ export default function ShareholderSummary({
       purchaserName = shareholders[0].name
     }
 
-    console.log('İşlemi yapan kişi:', {
-      index: effectivePurchaserIndex,
-      name: purchaserName,
-      totalShareholders: shareholders.length,
-      securityCode: securityCode // Include security code in debug log
-    })
-
     try {
       // Validate shareholder count before proceeding
-      console.log('Hissedar doğrulama başlıyor...', {
-        sacrificeId: sacrifice?.sacrifice_id,
-        newShareholderCount: shareholders.length
-      });
-
       if (!sacrifice?.sacrifice_id) {
         throw new Error("Kurbanlık ID bilgisi eksik!");
       }
@@ -161,7 +146,6 @@ export default function ShareholderSummary({
         sacrificeId: sacrifice.sacrifice_id,
         newShareholderCount: shareholders.length
       });
-      console.log('Hissedar doğrulama başarılı');
 
       // Prepare shareholder data for the API
       const shareholderDataForApi = shareholders.map((shareholder) => {
@@ -204,36 +188,28 @@ export default function ShareholderSummary({
         return shareholderData
       })
 
-      console.log('Hissedar verileri oluşturuldu', shareholderDataForApi);
-
       // Save shareholders to DB
-      console.log('Hissedarlar kaydediliyor...');
       if (!createShareholdersMutation || !createShareholdersMutation.mutateAsync) {
         throw new Error("Hissedar kaydetme fonksiyonu bulunamadı!");
       }
 
       const createResult = await createShareholdersMutation.mutateAsync(shareholderDataForApi);
-      console.log('Hissedarlar başarıyla kaydedildi', createResult);
 
       // Complete the reservation
-      console.log('Rezervasyon tamamlanıyor...', { transaction_id });
       if (!completeReservationMutation || !completeReservationMutation.mutateAsync) {
         throw new Error("Rezervasyon tamamlama fonksiyonu bulunamadı!");
       }
 
       const completeResult = await completeReservationMutation.mutateAsync({ transaction_id });
-      console.log('Rezervasyon başarıyla tamamlandı', completeResult);
 
       // Close dialog and proceed
       setShowTermsDialog(false);
 
       // Call the onApprove function to proceed to success state
-      console.log('onApprove fonksiyonu çağrılıyor...');
       if (typeof onApprove !== 'function') {
         throw new Error("onApprove fonksiyonu bulunamadı!");
       }
       onApprove();
-      console.log('onApprove fonksiyonu çağrıldı');
 
       toast({
         title: "Başarılı!",
@@ -241,13 +217,6 @@ export default function ShareholderSummary({
       });
 
     } catch (error) {
-      console.error("İşlem sırasında hata oluştu:", error);
-      if (error instanceof Error) {
-        console.error("Hata mesajı:", error.message);
-        console.error("Hata stack:", error.stack);
-      }
-      console.error("Hata detayları:", JSON.stringify(error, null, 2));
-
       // Close dialog on error
       setShowTermsDialog(false);
 

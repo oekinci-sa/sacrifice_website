@@ -39,7 +39,6 @@ export default function UserManagementPage() {
         const data = await response.json();
         setUsers(data);
       } catch (error) {
-        console.error("Error fetching users:", error);
       } finally {
         setLoading(false);
       }
@@ -84,7 +83,7 @@ export default function UserManagementPage() {
           <Skeleton className="h-8 w-full" />
         </div>
       ) : (
-      <DataTable data={filteredUsers} columns={columns} />
+        <DataTable data={filteredUsers} columns={columns} />
       )}
     </div>
   );

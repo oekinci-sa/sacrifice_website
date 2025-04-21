@@ -34,7 +34,6 @@ export default function TermsAgreementDialog({
     const { toast } = useToast()
 
     const handleConfirm = async () => {
-        console.log("TermsAgreementDialog - handleConfirm başlangıç", { isLoading, isAgreed });
         if (isLoading) return // Prevent double submission
 
         if (!isAgreed) {
@@ -49,13 +48,10 @@ export default function TermsAgreementDialog({
         setIsLoading(true)
 
         try {
-            console.log("TermsAgreementDialog - onConfirm fonksiyonu çağrılıyor...");
             // Call the onConfirm callback to proceed with the approval
             await onConfirm();
-            console.log("TermsAgreementDialog - onConfirm başarıyla tamamlandı");
 
             // Close the dialog once confirmed successfully
-            console.log("TermsAgreementDialog - Dialog kapatılıyor");
             onOpenChange(false);
 
             // Success message toast'unu kaldırıyoruz
@@ -64,21 +60,6 @@ export default function TermsAgreementDialog({
             //    description: "Hisse kaydınız başarıyla oluşturuldu."
             // })
         } catch (error) {
-            console.error("Onay işlemi sırasında hata:", error);
-
-            // Hata detaylarını daha güvenli bir şekilde loglayalım
-            try {
-                if (error instanceof Error) {
-                    console.error("Hata mesajı:", error.message);
-                    console.error("Hata adı:", error.name);
-                    console.error("Hata stack:", error.stack);
-                } else {
-                    console.error("Detaylı hata:", JSON.stringify(error, null, 2));
-                }
-            } catch (logError) {
-                console.error("Hata detayları loglanırken sorun oluştu:", logError);
-            }
-
             // Daha detaylı hata mesajı gösterelim
             let errorMessage = "İşlem sırasında bir hata oluştu.";
             if (error instanceof Error) {

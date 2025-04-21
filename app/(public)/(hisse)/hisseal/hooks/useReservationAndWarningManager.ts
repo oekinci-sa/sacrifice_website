@@ -142,9 +142,6 @@ export function useReservationAndWarningManager({
         } else {
             // Expire the reservation in the database
             if (reservationStatus?.status !== ReservationStatus.EXPIRED && currentTransactionId) {
-                // Log the transaction ID to help with debugging
-                console.log('Expiring reservation with transaction_id:', currentTransactionId);
-
                 // Call the expire-reservation endpoint
                 fetch('/api/expire-reservation', {
                     method: 'POST',
@@ -160,15 +157,12 @@ export function useReservationAndWarningManager({
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Reservation expired successfully:', data);
                         // Redirect user AFTER the API call succeeds
                         setTimeout(() => {
                             handleTimeoutRedirect();
                         }, 100); // Small delay to ensure DB update is complete
                     })
                     .catch(error => {
-                        console.error('Error expiring reservation:', error);
-
                         // Show a toast notification to the user
                         toast({
                             variant: "destructive",
@@ -183,8 +177,6 @@ export function useReservationAndWarningManager({
                     });
             } else {
                 // Handle timeout without API call if no transaction_id or already expired
-                console.log('No API call needed for expiration. Status:', reservationStatus?.status,
-                    'Transaction ID:', currentTransactionId);
                 handleTimeoutRedirect();
             }
         }
@@ -207,7 +199,6 @@ export function useReservationAndWarningManager({
             // Store the current transaction ID
             const storeTransactionId = useReservationIDStore.getState().transaction_id;
             setCurrentTransactionId(storeTransactionId);
-            console.log('Initializing countdown with transaction_id:', storeTransactionId);
 
             animationFrameRef.current = requestAnimationFrame(updateCountdown);
         }
@@ -259,15 +250,12 @@ export function useReservationAndWarningManager({
                 return () => clearTimeout(timer);
             }
         } catch (error) {
-            console.warn("React Query loading state check failed:", error);
             setIsReservationLoading(false);
         }
     }, [createReservation]);
 
     // A diagnostic test function that can be called to verify the API endpoint
     const testExpireReservation = useCallback((testTransactionId: string) => {
-        console.log('Running test expire reservation with ID:', testTransactionId);
-
         fetch('/api/expire-reservation', {
             method: 'POST',
             headers: {
@@ -276,8 +264,10 @@ export function useReservationAndWarningManager({
             body: JSON.stringify({ transaction_id: testTransactionId }),
         })
             .then(response => response.json())
-            .then(data => console.log('TEST RESPONSE:', data))
-            .catch(err => console.error('TEST ERROR:', err));
+            .then(data => {
+            })
+            .catch(err => {
+            });
     }, []);
 
     return {

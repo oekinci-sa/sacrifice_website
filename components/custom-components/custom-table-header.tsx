@@ -17,7 +17,7 @@ export function CustomTableHeader<TData>({
   const headerSizeClasses = {
     small: "h-10 text-center text-xs md:text-sm py-1",
     medium: "h-12 text-center text-sm md:text-md py-2",
-    large: "h-14 text-center text-base md:text-lg py-3"
+    large: "h-14 text-center text-sm md:text-lg py-3"
   }
 
   // Define arrow icon size classes

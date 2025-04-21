@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Veritabanındaki transaction_id sütun uzunluğu
 const TRANSACTION_ID_LENGTH = 16;
@@ -18,10 +18,10 @@ function getTurkeyDateTime() {
   const now = new Date();
   // Türkiye'nin zaman dilimi offsetini hesapla (GMT+3 = +180 dakika)
   const offsetMinutes = 180;
-  
+
   // UTC zamanını alıp Türkiye offsetini ekle
   const turkeyDate = new Date(now.getTime() + offsetMinutes * 60 * 1000);
-  
+
   // ISO formatını al ve formatla (saat 0-23 arasında garanti edilir)
   const year = turkeyDate.getUTCFullYear();
   const month = String(turkeyDate.getUTCMonth() + 1).padStart(2, '0');
@@ -29,7 +29,7 @@ function getTurkeyDateTime() {
   const hours = String(turkeyDate.getUTCHours()).padStart(2, '0');
   const minutes = String(turkeyDate.getUTCMinutes()).padStart(2, '0');
   const seconds = String(turkeyDate.getUTCSeconds()).padStart(2, '0');
-  
+
   // YYYY-MM-DD HH:MM:SS formatında döndür
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
@@ -37,23 +37,14 @@ function getTurkeyDateTime() {
 // Rezervasyon oluşturma API endpoint'i
 // Bu endpoint, empty_share değerini güncellemez - bu işlem DB tarafında tetiklenir
 export async function POST(request: NextRequest) {
-  console.log('Received request to create reservation');
-  
+
   try {
     // İstek verilerini al
     const { transaction_id, sacrifice_id, share_count, status = ReservationStatus.ACTIVE } = await request.json();
-    
-    console.log('Request payload:', { 
-      transaction_id, 
-      transaction_id_length: transaction_id?.length, 
-      sacrifice_id, 
-      share_count,
-      status
-    });
+
 
     // Gerekli alanları kontrol et
     if (!transaction_id) {
-      console.log('Error: transaction_id is missing');
       return NextResponse.json(
         { error: "transaction_id is required" },
         { status: 400 }
@@ -62,9 +53,8 @@ export async function POST(request: NextRequest) {
 
     // transaction_id uzunluğunu kontrol et
     if (transaction_id.length !== TRANSACTION_ID_LENGTH) {
-      console.log(`Error: transaction_id length must be exactly ${TRANSACTION_ID_LENGTH} characters, got ${transaction_id.length}`);
       return NextResponse.json(
-        { 
+        {
           error: `transaction_id must be exactly ${TRANSACTION_ID_LENGTH} characters long`,
           current_length: transaction_id.length,
           required_length: TRANSACTION_ID_LENGTH
@@ -74,7 +64,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!sacrifice_id) {
-      console.log('Error: sacrifice_id is missing');
       return NextResponse.json(
         { error: "sacrifice_id is required" },
         { status: 400 }
@@ -82,7 +71,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (typeof share_count !== 'number' || share_count <= 0) {
-      console.log('Error: invalid share_count:', share_count);
       return NextResponse.json(
         { error: "share_count must be a positive number" },
         { status: 400 }
@@ -91,10 +79,9 @@ export async function POST(request: NextRequest) {
 
     // Status değerini kontrol et (güvenlik kontrolü)
     if (status && !Object.values(ReservationStatus).includes(status as ReservationStatus)) {
-      console.log(`Error: invalid status value: ${status}`);
       return NextResponse.json(
-        { 
-          error: "Invalid status value", 
+        {
+          error: "Invalid status value",
           provided: status,
           allowed: Object.values(ReservationStatus)
         },
@@ -103,29 +90,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Önce boş hisse durumunu kontrol et
-    console.log('Checking current empty_share for sacrifice_id:', sacrifice_id);
     const { data: currentSacrifice, error: checkError } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("empty_share")
       .eq("sacrifice_id", sacrifice_id)
       .single();
-      
+
     if (checkError) {
-      console.error('Error checking sacrifice:', checkError);
       return NextResponse.json(
         { error: "Sacrifice not found or database error", details: checkError.message },
         { status: 500 }
       );
     }
-    
+
     if (!currentSacrifice || currentSacrifice.empty_share < share_count) {
-      console.log('Error: Insufficient empty shares', { 
-        available: currentSacrifice?.empty_share || 0,
-        requested: share_count 
-      });
       return NextResponse.json(
-        { 
-          error: "Insufficient empty shares", 
+        {
+          error: "Insufficient empty shares",
           available: currentSacrifice?.empty_share || 0,
           requested: share_count
         },
@@ -135,14 +116,12 @@ export async function POST(request: NextRequest) {
 
     // Türkiye saati ile tarih oluştur
     const turkeyDateTime = getTurkeyDateTime();
-    console.log('Using Turkey date/time format:', turkeyDateTime);
 
     // reservation_transactions tablosuna yeni kayıt ekle
-    console.log('Creating reservation transaction record with ID:', transaction_id);
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .insert([
-        { 
+        {
           transaction_id,
           sacrifice_id,
           share_count,
@@ -153,24 +132,22 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Error creating reservation:', error);
-      
+
       // Check constraint hatası için daha spesifik mesaj
       let errorMessage = "Failed to create reservation";
       let errorHint = null;
-      
+
       if (error.code === '23514') { // Check constraint violation
         errorMessage = "Database constraint violation: Invalid status value";
         errorHint = "Check allowed values for status field in the reservation_transactions table";
-        console.error('Check constraint violation details:', error.details);
       } else if (error.code === '22001') { // Value too long
         errorMessage = "Value too long for database field";
         errorHint = "transaction_id length exceeds database column size (must be 16 characters)";
       }
-      
+
       return NextResponse.json(
-        { 
-          error: errorMessage, 
+        {
+          error: errorMessage,
           details: error.message,
           code: error.code,
           hint: errorHint,
@@ -180,20 +157,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Reservation created successfully:', data);
-    
+
     // Başarılı sonuç döndür
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: "Reservation created successfully",
       data
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Unexpected error:', error);
     return NextResponse.json(
-      { 
-        error: "An unexpected error occurred", 
+      {
+        error: "An unexpected error occurred",
         details: errorMessage
       },
       { status: 500 }

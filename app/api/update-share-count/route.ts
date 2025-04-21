@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error('Rezervasyon bulunamadı:', fetchError);
       return NextResponse.json(
         { error: "Rezervasyon bulunamadı" },
         { status: 404 }
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (error) {
-      console.error('Rezervasyon güncellenirken hata oluştu:', error);
       return NextResponse.json(
         { error: "Rezervasyon güncellenirken hata oluştu" },
         { status: 500 }
@@ -57,15 +55,12 @@ export async function POST(request: NextRequest) {
     }
 
     // İşlem tipini ve detayını loglama
-    console.log(`Rezervasyon hisse adedi güncellendi: ${transaction_id}, yeni adet: ${share_count}, işlem: ${operation || 'güncelleme'}`);
-
     return NextResponse.json({
       success: true,
       message: "Rezervasyon hisse adedi başarıyla güncellendi",
       data
     });
   } catch (error) {
-    console.error('Beklenmeyen hata:', error);
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

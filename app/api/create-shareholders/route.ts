@@ -33,28 +33,21 @@ export async function POST(req: Request) {
     // Optional: Add validation for each shareholder object here if needed
     // e.g., check for required fields, data types, etc.
 
-    console.log(`[API] Creating ${shareholdersData.length} shareholders for transaction: ${shareholdersData[0]?.transaction_id}`);
-
     const { data, error } = await supabaseAdmin
       .from("shareholders")
       .insert(shareholdersData) // Insert the array of shareholder objects
       .select(); // Select the inserted data to confirm
 
     if (error) {
-      console.error("[API] Error creating shareholders:", error);
-      // Log the data that caused the error for debugging
-      console.error("[API] Failing shareholders data:", JSON.stringify(shareholdersData, null, 2));
       return NextResponse.json(
         { error: "Failed to create shareholders", details: error.message },
         { status: 500 }
       );
     }
 
-    console.log(`[API] Shareholders created successfully for transaction: ${shareholdersData[0]?.transaction_id}`);
     return NextResponse.json({ success: true, data }, { status: 201 }); // 201 Created
 
   } catch (err) {
-    console.error("[API] Unexpected error creating shareholders:", err);
     const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
     return NextResponse.json(
       { error: "Internal Server Error", details: errorMessage },

@@ -14,7 +14,6 @@ export const useEmptyShareCount = () => {
 
   // Set up real-time subscription - sadece bir kez
   useEffect(() => {
-    console.log("Setting up real-time subscription for empty share count");
 
     // Tüm subscription'ları tek bir channel'da birleştirelim
     const channel = supabase
@@ -26,22 +25,16 @@ export const useEmptyShareCount = () => {
           schema: "public",
           table: "sacrifice_animals",
         },
-        (payload) => {
+        () => {
           // Değişiklik olduğunda, query'i geçersiz kıl ve yeniden çek
-          console.log(
-            "Real-time update received for sacrifice_animals:",
-            payload
-          );
           queryClient.invalidateQueries({ queryKey: [EMPTY_SHARE_QUERY_KEY] });
         }
       )
       .subscribe();
 
-    console.log("Real-time subscription established");
 
     // Clean up subscription when component unmounts
     return () => {
-      console.log("Cleaning up real-time subscription");
       channel.unsubscribe();
     };
   }, [queryClient]);
@@ -50,7 +43,6 @@ export const useEmptyShareCount = () => {
   const query = useQuery({
     queryKey: [EMPTY_SHARE_QUERY_KEY], // Basit bir anahtar kullan
     queryFn: async () => {
-      console.log("Fetching empty share count from API");
 
       // Cache busting için timestamp
       const timestamp = new Date().getTime();
@@ -63,7 +55,6 @@ export const useEmptyShareCount = () => {
 
       const data = await response.json();
       const currentValue = data.totalEmptyShares;
-      console.log("Empty share count fetched:", currentValue);
 
       // Zustand store'a kaydet
       setEmptyShareCount(currentValue);

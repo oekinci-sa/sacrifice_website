@@ -153,7 +153,6 @@ export function usePageLifecycle({
                 }
                 return result;
             } catch (error) {
-                console.error("Error in safeRefetchSacrifices:", error);
                 return {
                     data: undefined,
                     success: false,

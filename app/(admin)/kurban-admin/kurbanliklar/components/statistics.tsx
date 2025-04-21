@@ -62,7 +62,6 @@ export function SacrificeStatistics() {
         const data = await response.json();
         setStats(data);
       } catch (error) {
-        console.error("Error fetching sacrifice statistics:", error);
       } finally {
         setIsLoading(false);
       }

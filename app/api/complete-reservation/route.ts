@@ -12,8 +12,6 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`[API] Completing reservation for transaction_id: ${transaction_id}`);
-
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .update({ status: "completed" })
@@ -21,7 +19,6 @@ export async function POST(req: Request) {
       .select(); // Select to check if the update was successful
 
     if (error) {
-      console.error("[API] Error updating reservation status:", error);
       return NextResponse.json(
         { error: "Failed to complete reservation", details: error.message },
         { status: 500 }
@@ -29,7 +26,6 @@ export async function POST(req: Request) {
     }
 
     if (!data || data.length === 0) {
-        console.warn(`[API] No reservation found or updated for transaction_id: ${transaction_id}`);
         // Decide if this should be an error or just a warning
         return NextResponse.json(
           { error: "Reservation not found or already completed" },
@@ -37,11 +33,9 @@ export async function POST(req: Request) {
         );
     }
 
-    console.log(`[API] Reservation completed successfully for transaction_id: ${transaction_id}`);
     return NextResponse.json({ success: true, data }, { status: 200 });
 
   } catch (err) {
-    console.error("[API] Unexpected error completing reservation:", err);
     const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
     return NextResponse.json(
       { error: "Internal Server Error", details: errorMessage },

@@ -124,7 +124,6 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
             table: "sacrifice_animals",
           },
           (payload) => {
-            console.log("Admin Realtime update received:", payload);
 
             // Update Zustand store based on the event type
             if (
@@ -140,30 +139,24 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
             }
           }
         )
-        .subscribe((status) => {
-          console.log("Admin subscription status:", status);
+        .subscribe(() => {
         });
     };
 
     if (!hasInitialized.current) {
       hasInitialized.current = true;
 
-      console.log("AdminDataProvider: Initializing data loading for admin pages");
-
       // Only fetch if data is not already in store
       if (shareholders.length === 0) {
-        console.log("AdminDataProvider: Fetching shareholders data");
         refetchShareholders();
       }
 
       if (transactions.length === 0) {
-        console.log("AdminDataProvider: Fetching reservation transactions data");
         refetchTransactions();
       }
 
       // Initialize sacrifice data if not already loaded
       if (!sacrificesInitialized || sacrifices.length === 0) {
-        console.log("AdminDataProvider: Fetching sacrifice animals data");
         refetchSacrifices();
       }
 
@@ -174,7 +167,6 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
     // Check subscription status periodically
     const checkSubscription = setInterval(() => {
       if (!channelRef.current) {
-        console.log("AdminDataProvider: Reestablishing lost subscription");
         setupRealtimeSubscription();
       }
     }, 10000); // Check every 10 seconds
@@ -183,7 +175,6 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
     return () => {
       clearInterval(checkSubscription);
       if (channelRef.current) {
-        console.log("AdminDataProvider: Unsubscribing from channel");
         channelRef.current.unsubscribe();
         channelRef.current = null;
       }

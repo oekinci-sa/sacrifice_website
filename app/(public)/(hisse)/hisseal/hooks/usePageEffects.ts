@@ -13,7 +13,7 @@ interface UsePageEffectsProps {
     setHasNavigatedAway: (navigated: boolean) => void;
 
     // Data fetching
-    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
+    refetchSacrifices: () => Promise<SacrificeQueryResult>;
 
     // State values
     isSuccess: boolean;

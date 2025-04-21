@@ -11,40 +11,35 @@ export const useSacrifices = () => {
   const { toast } = useToast();
 
   // Get Zustand store methods and state - data only
-  const { sacrifices, isLoadingSacrifices } = useSacrificeStore();
+  const { sacrifices, refetchSacrifices } = useSacrificeStore();
 
   // We're now using React Query as a wrapper around our Zustand store
   // since the data is already being loaded and updated by SacrificeDataProvider
   return useQuery({
     queryKey: ["sacrifices"],
     queryFn: async () => {
-      // If we already have data in the store, return it immediately
+      // Store'da veri varsa hemen döndür
       if (sacrifices.length > 0) {
         return sacrifices;
       }
 
-      // Otherwise fetch it from the API
-      const response = await fetch("/api/get-sacrifice-animals");
-
-      if (!response.ok) {
-        const errorData = await response.json();
+      // Yoksa API'dan çek
+      try {
+        return await refetchSacrifices();
+      } catch (error) {
         toast({
           variant: "destructive",
           title: "Hata",
-          description:
-            "Veri yüklenirken bir hata oluştu: " +
-            (errorData.error || response.statusText),
+          description: "Veri yüklenirken bir hata oluştu: " + String(error),
         });
-        throw new Error(errorData.error || response.statusText);
+        throw error;
       }
-
-      return (await response.json()) as sacrificeSchema[];
     },
-    // Use the data directly from our store
+    // Mevcut store verilerini initial data olarak kullan
     initialData: sacrifices.length > 0 ? sacrifices : undefined,
-    // Set loading state from our store
-    enabled: true,
-    staleTime: 3000, // Consider data fresh for 3 seconds
+    // Cache stratejisi
+    staleTime: 60 * 1000, // 1 dakika
+    gcTime: 5 * 60 * 1000, // 5 dakika
     retry: 1,
   });
 };

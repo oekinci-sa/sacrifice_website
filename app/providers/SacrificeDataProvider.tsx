@@ -3,6 +3,7 @@
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 import { supabase } from "@/utils/supabaseClient";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { ReactNode, useEffect, useRef } from "react";
 
@@ -30,12 +31,12 @@ export function SacrificeDataProvider({
     const setupRealtimeSubscription = () => {
       // Clean up existing subscription if any
       if (channelRef.current) {
-        channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
       }
 
       // Create new subscription
       channelRef.current = supabase
-        .channel("sacrifice-global-changes-" + Date.now())
+        .channel(`sacrifice-global-changes-${Date.now()}`)
         .on(
           "postgres_changes",
           {
@@ -43,23 +44,46 @@ export function SacrificeDataProvider({
             schema: "public",
             table: "sacrifice_animals",
           },
-          (payload) => {
-            // Update Zustand store based on the event type
-            if (
-              payload.eventType === "INSERT" ||
-              payload.eventType === "UPDATE"
-            ) {
+          (payload: RealtimePostgresChangesPayload<sacrificeSchema>) => {
+            console.log("Realtime update:", payload);
+
+            // Zustand store ve React Query cache'i güncelle
+            if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+              // Store'u güncelle
               updateSacrifice(payload.new as sacrificeSchema);
-              // Invalidate React Query cache
-              queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
+
+              // React Query cache'ini güncelle - tüm sorguyu invalidate etme
+              // Bunun yerine cache'i doğrudan güncelle
+              queryClient.setQueryData<sacrificeSchema[]>(["sacrifices"], (oldData) => {
+                if (!oldData) return oldData;
+
+                // Eski array'de elemanı bul ve güncelle
+                const updatedData = [...oldData];
+                const index = updatedData.findIndex(
+                  (item) => item.sacrifice_id === payload.new.sacrifice_id
+                );
+
+                if (index >= 0) {
+                  updatedData[index] = payload.new as sacrificeSchema;
+                } else {
+                  updatedData.push(payload.new as sacrificeSchema);
+                }
+
+                return updatedData;
+              });
+
+              // Ayrıca bireysel sorguları da güncelle
+              queryClient.setQueryData(
+                ["sacrifice", payload.new.sacrifice_id],
+                payload.new
+              );
             } else if (payload.eventType === "DELETE") {
-              // For deletes, we need to refetch the whole list
+              // Silme işlemi için tüm listeyi yeniden çekmek gerekir
               refetchSacrifices();
             }
           }
         )
-        .subscribe(() => {
-        });
+        .subscribe();
     };
 
     if (!hasInitialized.current) {
@@ -79,7 +103,7 @@ export function SacrificeDataProvider({
     return () => {
       clearInterval(checkSubscription);
       if (channelRef.current) {
-        channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };

@@ -1,20 +1,21 @@
 "use client";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "next-auth/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SacrificeDataProvider } from "./providers/SacrificeDataProvider";
 import { ReactNode } from "react";
-
-const queryClient = new QueryClient();
+import { QueryProvider } from "./providers/QueryProvider";
+import { SacrificeDataProvider } from "./providers/SacrificeDataProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryProvider>
       <SessionProvider>
         <SacrificeDataProvider>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
         </SacrificeDataProvider>
       </SessionProvider>
-    </QueryClientProvider>
+    </QueryProvider>
   );
 } 

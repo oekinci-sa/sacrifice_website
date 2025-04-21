@@ -1,4 +1,4 @@
-import { SacrificeQueryResult, sacrificeSchema } from "@/types";
+import { sacrificeSchema } from "@/types";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -8,13 +8,14 @@ interface SacrificeState {
   isRefetching: boolean;
   totalEmptyShares: number;
   isInitialized: boolean;
+  sacrificesInitialized: boolean;
 
   setSacrifices: (sacrifices: sacrificeSchema[]) => void;
   updateSacrifice: (updatedSacrifice: sacrificeSchema) => void;
   setIsLoadingSacrifices: (isLoading: boolean) => void;
   setIsInitialized: (isInitialized: boolean) => void;
   setIsRefetching: (isRefetching: boolean) => void;
-  refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
+  refetchSacrifices: () => Promise<sacrificeSchema[]>;
   setEmptyShareCount: (count: number) => void;
   removeSacrifice: (sacrificeId: string) => void;
 }
@@ -25,6 +26,7 @@ const initialState = {
   isRefetching: false,
   totalEmptyShares: 0,
   isInitialized: false,
+  sacrificesInitialized: false,
 };
 
 export const useSacrificeStore = create<SacrificeState>()(
@@ -36,6 +38,7 @@ export const useSacrificeStore = create<SacrificeState>()(
         set({
           sacrifices,
           isInitialized: true,
+          sacrificesInitialized: true,
         }),
       updateSacrifice: (updatedSacrifice) => {
         const currentSacrifices = [...get().sacrifices];
@@ -76,46 +79,40 @@ export const useSacrificeStore = create<SacrificeState>()(
       setIsRefetching: (isRefetching) => set({ isRefetching }),
 
       refetchSacrifices: async () => {
+        const state = get();
+
         try {
-          set({ isRefetching: true });
           set({ isLoadingSacrifices: true });
 
+          // API'dan verileri çek
           const response = await fetch("/api/get-sacrifice-animals");
 
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || response.statusText);
+            throw new Error("Failed to fetch sacrifices");
           }
 
-          const sacrifices = (await response.json()) as sacrificeSchema[];
+          const data = await response.json() as sacrificeSchema[];
 
-          // Set the data in Zustand store
+          // Store'u güncelle
           set({
-            sacrifices,
-            isInitialized: true
+            sacrifices: data,
+            isLoadingSacrifices: false,
+            sacrificesInitialized: true,
+            isInitialized: true,
           });
 
           // Calculate and update total empty shares
-          const totalEmptyShares = sacrifices.reduce(
+          const totalEmptyShares = data.reduce(
             (sum, sacrifice) => sum + sacrifice.empty_share,
             0
           );
           set({ totalEmptyShares });
 
-          // Return in SacrificeQueryResult format
-          return {
-            data: sacrifices,
-            success: true
-          };
+          return data;
         } catch (error) {
-          return {
-            data: undefined,
-            success: false,
-            error: error instanceof Error ? error : new Error(String(error))
-          };
-        } finally {
           set({ isLoadingSacrifices: false });
-          set({ isRefetching: false });
+          console.error("Error fetching sacrifices:", error);
+          return state.sacrifices;
         }
       },
 

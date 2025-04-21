@@ -1,5 +1,5 @@
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
-import { SacrificeQueryResult } from "@/types";
+import { SacrificeQueryResult, sacrificeSchema } from "@/types";
 
 // Define toast function type
 type ToastFunction = {
@@ -10,7 +10,7 @@ interface CustomTimeoutHandlerProps {
     resetStore: () => void;
     goToStep: (step: Step) => void;
     toast: ToastFunction;
-    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
+    refetchSacrifices: () => Promise<SacrificeQueryResult | sacrificeSchema[] | void>;
     transaction_id: string;
     setShowWarning: (show: boolean) => void;
     setIsDialogOpen: (open: boolean) => void;
@@ -72,11 +72,10 @@ export const createHandleCustomTimeout = ({
 
         // Try to refresh data, regardless of API call outcome
         try {
-            const result = await refetchSacrifices();
-            // result undefined olabilir (void dönüş durumu)
-            if (result && !result.success) {
-            }
-        } catch {
+            await refetchSacrifices();
+            // No need to check success state as it now returns an array directly
+        } catch (error) {
+            console.error("Error refetching sacrifices:", error);
         }
 
         // Show appropriate toast message based on API success

@@ -1,41 +1,47 @@
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { supabase } from "@/utils/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // Anahtar isim tanımla
 const EMPTY_SHARE_QUERY_KEY = "emptyShareCount";
 
 export const useEmptyShareCount = () => {
   const queryClient = useQueryClient();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Zustand store kullan
   const { setEmptyShareCount } = useSacrificeStore();
 
   // Set up real-time subscription - sadece bir kez
   useEffect(() => {
+    // Önceki aboneliği temizle
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
 
-    // Tüm subscription'ları tek bir channel'da birleştirelim
-    const channel = supabase
-      .channel("sacrifice-animals-changes")
+    // Yeni realtime kanalı oluştur
+    channelRef.current = supabase
+      .channel(`sacrifice-empty-shares-${Date.now()}`)
       .on(
         "postgres_changes",
         {
-          event: "*", // Tüm event'ları dinle (INSERT, UPDATE, DELETE)
+          event: "*",
           schema: "public",
           table: "sacrifice_animals",
         },
         () => {
-          // Değişiklik olduğunda, query'i geçersiz kıl ve yeniden çek
+          // Değişiklik olduğunda, query'i geçersiz kıl ve cache update et
           queryClient.invalidateQueries({ queryKey: [EMPTY_SHARE_QUERY_KEY] });
         }
       )
       .subscribe();
 
-
     // Clean up subscription when component unmounts
     return () => {
-      channel.unsubscribe();
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
   }, [queryClient]);
 

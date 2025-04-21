@@ -1,31 +1,50 @@
-import { CACHE_KEYS, getCachedData, refreshSacrificeCache } from '@/utils/serverCache'
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET() {
   try {
-    // Önbellekten al
-    let emptyCounts = getCachedData(CACHE_KEYS.EMPTY_SHARE_COUNT)
+    // Query total empty shares
+    const { data, error } = await supabaseAdmin
+      .from("sacrifice_animals")
+      .select("empty_share");
 
-    // Eğer önbellekte yoksa veya bozuksa, veritabanından çek
-    if (!emptyCounts) {
-      await refreshSacrificeCache()
-      emptyCounts = getCachedData(CACHE_KEYS.EMPTY_SHARE_COUNT)
-
-      // Hala veri yoksa hata döndür
-      if (!emptyCounts) {
-        return NextResponse.json(
-          { error: 'Veri çekilemedi ve önbellekte bulunamadı' },
-          { status: 500 }
-        )
-      }
+    if (error) {
+      return NextResponse.json(
+        { error: "Failed to fetch empty shares" },
+        { 
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          }  
+        }
+      );
     }
 
-    return NextResponse.json(emptyCounts)
-  } catch (error) {
-    console.error('Boş hisse sayıları getirilirken hata:', error)
+    // Calculate total empty shares
+    const totalEmptyShares = data.reduce(
+      (sum, item) => sum + (item.empty_share || 0),
+      0
+    );
+    
+    // Return response with cache control headers
     return NextResponse.json(
-      { error: 'Sunucu hatası oluştu' },
-      { status: 500 }
-    )
+      { totalEmptyShares },
+      {
+        headers: {
+          // Prevent caching to ensure fresh data
+          'Cache-Control': 'no-store, max-age=0',
+        }
+      }
+    );
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        }
+      }
+    );
   }
 } 

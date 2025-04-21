@@ -61,11 +61,9 @@ const Page = () => {
     goToStep("selection");
     needsRerender.current = true;
     try {
-      const result = await refetchSacrifices();
-      // result void olabilir
-      if (result && !result.success) {
-      }
-    } catch {
+      await refetchSacrifices();
+    } catch (error) {
+      console.error("Error refetching sacrifices:", error);
     }
     return Promise.resolve();
   }, [resetStore, goToStep, refetchSacrifices]);
@@ -147,7 +145,6 @@ const Page = () => {
     refetchSacrifices: async (): Promise<SacrificeQueryResult> => {
       try {
         const result = await refetchSacrifices();
-        // result void ise uygun bir sonuç nesnesi döndür
         if (!result) {
           return {
             data: undefined,
@@ -155,9 +152,11 @@ const Page = () => {
             error: new Error("No result returned from refetchSacrifices")
           };
         }
-        return result;
+        return {
+          data: result,
+          success: true
+        };
       } catch (error) {
-        // Return a failed result object instead of void
         return {
           data: undefined,
           success: false,

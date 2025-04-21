@@ -3,7 +3,7 @@ import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderSto
 import { shareholderSchema } from "@/types"
 import { supabase } from "@/utils/supabaseClient"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 // Türkiye saati için yardımcı fonksiyon
 function getTurkeyDateTime() {
@@ -93,12 +93,145 @@ export const useGetShareholders = (searchQuery?: string) => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const store = useShareholderStore()
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isSubscribing = useRef(false);
 
   // Define the query key including the search parameter
   const queryKey = searchQuery
     ? ["shareholders", { search: searchQuery }]
     : ["shareholders"]
 
+  // Setup the real-time subscription with useCallback
+  const setupRealtimeChannel = useCallback(() => {
+    // Only set up subscription if not searching and not already subscribing
+    if (searchQuery || isSubscribing.current) return;
+    isSubscribing.current = true;
+
+    try {
+      // Cleanup existing subscription
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+
+      // Create channel with unique name
+      const channelName = `shareholders-changes-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+      // Create new subscription
+      channelRef.current = supabase
+        .channel(channelName)
+        .on('postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'shareholders'
+          },
+          (payload) => {
+            // Handle the different types of changes
+            if (payload.eventType === 'INSERT') {
+              // Use async function to handle promises with try/catch
+              (async () => {
+                try {
+                  // Fetch the complete record with joins
+                  const { data, error } = await supabase
+                    .from("shareholders")
+                    .select(`
+                      *,
+                      sacrifice:sacrifice_id (
+                        sacrifice_id,
+                        sacrifice_no,
+                        sacrifice_time,
+                        share_price
+                      )
+                    `)
+                    .eq('shareholder_id', payload.new.shareholder_id)
+                    .single();
+
+                  if (error) {
+                    console.error("Error fetching inserted shareholder:", error);
+                    return;
+                  }
+
+                  if (data) {
+                    // Update cache with the new record
+                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
+                      if (!oldData) return [data as shareholderSchema]
+                      return [data as shareholderSchema, ...oldData]
+                    });
+
+                    // Also update the store
+                    store.addShareholder(data as shareholderSchema);
+                  }
+                } catch (error) {
+                  console.error("Error processing inserted shareholder:", error);
+                }
+              })();
+            } else if (payload.eventType === 'UPDATE') {
+              // Use async function to handle promises with try/catch
+              (async () => {
+                try {
+                  // Fetch the updated record with joins
+                  const { data, error } = await supabase
+                    .from("shareholders")
+                    .select(`
+                      *,
+                      sacrifice:sacrifice_id (
+                        sacrifice_id,
+                        sacrifice_no,
+                        sacrifice_time,
+                        share_price
+                      )
+                    `)
+                    .eq('shareholder_id', payload.new.shareholder_id)
+                    .single();
+
+                  if (error) {
+                    console.error("Error fetching updated shareholder:", error);
+                    return;
+                  }
+
+                  if (data) {
+                    // Update the specific record in the cache
+                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
+                      if (!oldData) return [data as shareholderSchema]
+                      return oldData.map(item =>
+                        item.shareholder_id === data.shareholder_id
+                          ? data as shareholderSchema
+                          : item
+                      )
+                    });
+
+                    // Also update the store
+                    store.updateShareholder(data as shareholderSchema);
+                  }
+                } catch (error) {
+                  console.error("Error processing updated shareholder:", error);
+                }
+              })();
+            } else if (payload.eventType === 'DELETE') {
+              // Remove the deleted record from the cache
+              queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
+                if (!oldData) return []
+                return oldData.filter(item => item.shareholder_id !== payload.old.shareholder_id)
+              })
+
+              // Also update the store
+              if (payload.old && payload.old.shareholder_id) {
+                store.removeShareholder(payload.old.shareholder_id);
+              }
+            }
+          })
+        .subscribe((status) => {
+          console.log(`Shareholders subscription status: ${status}`);
+          isSubscribing.current = false;
+        });
+    } catch (error) {
+      console.error("Error setting up shareholders subscription:", error);
+      isSubscribing.current = false;
+    }
+  }, [queryClient, searchQuery, store]);
+
+  // Query definition
   const query = useQuery({
     queryKey,
     queryFn: async () => {
@@ -107,39 +240,48 @@ export const useGetShareholders = (searchQuery?: string) => {
         return store.shareholders;
       }
 
-      let query = supabase
-        .from("shareholders")
-        .select(`
-          *,
-          sacrifice:sacrifice_id (
-            sacrifice_id,
-            sacrifice_no,
-            sacrifice_time,
-            share_price
+      try {
+        let query = supabase
+          .from("shareholders")
+          .select(`
+            *,
+            sacrifice:sacrifice_id (
+              sacrifice_id,
+              sacrifice_no,
+              sacrifice_time,
+              share_price
+            )
+          `)
+          .order('purchase_time', { ascending: false })
+
+        // Apply search filter if provided - keeping this for compatibility
+        if (searchQuery) {
+          const formattedSearch = searchQuery.toLowerCase()
+          query = query.or(
+            `shareholder_name.ilike.%${formattedSearch}%,phone_number.ilike.%${formattedSearch}%,sacrifice.sacrifice_no.ilike.%${formattedSearch}%`
           )
-        `)
-        .order('purchase_time', { ascending: false })
+        }
 
-      // Apply search filter if provided - keeping this for compatibility
-      if (searchQuery) {
-        const formattedSearch = searchQuery.toLowerCase()
-        query = query.or(
-          `shareholder_name.ilike.%${formattedSearch}%,phone_number.ilike.%${formattedSearch}%,sacrifice.sacrifice_no.ilike.%${formattedSearch}%`
-        )
+        const { data, error } = await query
+
+        if (error) {
+          throw new Error(`Hissedar verileri alınamadı: ${error.message}`)
+        }
+
+        // Update store if not a search query
+        if (!searchQuery) {
+          store.setShareholders(data as shareholderSchema[]);
+        }
+
+        return data as shareholderSchema[]
+      } catch (error) {
+        console.error("Error fetching shareholders:", error);
+        // If we have data in the store, return it instead of throwing
+        if (store.shareholders.length > 0) {
+          return store.shareholders;
+        }
+        throw error;
       }
-
-      const { data, error } = await query
-
-      if (error) {
-        throw new Error(`Hissedar verileri alınamadı: ${error.message}`)
-      }
-
-      // Update store if not a search query
-      if (!searchQuery) {
-        store.setShareholders(data as shareholderSchema[]);
-      }
-
-      return data as shareholderSchema[]
     },
     // Initial data from store if available and no search
     initialData: store.shareholders.length > 0 && !searchQuery
@@ -155,97 +297,17 @@ export const useGetShareholders = (searchQuery?: string) => {
 
   // Set up real-time subscription
   useEffect(() => {
-    // Only set up subscription if the query was successful and no search
-    if (query.isSuccess && !searchQuery) {
-      const subscription = supabase
-        .channel('shareholders-changes')
-        .on('postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'shareholders'
-          },
-          (payload) => {
-            // Handle the different types of changes
-            if (payload.eventType === 'INSERT') {
-              // Fetch the complete record with joins
-              supabase
-                .from("shareholders")
-                .select(`
-                  *,
-                  sacrifice:sacrifice_id (
-                    sacrifice_id,
-                    sacrifice_no,
-                    sacrifice_time,
-                    share_price
-                  )
-                `)
-                .eq('shareholder_id', payload.new.shareholder_id)
-                .single()
-                .then(({ data, error }) => {
-                  if (!error && data) {
-                    // Update cache with the new record
-                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                      if (!oldData) return [data as shareholderSchema]
-                      return [data as shareholderSchema, ...oldData]
-                    })
+    // Set up the channel
+    setupRealtimeChannel();
 
-                    // Also update the store
-                    store.addShareholder(data as shareholderSchema);
-                  }
-                })
-            } else if (payload.eventType === 'UPDATE') {
-              // Fetch the updated record with joins
-              supabase
-                .from("shareholders")
-                .select(`
-                  *,
-                  sacrifice:sacrifice_id (
-                    sacrifice_id,
-                    sacrifice_no,
-                    sacrifice_time,
-                    share_price
-                  )
-                `)
-                .eq('shareholder_id', payload.new.shareholder_id)
-                .single()
-                .then(({ data, error }) => {
-                  if (!error && data) {
-                    // Update the specific record in the cache
-                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                      if (!oldData) return [data as shareholderSchema]
-                      return oldData.map(item =>
-                        item.shareholder_id === data.shareholder_id
-                          ? data as shareholderSchema
-                          : item
-                      )
-                    })
-
-                    // Also update the store
-                    store.updateShareholder(data as shareholderSchema);
-                  }
-                })
-            } else if (payload.eventType === 'DELETE') {
-              // Remove the deleted record from the cache
-              queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                if (!oldData) return []
-                return oldData.filter(item => item.shareholder_id !== payload.old.shareholder_id)
-              })
-
-              // Also update the store
-              if (payload.old && payload.old.shareholder_id) {
-                store.removeShareholder(payload.old.shareholder_id);
-              }
-            }
-          })
-        .subscribe()
-
-      // Clean up subscription on unmount
-      return () => {
-        subscription.unsubscribe()
+    // Clean up subscription on unmount
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
       }
-    }
-  }, [query.isSuccess, queryClient, searchQuery, store])
+    };
+  }, [setupRealtimeChannel]);
 
   return query
 }

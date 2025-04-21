@@ -3,7 +3,7 @@
 import { useToast } from "@/components/ui/use-toast";
 import { SacrificeQueryResult } from "@/types";
 import { usePathname } from "next/navigation";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { PageLayout } from "./components/layout/page-layout";
 import { columns } from "./components/table-step/columns";
 import {
@@ -61,8 +61,9 @@ const Page = () => {
     goToStep("selection");
     needsRerender.current = true;
     try {
-      await refetchSacrifices();
-      // No need to check result.success as refetchSacrifices returns sacrificeSchema[]
+      // Use a local variable to prevent cascading state updates from the result
+      const result = await refetchSacrifices();
+      // Don't do anything with the result that might trigger re-renders
     } catch (error) {
       console.error("Error refetching sacrifices:", error);
     }
@@ -138,13 +139,14 @@ const Page = () => {
 
   const handlePdfDownload = createHandlePdfDownload();
 
-  // Create custom timeout handler
-  const handleCustomTimeout = createHandleCustomTimeout({
+  // Create custom timeout handler with memoization
+  const memoizedHandleCustomTimeout = useMemo(() => createHandleCustomTimeout({
     resetStore,
     goToStep,
     toast,
     refetchSacrifices: async (): Promise<SacrificeQueryResult> => {
       try {
+        // Use a local variable to prevent cascading updates
         const result = await refetchSacrifices();
         // Convert the result type to match SacrificeQueryResult
         return {
@@ -169,12 +171,24 @@ const Page = () => {
     setShowOneMinuteWarning,
     setCameFromTimeout,
     needsRerender
-  });
+  }), [
+    resetStore,
+    goToStep,
+    toast,
+    refetchSacrifices,
+    transaction_id,
+    setShowWarning,
+    setIsDialogOpen,
+    setShowReservationInfo,
+    setShowThreeMinuteWarning,
+    setShowOneMinuteWarning,
+    setCameFromTimeout
+  ]);
 
   // Create a promise-returning version for the lifecycle
   const handleCustomTimeoutWithPromise = useCallback(async () => {
-    return await handleCustomTimeout();
-  }, [handleCustomTimeout]);
+    return await memoizedHandleCustomTimeout();
+  }, [memoizedHandleCustomTimeout]);
 
   // Safe server time remaining
   const safeServerTimeRemaining = reservationStatus?.timeRemaining || undefined;
@@ -209,6 +223,26 @@ const Page = () => {
     handleDismissWarning(warningType);
   };
 
+  // Create the refetchSacrifices wrapper with memoization to ensure stability
+  const memoizedRefetchSacrificesWrapper = useCallback(async () => {
+    // Wrap the refetchSacrifices call to match the expected return type
+    try {
+      const result = await refetchSacrifices();
+      return {
+        data: result,
+        success: true,
+        error: null
+      } as SacrificeQueryResult;
+    } catch (error) {
+      console.error("Error in refetchSacrifices:", error);
+      return {
+        data: undefined,
+        success: false,
+        error: error instanceof Error ? error : new Error(String(error))
+      } as SacrificeQueryResult;
+    }
+  }, [refetchSacrifices]);
+
   // Apply page lifecycle hooks but avoid circular dependencies
   usePageLifecycle({
     pathname,
@@ -216,24 +250,7 @@ const Page = () => {
     goToStep,
     setSuccess,
     setHasNavigatedAway,
-    refetchSacrifices: async () => {
-      // Wrap the refetchSacrifices call to match the expected return type
-      try {
-        const result = await refetchSacrifices();
-        return {
-          data: result,
-          success: true,
-          error: null
-        } as SacrificeQueryResult;
-      } catch (error) {
-        console.error("Error in refetchSacrifices:", error);
-        return {
-          data: undefined,
-          success: false,
-          error: error instanceof Error ? error : new Error(String(error))
-        } as SacrificeQueryResult;
-      }
-    },
+    refetchSacrifices: memoizedRefetchSacrificesWrapper,
     isSuccess,
     hasNavigatedAway,
     currentStep,

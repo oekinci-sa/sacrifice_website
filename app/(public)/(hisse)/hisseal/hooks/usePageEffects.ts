@@ -1,4 +1,5 @@
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { SacrificeQueryResult } from "@/types";
 import { useEffect } from "react";
 
 interface UsePageEffectsProps {
@@ -12,7 +13,7 @@ interface UsePageEffectsProps {
     setHasNavigatedAway: (navigated: boolean) => void;
 
     // Data fetching
-    refetchSacrifices: () => void;
+    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
 
     // State values
     isSuccess: boolean;
@@ -83,7 +84,13 @@ export function usePageEffects({
             needsRerender.current = false;
 
             // Fetch fresh data
-            refetchSacrifices();
+            (async () => {
+                try {
+                    await refetchSacrifices();
+                } catch (error) {
+                    console.error("Error fetching sacrifices on navigation:", error);
+                }
+            })();
         }
     }, [
         pathname,
@@ -104,7 +111,13 @@ export function usePageEffects({
         // Fetch fresh data when mounting the component
         if (pathname === "/hisseal") {
             console.log("Fetching fresh sacrifice data on page navigation");
-            refetchSacrifices();
+            (async () => {
+                try {
+                    await refetchSacrifices();
+                } catch (error) {
+                    console.error("Error fetching sacrifices on page mount:", error);
+                }
+            })();
         }
     }, [pathname, refetchSacrifices]);
 
@@ -119,22 +132,39 @@ export function usePageEffects({
                 console.log("Applying special handling for post-timeout state");
 
                 // Immediate data refresh
-                refetchSacrifices();
+                (async () => {
+                    try {
+                        await refetchSacrifices();
+                    } catch (error) {
+                        console.error("Error in immediate data refresh:", error);
+                    }
+                })();
 
                 // Apply a delayed second refresh for reliability
                 const timeoutId = setTimeout(() => {
                     console.log("Executing delayed refresh after timeout");
-                    refetchSacrifices();
-
-                    // Force a state update to trigger re-render
-                    setCameFromTimeout(false);
-                    needsRerender.current = false;
+                    (async () => {
+                        try {
+                            await refetchSacrifices();
+                        } catch (error) {
+                            console.error("Error in delayed refresh:", error);
+                        }
+                        // Force a state update to trigger re-render
+                        setCameFromTimeout(false);
+                        needsRerender.current = false;
+                    })();
                 }, 300);
 
                 return () => clearTimeout(timeoutId);
             } else {
                 // Regular refresh for normal navigation
-                refetchSacrifices();
+                (async () => {
+                    try {
+                        await refetchSacrifices();
+                    } catch (error) {
+                        console.error("Error in regular navigation refresh:", error);
+                    }
+                })();
             }
         }
     }, [currentStep, refetchSacrifices, cameFromTimeout, setCameFromTimeout, needsRerender]);

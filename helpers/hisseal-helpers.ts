@@ -318,7 +318,7 @@ export const useHandleInteractionTimeout = (
   // Veri yenileme fonksiyonu (isteğe bağlı)
   refetchSacrifices?: () => Promise<any>,
   // Özel timeout handler fonksiyonu (isteğe bağlı)
-  customTimeoutHandler?: () => void
+  customTimeoutHandler?: () => Promise<void>
 ) => {
   const timeoutReservation = useTimeoutReservation();
   const transaction_id = useReservationIDStore(state => state.transaction_id);

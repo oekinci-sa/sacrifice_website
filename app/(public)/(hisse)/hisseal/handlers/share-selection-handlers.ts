@@ -1,61 +1,14 @@
+import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import {
-    handleApprove as helperHandleApprove,
-    handleShareCountSelect as helperHandleShareCountSelect
-} from "@/helpers/hisseal-helpers";
-import { sacrificeSchema } from "@/types";
-import { MutationFunction } from "@tanstack/react-query";
-
-// Define types for the form data
-type FormDataType = {
-    name: string;
-    phone: string;
-    delivery_location: string;
-    is_purchaser?: boolean;
-};
+    CreateShareholdersMutation,
+    FormDataType,
+    GenericReservationMutation,
+    sacrificeSchema,
+    UpdateShareCountMutation
+} from "@/types";
 
 // Define types for API mutations
-type UpdateShareCountMutation = {
-    mutate: MutationFunction<
-        { success: boolean; message: string },
-        { transaction_id: string; share_count: number; operation: 'add' | 'remove' }
-    >;
-    reset?: () => void;
-};
-
-type ReservationData = {
-    transaction_id: string;
-    sacrifice_id: string;
-    share_count: number;
-};
-
-type ReservationResponse = {
-    success: boolean;
-    message: string;
-    reservation_id?: string;
-};
-
-type CreateReservationMutation = {
-    mutate: MutationFunction<ReservationResponse, ReservationData>;
-    reset?: () => void;
-};
-
-type ShareholderData = {
-    transaction_id: string;
-    sacrifice_id: string;
-    shareholders: FormDataType[];
-};
-
-type ShareholderResponse = {
-    success: boolean;
-    message: string;
-    data?: {
-        shareholders?: FormDataType[];
-    };
-};
-
-type CreateShareholdersMutation = {
-    mutate: MutationFunction<ShareholderResponse, ShareholderData>;
-};
+// Note: We're now importing these from @/types instead of defining them here
 
 // Types for handler creators
 type SacrificeSelectHandlerParams = {
@@ -70,16 +23,16 @@ type ShareCountSelectHandlerParams = {
     updateShareCount: UpdateShareCountMutation;
     setSelectedSacrifice: (sacrifice: sacrificeSchema) => void;
     setFormData: (data: FormDataType[]) => void;
-    goToStep: (step: string) => void;
+    goToStep: (step: Step) => void;
     setIsDialogOpen: (open: boolean) => void;
     setLastInteractionTime: (time: number) => void;
     toast: {
         (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void
     };
     transaction_id: string;
-    createReservation: CreateReservationMutation;
+    createReservation: GenericReservationMutation;
     setShowReservationInfo: (show: boolean) => void;
-    router: { push: (path: string) => void };
+    router?: { push: (path: string) => void };
     sacrifice_id?: string;
 };
 
@@ -88,13 +41,13 @@ type ApproveHandlerParams = {
     formData: FormDataType[];
     createShareholders: CreateShareholdersMutation;
     setSuccess: (success: boolean) => void;
-    goToStep: (step: string) => void;
+    goToStep: (step: Step) => void;
     toast: {
         (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void
     };
-    router: { push: (path: string) => void };
+    router?: { push: (path: string) => void };
     transaction_id?: string;
-    nextStep: () => void;
+    nextStep?: () => void;
 };
 
 // Create handler for sacrifice selection
@@ -117,7 +70,6 @@ export const createHandleSacrificeSelect = ({
 // Create handler for share count selection
 export const createHandleShareCountSelect = ({
     tempSelectedSacrifice,
-    updateShareCount,
     setSelectedSacrifice,
     setFormData,
     goToStep,
@@ -158,11 +110,6 @@ export const createHandleShareCountSelect = ({
 
                             // Don't close the dialog, return early
                             // We'll notify the ShareSelectDialog to re-enable its button
-                            if (createReservation && typeof createReservation.reset === 'function') {
-                                // Reset any loading state in the API mutation
-                                createReservation.reset();
-                            }
-
                             return;
                         }
                     }
@@ -173,19 +120,48 @@ export const createHandleShareCountSelect = ({
             }
 
             // If the validation passes, proceed with the normal flow
-            await helperHandleShareCountSelect({
-                shareCount,
-                tempSelectedSacrifice,
-                updateShareCount,
-                setSelectedSacrifice,
-                setFormData,
-                goToStep,
-                setIsDialogOpen,
-                setLastInteractionTime,
-                toast,
+            // Use mutateAsync instead of helperHandleShareCountSelect to correctly handle the Promise
+            if (!tempSelectedSacrifice) {
+                throw new Error("No sacrifice selected");
+            }
+
+            console.log('Creating reservation with:', {
                 transaction_id,
-                createReservation,
+                sacrifice_id: tempSelectedSacrifice.sacrifice_id,
+                share_count: shareCount
             });
+
+            // Create the reservation using mutateAsync (returns a Promise)
+            const reservationResult = await createReservation.mutateAsync({
+                transaction_id,
+                sacrifice_id: tempSelectedSacrifice.sacrifice_id,
+                share_count: shareCount
+            });
+
+            if (!reservationResult.success) {
+                throw new Error(reservationResult.message || "Failed to create reservation");
+            }
+
+            // Update local state with the selected sacrifice
+            setSelectedSacrifice(tempSelectedSacrifice);
+
+            // Set form data with empty placeholders for each shareholder
+            const newFormData = Array.from({ length: shareCount }, () => ({
+                name: "",
+                phone: "",
+                delivery_location: "Kesimhane",
+                is_purchaser: false
+            }));
+
+            // Mark the first shareholder as the purchaser by default
+            if (newFormData.length > 0) {
+                newFormData[0].is_purchaser = true;
+            }
+
+            setFormData(newFormData);
+
+            // Update interaction time to reset the timeout
+            setLastInteractionTime(Date.now());
 
             // Önce dialog'u kapat
             setIsDialogOpen(false);
@@ -211,11 +187,6 @@ export const createHandleShareCountSelect = ({
                 description:
                     "İşlem sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
             });
-
-            // Make sure to reset any loading state if there's an error
-            if (createReservation && typeof createReservation.reset === 'function') {
-                createReservation.reset();
-            }
         }
     };
 };
@@ -232,26 +203,51 @@ export const createHandleReservationInfoClose = (
 
 // Create handler for approval
 export const createHandleApprove = ({
-    selectedSacrifice,
-    formData,
-    createShareholders,
+    createShareholders: _createShareholders, // Kullanılmayacak
     setSuccess,
     goToStep,
     toast,
-    router: _router,
     transaction_id: _transaction_id,
     nextStep
 }: ApproveHandlerParams) => {
     return async () => {
-        await helperHandleApprove({
-            selectedSacrifice,
-            formData,
-            createShareholders,
-            setSuccess,
-            goToStep,
-            toast,
-        });
-        nextStep();
+        console.log("createHandleApprove başlangıç - UI güncelleme işlemi");
+
+        try {
+            // Sadece UI güncelleme işlemlerini yapalım
+            // Veritabanı işlemlerini YAPMA, çünkü bunlar shareholder-summary.tsx içindeki 
+            // handleTermsConfirm fonksiyonunda zaten yapılıyor
+
+            // Başarı durumunu güncelle
+            console.log("setSuccess true yapılıyor");
+            setSuccess(true);
+            console.log("setSuccess true yapıldı");
+
+            // Success adımına geç
+            console.log("goToStep('success') çağrılıyor");
+            goToStep("success");
+            console.log("goToStep('success') çağrıldı");
+
+            // Call nextStep if it exists
+            if (nextStep) {
+                console.log("nextStep çağrılıyor");
+                nextStep();
+                console.log("nextStep çağrıldı");
+            }
+
+            // Başarı mesajı göster
+            toast({
+                title: "İşlem Başarılı",
+                description: "Hissedar kayıtları başarıyla oluşturuldu.",
+            });
+        } catch (error) {
+            console.error("Error in handleApprove UI update:", error);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Görünüm güncellenirken beklenmeyen bir hata oluştu.",
+            });
+        }
     };
 };
 

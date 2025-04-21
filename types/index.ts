@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+// Re-export types from the reservation module
+export * from './reservation';
+// Re-export types from the sacrifice module
+export * from './sacrifice';
+
 // Form için Zod şeması
 export const shareholderFormSchema = z.object({
   shareholder_name: z.string().min(1, { message: "Ad soyad zorunludur" }),
@@ -24,23 +29,23 @@ export interface shareholderSchema {
   purchase_time: string;
   sacrifice_id: string;
   security_code: string; // Veritabanındaki security_code alanı (varchar(6))
-  
+
   // Ödeme ile ilgili alanlar
   delivery_fee: number;
   share_price: number;
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;
-  
+
   // Teslimat ve onay
   delivery_location: "Kesimhane" | "Ulus";
   sacrifice_consent: boolean;
-  
+
   // Düzenleme bilgileri
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
-  
+
   // İlişkili kurban bilgileri (opsiyonel)
   sacrifice?: {
     sacrifice_id: string;
@@ -55,17 +60,17 @@ export interface sacrificeSchema {
   sacrifice_id: string;
   sacrifice_no: number;
   sacrifice_time: string | null;
-  
+
   // Hisse bilgileri
   share_price: number;
   share_weight: number;
   empty_share: number;
-  
+
   // Düzenleme bilgileri
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
-  
+
   // İlişkili hissedar bilgileri (opsiyonel)
   shareholders?: Partial<shareholderSchema>[];
 }
@@ -86,4 +91,4 @@ export interface changeLogSchema {
 export type UserRole = "admin" | "editor" | null;
 
 // Hisse alma adımlarını temsil eden tip
-export type Step = string;
+export type Step = "selection" | "details" | "confirmation" | "success";

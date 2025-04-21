@@ -1,4 +1,4 @@
-import { ReservationStatus } from '@/hooks/useReservations';
+import { ReservationStatus } from '@/types/reservation';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 

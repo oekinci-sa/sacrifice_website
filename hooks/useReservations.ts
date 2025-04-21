@@ -1,14 +1,44 @@
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  GenericReservationMutation,
+  ReservationData as ImportedReservationData,
+  ReservationStatus,
+  UpdateShareCountData,
+  UpdateShareCountMutation,
+  UpdateShareCountResponse
+} from "@/types/reservation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-// Rezervasyon durumu için olası değerler
-export enum ReservationStatus {
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
+// Rezervasyon durumu için olası değerler (local use only)
+export enum ReservationStatusLocal {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
   CANCELLED = 'cancelled',
-  CANCELED = 'canceled',  // 'canceled' versiyonu da ekleyelim (tutarlılık için)
-  TIMED_OUT = 'timed out', // Zaman aşımı durumu için yeni enum değeri
-  EXPIRED = 'expired' // Expiration için enum değeri
+  COMPLETED = 'completed'
+}
+
+// Rezervasyon verisi tanımı
+export interface ReservationData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  tcno: string;
+  status: ReservationStatusLocal;
+  sacrifice_id: string;
+  share_count: number;
+  group_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Rezervasyon yanıtı için tip tanımı
+export interface ReservationResponse {
+  success: boolean;
+  message: string;
+  data: ImportedReservationData[];
+  error?: string;
 }
 
 // Reservation status check interface
@@ -25,28 +55,26 @@ export interface ReservationStatusData {
 export const useReservationStatus = (transaction_id: string) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   // Skip query if no transaction_id
   const enabled = !!transaction_id && transaction_id.length > 0;
-  
+
   return useQuery<ReservationStatusData, Error>({
     queryKey: ['reservation-status', transaction_id],
     queryFn: async () => {
       if (!transaction_id) {
         throw new Error('Transaction ID is required');
       }
-      
-      console.log('Checking reservation status for transaction_id:', transaction_id);
-      
+
+
       try {
         const response = await fetch(`/api/check-reservation-status?transaction_id=${transaction_id}`);
-        
+
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Error checking reservation status:', errorData);
           throw new Error(errorData.error || `Server error: ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data as ReservationStatusData;
       } catch (error) {
@@ -67,11 +95,11 @@ export const useReservationStatus = (transaction_id: string) => {
 };
 
 // Rezervasyonu ekle hook'u tipini daha iyi tanımlayalım
-interface ReservationData {
+interface CreateReservationData {
   transaction_id: string;
   sacrifice_id: string;
   share_count: number;
-  status?: ReservationStatus; // Opsiyonel status alanı
+  status?: ReservationStatusLocal; // Opsiyonel status alanı
 }
 
 // Reservation_transactions tablosuna yeni kayıt eklemek için mutation hook
@@ -79,15 +107,14 @@ export const useCreateReservation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  return useMutation<any, Error, ReservationData>({
+  const mutation = useMutation<any, Error, CreateReservationData>({
     mutationFn: async ({
       transaction_id,
       sacrifice_id,
       share_count,
-      status = ReservationStatus.ACTIVE, // Varsayılan değer ACTIVE
-    }: ReservationData) => {
-      console.log('Creating reservation with:', { transaction_id, sacrifice_id, share_count, status });
-      
+      status,
+    }: CreateReservationData) => {
+
       try {
         // Yeni API endpoint'imizi kullanarak server-side işlemi gerçekleştir
         const response = await fetch('/api/create-reservation', {
@@ -101,16 +128,13 @@ export const useCreateReservation = () => {
         // Başarısız yanıt durumunda
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Reservation API error:', errorData);
           throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
         }
 
         // Başarılı yanıt
         const responseData = await response.json();
-        console.log('Reservation created successfully:', responseData);
         return responseData;
       } catch (error) {
-        console.error('Reservation creation error:', error);
         // Network hatası veya diğer beklenmeyen hatalar
         if (error instanceof Error) {
           throw error;
@@ -119,24 +143,20 @@ export const useCreateReservation = () => {
         }
       }
     },
-    
+
     // Mutation başarılı olduğunda
     onSuccess: (data) => {
       // Kurbanlıklar verisini yenile (cache güncelleme)
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
-      
-      console.log('Reservation mutation completed successfully', data);
-      
+
       toast({
         title: "Başarılı",
         description: "Hisse rezervasyonu başarıyla oluşturuldu",
       });
     },
-    
+
     // Mutation hata verdiğinde
     onError: (error: Error) => {
-      console.error('Reservation mutation error:', error);
-      
       toast({
         variant: "destructive",
         title: "Hata",
@@ -144,28 +164,26 @@ export const useCreateReservation = () => {
       });
     },
   });
-};
 
-// Hisse adedini güncellemek için yeni mutation
-interface UpdateShareCountData {
-  transaction_id: string;
-  share_count: number;
-  operation: 'add' | 'remove'; // İşlem tipini belirtmek için
-}
+  // Tip uyumluluğu için GenericReservationMutation'a uygun şekilde dönüştürüyoruz
+  return {
+    ...mutation,
+    status: mutation.status || 'idle'
+  } as GenericReservationMutation;
+};
 
 // Hisse adedini güncellemek için mutation hook
 export const useUpdateShareCount = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  return useMutation<any, Error, UpdateShareCountData>({
+  return useMutation<UpdateShareCountResponse, Error, UpdateShareCountData>({
     mutationFn: async ({
       transaction_id,
       share_count,
       operation
     }: UpdateShareCountData) => {
-      console.log('Updating share count:', { transaction_id, share_count, operation });
-      
+
       try {
         // Server-side API endpoint'i kullan
         const response = await fetch('/api/update-share-count', {
@@ -185,10 +203,8 @@ export const useUpdateShareCount = () => {
 
         // Başarılı yanıt
         const responseData = await response.json();
-        console.log('Share count updated successfully:', responseData);
         return responseData;
       } catch (error) {
-        console.error('Share count update error:', error);
         // Network hatası veya diğer beklenmeyen hatalar
         if (error instanceof Error) {
           throw error;
@@ -197,26 +213,25 @@ export const useUpdateShareCount = () => {
         }
       }
     },
-    
+
     // Mutation başarılı olduğunda
     onSuccess: (data) => {
       // Kurbanlıklar verisini yenile (cache güncelleme)
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
-      
-      console.log('Share count update completed successfully', data);
+
     },
-    
+
     // Mutation hata verdiğinde
     onError: (error: Error) => {
       console.error('Share count update error:', error);
-      
+
       toast({
         variant: "destructive",
         title: "Hata",
         description: `Hisse adedi güncellenirken bir sorun oluştu: ${error.message}`,
       });
     },
-  });
+  }) as UpdateShareCountMutation;
 };
 
 // Yeni eklenen hook: Rezervasyonu iptal etmek için
@@ -230,12 +245,11 @@ export const useCancelReservation = () => {
 
   return useMutation<any, Error, CancelReservationData>({
     mutationFn: async ({ transaction_id }: CancelReservationData) => {
-      console.log('Canceling reservation with transaction_id:', transaction_id);
-      
+
       if (!transaction_id) {
         throw new Error("İşlem kimliği (transaction_id) eksik");
       }
-      
+
       try {
         // Server-side API endpoint'i kullan
         const response = await fetch('/api/cancel-reservation', {
@@ -249,16 +263,13 @@ export const useCancelReservation = () => {
         // Başarısız yanıt durumunda
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Cancel reservation API error:', errorData);
           throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
         }
 
         // Başarılı yanıt
         const responseData = await response.json();
-        console.log('Reservation canceled successfully:', responseData);
         return responseData;
       } catch (error) {
-        console.error('Reservation cancellation error:', error);
         // Network hatası veya diğer beklenmeyen hatalar
         if (error instanceof Error) {
           throw error;
@@ -267,25 +278,21 @@ export const useCancelReservation = () => {
         }
       }
     },
-    
+
     // Mutation başarılı olduğunda
     onSuccess: (data, variables) => {
       // Rezervasyon ve kurbanlık verilerini yenile (cache güncelleme)
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
       queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
-      
-      console.log('Reservation cancellation completed successfully', data);
-      
+
       toast({
         title: "Başarılı",
         description: "Hisse rezervasyonu başarıyla iptal edildi",
       });
     },
-    
+
     // Mutation hata verdiğinde
     onError: (error: Error) => {
-      console.error('Reservation cancellation error:', error);
-      
       toast({
         variant: "destructive",
         title: "Hata",
@@ -306,8 +313,6 @@ export const useTimeoutReservation = () => {
 
   return useMutation<any, Error, TimeoutReservationData>({
     mutationFn: async ({ transaction_id }: TimeoutReservationData) => {
-      console.log('Timing out reservation with transaction_id:', transaction_id);
-
       if (!transaction_id) {
         throw new Error("İşlem kimliği (transaction_id) eksik");
       }
@@ -331,10 +336,8 @@ export const useTimeoutReservation = () => {
 
         // Başarılı yanıt
         const responseData = await response.json();
-        console.log('Reservation timed out successfully:', responseData);
         return responseData;
       } catch (error) {
-        console.error('Reservation timeout error:', error);
         // Network hatası veya diğer beklenmeyen hatalar
         if (error instanceof Error) {
           throw error;
@@ -350,12 +353,10 @@ export const useTimeoutReservation = () => {
       queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
       queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
 
-      console.log('Reservation timeout completed successfully', data);
     },
 
     // Mutation hata verdiğinde
     onError: (error: Error) => {
-      console.error('Reservation timeout error:', error);
 
       toast({
         variant: "destructive",
@@ -377,7 +378,6 @@ export const useCompleteReservation = () => {
 
   return useMutation<any, Error, CompleteReservationData>({
     mutationFn: async ({ transaction_id }: CompleteReservationData) => {
-      console.log('Completing reservation with transaction_id:', transaction_id);
 
       if (!transaction_id) {
         throw new Error("İşlem kimliği (transaction_id) eksik");
@@ -402,10 +402,8 @@ export const useCompleteReservation = () => {
 
         // Handle successful response
         const responseData = await response.json();
-        console.log('Reservation completed successfully via API:', responseData);
         return responseData;
       } catch (error) {
-        console.error('Reservation completion error:', error);
         if (error instanceof Error) {
           throw error;
         } else {
@@ -418,12 +416,10 @@ export const useCompleteReservation = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
       // Optionally invalidate other related queries if needed
-      console.log('Reservation completion mutation successful', data);
     },
 
     // On error, show a toast
     onError: (error: Error) => {
-      console.error('Reservation completion mutation error:', error);
       toast({
         variant: "destructive",
         title: "Hata",

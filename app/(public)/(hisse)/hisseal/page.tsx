@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
+import { SacrificeQueryResult } from "@/types";
 import { usePathname } from "next/navigation";
 import { useCallback, useRef } from "react";
 import { PageLayout } from "./components/layout/page-layout";
@@ -55,12 +56,21 @@ const Page = () => {
   } = usePageInitialization();
 
   // Create key handlers directly in the component to avoid circular dependencies
-  const handleTimeoutRedirect = useCallback(() => {
+  const handleTimeoutRedirect = useCallback(async () => {
     console.log("Timeout occurred, redirecting to selection step");
     resetStore();
     goToStep("selection");
     needsRerender.current = true;
-    refetchSacrifices();
+    try {
+      const result = await refetchSacrifices();
+      // result void olabilir
+      if (result && !result.success) {
+        console.warn("Sacrifice refetch was not successful in timeout redirect");
+      }
+    } catch (error) {
+      console.error("Error refetching sacrifices in timeout redirect:", error);
+    }
+    return Promise.resolve();
   }, [resetStore, goToStep, refetchSacrifices]);
 
   // Use our custom hook for reservation and warning management
@@ -126,7 +136,8 @@ const Page = () => {
     createShareholders,
     setSuccess,
     goToStep,
-    toast
+    toast,
+    transaction_id
   });
 
   const handlePdfDownload = createHandlePdfDownload();
@@ -136,7 +147,28 @@ const Page = () => {
     resetStore,
     goToStep,
     toast,
-    refetchSacrifices,
+    refetchSacrifices: async (): Promise<SacrificeQueryResult> => {
+      try {
+        const result = await refetchSacrifices();
+        // result void ise uygun bir sonuç nesnesi döndür
+        if (!result) {
+          return {
+            data: undefined,
+            success: false,
+            error: new Error("No result returned from refetchSacrifices")
+          };
+        }
+        return result;
+      } catch (error) {
+        console.error("Error refetching sacrifices in custom timeout:", error);
+        // Return a failed result object instead of void
+        return {
+          data: undefined,
+          success: false,
+          error: error instanceof Error ? error : new Error(String(error))
+        };
+      }
+    },
     transaction_id,
     setShowWarning,
     setIsDialogOpen,
@@ -148,20 +180,38 @@ const Page = () => {
   });
 
   // Create a promise-returning version for the lifecycle
-  const handleCustomTimeoutWithPromise = () => {
-    return Promise.resolve(handleCustomTimeout());
-  };
+  const handleCustomTimeoutWithPromise = useCallback(async () => {
+    return await handleCustomTimeout();
+  }, [handleCustomTimeout]);
 
   // Safe server time remaining
   const safeServerTimeRemaining = reservationStatus?.timeRemaining || undefined;
 
   // Function to update share count in a type-safe way
-  const handleUpdateShareCount = (count: number) => {
-    updateShareCount.mutate({
-      transaction_id,
-      share_count: count,
-      operation: 'add'
-    });
+  const handleUpdateShareCount = async (count: number) => {
+    try {
+      if (updateShareCount && typeof updateShareCount.mutateAsync === 'function') {
+        await updateShareCount.mutateAsync({
+          transaction_id,
+          share_count: count,
+          operation: 'add'
+        });
+      } else {
+        console.error("updateShareCount mutation is not properly initialized");
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Sistem hatası: Hisse güncellemesi yapılamıyor."
+        });
+      }
+    } catch (error) {
+      console.error("Error updating share count:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hisse sayısı güncellenirken bir sorun oluştu."
+      });
+    }
   };
 
   // Wrapper for dismiss warning to match expected signature

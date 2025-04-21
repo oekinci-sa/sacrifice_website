@@ -114,7 +114,16 @@ export default function ShareholderSummary({
 
   // Terms agreement dialog handler
   const handleTermsConfirm = async () => {
-    if (isProcessing || !transaction_id) return;
+    console.log('handleTermsConfirm başlangıç', { isProcessing, transaction_id });
+    if (isProcessing || !transaction_id) {
+      console.error('İşlem zaten devam ediyor veya transaction_id yok', { isProcessing, transaction_id });
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "İşlem zaten devam ediyor veya işlem kimliği eksik."
+      });
+      return;
+    }
     setIsProcessing(true);
 
     // Get the purchaser name (defaulting to first shareholder if none is marked)
@@ -135,10 +144,24 @@ export default function ShareholderSummary({
 
     try {
       // Validate shareholder count before proceeding
-      await validateShareholdersMutation.mutateAsync({
-        sacrificeId: sacrifice?.sacrifice_id || "",
+      console.log('Hissedar doğrulama başlıyor...', {
+        sacrificeId: sacrifice?.sacrifice_id,
         newShareholderCount: shareholders.length
       });
+
+      if (!sacrifice?.sacrifice_id) {
+        throw new Error("Kurbanlık ID bilgisi eksik!");
+      }
+
+      if (!validateShareholdersMutation || !validateShareholdersMutation.mutateAsync) {
+        throw new Error("Hissedar doğrulama fonksiyonu bulunamadı!");
+      }
+
+      await validateShareholdersMutation.mutateAsync({
+        sacrificeId: sacrifice.sacrifice_id,
+        newShareholderCount: shareholders.length
+      });
+      console.log('Hissedar doğrulama başarılı');
 
       // Prepare shareholder data for the API
       const shareholderDataForApi = shareholders.map((shareholder) => {
@@ -173,7 +196,7 @@ export default function ShareholderSummary({
           security_code: securityCode,
           purchased_by: purchaserName,
           last_edited_by: purchaserName,
-          sacrifice_consent: false, // Set to true since user agreed to terms
+          sacrifice_consent: true, // Set to true since user agreed to terms
           total_amount: totalAmount,
           remaining_payment: remainingPayment
         }
@@ -181,17 +204,36 @@ export default function ShareholderSummary({
         return shareholderData
       })
 
+      console.log('Hissedar verileri oluşturuldu', shareholderDataForApi);
+
       // Save shareholders to DB
-      await createShareholdersMutation.mutateAsync(shareholderDataForApi)
+      console.log('Hissedarlar kaydediliyor...');
+      if (!createShareholdersMutation || !createShareholdersMutation.mutateAsync) {
+        throw new Error("Hissedar kaydetme fonksiyonu bulunamadı!");
+      }
+
+      const createResult = await createShareholdersMutation.mutateAsync(shareholderDataForApi);
+      console.log('Hissedarlar başarıyla kaydedildi', createResult);
 
       // Complete the reservation
-      await completeReservationMutation.mutateAsync({ transaction_id })
+      console.log('Rezervasyon tamamlanıyor...', { transaction_id });
+      if (!completeReservationMutation || !completeReservationMutation.mutateAsync) {
+        throw new Error("Rezervasyon tamamlama fonksiyonu bulunamadı!");
+      }
+
+      const completeResult = await completeReservationMutation.mutateAsync({ transaction_id });
+      console.log('Rezervasyon başarıyla tamamlandı', completeResult);
 
       // Close dialog and proceed
-      setShowTermsDialog(false)
+      setShowTermsDialog(false);
 
       // Call the onApprove function to proceed to success state
-      onApprove()
+      console.log('onApprove fonksiyonu çağrılıyor...');
+      if (typeof onApprove !== 'function') {
+        throw new Error("onApprove fonksiyonu bulunamadı!");
+      }
+      onApprove();
+      console.log('onApprove fonksiyonu çağrıldı');
 
       toast({
         title: "Başarılı!",
@@ -200,6 +242,11 @@ export default function ShareholderSummary({
 
     } catch (error) {
       console.error("İşlem sırasında hata oluştu:", error);
+      if (error instanceof Error) {
+        console.error("Hata mesajı:", error.message);
+        console.error("Hata stack:", error.stack);
+      }
+      console.error("Hata detayları:", JSON.stringify(error, null, 2));
 
       // Close dialog on error
       setShowTermsDialog(false);

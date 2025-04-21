@@ -5,8 +5,8 @@ import {
     useTrackInteractions,
 } from "@/helpers/hisseal-helpers";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
-import { sacrificeSchema } from "@/types";
-import { MutationFunction } from "@tanstack/react-query";
+import { SacrificeQueryResult, sacrificeSchema } from "@/types";
+import { UpdateShareCountMutation } from "@/types/reservation";
 import { useMemo } from "react";
 import { usePageEffects } from "./usePageEffects";
 import { useUIResponsiveness } from "./useUIResponsiveness";
@@ -24,22 +24,13 @@ type ToastFunction = {
     (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
 };
 
-// Update share count mutation type
-type UpdateShareCountMutation = {
-    mutate: MutationFunction<
-        { success: boolean; message: string },
-        { transaction_id: string; share_count: number; operation: 'add' | 'remove' }
-    >;
-    reset?: () => void;
-};
-
 interface UsePageLifecycleProps {
     pathname: string;
     resetStore: () => void;
     goToStep: (step: Step) => void;
     setSuccess: (success: boolean) => void;
     setHasNavigatedAway: (away: boolean) => void;
-    refetchSacrifices: () => void;
+    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
     isSuccess: boolean;
     hasNavigatedAway: boolean;
     currentStep: string;
@@ -148,13 +139,34 @@ export function usePageLifecycle({
         };
     }, [handleCustomTimeout]);
 
-    // Memoize refetch function to ensure it returns a Promise
-    const refetchWithPromise = useMemo(() => {
-        return async () => {
-            const result = refetchSacrifices();
-            return Promise.resolve(result);
+    // refetchSacrifices için sarmalayıcı fonksiyon oluştur
+    const safeRefetchSacrifices = useMemo(() => {
+        return async (): Promise<SacrificeQueryResult> => {
+            try {
+                const result = await refetchSacrifices();
+                if (!result) {
+                    return {
+                        data: undefined,
+                        success: false,
+                        error: new Error("No result returned from refetchSacrifices")
+                    };
+                }
+                return result;
+            } catch (error) {
+                console.error("Error in safeRefetchSacrifices:", error);
+                return {
+                    data: undefined,
+                    success: false,
+                    error: error instanceof Error ? error : new Error(String(error))
+                };
+            }
         };
     }, [refetchSacrifices]);
+
+    // Memoize refetch function to ensure it returns a Promise - for useHandleInteractionTimeout
+    const refetchWithPromise = useMemo(() => {
+        return safeRefetchSacrifices; // Aynı fonksiyonu kullan
+    }, [safeRefetchSacrifices]);
 
     // Apply page-specific effects
     usePageEffects({
@@ -163,7 +175,7 @@ export function usePageLifecycle({
         goToStep,
         setSuccess,
         setHasNavigatedAway,
-        refetchSacrifices,
+        refetchSacrifices: safeRefetchSacrifices,
         isSuccess,
         hasNavigatedAway,
         currentStep,

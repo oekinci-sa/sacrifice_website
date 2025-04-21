@@ -24,7 +24,6 @@ export const useSacrifices = () => {
       }
 
       // Otherwise fetch it from the API
-      console.log("Fallback fetch for sacrifices data");
       const response = await fetch("/api/get-sacrifice-animals");
 
       if (!response.ok) {

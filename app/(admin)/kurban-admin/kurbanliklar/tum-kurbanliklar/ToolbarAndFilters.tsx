@@ -76,7 +76,7 @@ export function ToolbarAndFilters({
   const exportToExcel = () => {
     // Export functionality can be implemented here
     // You'll need to convert the sacrifices data to Excel format
-    console.log("Export to Excel clicked");
+    ("Export to Excel clicked");
   };
 
   return (

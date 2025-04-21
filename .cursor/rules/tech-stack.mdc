@@ -1,4 +1,8 @@
 ---
+description: 
+globs: 
+---
+---
 description: Project technology stack
 globs: 
 ---
@@ -15,11 +19,10 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 - Server state management → React Query
 - Client state (UI state) management → Zustand veya useState
 - use /hooks folder for custom hooks.
+- At the end of the process of writing or deleting or updating something to the database from the frontend, inform the user whether the process is positive or negative with shadcn toast components.
 - All pages should be designed for both desktop and mobile. Because it will be accessed 99% of the time from mobile by customers.
 - I want to use shadcn as the design system; apart from that, everything should follow a clear standard without unnecessary deviations.
 - Use shadcn if possible, otherwise create componenet with tailwindcss
-- UI has dark mode feature. So choose the color scheme accordingly.
-- At the end of the process of writing or deleting or updating something to the database from the frontend, inform the user whether the process is positive or negative with shadcn toast components.
 
 Backend: Supabase
 

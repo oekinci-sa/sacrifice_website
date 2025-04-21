@@ -1,6 +1,6 @@
+import { SacrificeQueryResult, sacrificeSchema } from "@/types";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { sacrificeSchema } from "@/types";
 
 interface SacrificeState {
   sacrifices: sacrificeSchema[];
@@ -14,7 +14,7 @@ interface SacrificeState {
   setIsLoadingSacrifices: (isLoading: boolean) => void;
   setIsInitialized: (isInitialized: boolean) => void;
   setIsRefetching: (isRefetching: boolean) => void;
-  refetchSacrifices: () => Promise<sacrificeSchema[] | undefined>;
+  refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
   setEmptyShareCount: (count: number) => void;
   removeSacrifice: (sacrificeId: string) => void;
 }
@@ -72,9 +72,9 @@ export const useSacrificeStore = create<SacrificeState>()(
       setIsLoadingSacrifices: (isLoadingSacrifices) =>
         set({ isLoadingSacrifices }),
       setIsInitialized: (isInitialized) => set({ isInitialized }),
-      
+
       setIsRefetching: (isRefetching) => set({ isRefetching }),
-      
+
       refetchSacrifices: async () => {
         try {
           set({ isRefetching: true });
@@ -88,25 +88,33 @@ export const useSacrificeStore = create<SacrificeState>()(
             throw new Error(errorData.error || response.statusText);
           }
 
-          const data = (await response.json()) as sacrificeSchema[];
+          const sacrifices = (await response.json()) as sacrificeSchema[];
 
           // Set the data in Zustand store
-          set({ 
-            sacrifices: data,
+          set({
+            sacrifices,
             isInitialized: true
           });
 
           // Calculate and update total empty shares
-          const totalEmptyShares = data.reduce(
+          const totalEmptyShares = sacrifices.reduce(
             (sum, sacrifice) => sum + sacrifice.empty_share,
             0
           );
           set({ totalEmptyShares });
 
-          return data;
+          // Return in SacrificeQueryResult format
+          return {
+            data: sacrifices,
+            success: true
+          };
         } catch (error) {
           console.error("Error fetching sacrifices:", error);
-          return undefined;
+          return {
+            data: undefined,
+            success: false,
+            error: error instanceof Error ? error : new Error(String(error))
+          };
         } finally {
           set({ isLoadingSacrifices: false });
           set({ isRefetching: false });

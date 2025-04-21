@@ -37,8 +37,16 @@ export function usePageInitialization() {
     } = useShareSelectionFlowStore();
 
     useEffect(() => {
-        refetchSacrifices()
-      }, [])
+        const fetchData = async () => {
+            try {
+                await refetchSacrifices();
+            } catch (error) {
+                console.error("Error fetching sacrifices:", error);
+            }
+        };
+
+        fetchData();
+    }, [refetchSacrifices]);
 
     // Reservation store - transaction_id yönetimi
     const { transaction_id, generateNewTransactionId } = useReservationIDStore();

@@ -1,4 +1,5 @@
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { SacrificeQueryResult } from "@/types";
 
 // Define toast function type
 type ToastFunction = {
@@ -9,7 +10,7 @@ interface CustomTimeoutHandlerProps {
     resetStore: () => void;
     goToStep: (step: Step) => void;
     toast: ToastFunction;
-    refetchSacrifices: () => Promise<void>;
+    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
     transaction_id: string;
     setShowWarning: (show: boolean) => void;
     setIsDialogOpen: (open: boolean) => void;
@@ -20,7 +21,7 @@ interface CustomTimeoutHandlerProps {
     needsRerender: React.MutableRefObject<boolean>;
 }
 
-export function createHandleCustomTimeout({
+export const createHandleCustomTimeout = ({
     resetStore,
     goToStep,
     toast,
@@ -33,70 +34,70 @@ export function createHandleCustomTimeout({
     setShowOneMinuteWarning,
     setCameFromTimeout,
     needsRerender
-}: CustomTimeoutHandlerProps) {
-    return async function handleCustomTimeout() {
-        console.log("Custom timeout handler triggered");
-
-        // First, immediately reset all UI states
-        setShowWarning(false);
+}: CustomTimeoutHandlerProps) => {
+    return async () => {
+        console.log("Custom timeout handler executing");
 
         // Close any open dialogs
+        setShowWarning(false);
         setIsDialogOpen(false);
         setShowReservationInfo(false);
         setShowThreeMinuteWarning(false);
         setShowOneMinuteWarning(false);
 
-        // Small delay to ensure UI updates before further processing
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Mark that we're in a timeout state
+        setCameFromTimeout(true);
+
+        // Reset the store and go back to selection step
+        resetStore();
+        goToStep("selection");
+
+        // Mark that we need a rerender
+        needsRerender.current = true;
+
+        let apiError = false;
 
         try {
-            // Update the reservation status on the server if we have a transaction_id
+            // Call expire-reservation API if transaction_id is available
             if (transaction_id) {
-                const timeoutReservation = {
-                    mutateAsync: async ({ transaction_id }: { transaction_id: string }) => {
-                        try {
-                            const response = await fetch("/api/timeout-reservation", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ transaction_id }),
-                            });
-
-                            if (!response.ok) {
-                                throw new Error("Failed to timeout reservation");
-                            }
-
-                            return await response.json();
-                        } catch (error) {
-                            console.error("Error in timeout reservation:", error);
-                            throw error;
-                        }
-                    }
-                };
-
-                await timeoutReservation.mutateAsync({ transaction_id });
+                await fetch('/api/expire-reservation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transaction_id }),
+                });
             }
         } catch (error) {
-            console.error("Error timing out reservation:", error);
-        } finally {
-            // Mark that we came from a timeout 
-            setCameFromTimeout(true);
-            needsRerender.current = true;
+            console.error("Error calling expire-reservation API:", error);
+            apiError = true;
+        }
 
-            // Reset store and navigate to selection step
-            resetStore();
-            goToStep("selection");
+        // Try to refresh data, regardless of API call outcome
+        try {
+            const result = await refetchSacrifices();
+            // result undefined olabilir (void dönüş durumu)
+            if (result && !result.success) {
+                console.warn("Failed to refresh sacrifices:", result.error);
+            }
+        } catch (refreshError) {
+            console.error("Error refreshing sacrifices data:", refreshError);
+        }
 
-            // Show a toast notification
+        // Show appropriate toast message based on API success
+        if (apiError) {
             toast({
                 variant: "destructive",
-                title: "Oturum Zaman Aşımına Uğradı",
-                description: "Uzun süre işlem yapılmadığı için form sıfırlandı.",
+                title: "Hata",
+                description: "İşlem zaman aşımına uğrarken bir sorun oluştu."
             });
-
-            // Refresh data
-            refetchSacrifices();
+        } else {
+            toast({
+                title: "İşlem Süresi Doldu",
+                description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendirildiniz."
+            });
         }
+
+        return Promise.resolve();
     };
-} 
+}; 

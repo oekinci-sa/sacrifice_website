@@ -32,7 +32,7 @@ export const useValidateShareholders = () => {
       
       // Check if total exceeds maximum (7)
       if (totalCount > 7) {
-        throw new Error(`Şu anda yeterli sayıda hisse yok. Lütfen en az ${totalCount - 7} hissedar bilgisini silerek tekrar deneyiniz.`);
+        throw new Error(`Şu anda yeterli sayıda hisse yok. Lütfen en az ${totalCount - 7} hissedar azaltarak tekrar deneyiniz.`);
       }
       
       // Return the validation result

@@ -1,6 +1,5 @@
-import { ReservationStatus } from "@/hooks/useReservations";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
-import { MutationFunction } from "@tanstack/react-query";
+import { GenericReservationMutation, ReservationStatus } from "@/types/reservation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Constants
@@ -13,42 +12,13 @@ type ToastFunction = {
     (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;
 };
 
-// Define reservation types
-type ReservationData = {
-    transaction_id: string;
-    sacrifice_id: string;
-    share_count: number;
-    status?: string;
-};
-
-type ReservationResponse = {
-    success: boolean;
-    message: string;
-    reservation_id?: string;
-    data?: {
-        success?: boolean;
-        message?: string;
-        reservation_id?: string;
-        transaction_id?: string;
-        updated_at?: string;
-    };
-};
-
-type CreateReservationMutation = {
-    mutate: MutationFunction<ReservationResponse, ReservationData>;
-    reset?: () => void;
-    isPending?: boolean;
-    isLoading?: boolean;
-    isFetching?: boolean;
-};
-
 interface UseReservationAndWarningManagerProps {
-    reservationStatus: {
+    reservationStatus?: {
         status: ReservationStatus;
         timeRemaining: number | null;
     } | null | undefined;
     shouldCheckStatus: boolean;
-    createReservation: CreateReservationMutation;
+    createReservation: GenericReservationMutation;
     handleTimeoutRedirect: () => void;
     toast: ToastFunction;
 }
@@ -273,10 +243,14 @@ export function useReservationAndWarningManager({
     // Handle reservation loading state
     useEffect(() => {
         try {
-            const pendingState = createReservation.isPending === true;
-            const loadingState = createReservation.isLoading === true;
-            const fetchingState = createReservation.isFetching === true;
-            const isLoading = pendingState || loadingState || fetchingState || false;
+            // Use the standard pending and status properties from React Query
+            // isPending is the correct property in React Query v5
+            const isPendingState = createReservation.isPending === true;
+            // For React Query v4 compatibility, fallback to isLoading and isFetching
+            const isLoadingState = 'isLoading' in createReservation ? createReservation.isLoading === true : false;
+            const isFetchingState = 'isFetching' in createReservation ? createReservation.isFetching === true : false;
+
+            const isLoading = isPendingState || isLoadingState || isFetchingState || false;
 
             if (isLoading) {
                 setIsReservationLoading(true);

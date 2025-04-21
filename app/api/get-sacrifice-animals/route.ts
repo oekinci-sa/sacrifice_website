@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { CACHE_KEYS, getCachedData, refreshSacrificeCache } from '@/utils/serverCache';
 import { NextResponse } from 'next/server';
 
 // ✅ Force Node.js runtime to access process.env
@@ -8,25 +8,28 @@ export const runtime = "nodejs";
 // It will be accessible at /api/get-sacrifice-animals
 export async function GET() {
   try {
-    // Use the supabaseAdmin client with service role to fetch data
-    const { data, error } = await supabaseAdmin
-      .from("sacrifice_animals")
-      .select("*")
-      .order("sacrifice_no", { ascending: true });
+    // Önbellekten al
+    let sacrifices = getCachedData(CACHE_KEYS.SACRIFICE_ANIMALS)
 
-    if (error) {
-      return NextResponse.json(
-        { error: "Failed to fetch sacrifice animals" },
-        { status: 500 }
-      );
+    // Eğer önbellekte yoksa veya bozuksa, veritabanından çek
+    if (!sacrifices) {
+      sacrifices = await refreshSacrificeCache()
+
+      // Hala veri yoksa hata döndür
+      if (!sacrifices) {
+        return NextResponse.json(
+          { error: 'Veri çekilemedi ve önbellekte bulunamadı' },
+          { status: 500 }
+        )
+      }
     }
 
-    // Return the data
-    return NextResponse.json(data);
-  } catch {
+    return NextResponse.json(sacrifices)
+  } catch (error) {
+    console.error('Kurbanlık verileri getirilirken hata:', error)
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: 'Sunucu hatası oluştu' },
       { status: 500 }
-    );
+    )
   }
 } 

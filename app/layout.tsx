@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
+import CacheInitializer from "./cache-initializer";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         className={`${instrumentSans.variable}`}
       >
         <Providers>
+          <CacheInitializer />
           {children}
           <Toaster />
         </Providers>

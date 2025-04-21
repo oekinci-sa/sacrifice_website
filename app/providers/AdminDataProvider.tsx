@@ -124,7 +124,6 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
             table: "sacrifice_animals",
           },
           (payload) => {
-
             // Update Zustand store based on the event type
             if (
               payload.eventType === "INSERT" ||
@@ -139,41 +138,52 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
             }
           }
         )
-        .subscribe(() => {
-        });
+        .subscribe();
     };
 
     if (!hasInitialized.current) {
       hasInitialized.current = true;
 
-      // Only fetch if data is not already in store
-      if (shareholders.length === 0) {
-        refetchShareholders();
-      }
+      // Load all data in parallel
+      const loadAllData = async () => {
+        try {
+          // Create an array of promises for parallel execution
+          const dataPromises = [];
 
-      if (transactions.length === 0) {
-        refetchTransactions();
-      }
+          // Only fetch if data is not already in store
+          if (shareholders.length === 0) {
+            dataPromises.push(refetchShareholders());
+          }
 
-      // Initialize sacrifice data if not already loaded
-      if (!sacrificesInitialized || sacrifices.length === 0) {
-        refetchSacrifices();
-      }
+          if (transactions.length === 0) {
+            dataPromises.push(refetchTransactions());
+          }
 
-      // Setup Supabase Realtime subscription
-      setupRealtimeSubscription();
+          // Initialize sacrifice data if not already loaded
+          if (!sacrificesInitialized || sacrifices.length === 0) {
+            dataPromises.push(refetchSacrifices());
+          }
+
+          // Wait for all data to load
+          await Promise.all(dataPromises);
+
+          // Setup Supabase Realtime subscription after data is loaded
+          setupRealtimeSubscription();
+        } catch (error) {
+          console.error("Error loading admin data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load some data. Please refresh the page.",
+            variant: "destructive",
+          });
+        }
+      };
+
+      loadAllData();
     }
-
-    // Check subscription status periodically
-    const checkSubscription = setInterval(() => {
-      if (!channelRef.current) {
-        setupRealtimeSubscription();
-      }
-    }, 10000); // Check every 10 seconds
 
     // Cleanup on unmount
     return () => {
-      clearInterval(checkSubscription);
       if (channelRef.current) {
         channelRef.current.unsubscribe();
         channelRef.current = null;
@@ -188,7 +198,8 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
     refetchTransactions,
     updateSacrifice,
     refetchSacrifices,
-    queryClient
+    queryClient,
+    toast
   ]);
 
   return <>{children}</>;

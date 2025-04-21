@@ -11,13 +11,13 @@ export const useEmptyShareCount = () => {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Zustand store kullan
-  const { setEmptyShareCount } = useSacrificeStore();
+  const { totalEmptyShares, setEmptyShareCount } = useSacrificeStore();
 
   // Set up real-time subscription - sadece bir kez
   useEffect(() => {
     // Önceki aboneliği temizle
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      channelRef.current.unsubscribe();
     }
 
     // Yeni realtime kanalı oluştur
@@ -40,7 +40,8 @@ export const useEmptyShareCount = () => {
     // Clean up subscription when component unmounts
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
       }
     };
   }, [queryClient]);
@@ -49,6 +50,10 @@ export const useEmptyShareCount = () => {
   const query = useQuery({
     queryKey: [EMPTY_SHARE_QUERY_KEY], // Basit bir anahtar kullan
     queryFn: async () => {
+      // If we already have data in the store, return it immediately
+      if (totalEmptyShares > 0) {
+        return totalEmptyShares;
+      }
 
       // Cache busting için timestamp
       const timestamp = new Date().getTime();
@@ -67,12 +72,15 @@ export const useEmptyShareCount = () => {
 
       return currentValue;
     },
-    // Otomatik yenileme yok - sadece invalidate olduğunda
+    // Initial data provided from store if available
+    initialData: totalEmptyShares > 0 ? totalEmptyShares : undefined,
+    // Disable automatic refetching - rely on invalidation from realtime
     refetchInterval: undefined,
-    // 5 dakika boyunca verileri taze say
-    staleTime: 5 * 60 * 1000,
-    // Sayfa yeniden açıldığında bir kez yenile
-    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    // Set stale time to 0 to always consider data stale
+    staleTime: 0,
     // Cache süresi
     gcTime: 10 * 60 * 1000,
   });

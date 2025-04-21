@@ -38,9 +38,14 @@ export const useSacrifices = () => {
     // Mevcut store verilerini initial data olarak kullan
     initialData: sacrifices.length > 0 ? sacrifices : undefined,
     // Cache stratejisi
-    staleTime: 60 * 1000, // 1 dakika
+    staleTime: 0, // Always consider data stale, rely on realtime updates
     gcTime: 5 * 60 * 1000, // 5 dakika
     retry: 1,
+    // Disable automatic refetching - rely on realtime updates
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: undefined,
   });
 };
 
@@ -168,7 +173,7 @@ export function useSacrificeById(id: string | undefined) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, [id, queryClient, updateSacrifice]);
 

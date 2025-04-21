@@ -92,6 +92,7 @@ export const useCreateShareholders = () => {
 export const useGetShareholders = (searchQuery?: string) => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const store = useShareholderStore()
 
   // Define the query key including the search parameter
   const queryKey = searchQuery
@@ -101,6 +102,11 @@ export const useGetShareholders = (searchQuery?: string) => {
   const query = useQuery({
     queryKey,
     queryFn: async () => {
+      // If store already has data and no search query, return it
+      if (store.shareholders.length > 0 && !searchQuery) {
+        return store.shareholders;
+      }
+
       let query = supabase
         .from("shareholders")
         .select(`
@@ -128,14 +134,29 @@ export const useGetShareholders = (searchQuery?: string) => {
         throw new Error(`Hissedar verileri alınamadı: ${error.message}`)
       }
 
+      // Update store if not a search query
+      if (!searchQuery) {
+        store.setShareholders(data as shareholderSchema[]);
+      }
+
       return data as shareholderSchema[]
     },
+    // Initial data from store if available and no search
+    initialData: store.shareholders.length > 0 && !searchQuery
+      ? store.shareholders
+      : undefined,
+    // Disable automatic refetching
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: undefined,
+    staleTime: 0,
   })
 
   // Set up real-time subscription
   useEffect(() => {
-    // Only set up subscription if the query was successful
-    if (query.isSuccess) {
+    // Only set up subscription if the query was successful and no search
+    if (query.isSuccess && !searchQuery) {
       const subscription = supabase
         .channel('shareholders-changes')
         .on('postgres_changes',
@@ -168,6 +189,9 @@ export const useGetShareholders = (searchQuery?: string) => {
                       if (!oldData) return [data as shareholderSchema]
                       return [data as shareholderSchema, ...oldData]
                     })
+
+                    // Also update the store
+                    store.addShareholder(data as shareholderSchema);
                   }
                 })
             } else if (payload.eventType === 'UPDATE') {
@@ -196,6 +220,9 @@ export const useGetShareholders = (searchQuery?: string) => {
                           : item
                       )
                     })
+
+                    // Also update the store
+                    store.updateShareholder(data as shareholderSchema);
                   }
                 })
             } else if (payload.eventType === 'DELETE') {
@@ -204,6 +231,11 @@ export const useGetShareholders = (searchQuery?: string) => {
                 if (!oldData) return []
                 return oldData.filter(item => item.shareholder_id !== payload.old.shareholder_id)
               })
+
+              // Also update the store
+              if (payload.old && payload.old.shareholder_id) {
+                store.removeShareholder(payload.old.shareholder_id);
+              }
             }
           })
         .subscribe()
@@ -213,7 +245,7 @@ export const useGetShareholders = (searchQuery?: string) => {
         subscription.unsubscribe()
       }
     }
-  }, [query.isSuccess, queryClient])
+  }, [query.isSuccess, queryClient, searchQuery, store])
 
   return query
 }

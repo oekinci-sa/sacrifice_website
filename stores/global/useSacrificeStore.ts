@@ -81,14 +81,20 @@ export const useSacrificeStore = create<SacrificeState>()(
       refetchSacrifices: async () => {
         const state = get();
 
+        // Prevent multiple simultaneous fetches
+        if (state.isRefetching || state.isLoadingSacrifices) {
+          return state.sacrifices;
+        }
+
         try {
-          set({ isLoadingSacrifices: true });
+          set({ isLoadingSacrifices: true, isRefetching: true });
 
           // API'dan verileri çek
           const response = await fetch("/api/get-sacrifice-animals");
 
           if (!response.ok) {
-            throw new Error("Failed to fetch sacrifices");
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch sacrifices");
           }
 
           const data = await response.json() as sacrificeSchema[];
@@ -97,6 +103,7 @@ export const useSacrificeStore = create<SacrificeState>()(
           set({
             sacrifices: data,
             isLoadingSacrifices: false,
+            isRefetching: false,
             sacrificesInitialized: true,
             isInitialized: true,
           });
@@ -110,8 +117,11 @@ export const useSacrificeStore = create<SacrificeState>()(
 
           return data;
         } catch (error) {
-          set({ isLoadingSacrifices: false });
           console.error("Error fetching sacrifices:", error);
+          set({
+            isLoadingSacrifices: false,
+            isRefetching: false
+          });
           return state.sacrifices;
         }
       },

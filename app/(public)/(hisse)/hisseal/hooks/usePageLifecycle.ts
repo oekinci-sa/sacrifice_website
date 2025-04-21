@@ -30,7 +30,7 @@ interface UsePageLifecycleProps {
     goToStep: (step: Step) => void;
     setSuccess: (success: boolean) => void;
     setHasNavigatedAway: (away: boolean) => void;
-    refetchSacrifices: () => Promise<sacrificeSchema[]>;
+    refetchSacrifices: () => Promise<SacrificeQueryResult | void>;
     isSuccess: boolean;
     hasNavigatedAway: boolean;
     currentStep: string;
@@ -144,11 +144,14 @@ export function usePageLifecycle({
         return async (): Promise<SacrificeQueryResult> => {
             try {
                 const result = await refetchSacrifices();
-                // Now result is a sacrificeSchema[] array, convert it to a SacrificeQueryResult
-                return {
-                    data: result,
-                    success: true
-                };
+                if (!result) {
+                    return {
+                        data: undefined,
+                        success: false,
+                        error: new Error("No result returned from refetchSacrifices")
+                    };
+                }
+                return result;
             } catch (error) {
                 return {
                     data: undefined,

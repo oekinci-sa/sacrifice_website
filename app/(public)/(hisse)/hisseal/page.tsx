@@ -62,6 +62,7 @@ const Page = () => {
     needsRerender.current = true;
     try {
       await refetchSacrifices();
+      // No need to check result.success as refetchSacrifices returns sacrificeSchema[]
     } catch (error) {
       console.error("Error refetching sacrifices:", error);
     }
@@ -145,18 +146,14 @@ const Page = () => {
     refetchSacrifices: async (): Promise<SacrificeQueryResult> => {
       try {
         const result = await refetchSacrifices();
-        if (!result) {
-          return {
-            data: undefined,
-            success: false,
-            error: new Error("No result returned from refetchSacrifices")
-          };
-        }
+        // Convert the result type to match SacrificeQueryResult
         return {
           data: result,
-          success: true
+          success: Array.isArray(result),
+          error: Array.isArray(result) ? null : new Error("Failed to fetch sacrifices")
         };
       } catch (error) {
+        // Return a failed result object instead of void
         return {
           data: undefined,
           success: false,
@@ -219,7 +216,24 @@ const Page = () => {
     goToStep,
     setSuccess,
     setHasNavigatedAway,
-    refetchSacrifices,
+    refetchSacrifices: async () => {
+      // Wrap the refetchSacrifices call to match the expected return type
+      try {
+        const result = await refetchSacrifices();
+        return {
+          data: result,
+          success: true,
+          error: null
+        } as SacrificeQueryResult;
+      } catch (error) {
+        console.error("Error in refetchSacrifices:", error);
+        return {
+          data: undefined,
+          success: false,
+          error: error instanceof Error ? error : new Error(String(error))
+        } as SacrificeQueryResult;
+      }
+    },
     isSuccess,
     hasNavigatedAway,
     currentStep,

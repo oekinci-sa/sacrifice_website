@@ -66,7 +66,7 @@ export const createHandleCustomTimeout = ({
                     body: JSON.stringify({ transaction_id }),
                 });
             }
-        } catch (error) {
+        } catch {
             apiError = true;
         }
 
@@ -76,7 +76,7 @@ export const createHandleCustomTimeout = ({
             // result undefined olabilir (void dönüş durumu)
             if (result && !result.success) {
             }
-        } catch (refreshError) {
+        } catch {
         }
 
         // Show appropriate toast message based on API success

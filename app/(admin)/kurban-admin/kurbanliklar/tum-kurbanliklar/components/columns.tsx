@@ -30,7 +30,6 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   const { refetch } = useSacrifices();
   const sacrificeId = row.original.sacrifice_id;
   const [shareholders, setShareholders] = useState<shareholderSchema[]>([]);
-  const [shareholderDetailsLoading, setShareholderDetailsLoading] = useState(false);
 
   useEffect(() => {
     const fetchShareholderDetails = async () => {
@@ -48,7 +47,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
 
         const data = await response.json();
         setShareholders(data);
-      } catch (error) {
+      } catch {
         toast({
           variant: "destructive",
           title: "Hata",
@@ -352,7 +351,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
             {`${hours}:${minutes}`}
           </div>
         );
-      } catch (error) {
+      } catch {
         return <div className="text-center">-</div>;
       }
     },

@@ -61,7 +61,7 @@ export default function UserProfilePage() {
 
         const data = await response.json();
         setUser(data);
-      } catch (error) {
+      } catch {
         toast({
           variant: "destructive",
           title: "Hata",
@@ -134,7 +134,7 @@ export default function UserProfilePage() {
         title: "Başarılı",
         description: "Kullanıcı bilgileri güncellendi.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Kullanıcı bilgileri güncellenirken bir hata oluştu.",

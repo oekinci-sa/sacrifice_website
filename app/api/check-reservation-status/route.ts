@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       created_at: data.created_at,
       updated_at: data.updated_at
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

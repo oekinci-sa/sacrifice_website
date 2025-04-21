@@ -40,7 +40,7 @@ export function usePageInitialization() {
         const fetchData = async () => {
             try {
                 await refetchSacrifices();
-            } catch (error) {
+            } catch {
             }
         };
 

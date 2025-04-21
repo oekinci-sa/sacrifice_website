@@ -85,7 +85,7 @@ export function usePageEffects({
             (async () => {
                 try {
                     await refetchSacrifices();
-                } catch (error) {
+                } catch {
                 }
             })();
         }
@@ -111,7 +111,7 @@ export function usePageEffects({
             (async () => {
                 try {
                     await refetchSacrifices();
-                } catch (error) {
+                } catch {
                 }
             })();
         }
@@ -124,14 +124,14 @@ export function usePageEffects({
                 (async () => {
                     try {
                         await refetchSacrifices();
-                    } catch (e) { }
+                    } catch { }
                 })();
 
                 const timeoutId = setTimeout(() => {
                     (async () => {
                         try {
                             await refetchSacrifices();
-                        } catch (e) { }
+                        } catch { }
                         setCameFromTimeout(false);
                         needsRerender.current = false;
                     })();
@@ -142,7 +142,7 @@ export function usePageEffects({
                 (async () => {
                     try {
                         await refetchSacrifices();
-                    } catch (e) { }
+                    } catch { }
                 })();
             }
         }

@@ -171,7 +171,7 @@ export function ShareSelectDialog({
       // Seçilen hisse sayısını ana bileşene ilet
       onSelect(selectedShareCount);
       clearTimeout(safetyTimer); // Clear the safety timer
-    } catch (err) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",

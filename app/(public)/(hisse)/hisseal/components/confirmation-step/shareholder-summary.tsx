@@ -62,7 +62,7 @@ const formatSacrificeTime = (timeString: string | null) => {
       minute: '2-digit',
       hour12: false
     });
-  } catch (error) {
+  } catch {
     return timeString; // Hata durumunda orijinal string'i gösterelim
   }
 }
@@ -193,14 +193,16 @@ export default function ShareholderSummary({
         throw new Error("Hissedar kaydetme fonksiyonu bulunamadı!");
       }
 
-      const createResult = await createShareholdersMutation.mutateAsync(shareholderDataForApi);
+      // Create shareholders in the database
+      await createShareholdersMutation.mutateAsync(shareholderDataForApi);
 
       // Complete the reservation
       if (!completeReservationMutation || !completeReservationMutation.mutateAsync) {
         throw new Error("Rezervasyon tamamlama fonksiyonu bulunamadı!");
       }
 
-      const completeResult = await completeReservationMutation.mutateAsync({ transaction_id });
+      // Complete the reservation in the database
+      await completeReservationMutation.mutateAsync({ transaction_id });
 
       // Close dialog and proceed
       setShowTermsDialog(false);
@@ -216,16 +218,16 @@ export default function ShareholderSummary({
         description: "Hissedarlar kaydedildi ve rezervasyon tamamlandı.",
       });
 
-    } catch (error) {
+    } catch (_error) {
       // Close dialog on error
       setShowTermsDialog(false);
 
       // Show appropriate error message based on the error type
-      if (error instanceof Error) {
+      if (_error instanceof Error) {
         toast({
           variant: "destructive",
           title: "Hata",
-          description: error.message || "Hissedarlar kaydedilirken bir hata oluştu.",
+          description: _error.message || "Hissedarlar kaydedilirken bir hata oluştu.",
         });
       } else {
         toast({

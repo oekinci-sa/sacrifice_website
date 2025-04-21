@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     // İstek gövdesinden gerekli verileri al
-    const { transaction_id, share_count, operation } = await request.json();
+    const { transaction_id, share_count } = await request.json();
 
     // Gelen veriyi kontrol et
     if (!transaction_id) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       message: "Rezervasyon hisse adedi başarıyla güncellendi",
       data
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

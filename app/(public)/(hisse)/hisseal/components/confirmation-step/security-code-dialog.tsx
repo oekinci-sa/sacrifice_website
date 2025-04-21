@@ -58,7 +58,7 @@ export default function SecurityCodeDialog({
       onSecurityCodeSet(securityCode)
       // Keep the dialog open because we'll control closing in the parent
       setIsLoading(false)
-    } catch (error) {
+    } catch {
       setError("İşlem sırasında bir hata oluştu.")
       setIsLoading(false)
     }

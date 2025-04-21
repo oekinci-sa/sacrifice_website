@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Return the data
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Return the updated data
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

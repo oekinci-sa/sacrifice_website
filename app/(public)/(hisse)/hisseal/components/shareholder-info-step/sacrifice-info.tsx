@@ -19,8 +19,7 @@ const formatTime = (time: string | null) => {
       const parts = time.split(':');
       return `${parts[0]}:${parts[1]}`;
     }
-  } catch (error) {
-    // Log removed
+  } catch {
   }
 
   return time;

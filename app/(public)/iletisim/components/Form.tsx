@@ -37,19 +37,14 @@ type FormData = z.infer<typeof formSchema>;
 const Form = () => {
   const {
     register,
-    handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit = (data: FormData) => {
-    // Form submission logic will be implemented here
-  };
-
   return (
     <div className="p-4 h-auto border rounded-sm w-full lg:w-3/4">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form className="space-y-4">
         {/* Name */}
         <div>
           <Label htmlFor="name" className="text-xs lg:text-sm">Adınız *</Label>
@@ -121,7 +116,7 @@ const Form = () => {
 
         {/* Submit Button */}
         <Button
-          type="submit"
+          type="button"
           className="w-full bg-sac-primary hover:bg-sac-primary text-white text-sm lg:text-base py-2 lg:py-3"
         >
           Mesaj gönder

@@ -73,7 +73,7 @@ export async function GET(request: Request) {
 
     // Security code is valid, return all shareholder records
     return NextResponse.json({ shareholders });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

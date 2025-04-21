@@ -38,7 +38,7 @@ export default function UserManagementPage() {
 
         const data = await response.json();
         setUsers(data);
-      } catch (error) {
+      } catch {
       } finally {
         setLoading(false);
       }

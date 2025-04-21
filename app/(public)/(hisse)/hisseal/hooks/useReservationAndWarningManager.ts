@@ -156,13 +156,13 @@ export function useReservationAndWarningManager({
                         }
                         return response.json();
                     })
-                    .then(data => {
+                    .then(() => {
                         // Redirect user AFTER the API call succeeds
                         setTimeout(() => {
                             handleTimeoutRedirect();
                         }, 100); // Small delay to ensure DB update is complete
                     })
-                    .catch(error => {
+                    .catch(() => {
                         // Show a toast notification to the user
                         toast({
                             variant: "destructive",
@@ -249,7 +249,7 @@ export function useReservationAndWarningManager({
                 const timer = setTimeout(() => setIsReservationLoading(false), 300);
                 return () => clearTimeout(timer);
             }
-        } catch (error) {
+        } catch {
             setIsReservationLoading(false);
         }
     }, [createReservation]);
@@ -264,9 +264,9 @@ export function useReservationAndWarningManager({
             body: JSON.stringify({ transaction_id: testTransactionId }),
         })
             .then(response => response.json())
-            .then(data => {
+            .then(() => {
             })
-            .catch(err => {
+            .catch(() => {
             });
     }, []);
 

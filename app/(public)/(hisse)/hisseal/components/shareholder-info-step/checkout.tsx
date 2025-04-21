@@ -259,7 +259,7 @@ export default function Checkout({
 
       setFormData([...formData, newShareholderData] as StoreFormData[]);
       setErrors([...errors, {}]);
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",
@@ -297,7 +297,7 @@ export default function Checkout({
       const newErrors = [...errors];
       newErrors.splice(index, 1);
       setErrors(newErrors);
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",
@@ -316,7 +316,7 @@ export default function Checkout({
 
       setUserAction("confirm");
       setShowBackDialog(false);
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",
@@ -353,8 +353,7 @@ export default function Checkout({
 
         resetStore();
         goToStep("selection");
-      } catch (error) {
-        // Log removed
+      } catch {
       } finally {
         setShowLastShareDialog(false);
         setIsCanceling(false);

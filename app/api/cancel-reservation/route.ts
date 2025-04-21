@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       try {
         const parsedData = JSON.parse(text);
         transaction_id = parsedData.transaction_id;
-      } catch (e) {
+      } catch {
       }
     } else {
       // Diğer istek tipleri için
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       message: "Rezervasyon başarıyla iptal edildi",
       data
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

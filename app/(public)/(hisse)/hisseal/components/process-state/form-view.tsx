@@ -160,11 +160,9 @@ export const FormView = ({
                 }).then(() => {
                   resetStore();
                   goToStep("selection");
-                }).catch(err => {
-                  // Log removed
+                }).catch(() => {
                 });
-              } catch (err) {
-                // Log removed
+              } catch {
               }
             }}
             setLastInteractionTime={setLastInteractionTime}

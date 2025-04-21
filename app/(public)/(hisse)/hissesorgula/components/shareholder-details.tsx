@@ -28,8 +28,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
         return `${parts[0]}:${parts[1]}`;
       }
       return timeString;
-    } catch (error) {
-      // Log removed
+    } catch {
       return timeString;
     }
   };

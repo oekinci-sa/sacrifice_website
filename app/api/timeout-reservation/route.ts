@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       message: "Rezervasyon zaman aşımı durumu başarıyla güncellendi",
       data
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Beklenmeyen bir hata oluştu" },
       { status: 500 }

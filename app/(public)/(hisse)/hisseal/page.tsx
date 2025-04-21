@@ -65,7 +65,7 @@ const Page = () => {
       // result void olabilir
       if (result && !result.success) {
       }
-    } catch (error) {
+    } catch {
     }
     return Promise.resolve();
   }, [resetStore, goToStep, refetchSacrifices]);
@@ -199,7 +199,7 @@ const Page = () => {
           description: "Sistem hatası: Hisse güncellemesi yapılamıyor."
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Hata",

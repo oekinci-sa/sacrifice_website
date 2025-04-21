@@ -112,8 +112,7 @@ export const createHandleShareCountSelect = ({
                             return;
                         }
                     }
-                } catch (error) {
-                    // Continue with the process even if we couldn't check the count
+                } catch {
                 }
             }
 
@@ -171,7 +170,7 @@ export const createHandleShareCountSelect = ({
                     setShowReservationInfo(true);
                 }, 300);
             }, 500);
-        } catch (error) {
+        } catch {
             toast({
                 variant: "destructive",
                 title: "Hata",
@@ -223,7 +222,7 @@ export const createHandleApprove = ({
                 title: "İşlem Başarılı",
                 description: "Hissedar kayıtları başarıyla oluşturuldu.",
             });
-        } catch (error) {
+        } catch {
             toast({
                 variant: "destructive",
                 title: "Hata",

@@ -22,7 +22,7 @@ import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -239,6 +239,60 @@ interface ShareFiltersProps {
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }
 
+// Separate component that safely uses useSearchParams
+const URLFilterHandler = ({
+  table,
+  onFilterApplied
+}: {
+  table: Table<sacrificeSchema>,
+  onFilterApplied?: () => void
+}) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  // Improved URL filtering handling for price filters
+  useEffect(() => {
+    const handleURLFilters = () => {
+      const priceFilter = searchParams.get("price");
+
+      if (priceFilter) {
+        try {
+          // Handle both comma-separated values and single values
+          const prices = priceFilter.includes(",")
+            ? priceFilter.split(",").map((p) => p.trim())
+            : [priceFilter.trim()];
+
+          const priceColumn = table.getColumn("share_price");
+          if (priceColumn) {
+            // Apply the filter directly to the table's state
+            table.setColumnFilters((prev) => {
+              // Remove any existing share_price filter
+              const filtered = prev.filter((f) => f.id !== "share_price");
+              // Add the new filter
+              return [
+                ...filtered,
+                {
+                  id: "share_price",
+                  value: prices,
+                },
+              ];
+            });
+
+            if (onFilterApplied) {
+              onFilterApplied();
+            }
+          }
+        } catch {
+        }
+      }
+    };
+
+    handleURLFilters();
+  }, [table, searchParams, pathname, onFilterApplied]);
+
+  return null; // This component doesn't render anything
+};
+
 // 🔹 Ana bileşen
 export function ShareFilters({
   table,
@@ -246,16 +300,9 @@ export function ShareFilters({
   onColumnFiltersChange,
 }: ShareFiltersProps) {
   const { sacrifices } = useSacrificeStore();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
-    // First, let's log a sample sacrifice to see its structure
-    if (sacrifices.length > 0) {
-      // Log removed
-    }
-
     // Create a map to group sacrifices by price
     const priceGroups = sacrifices.reduce((groups, sacrifice) => {
       const price = sacrifice.share_price;
@@ -264,7 +311,6 @@ export function ShareFilters({
       }
 
       // Use the correct property for weight
-      // Replace 'weight_kg' with the actual property name
       const weight = sacrifice.share_weight;
 
       // Only add unique weights
@@ -313,45 +359,13 @@ export function ShareFilters({
 
   const isFiltered = columnFilters.length > 0;
 
-  // Improved URL filtering handling for price filters
-  useEffect(() => {
-    const handleURLFilters = () => {
-      const priceFilter = searchParams.get("price");
-
-      if (priceFilter) {
-        try {
-          // Handle both comma-separated values and single values
-          const prices = priceFilter.includes(",")
-            ? priceFilter.split(",").map((p) => p.trim())
-            : [priceFilter.trim()];
-
-          const priceColumn = table.getColumn("share_price");
-          if (priceColumn) {
-            // Apply the filter directly to the table's state
-            table.setColumnFilters((prev) => {
-              // Remove any existing share_price filter
-              const filtered = prev.filter((f) => f.id !== "share_price");
-              // Add the new filter
-              return [
-                ...filtered,
-                {
-                  id: "share_price",
-                  value: prices,
-                },
-              ];
-            });
-          }
-        } catch (error) {
-          // Log removed
-        }
-      }
-    };
-
-    handleURLFilters();
-  }, [table, searchParams, pathname]);
-
   return (
     <div className="flex flex-col justify-center gap-2 md:gap-4">
+      {/* URLFilterHandler wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <URLFilterHandler table={table} />
+      </Suspense>
+
       {/* Filtreler */}
       <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
         {[

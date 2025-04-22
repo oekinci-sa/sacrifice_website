@@ -7,8 +7,6 @@ import { useEffect } from "react";
 
 // Fetch all sacrifices
 export const useSacrifices = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   // Get Zustand store methods and state - data only
   const { sacrifices, refetchSacrifices, isInitialized } = useSacrificeStore();

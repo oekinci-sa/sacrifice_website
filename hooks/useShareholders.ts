@@ -3,7 +3,7 @@ import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderSto
 import { shareholderSchema } from "@/types"
 import { supabase } from "@/utils/supabaseClient"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
 // Türkiye saati için yardımcı fonksiyon
 function getTurkeyDateTime() {
@@ -325,6 +325,19 @@ export const useDeleteShareholder = () => {
 
 // Transaction ID ile hissedarları getiren hook
 export const useGetShareholdersByTransactionId = (transaction_id: string) => {
+  const { shareholders, isInitialized: isShareholdersInitialized } = useShareholderStore();
+
+  // Store'dan bu transaction_id için shareholders'ları al
+  // Tip uyumsuzluğunu çözmek için interface extension
+  type ShareholderWithTransaction = shareholderSchema & { transaction_id: string };
+
+  const cachedShareholders = useMemo(() => {
+    // Type assertion ile filtreleme
+    return shareholders.filter(s =>
+      (s as unknown as ShareholderWithTransaction).transaction_id === transaction_id
+    ) as unknown as ShareholderWithTransaction[];
+  }, [shareholders, transaction_id]);
+
   return useQuery({
     queryKey: ['shareholders', transaction_id],
     queryFn: async () => {
@@ -332,17 +345,27 @@ export const useGetShareholdersByTransactionId = (transaction_id: string) => {
         throw new Error('transaction_id is required');
       }
 
-      const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
+      // Eğer store boşsa veya bu transaction_id için veri yoksa
+      if (!isShareholdersInitialized || cachedShareholders.length === 0) {
+        const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch shareholder data');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch shareholder data');
+        }
+
+        const data = await response.json();
+        return data;
       }
 
-      return response.json();
+      // Store'da veri varsa onu kullan
+      return cachedShareholders;
     },
     enabled: !!transaction_id, // Sorguyu yalnızca transaction_id varsa aktifleştir
-    staleTime: 0, // Her zaman güncel veri almak için
-    retry: 1, // Hata durumunda bir kez daha dene
+    staleTime: Infinity,
+    gcTime: 0, // React Query v5 için
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };

@@ -11,37 +11,25 @@ export const useSacrifices = () => {
   const { toast } = useToast();
 
   // Get Zustand store methods and state - data only
-  const { sacrifices, refetchSacrifices } = useSacrificeStore();
+  const { sacrifices, refetchSacrifices, isInitialized } = useSacrificeStore();
 
   // We're now using React Query as a wrapper around our Zustand store
   // since the data is already being loaded and updated by SacrificeDataProvider
   return useQuery({
     queryKey: ["sacrifices"],
     queryFn: async () => {
-      // Store'da veri varsa hemen döndür
-      if (sacrifices.length > 0) {
-        return sacrifices;
-      }
-
-      // Yoksa API'dan çek
-      try {
+      // Sadece store boşsa veya initialize edilmemişse API'dan çek
+      if (sacrifices.length === 0 || !isInitialized) {
         return await refetchSacrifices();
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Veri yüklenirken bir hata oluştu: " + String(error),
-        });
-        throw error;
       }
+      // Store'da veri varsa onu kullan
+      return sacrifices;
     },
     // Mevcut store verilerini initial data olarak kullan
     initialData: sacrifices.length > 0 ? sacrifices : undefined,
     // Cache stratejisi
-    staleTime: 0, // Always consider data stale, rely on realtime updates
-    gcTime: 5 * 60 * 1000, // 5 dakika
-    retry: 1,
-    // Disable automatic refetching - rely on realtime updates
+    staleTime: Infinity,
+    gcTime: 0, // React Query v5 için
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -112,31 +100,35 @@ export function useSacrificeById(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
 
-      // Check if we have the data in store first
-      if (cachedSacrifice) {
-        return cachedSacrifice;
+      // Eğer store'da yoksa API'dan çek
+      if (!cachedSacrifice) {
+        const response = await fetch(`/api/get-sacrifice-by-id?id=${id}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || response.statusText);
+        }
+
+        const sacrificeData = await response.json();
+
+        // Store'u güncelle
+        if (sacrificeData) {
+          updateSacrifice(sacrificeData);
+        }
+
+        return sacrificeData;
       }
 
-      // Otherwise fetch from API
-      const response = await fetch(`/api/get-sacrifice-by-id?id=${id}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || response.statusText);
-      }
-
-      const sacrificeData = await response.json();
-
-      // Update the store with this individual sacrifice
-      if (sacrificeData) {
-        updateSacrifice(sacrificeData);
-      }
-
-      return sacrificeData;
+      // Store'da varsa onu kullan
+      return cachedSacrifice;
     },
     initialData: cachedSacrifice || undefined, // Use cached data if available
     enabled: !!id, // Sadece ID varsa sorguyu çalıştır
-    staleTime: 3000, // Consider data fresh for 3 seconds
+    staleTime: Infinity,
+    gcTime: 0, // React Query v5 için
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Realtime desteği ekleniyor

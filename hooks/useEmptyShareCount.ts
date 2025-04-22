@@ -49,39 +49,36 @@ export const useEmptyShareCount = () => {
   const query = useQuery({
     queryKey: [EMPTY_SHARE_QUERY_KEY], // Basit bir anahtar kullan
     queryFn: async () => {
-      // If we already have data in the store, return it immediately
-      if (totalEmptyShares > 0) {
-        return totalEmptyShares;
+      // Sadece store boşsa API'dan çek
+      if (totalEmptyShares <= 0) {
+        const response = await fetch(`/api/get-empty-share-count`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch empty share count");
+        }
+
+        const data = await response.json();
+        const currentValue = data.totalEmptyShares;
+
+        // Zustand store'a kaydet
+        setEmptyShareCount(currentValue);
+
+        return currentValue;
       }
 
-      // Cache busting için timestamp
-      const timestamp = new Date().getTime();
-      const response = await fetch(`/api/get-empty-share-count?t=${timestamp}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch empty share count");
-      }
-
-      const data = await response.json();
-      const currentValue = data.totalEmptyShares;
-
-      // Zustand store'a kaydet
-      setEmptyShareCount(currentValue);
-
-      return currentValue;
+      // Store'da veri varsa onu kullan
+      return totalEmptyShares;
     },
     // Initial data provided from store if available
     initialData: totalEmptyShares > 0 ? totalEmptyShares : undefined,
-    // Disable automatic refetching - rely on invalidation from realtime
-    refetchInterval: undefined,
+    // Cache and refetch settings
+    staleTime: Infinity,
+    gcTime: 0, // React Query v5 için
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // Set stale time to 0 to always consider data stale
-    staleTime: 0,
-    // Cache süresi
-    gcTime: 10 * 60 * 1000,
+    refetchInterval: undefined,
   });
 
   return query;

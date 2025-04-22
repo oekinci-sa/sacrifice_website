@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
@@ -11,11 +11,11 @@ export async function GET() {
     if (error) {
       return NextResponse.json(
         { error: "Failed to fetch empty shares" },
-        { 
+        {
           status: 500,
           headers: {
             'Cache-Control': 'no-store, max-age=0',
-          }  
+          }
         }
       );
     }
@@ -25,7 +25,7 @@ export async function GET() {
       (sum, item) => sum + (item.empty_share || 0),
       0
     );
-    
+
     // Return response with cache control headers
     return NextResponse.json(
       { totalEmptyShares },
@@ -39,7 +39,7 @@ export async function GET() {
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { 
+      {
         status: 500,
         headers: {
           'Cache-Control': 'no-store, max-age=0',

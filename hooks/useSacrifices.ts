@@ -173,7 +173,7 @@ export function useSacrificeById(id: string | undefined) {
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [id, queryClient, updateSacrifice]);
 

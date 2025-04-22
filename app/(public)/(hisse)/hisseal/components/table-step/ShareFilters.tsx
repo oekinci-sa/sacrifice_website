@@ -239,70 +239,23 @@ interface ShareFiltersProps {
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
 }
 
-// Separate component that safely uses useSearchParams
-const URLFilterHandler = ({
-  table,
-  onFilterApplied
-}: {
-  table: Table<sacrificeSchema>,
-  onFilterApplied?: () => void
-}) => {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  // Improved URL filtering handling for price filters
-  useEffect(() => {
-    const handleURLFilters = () => {
-      const priceFilter = searchParams.get("price");
-
-      if (priceFilter) {
-        try {
-          // Handle both comma-separated values and single values
-          const prices = priceFilter.includes(",")
-            ? priceFilter.split(",").map((p) => p.trim())
-            : [priceFilter.trim()];
-
-          const priceColumn = table.getColumn("share_price");
-          if (priceColumn) {
-            // Apply the filter directly to the table's state
-            table.setColumnFilters((prev) => {
-              // Remove any existing share_price filter
-              const filtered = prev.filter((f) => f.id !== "share_price");
-              // Add the new filter
-              return [
-                ...filtered,
-                {
-                  id: "share_price",
-                  value: prices,
-                },
-              ];
-            });
-
-            if (onFilterApplied) {
-              onFilterApplied();
-            }
-          }
-        } catch {
-        }
-      }
-    };
-
-    handleURLFilters();
-  }, [table, searchParams, pathname, onFilterApplied]);
-
-  return null; // This component doesn't render anything
-};
-
-// 🔹 Ana bileşen
-export function ShareFilters({
+// 🔹 Ana bileşen - Client-side implementation that uses useSearchParams
+function ClientShareFilters({
   table,
   columnFilters,
   onColumnFiltersChange,
 }: ShareFiltersProps) {
   const { sacrifices } = useSacrificeStore();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
+    // First, let's log a sample sacrifice to see its structure
+    if (sacrifices.length > 0) {
+      // Log removed
+    }
+
     // Create a map to group sacrifices by price
     const priceGroups = sacrifices.reduce((groups, sacrifice) => {
       const price = sacrifice.share_price;
@@ -311,6 +264,7 @@ export function ShareFilters({
       }
 
       // Use the correct property for weight
+      // Replace 'weight_kg' with the actual property name
       const weight = sacrifice.share_weight;
 
       // Only add unique weights
@@ -359,13 +313,44 @@ export function ShareFilters({
 
   const isFiltered = columnFilters.length > 0;
 
+  // Improved URL filtering handling for price filters
+  useEffect(() => {
+    const handleURLFilters = () => {
+      const priceFilter = searchParams.get("price");
+
+      if (priceFilter) {
+        try {
+          // Handle both comma-separated values and single values
+          const prices = priceFilter.includes(",")
+            ? priceFilter.split(",").map((p) => p.trim())
+            : [priceFilter.trim()];
+
+          const priceColumn = table.getColumn("share_price");
+          if (priceColumn) {
+            // Apply the filter directly to the table's state
+            table.setColumnFilters((prev) => {
+              // Remove any existing share_price filter
+              const filtered = prev.filter((f) => f.id !== "share_price");
+              // Add the new filter
+              return [
+                ...filtered,
+                {
+                  id: "share_price",
+                  value: prices,
+                },
+              ];
+            });
+          }
+        } catch {
+        }
+      }
+    };
+
+    handleURLFilters();
+  }, [table, searchParams, pathname]);
+
   return (
     <div className="flex flex-col justify-center gap-2 md:gap-4">
-      {/* URLFilterHandler wrapped in Suspense */}
-      <Suspense fallback={null}>
-        <URLFilterHandler table={table} />
-      </Suspense>
-
       {/* Filtreler */}
       <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
         {[
@@ -423,5 +408,29 @@ export function ShareFilters({
         * Tüm tabloyu görmek için sağa kaydırınız.
       </p>
     </div>
+  );
+}
+
+// Fallback component when suspense is loading
+function ShareFiltersFallback() {
+  return (
+    <div className="flex flex-col justify-center gap-2 md:gap-4">
+      <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
+        <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
+        <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
+      </div>
+      <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
+        * Tüm tabloyu görmek için sağa kaydırınız.
+      </p>
+    </div>
+  );
+}
+
+// Exported component that uses Suspense to wrap the client-side implementation
+export function ShareFilters(props: ShareFiltersProps) {
+  return (
+    <Suspense fallback={<ShareFiltersFallback />}>
+      <ClientShareFilters {...props} />
+    </Suspense>
   );
 }

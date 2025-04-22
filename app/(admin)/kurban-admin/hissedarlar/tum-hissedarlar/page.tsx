@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = 'force-dynamic'
-
 import { CustomDataTable } from "@/components/custom-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import {

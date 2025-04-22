@@ -53,18 +53,18 @@ export const useEmptyShareCount = () => {
       if (totalEmptyShares <= 0) {
         const response = await fetch(`/api/get-empty-share-count`);
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch empty share count");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch empty share count");
+      }
 
-        const data = await response.json();
-        const currentValue = data.totalEmptyShares;
+      const data = await response.json();
+      const currentValue = data.totalEmptyShares;
 
-        // Zustand store'a kaydet
-        setEmptyShareCount(currentValue);
+      // Zustand store'a kaydet
+      setEmptyShareCount(currentValue);
 
-        return currentValue;
+      return currentValue;
       }
 
       // Store'da veri varsa onu kullan

@@ -4,6 +4,9 @@ import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0  // ISR’ı tamamen kapatır
+
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",

@@ -6,6 +6,13 @@ const publicRoutes = ["/giris"];
 
 export default withAuth(
   function middleware(req) {
+    // API rotaları için Cache-Control header'ı ekle
+    if (req.nextUrl.pathname.startsWith("/api/")) {
+      const response = NextResponse.next();
+      response.headers.set("Cache-Control", "no-store, max-age=0");
+      return response;
+    }
+
     const token = req.nextauth.token;
     const isAdminRoute = req.nextUrl.pathname.startsWith("/kurban-admin");
     const isUserManagementRoute = req.nextUrl.pathname.startsWith("/kurban-admin/kullanici-yonetimi");
@@ -30,6 +37,11 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
+        // API rotaları için her zaman izin ver (ayrı middleware ile işlenecek)
+        if (req.nextUrl.pathname.startsWith("/api/")) {
+          return true;
+        }
+
         // Admin sayfaları için token gerekli
         if (req.nextUrl.pathname.startsWith("/kurban-admin")) {
           return !!token;
@@ -42,5 +54,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/kurban-admin/:path*"]
+  matcher: ["/kurban-admin/:path*", "/api/:path*"]
 }; 

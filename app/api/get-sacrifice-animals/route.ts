@@ -1,9 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-sacrifice-animals
 export async function GET() {
@@ -22,9 +19,7 @@ export async function GET() {
     }
 
     // Return the data
-    return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'no-store, max-age=0' }
-    });
+    return NextResponse.json(data);
   } catch {
     return NextResponse.json(
       { error: "An unexpected error occurred" },

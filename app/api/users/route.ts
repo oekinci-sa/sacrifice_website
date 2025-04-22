@@ -3,6 +3,9 @@ import { supabase } from "@/utils/supabaseClient";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/users - Get all users
 export async function GET() {
     try {
@@ -22,7 +25,9 @@ export async function GET() {
             return NextResponse.json({ error: _error.message }, { status: 500 });
         }
 
-        return NextResponse.json(data);
+        return NextResponse.json(data, {
+            headers: { 'Cache-Control': 'no-store, max-age=0' }
+        });
     } catch {
         return NextResponse.json(
             { error: "Internal server error" },

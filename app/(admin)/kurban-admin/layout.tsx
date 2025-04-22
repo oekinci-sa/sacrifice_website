@@ -2,9 +2,6 @@ import "@/app/globals.css";
 import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
 import { Instrument_Sans } from "next/font/google";
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",

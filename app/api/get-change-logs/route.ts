@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   try {
     const { data, error } = await supabaseAdmin
@@ -15,7 +18,8 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({ logs: data });
+    return NextResponse.json({ logs: data }, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' } });
     
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";

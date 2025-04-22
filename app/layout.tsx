@@ -4,9 +4,6 @@ import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0  // ISR’ı tamamen kapatır
-
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument-sans",
@@ -14,7 +11,8 @@ const instrumentSans = Instrument_Sans({
 
 export const metadata: Metadata = {
   title: "Ankara Kurban",
-  description: "Ankara Kurban",
+  description:
+    "İMH Ankara Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah’a sadece takvanız ulaşır…",
 };
 
 export default function RootLayout({
@@ -24,9 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
-      <body
-        className={`${instrumentSans.variable}`}
-      >
+      <body className={`${instrumentSans.variable}`}>
         <Providers>
           {children}
           <Toaster />
@@ -34,4 +30,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-} 
+}

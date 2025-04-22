@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic'
+
 import { useToast } from "@/components/ui/use-toast";
 import { SacrificeQueryResult } from "@/types";
 import { usePathname } from "next/navigation";

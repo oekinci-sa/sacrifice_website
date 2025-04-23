@@ -1,6 +1,9 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Mark this route as dynamic since it uses request.nextUrl.searchParams
+export const dynamic = 'force-dynamic';
+
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-sacrifice-by-id
 export async function GET(request: NextRequest) {

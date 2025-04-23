@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-latest-sacrifice-share
+
+// Mark this route as dynamic since it uses request.nextUrl.searchParams
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

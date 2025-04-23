@@ -1,7 +1,10 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+// Mark this route as dynamic since it uses request.url
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
   try {
     // Extract phone and security code from the URL parameters
     const url = new URL(request.url);

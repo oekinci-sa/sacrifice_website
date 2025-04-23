@@ -1,13 +1,16 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+// Mark this route as dynamic since it uses request.url
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
   try {
     // Extract sacrifice_id from the URL
     const url = new URL(request.url);
-    const sacrificeId = url.searchParams.get("sacrifice_id");
+    const sacrifice_id = url.searchParams.get("sacrifice_id");
 
-    if (!sacrificeId) {
+    if (!sacrifice_id) {
       return NextResponse.json(
         { error: "sacrifice_id is required" },
         { status: 400 }
@@ -18,7 +21,7 @@ export async function GET(request: Request) {
     const { count, error } = await supabaseAdmin
       .from("shareholders")
       .select("*", { count: "exact" })
-      .eq("sacrifice_id", sacrificeId);
+      .eq("sacrifice_id", sacrifice_id);
 
     if (error) {
       return NextResponse.json(

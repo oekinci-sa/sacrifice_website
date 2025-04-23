@@ -1,6 +1,9 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Mark this route as dynamic since it uses request.url
+export const dynamic = 'force-dynamic';
+
 // This endpoint checks the status of a reservation and returns expiration details
 export async function GET(request: NextRequest) {
   try {

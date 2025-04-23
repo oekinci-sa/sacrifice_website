@@ -1,6 +1,9 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Mark this route as dynamic since it uses request.url
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   // URL'den transaction_id'yi al
   const { searchParams } = new URL(request.url);

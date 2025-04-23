@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 // This is a server-side API endpoint (Route Handler)
 // It will be accessible at /api/get-sacrifice-animals
 export async function GET() {

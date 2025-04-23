@@ -57,4 +57,4 @@ export function ReservationInfoDialog({ isOpen, onClose }: ReservationInfoDialog
       </DialogContent>
     </Dialog>
   );
-} 
+}

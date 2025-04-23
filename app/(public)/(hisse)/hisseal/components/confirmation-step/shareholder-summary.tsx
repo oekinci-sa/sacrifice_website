@@ -181,7 +181,7 @@ export default function ShareholderSummary({
           security_code: securityCode,
           purchased_by: purchaserName,
           last_edited_by: purchaserName,
-          sacrifice_consent: true, // Set to true since user agreed to terms
+          sacrifice_consent: false,
           total_amount: totalAmount,
           remaining_payment: remainingPayment
         }

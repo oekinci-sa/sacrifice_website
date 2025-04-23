@@ -2,7 +2,8 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from "next/server";
 
 // Mark this route as dynamic since it uses request.url
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,14 +16,28 @@ export async function GET(request: NextRequest) {
     if (!phone) {
       return NextResponse.json(
         { error: "Phone number is required" },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
     if (!securityCode) {
       return NextResponse.json(
         { error: "Security code is required" },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -55,14 +70,28 @@ export async function GET(request: NextRequest) {
     if (error) {
       return NextResponse.json(
         { error: "Failed to fetch shareholder information" },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
     if (!shareholders || shareholders.length === 0) {
       return NextResponse.json(
         { error: "No shareholders found with the provided phone number" },
-        { status: 404 }
+        {
+          status: 404,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -71,16 +100,36 @@ export async function GET(request: NextRequest) {
     if (latestShareholder.security_code !== securityCode) {
       return NextResponse.json(
         { error: "Invalid security code" },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
     // Security code is valid, return all shareholder records
-    return NextResponse.json({ shareholders });
+    return NextResponse.json({ shareholders }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 } 

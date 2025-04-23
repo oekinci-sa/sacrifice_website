@@ -2,7 +2,8 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Mark this route as dynamic since it uses request.url
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 // This endpoint checks the status of a reservation and returns expiration details
 export async function GET(request: NextRequest) {
@@ -13,7 +14,14 @@ export async function GET(request: NextRequest) {
     if (!transaction_id) {
       return NextResponse.json(
         { error: "Transaction ID is required" },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -27,14 +35,28 @@ export async function GET(request: NextRequest) {
     if (error) {
       return NextResponse.json(
         { error: error.message },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
     if (!data) {
       return NextResponse.json(
         { error: "Reservation not found" },
-        { status: 404 }
+        {
+          status: 404,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -53,12 +75,25 @@ export async function GET(request: NextRequest) {
       created_at: data.created_at,
       timeLeftSeconds: timeLeftSeconds,
       currentTime: new Date().toISOString()
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
   } catch (error) {
     console.error('Reservation status check error:', error);
     return NextResponse.json(
       { error: 'Failed to check reservation status' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 } 

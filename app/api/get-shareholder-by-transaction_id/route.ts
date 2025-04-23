@@ -2,7 +2,8 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Mark this route as dynamic since it uses request.url
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   // URL'den transaction_id'yi al
@@ -12,7 +13,14 @@ export async function GET(request: NextRequest) {
   if (!transaction_id) {
     return NextResponse.json(
       { error: "transaction_id parameter is required" },
-      { status: 400 }
+      {
+        status: 400,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 
@@ -27,14 +35,28 @@ export async function GET(request: NextRequest) {
     if (reservationError) {
       return NextResponse.json(
         { error: "Failed to fetch reservation data", details: reservationError.message },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
     if (!reservationData) {
       return NextResponse.json(
         { error: "No reservation found with the provided transaction_id" },
-        { status: 404 }
+        {
+          status: 404,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -48,7 +70,14 @@ export async function GET(request: NextRequest) {
     if (sacrificeError) {
       return NextResponse.json(
         { error: "Failed to fetch sacrifice data", details: sacrificeError.message },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -61,7 +90,14 @@ export async function GET(request: NextRequest) {
     if (shareholderError) {
       return NextResponse.json(
         { error: "Failed to fetch shareholder data", details: shareholderError.message },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
@@ -72,12 +108,25 @@ export async function GET(request: NextRequest) {
       shareholders: shareholderData,
     };
 
-    return NextResponse.json(combinedData);
+    return NextResponse.json(combinedData, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: "An unexpected error occurred", details: errorMessage },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
 } 

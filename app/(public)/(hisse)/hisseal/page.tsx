@@ -19,7 +19,8 @@ import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import { useReservationAndWarningManager } from "./hooks/useReservationAndWarningManager";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 // Client component that uses useSearchParams
 function FilteredSacrificesContent({

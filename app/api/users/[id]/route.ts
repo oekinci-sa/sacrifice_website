@@ -3,10 +3,6 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-interface RouteParams {
-    params: { id: string };
-}
-
 // GET /api/users/[id] - Get a user by ID
 export async function GET(
     request: Request,
@@ -72,7 +68,7 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        let json = await request.json();
+        const json = await request.json();
         console.log(`Kullanıcı güncelleme verileri: id=${userId}`, json);
 
         // If not admin, they cannot update role

@@ -159,7 +159,11 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     header: "Telefon",
     enableSorting: false,
     cell: ({ row }) => {
-      const phoneRaw = row.getValue("phone_number") as string;
+      const phoneRaw = row.getValue("phone_number") as string | null;
+
+      // Telefon numarası null ise mesaj göster
+      if (!phoneRaw) return "-";
+
       const phoneFormatted = phoneRaw.startsWith("+9")
         ? `0${phoneRaw.substring(3)}`
         : phoneRaw;

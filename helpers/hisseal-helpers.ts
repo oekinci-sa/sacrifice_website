@@ -152,7 +152,7 @@ export const setupNavigationHandler = ({
         return false;
       }
 
-      await updateSacrifice.mutateAsync({
+      await updateSacrifice.mutate({
         sacrificeId: selectedSacrifice.sacrifice_id,
         emptyShare: currentSacrifice.empty_share + formData.length,
       });
@@ -219,7 +219,7 @@ export const useHandleNavigation = (
           return false;
         }
 
-        await updateSacrifice.mutateAsync({
+        await updateSacrifice.mutate({
           sacrificeId: selectedSacrifice.sacrifice_id,
           emptyShare: currentSacrifice.empty_share + formData.length,
         });

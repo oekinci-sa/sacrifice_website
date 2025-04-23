@@ -9,8 +9,8 @@ export function ShareholderDataProvider({ children }: { children: React.ReactNod
     // Get shareholder store methods
     const {
         fetchShareholders,
-        subscribeToRealtime,
-        unsubscribeFromRealtime,
+        enableRealtime,
+        disableRealtime,
         isInitialized
     } = useShareholderStore();
 
@@ -23,19 +23,19 @@ export function ShareholderDataProvider({ children }: { children: React.ReactNod
             if (!isInitialized) {
                 fetchShareholders().then(() => {
                     // Then set up real-time subscription
-                    subscribeToRealtime();
+                    enableRealtime();
                 });
             } else {
                 // If data is already initialized, just set up subscription
-                subscribeToRealtime();
+                enableRealtime();
             }
         }
 
         // Cleanup on unmount
         return () => {
-            unsubscribeFromRealtime();
+            disableRealtime();
         };
-    }, [fetchShareholders, subscribeToRealtime, unsubscribeFromRealtime, isInitialized]);
+    }, [fetchShareholders, enableRealtime, disableRealtime, isInitialized]);
 
     return <>{children}</>;
 } 

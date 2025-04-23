@@ -168,7 +168,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         title: "Başarılı",
         description: "Hissedar bilgileri güncellendi.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
@@ -193,7 +193,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         description: "Hissedar başarıyla silindi.",
       });
       router.push("/kurban-admin/hissedarlar/tum-hissedarlar");
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Hissedar silinirken bir hata oluştu.",

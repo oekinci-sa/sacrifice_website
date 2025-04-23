@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // This endpoint checks the status of a reservation and returns expiration details
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
     const transaction_id = searchParams.get('transaction_id');
 
     if (!transaction_id) {
@@ -17,13 +17,13 @@ export async function GET(request: NextRequest) {
     // Use the supabaseAdmin client with service role to fetch data (bypasses RLS)
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
-      .select("*")
+      .select("status, expires_at, created_at")
       .eq("transaction_id", transaction_id)
       .single();
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to fetch reservation status" },
+        { error: error.message },
         { status: 500 }
       );
     }
@@ -36,27 +36,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate time remaining if expires_at exists
-    let timeRemaining = null;
+    let timeLeftSeconds = 0;
     if (data.expires_at) {
       const expiresAt = new Date(data.expires_at);
       const now = new Date();
-      timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)); // seconds
+      timeLeftSeconds = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)); // seconds
     }
 
-    // Return the status and expiration info
+    // Return only the necessary fields
     return NextResponse.json({
       status: data.status,
-      transaction_id: data.transaction_id,
-      sacrifice_id: data.sacrifice_id,
-      share_count: data.share_count,
       expires_at: data.expires_at,
-      timeRemaining: timeRemaining, // Seconds remaining until expiration
       created_at: data.created_at,
-      updated_at: data.updated_at
+      timeLeftSeconds: timeLeftSeconds,
+      currentTime: new Date().toISOString()
     });
-  } catch {
+  } catch (error) {
+    console.error('Reservation status check error:', error);
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: 'Failed to check reservation status' },
       { status: 500 }
     );
   }

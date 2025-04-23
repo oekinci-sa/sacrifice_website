@@ -3,6 +3,7 @@
 import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { CreditCard } from "lucide-react";
 import { useMemo } from "react";
 
 export function SummaryCards() {
@@ -173,14 +174,16 @@ export function SummaryCards() {
                     }}
                 />
                 <StatCardWithProgress
-                    title="Tamamlanmamış Ödemeler"
-                    value={stats.shareholdersWithIncompletePayments}
+                    title="Tamamlanmış Ödemeler"
+                    value={stats.shareholdersWithCompletePayments}
                     maxValue={stats.totalShareholders}
                     displayValue={stats.shareholdersWithCompletePayments}
                     actionLink={{
                         text: "Tümünü göster",
                         href: "/kurban-admin/hissedarlar/tum-hissedarlar",
                     }}
+                    description="Ödemesi tamamlanmış hissedarlar"
+                    icon={CreditCard}
                 />
             </div>
 

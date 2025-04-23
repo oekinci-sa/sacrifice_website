@@ -4,12 +4,20 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        // Extract transaction_id from the request body
-        const { transaction_id } = await request.json();
+        // Extract transaction_id and status from the request body
+        const { transaction_id, status = 'expired' } = await request.json();
 
         if (!transaction_id) {
             return NextResponse.json(
                 { error: 'transaction_id is required' },
+                { status: 400 }
+            );
+        }
+
+        // Validate status
+        if (status !== 'expired' && status !== 'timed_out') {
+            return NextResponse.json(
+                { error: 'status must be "expired" or "timed_out"' },
                 { status: 400 }
             );
         }
@@ -67,9 +75,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // Update reservation status to "timed_out" (instead of EXPIRED)
+        // Update reservation status based on provided status
         const updatePayload = {
-            status: 'timed_out',
+            status: status, // Use the provided status (expired or timed_out)
+            updated_at: new Date().toISOString()
         };
 
         try {
@@ -94,10 +103,14 @@ export async function POST(request: Request) {
                 );
             }
 
+            // Return success message based on status
+            const message = status === 'expired'
+                ? 'Reservation expired successfully'
+                : 'Reservation timed out due to user inactivity';
 
-            // Return the timed out reservation
+            // Return the updated reservation
             return NextResponse.json({
-                message: 'Reservation timed out successfully',
+                message: message,
                 reservation: updatedReservation
             });
         } catch (updateException) {

@@ -51,7 +51,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
     setIsEditing(false);
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number | boolean) => {
     setEditData(prev => ({
       ...prev,
       [field]: value
@@ -100,7 +100,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
         title: "Başarılı",
         description: "Kurbanlık bilgileri güncellendi.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Kurbanlık güncellenirken bir hata oluştu.",

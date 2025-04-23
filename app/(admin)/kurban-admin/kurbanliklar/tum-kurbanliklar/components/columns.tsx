@@ -20,7 +20,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Pencil, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
@@ -35,23 +35,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   // Get shareholders from the store
   const { shareholders: allShareholders } = useShareholderStore();
 
-  useEffect(() => {
-    if (isDialogOpen) {
-      // Use the existing data from the store instead of making a new API call
-      const sacrificeShareholders = allShareholders.filter(
-        (shareholder: shareholderSchema) => shareholder.sacrifice_id === sacrificeId
-      );
-
-      if (sacrificeShareholders.length > 0) {
-        setShareholders(sacrificeShareholders);
-      } else {
-        // Fallback to API call if data not in store
-        fetchShareholderDetails();
-      }
-    }
-  }, [sacrificeId, isDialogOpen, allShareholders]);
-
-  const fetchShareholderDetails = async () => {
+  const fetchShareholderDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/sacrifices/${sacrificeId}/shareholders`);
 
@@ -73,7 +57,23 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
       });
     }
-  };
+  }, [sacrificeId, toast]);
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      // Use the existing data from the store instead of making a new API call
+      const sacrificeShareholders = allShareholders.filter(
+        (shareholder: shareholderSchema) => shareholder.sacrifice_id === sacrificeId
+      );
+
+      if (sacrificeShareholders.length > 0) {
+        setShareholders(sacrificeShareholders);
+      } else {
+        // Fallback to API call if data not in store
+        fetchShareholderDetails();
+      }
+    }
+  }, [sacrificeId, isDialogOpen, allShareholders, fetchShareholderDetails]);
 
   const handleDelete = async () => {
     try {
@@ -167,7 +167,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                       <div className="space-y-1">
                         <div className="text-black font-bold">{shareholder.shareholder_name}</div>
                         <div className="text-[#698c78] text-sm">
-                          {shareholder.phone_number.replace("+90", "0")}
+                          {shareholder.phone_number ? shareholder.phone_number.replace("+90", "0") : "-"}
                         </div>
                       </div>
 

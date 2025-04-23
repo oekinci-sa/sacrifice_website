@@ -56,18 +56,21 @@ export function ToolbarAndFilters({
   // Handle search - update to only search in notes
   const handleSearch = (value: string) => {
     setGlobalFilter(value);
-
-    // Apply the search filter only to the notes column
     table.getColumn("notes")?.setFilterValue(value);
   };
 
   // Handle reset all filters
   const handleResetFilters = () => {
+    // Reset all column filters
     table.resetColumnFilters();
+
+    // Reset global filter
     setGlobalFilter("");
+
+    // Reset notes column filter specifically
     table.getColumn("notes")?.setFilterValue("");
 
-    // Call the reset function if it exists
+    // Call the reset function if it exists (for component-specific state)
     if (resetFilterStateRef.current) {
       resetFilterStateRef.current();
     }

@@ -56,14 +56,17 @@ export const createHandleCustomTimeout = ({
         let apiError = false;
 
         try {
-            // Call expire-reservation API if transaction_id is available
+            // Call expire-reservation API if transaction_id is available, mark as timed_out
             if (transaction_id) {
                 await fetch('/api/expire-reservation', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ transaction_id }),
+                    body: JSON.stringify({
+                        transaction_id,
+                        status: 'timed_out' // Kullanıcı hareketsizliği için timed_out kullan
+                    }),
                 });
             }
         } catch {

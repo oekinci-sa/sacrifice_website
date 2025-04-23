@@ -19,14 +19,10 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
   // Get store methods
   const {
     fetchShareholders,
-    isLoading: shareholdersLoading,
-    error: shareholdersError
   } = useShareholderStore();
 
   const {
     fetchTransactions,
-    isLoading: transactionsLoading,
-    error: transactionsError
   } = useReservationTransactionsStore();
 
   // Get sacrifice store methods for realtime updates

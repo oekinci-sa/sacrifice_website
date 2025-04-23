@@ -1,5 +1,6 @@
 "use client";
 
+import { priceInfo } from '@/app/(public)/(anasayfa)/constants';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -81,26 +82,17 @@ TimeInput.displayName = "TimeInput";
 const formSchema = z.object({
   sacrifice_no: z.string().min(1, "Kurbanlık sırası zorunludur"),
   sacrifice_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Geçerli bir saat giriniz (ÖR: 12:36)"),
-  weight_price: z.string().min(1, "Ağırlık ve fiyat seçimi zorunludur"),
+  weight_price: z.string({
+    required_error: "Lütfen hisse ağırlığı/bedeli seçin",
+  }),
+  empty_share: z.coerce.number().min(0).max(7).default(7),
   notes: z.string().optional(),
 });
-
-// Sabit ağırlık ve fiyat seçenekleri
-const WEIGHT_PRICE_OPTIONS = [
-  { id: "1", share_weight: 26, price: 30000 },
-  { id: "2", share_weight: 30, price: 36000 },
-  { id: "3", share_weight: 35, price: 42000 },
-  { id: "4", share_weight: 40, price: 48000 },
-  { id: "5", share_weight: 45, price: 54000 },
-  { id: "6", share_weight: 50, price: 60000 },
-  { id: "7", share_weight: 55, price: 66000 },
-  { id: "8", share_weight: 60, price: 72000 },
-  { id: "9", share_weight: 65, price: 78000 },
-];
 
 export function NewSacrificeAnimal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPriceInfo, setSelectedPriceInfo] = useState(priceInfo[0] || { kg: '', price: '' });
   const { toast } = useToast();
   const { data: session } = useSession();
   const { data: userData } = useUser(session?.user?.email);
@@ -111,6 +103,7 @@ export function NewSacrificeAnimal() {
       sacrifice_no: "",
       sacrifice_time: "",
       weight_price: "",
+      empty_share: 7,
       notes: "",
     },
   });
@@ -123,23 +116,18 @@ export function NewSacrificeAnimal() {
         throw new Error("Kullanıcı bilgisi bulunamadı");
       }
 
-      const selectedOption = WEIGHT_PRICE_OPTIONS.find(
-        option => option.id === values.weight_price
-      );
-
-      if (!selectedOption) throw new Error("Geçersiz ağırlık/fiyat seçimi");
-
       const newSacrifice = {
         sacrifice_no: values.sacrifice_no,
         sacrifice_time: values.sacrifice_time,
-        share_weight: Number(selectedOption.share_weight),
-        share_price: Number(selectedOption.price),
-        empty_share: 7,
+        share_weight: parseFloat(selectedPriceInfo.kg.replace(/[^\d.]/g, '')),
+        share_price: parseInt(selectedPriceInfo.price.replace(/\./g, ''), 10),
+        empty_share: values.empty_share,
         notes: values.notes || null,
+        last_edited_time: new Date().toISOString(),
         last_edited_by: userData.name
       };
 
-      const response = await fetch('/api/sacrifices', {
+      const response = await fetch('/api/create-sacrifice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -235,21 +223,54 @@ export function NewSacrificeAnimal() {
               name="weight_price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hisse Bedeli ve Ağırlığı</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Hisse Ağırlığı/Bedeli</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      const selected = priceInfo.find(item => item.kg === value);
+                      if (selected) setSelectedPriceInfo(selected);
+                    }}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Hisse bedeli ve ağırlık seçin" />
+                        <SelectValue placeholder="Hisse ağırlığı/bedeli seçin" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {WEIGHT_PRICE_OPTIONS.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {option.price.toLocaleString('tr-TR')} TL / {option.share_weight} kg
+                      {priceInfo.map((item) => (
+                        <SelectItem key={item.kg} value={item.kg}>
+                          {item.kg} - {item.price} TL
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="empty_share"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Boş Hisse Sayısı</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={7}
+                      {...field}
+                      onChange={(e) => {
+                        // Ensure the value is between 0 and 7
+                        const value = parseInt(e.target.value);
+                        if (value >= 0 && value <= 7) {
+                          field.onChange(value);
+                        }
+                      }}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

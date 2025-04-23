@@ -33,13 +33,13 @@ interface SacrificeData {
   sacrifice_time?: string;
   share_price?: number;
   share_weight?: string;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
 }
 
 interface ReservationData {
   transaction_id?: string;
   created_at?: string;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
 }
 
 // API yanıt formatı
@@ -53,7 +53,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
   const { transaction_id } = useReservationIDStore();
 
-  const [isClient, setIsClient] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const [dbData, setDbData] = useState<ShareholderApiResponse>({ shareholders: [], sacrifice: {}, reservation: {} });
   const [isDbLoading, setIsDbLoading] = useState(true);
@@ -115,10 +114,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     console.log("SuccessView isDbError:", isDbError);
     console.log("SuccessView dbError:", dbError);
   }, [dbData, isDbLoading, isDbError, dbError]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Format phone number to 0555 555 55 55
   const formatPhoneNumber = (phone: string): string =>
@@ -272,12 +267,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       shareholder.phone_number || shareholder.phone || ""
     );
   };
-
-  // Determine if we should show fallback data
-  const shouldShowFallback =
-    (!dbData || !dbData.shareholders || dbData.shareholders.length === 0) &&
-    !isDbLoading &&
-    !isDbError;
 
   // Use fallback data if needed - artık fallback kullanmıyoruz
   const shareholdersToDisplay = dbData?.shareholders || [];

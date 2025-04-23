@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { SacrificeQueryResult, sacrificeSchema } from "@/types";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { PageLayout } from "./components/layout/page-layout";
 import { columns } from "./components/table-step/columns";
 import {
@@ -19,11 +19,37 @@ import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import { useReservationAndWarningManager } from "./hooks/useReservationAndWarningManager";
 
+// Client component that uses useSearchParams
+function FilteredSacrificesContent({
+  sacrifices,
+  onFilteredSacrificesChange
+}: {
+  sacrifices: sacrificeSchema[],
+  onFilteredSacrificesChange: (data: sacrificeSchema[]) => void
+}) {
+  const searchParams = useSearchParams();
+  const priceParam = searchParams.get('price');
+
+  // Apply filtering when sacrifices or priceParam changes
+  useEffect(() => {
+    console.log("FilteredSacrificesContent: Filtering with price param:", priceParam);
+    if (sacrifices.length === 0) return;
+
+    if (priceParam && !isNaN(Number(priceParam))) {
+      const price = Number(priceParam);
+      onFilteredSacrificesChange(sacrifices.filter(sacrifice => sacrifice.share_price === price));
+    } else {
+      onFilteredSacrificesChange([...sacrifices]);
+    }
+  }, [sacrifices, priceParam, onFilteredSacrificesChange]);
+
+  return null; // This component doesn't render anything, just handles the filtering
+}
+
 const Page = () => {
   const { toast } = useToast();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const priceParam = searchParams.get('price');
+  // Remove useSearchParams from here - moved to FilteredSacrificesContent
 
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
@@ -34,8 +60,6 @@ const Page = () => {
     isLoadingSacrifices,
     isRefetching,
     refetchSacrifices,
-    subscribeToRealtime,
-    unsubscribeFromRealtime,
     selectedSacrifice,
     tempSelectedSacrifice,
     formData,
@@ -67,18 +91,8 @@ const Page = () => {
   useEffect(() => {
     console.log("Page.tsx: İlk yükleme kontrolü, mevcut veri sayısı:", sacrifices.length);
 
-    // Eğer veriler zaten yüklenmişse, filtreleri uygula
-    if (sacrifices.length > 0) {
-      console.log("Page.tsx: Veriler zaten mevcut, filtreleri uyguluyorum");
-      if (priceParam && !isNaN(Number(priceParam))) {
-        const price = Number(priceParam);
-        setFilteredSacrifices(sacrifices.filter(sacrifice => sacrifice.share_price === price));
-      } else {
-        setFilteredSacrifices([...sacrifices]);
-      }
-    }
-    // Eğer veriler yüklenmemişse ve yükleme durumunda değilse, manuel refetch
-    else if (!isLoadingSacrifices && !isRefetching) {
+    // Eğer veriler zaten yüklenmişse, bunları yeni filtrelenecek komponent işleyecek
+    if (sacrifices.length === 0 && !isLoadingSacrifices && !isRefetching) {
       console.log("Page.tsx: Veriler mevcut değil, manuel refetch yapılıyor");
       refetchSacrifices().then(data => {
         console.log("Page.tsx: Manuel refetch tamamlandı, veri sayısı:", data.length);
@@ -86,20 +100,7 @@ const Page = () => {
         console.error("Page.tsx: Manuel refetch hatası:", err);
       });
     }
-  }, []);  // Sadece bir kez çalışsın
-
-  // Veri güncellendiğinde filtrelemeyi yapacak useEffect
-  useEffect(() => {
-    console.log("Page.tsx: sacrifices değişti, filtreleme yapılıyor, veri sayısı:", sacrifices.length);
-    if (sacrifices.length === 0) return;
-
-    if (priceParam && !isNaN(Number(priceParam))) {
-      const price = Number(priceParam);
-      setFilteredSacrifices(sacrifices.filter(sacrifice => sacrifice.share_price === price));
-    } else {
-      setFilteredSacrifices([...sacrifices]);
-    }
-  }, [sacrifices, priceParam]);
+  }, []); // Sadece bir kez çalışsın
 
   // Realtime subscription ve veri yenileme için useEffect
   useEffect(() => {
@@ -107,18 +108,8 @@ const Page = () => {
 
     // Sadece yüklenen veriler için filtreleme işlemini yapacak event listener'ı kuralım
     const handleDataUpdate = () => {
-      console.log("Page.tsx: SACRIFICE_UPDATED_EVENT alındı, filteredSacrifices güncelleniyor...");
-
-      // Store verileri zaten güncel, sadece filtreleri yeniden uygula
-      setFilteredSacrifices(priceParam && !isNaN(Number(priceParam))
-        ? sacrifices.filter(s => s.share_price === Number(priceParam))
-        : [...sacrifices]);
-
-      console.log("Page.tsx: Filtreler yeniden uygulandı, veri sayısı:",
-        priceParam && !isNaN(Number(priceParam))
-          ? sacrifices.filter(s => s.share_price === Number(priceParam)).length
-          : sacrifices.length
-      );
+      console.log("Page.tsx: SACRIFICE_UPDATED_EVENT alındı, filteredSacrifices güncellenmesi gerekecek");
+      // Actual filtering will be handled by the FilteredSacrificesContent component
     };
 
     // Event listener ekle
@@ -129,7 +120,7 @@ const Page = () => {
       console.log("Page.tsx: Event listener temizleniyor...");
       window.removeEventListener(SACRIFICE_UPDATED_EVENT, handleDataUpdate);
     };
-  }, [refetchSacrifices, sacrifices, priceParam]); // sacrifices ve priceParam değişikliklerini de izleyelim
+  }, []);
 
   // Create key handlers directly in the component to avoid circular dependencies
   const handleTimeoutRedirect = useCallback(async () => {
@@ -173,6 +164,7 @@ const Page = () => {
     setShowOneMinuteWarning,
     getRemainingMinutesText,
     handleDismissWarning,
+    fetchReservationExpiry,
     TIMEOUT_DURATION,
     WARNING_THRESHOLD
   } = useReservationAndWarningManager({
@@ -182,6 +174,11 @@ const Page = () => {
     handleTimeoutRedirect,
     toast
   });
+
+  // Callback for updating filtered sacrifices from the FilteredSacrificesContent
+  const handleFilteredSacrificesChange = useCallback((data: sacrificeSchema[]) => {
+    setFilteredSacrifices(data);
+  }, []);
 
   // Create action handlers
   const handleSacrificeSelect = createHandleSacrificeSelect({
@@ -257,6 +254,25 @@ const Page = () => {
   const handleCustomTimeoutWithPromise = useCallback(async () => {
     return await handleCustomTimeout();
   }, [handleCustomTimeout]);
+
+  // Check for reservation status when transaction_id changes
+  useEffect(() => {
+    if (transaction_id && currentStep === "details") {
+      // Fetch the reservation expiry time from server
+      fetchReservationExpiry(transaction_id).then(expiryData => {
+        if (expiryData && expiryData.timeLeftSeconds <= 0) {
+          // If expired, redirect to selection
+          toast({
+            variant: "destructive",
+            title: "Rezervasyon Süresi Doldu",
+            description: "Rezervasyon süreniz dolmuş. Lütfen tekrar hisse seçiniz."
+          });
+
+          handleCustomTimeout();
+        }
+      });
+    }
+  }, [transaction_id, currentStep, fetchReservationExpiry, toast, handleCustomTimeout]);
 
   // Safe server time remaining
   const safeServerTimeRemaining = reservationStatus?.timeRemaining || undefined;
@@ -381,43 +397,53 @@ const Page = () => {
   }
 
   return (
-    <PageLayout
-      isSuccess={isSuccess}
-      onPdfDownload={handlePdfDownload}
-      currentStep={currentStep}
-      tabValue={tabValue}
-      timeLeft={timeLeft}
-      showWarning={showWarning}
-      columns={columns}
-      data={filteredSacrifices}
-      selectedSacrifice={selectedSacrifice}
-      formData={formData}
-      onSacrificeSelect={handleSacrificeSelect}
-      updateShareCount={handleUpdateShareCount}
-      setFormData={setFormData}
-      goToStep={goToStep}
-      resetStore={resetStore}
-      setLastInteractionTime={setLastInteractionTime}
-      setTimeLeft={setTimeLeft}
-      handleApprove={handleApprove}
-      toast={toast}
-      tempSelectedSacrifice={tempSelectedSacrifice}
-      isDialogOpen={isDialogOpen}
-      setIsDialogOpen={setIsDialogOpen}
-      showReservationInfo={showReservationInfo}
-      setShowReservationInfo={setShowReservationInfo}
-      showThreeMinuteWarning={showThreeMinuteWarning}
-      setShowThreeMinuteWarning={setShowThreeMinuteWarning}
-      showOneMinuteWarning={showOneMinuteWarning}
-      setShowOneMinuteWarning={setShowOneMinuteWarning}
-      handleShareCountSelect={handleShareCountSelect}
-      handleReservationInfoClose={handleReservationInfoClose}
-      handleDismissWarning={handleDismissWarningWrapper}
-      getRemainingMinutesText={getRemainingMinutesText}
-      isReservationLoading={isReservationLoading}
-      isLoading={isLoading}
-      serverTimeRemaining={safeServerTimeRemaining}
-    />
+    <>
+      {/* Wrap the component using useSearchParams in Suspense */}
+      <Suspense fallback={null}>
+        <FilteredSacrificesContent
+          sacrifices={sacrifices}
+          onFilteredSacrificesChange={handleFilteredSacrificesChange}
+        />
+      </Suspense>
+
+      <PageLayout
+        isSuccess={isSuccess}
+        onPdfDownload={handlePdfDownload}
+        currentStep={currentStep}
+        tabValue={tabValue}
+        timeLeft={timeLeft}
+        showWarning={showWarning}
+        columns={columns}
+        data={filteredSacrifices}
+        selectedSacrifice={selectedSacrifice}
+        formData={formData}
+        onSacrificeSelect={handleSacrificeSelect}
+        updateShareCount={handleUpdateShareCount}
+        setFormData={setFormData}
+        goToStep={goToStep}
+        resetStore={resetStore}
+        setLastInteractionTime={setLastInteractionTime}
+        setTimeLeft={setTimeLeft}
+        handleApprove={handleApprove}
+        toast={toast}
+        tempSelectedSacrifice={tempSelectedSacrifice}
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        showReservationInfo={showReservationInfo}
+        setShowReservationInfo={setShowReservationInfo}
+        showThreeMinuteWarning={showThreeMinuteWarning}
+        setShowThreeMinuteWarning={setShowThreeMinuteWarning}
+        showOneMinuteWarning={showOneMinuteWarning}
+        setShowOneMinuteWarning={setShowOneMinuteWarning}
+        handleShareCountSelect={handleShareCountSelect}
+        handleReservationInfoClose={handleReservationInfoClose}
+        handleDismissWarning={handleDismissWarningWrapper}
+        getRemainingMinutesText={getRemainingMinutesText}
+        isReservationLoading={isReservationLoading}
+        isLoading={isLoading}
+        serverTimeRemaining={safeServerTimeRemaining}
+      />
+    </>
   );
 };
 

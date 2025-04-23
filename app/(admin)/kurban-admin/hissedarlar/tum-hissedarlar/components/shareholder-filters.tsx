@@ -19,7 +19,7 @@ import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // Filter Badge component for mobile
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -80,11 +80,13 @@ function DataTableFacetedFilter<TData, TValue>({
   title,
   options,
   type,
+  paymentStatusCounts
 }: {
   column?: Column<TData, TValue>;
   title?: string;
   options: { label: string; value: string }[];
   type: string;
+  paymentStatusCounts?: Record<string, number>;
 }) {
   const selectedValues = new Set(column?.getFilterValue() as string[]);
   const facets = column?.getFacetedUniqueValues();
@@ -132,6 +134,7 @@ function DataTableFacetedFilter<TData, TValue>({
                   <CommandItem
                     key={option.value}
                     onSelect={() => handleSelect(option.value)}
+                    className="cursor-pointer"
                   >
                     <div
                       className={cn(
@@ -144,11 +147,15 @@ function DataTableFacetedFilter<TData, TValue>({
                       <Check className="h-4 w-4" />
                     </div>
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {type === "payment" ? (
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                        {paymentStatusCounts?.[option.label] || 0}
+                      </span>
+                    ) : facets?.get(option.value) ? (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
                       </span>
-                    )}
+                    ) : null}
                   </CommandItem>
                 );
               })}
@@ -165,6 +172,36 @@ interface ShareholderFiltersProps {
 }
 
 export function ShareholderFilters({ table }: ShareholderFiltersProps) {
+  // State to store payment status counts
+  const [paymentStatusCounts, setPaymentStatusCounts] = useState<Record<string, number>>({});
+
+  // Effect for updating payment status counts
+  useEffect(() => {
+    const paymentStatusCounts: Record<string, number> = {
+      deposit: 0,
+      partial: 0,
+      completed: 0,
+      none: 0
+    };
+
+    const filteredRows = table.getFilteredRowModel().rows;
+
+    filteredRows.forEach((row) => {
+      const shareholder = row.original;
+      if (shareholder.paid_amount === 0) {
+        paymentStatusCounts.none++;
+      } else if (shareholder.paid_amount >= shareholder.total_amount) {
+        paymentStatusCounts.completed++;
+      } else if (shareholder.paid_amount >= 5000) {
+        paymentStatusCounts.partial++;
+      } else {
+        paymentStatusCounts.deposit++;
+      }
+    });
+
+    setPaymentStatusCounts(paymentStatusCounts);
+  }, [table]);
+
   // Generate sacrifice number options from the data
   const sacrificeOptions = useMemo(() => {
     const sacrificeNos = new Set<string>();
@@ -277,6 +314,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
           title="Ödeme Durumu"
           options={paymentStatusOptions}
           type="payment"
+          paymentStatusCounts={paymentStatusCounts}
         />
       )}
       {table.getColumn("delivery_location") && (

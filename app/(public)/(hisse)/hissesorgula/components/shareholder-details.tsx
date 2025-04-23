@@ -15,7 +15,7 @@ interface ShareholderDetailsProps {
       sacrifice_no: string;
       sacrifice_time?: string;
       share_price?: number;
-      share_weight?: number;
+      share_weight?: string | number;
     };
   };
 }
@@ -114,8 +114,9 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               <div>
                 <p className="text-slate-600 font-medium mb-1">Kilogram</p>
                 <p className="font-medium">
-                  {shareholderInfo.sacrifice?.share_weight || "-"}
-                  {shareholderInfo.sacrifice?.share_weight ? " ±3" : ""} kg
+                  {shareholderInfo.sacrifice?.share_weight
+                    ? `${shareholderInfo.sacrifice.share_weight} ±3 kg`
+                    : "-"}
                 </p>
               </div>
             </div>

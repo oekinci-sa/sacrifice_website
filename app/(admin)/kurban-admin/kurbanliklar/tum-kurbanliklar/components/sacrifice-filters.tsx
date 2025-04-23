@@ -228,7 +228,16 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
     if (registerResetFunction) {
       registerResetFunction(() => {
         setShowHideFullOption(true);
+
+        // Reset all relevant column filters
         table.getColumn("sacrifice_no")?.setFilterValue(undefined);
+        table.getColumn("empty_share")?.setFilterValue(undefined);
+        table.getColumn("share_price")?.setFilterValue(undefined);
+
+        // Make sure to check if column exists before trying to reset it
+        if (table.getColumn("payment_status")) {
+          table.getColumn("payment_status")?.setFilterValue(undefined);
+        }
       });
     }
   }, [registerResetFunction, table]);

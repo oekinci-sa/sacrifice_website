@@ -57,7 +57,7 @@ export function SacrificeInfo({
         <div className="space-y-1">
           <p className={labelClass}>Tahmini Et Ağırlığı</p>
           <p className={valueClass}>
-            {shareholderInfo.sacrifice && 'share_weight' in shareholderInfo.sacrifice
+            {shareholderInfo.sacrifice?.share_weight
               ? `${shareholderInfo.sacrifice.share_weight} kg`
               : "-"}
           </p>

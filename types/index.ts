@@ -52,6 +52,7 @@ export interface shareholderSchema {
     sacrifice_no: string;
     sacrifice_time?: string;
     share_price?: number;
+    share_weight?: number | string;
   };
 }
 

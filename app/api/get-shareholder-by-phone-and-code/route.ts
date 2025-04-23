@@ -42,7 +42,8 @@ export async function GET(request: Request) {
         sacrifice:sacrifice_animals (
           sacrifice_no,
           sacrifice_time,
-          share_price
+          share_price,
+          share_weight
         )
       `)
       .eq("phone_number", formattedPhone)

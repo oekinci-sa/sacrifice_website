@@ -16,7 +16,6 @@ Frontend: React 18, Next JS 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 
 - All TypeScript definitions should be organized under the types folder.
 - All forms should include react-hook-form and Zod validations.
-- Server state management → React Query
 - Client state (UI state) management → Zustand veya useState
 - use /hooks folder for custom hooks.
 - At the end of the process of writing or deleting or updating something to the database from the frontend, inform the user whether the process is positive or negative with shadcn toast components.

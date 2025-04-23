@@ -1,18 +1,8 @@
-import { useToast } from "@/components/ui/use-toast"
-import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore"
-import { shareholderSchema } from "@/types"
-import { supabase } from "@/utils/supabaseClient"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useEffect, useMemo } from "react"
+import { useToast } from "@/components/ui/use-toast";
+import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { shareholderSchema } from "@/types";
+import { useEffect, useState } from "react";
 
-// Türkiye saati için yardımcı fonksiyon
-function getTurkeyDateTime() {
-  return new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })
-    .replace(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/, function (_, day, month, year, hour, minute, second) {
-      // Formatlı tarih string'i: YYYY-MM-DD HH:MM:SS.ssssss
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000000`;
-    });
-}
 
 // Define the structure for a single shareholder as expected by the API
 interface ShareholderInput {
@@ -32,20 +22,22 @@ interface ShareholderInput {
   remaining_payment: number; // Remaining payment = total_amount - paid_amount
 }
 
-// Modified hook to use the API endpoint
+// Create shareholders hook with Zustand
 export const useCreateShareholders = () => {
-  const queryClient = useQueryClient();
   const { toast } = useToast();
-  // Get the store's addShareholder action
-  const addShareholder = useShareholderStore(state => state.addShareholder);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const updateShareholder = useShareholderStore(state => state.updateShareholder);
 
-  return useMutation<any, Error, ShareholderInput[]>({
-    mutationFn: async (shareholdersData) => {
-      if (!shareholdersData || shareholdersData.length === 0) {
-        throw new Error("Hissedar bilgileri boş olamaz");
-      }
+  const mutate = async (shareholdersData: ShareholderInput[]) => {
+    if (!shareholdersData || shareholdersData.length === 0) {
+      throw new Error("Hissedar bilgileri boş olamaz");
+    }
 
+    setIsLoading(true);
+    setError(null);
 
+    try {
       const response = await fetch("/api/create-shareholders", {
         method: "POST",
         headers: {
@@ -60,180 +52,61 @@ export const useCreateShareholders = () => {
         throw new Error(result.error || "Hissedarlar oluşturulamadı.");
       }
 
-      return result.data;
-    },
-    onMutate: async () => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["shareholders"] });
-      // Optionally return snapshot value here if needed for optimistic updates
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: error.message || "Hissedar bilgileri kaydedilirken bir hata oluştu",
-      });
-    },
-    onSuccess: (data) => {
-      // Update global store directly with the new shareholders
-      if (Array.isArray(data)) {
-        data.forEach(shareholder => {
-          addShareholder(shareholder);
+      // Update store with the new shareholders
+      if (Array.isArray(result.data)) {
+        result.data.forEach((shareholder: shareholderSchema) => {
+          updateShareholder(shareholder);
         });
       }
 
-      // Also invalidate the cache for backward compatibility
-      queryClient.invalidateQueries({ queryKey: ["shareholders"] });
-    },
-  });
+      setIsLoading(false);
+      return result.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Hissedar bilgileri kaydedilirken bir hata oluştu";
+
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: errorMessage,
+      });
+
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      setIsLoading(false);
+      throw err;
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate, // React Query uyumluluğu için mutateAsync ekledik
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  };
 };
 
-// New hook for fetching shareholders with real-time updates
-export const useGetShareholders = (searchQuery?: string) => {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
+// Get shareholders hook is already implemented
 
-  // Define the query key including the search parameter
-  const queryKey = searchQuery
-    ? ["shareholders", { search: searchQuery }]
-    : ["shareholders"]
-
-  const query = useQuery({
-    queryKey,
-    queryFn: async () => {
-      let query = supabase
-        .from("shareholders")
-        .select(`
-          *,
-          sacrifice:sacrifice_id (
-            sacrifice_id,
-            sacrifice_no,
-            sacrifice_time,
-            share_price
-          )
-        `)
-        .order('purchase_time', { ascending: false })
-
-      // Apply search filter if provided - keeping this for compatibility
-      if (searchQuery) {
-        const formattedSearch = searchQuery.toLowerCase()
-        query = query.or(
-          `shareholder_name.ilike.%${formattedSearch}%,phone_number.ilike.%${formattedSearch}%,sacrifice.sacrifice_no.ilike.%${formattedSearch}%`
-        )
-      }
-
-      const { data, error } = await query
-
-      if (error) {
-        throw new Error(`Hissedar verileri alınamadı: ${error.message}`)
-      }
-
-      return data as shareholderSchema[]
-    },
-  })
-
-  // Set up real-time subscription
-  useEffect(() => {
-    // Only set up subscription if the query was successful
-    if (query.isSuccess) {
-      const subscription = supabase
-        .channel('shareholders-changes')
-        .on('postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'shareholders'
-          },
-          (payload) => {
-            // Handle the different types of changes
-            if (payload.eventType === 'INSERT') {
-              // Fetch the complete record with joins
-              supabase
-                .from("shareholders")
-                .select(`
-                  *,
-                  sacrifice:sacrifice_id (
-                    sacrifice_id,
-                    sacrifice_no,
-                    sacrifice_time,
-                    share_price
-                  )
-                `)
-                .eq('shareholder_id', payload.new.shareholder_id)
-                .single()
-                .then(({ data, error }) => {
-                  if (!error && data) {
-                    // Update cache with the new record
-                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                      if (!oldData) return [data as shareholderSchema]
-                      return [data as shareholderSchema, ...oldData]
-                    })
-                  }
-                })
-            } else if (payload.eventType === 'UPDATE') {
-              // Fetch the updated record with joins
-              supabase
-                .from("shareholders")
-                .select(`
-                  *,
-                  sacrifice:sacrifice_id (
-                    sacrifice_id,
-                    sacrifice_no,
-                    sacrifice_time,
-                    share_price
-                  )
-                `)
-                .eq('shareholder_id', payload.new.shareholder_id)
-                .single()
-                .then(({ data, error }) => {
-                  if (!error && data) {
-                    // Update the specific record in the cache
-                    queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                      if (!oldData) return [data as shareholderSchema]
-                      return oldData.map(item =>
-                        item.shareholder_id === data.shareholder_id
-                          ? data as shareholderSchema
-                          : item
-                      )
-                    })
-                  }
-                })
-            } else if (payload.eventType === 'DELETE') {
-              // Remove the deleted record from the cache
-              queryClient.setQueryData(["shareholders"], (oldData: shareholderSchema[] | undefined) => {
-                if (!oldData) return []
-                return oldData.filter(item => item.shareholder_id !== payload.old.shareholder_id)
-              })
-            }
-          })
-        .subscribe()
-
-      // Clean up subscription on unmount
-      return () => {
-        subscription.unsubscribe()
-      }
-    }
-  }, [query.isSuccess, queryClient])
-
-  return query
-}
-
-// Update a shareholder
+// Update shareholder hook with Zustand
 export const useUpdateShareholder = () => {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  // Get the store's updateShareholder function
-  const updateStoreSharehoder = useShareholderStore(state => state.updateShareholder)
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const updateStoreSharehoder = useShareholderStore(state => state.updateShareholder);
 
-  return useMutation({
-    mutationFn: async ({
-      shareholderId,
-      data
-    }: {
-      shareholderId: string
-      data: Partial<shareholderSchema>
-    }) => {
-      // Include the shareholderId in the request body as shareholder_id
+  const mutate = async ({
+    shareholderId,
+    data
+  }: {
+    shareholderId: string
+    data: Partial<shareholderSchema>
+  }) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Include the shareholderId in the request body
       const payload = {
         ...data,
         shareholder_id: shareholderId,
@@ -255,40 +128,52 @@ export const useUpdateShareholder = () => {
       }
 
       const result = await response.json();
-      return result.data;
-    },
-    onSuccess: (data) => {
-      // Directly update the store with the updated data
-      if (data) {
-        updateStoreSharehoder(data);
+
+      // Update the store with the updated data
+      if (result.data) {
+        updateStoreSharehoder(result.data);
       }
 
-      // Also invalidate queries for backward compatibility
-      queryClient.invalidateQueries({ queryKey: ['shareholders'] });
-    },
-    onError: (error) => {
+      setIsLoading(false);
+      return result.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Hissedar güncellenirken bir hata oluştu';
+
       toast({
         variant: 'destructive',
         title: 'Hata',
-        description: error instanceof Error ? error.message : 'Hissedar güncellenirken bir hata oluştu'
+        description: errorMessage
       });
+
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      setIsLoading(false);
+      throw err;
     }
-  });
-}
+  };
 
-// Delete a shareholder
+  return {
+    mutate,
+    isLoading,
+    error
+  };
+};
+
+// Delete shareholder hook with Zustand
 export const useDeleteShareholder = () => {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  // Get the store's removeShareholder function
-  const removeStoreSharehoder = useShareholderStore(state => state.removeShareholder)
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const { updateShareholder, fetchShareholders } = useShareholderStore();
 
-  return useMutation({
-    mutationFn: async (shareholderId: string) => {
-      if (!shareholderId) {
-        throw new Error("Silinecek hissedar ID'si gerekli");
-      }
+  const mutate = async (shareholderId: string) => {
+    if (!shareholderId) {
+      throw new Error("Silinecek hissedar ID'si gerekli");
+    }
 
+    setIsLoading(true);
+    setError(null);
+
+    try {
       const response = await fetch(`/api/delete-shareholder`, {
         method: 'POST',
         headers: {
@@ -302,70 +187,108 @@ export const useDeleteShareholder = () => {
         throw new Error(errorData.error || 'Hissedar silinirken bir hata oluştu');
       }
 
-      return { deleted: true, shareholder_id: shareholderId };
-    },
-    onSuccess: (data) => {
-      // Update the store directly
-      if (data && data.shareholder_id) {
-        removeStoreSharehoder(data.shareholder_id);
-      }
+      // Refresh shareholders after deletion
+      await fetchShareholders();
 
-      // Also invalidate queries for backward compatibility
-      queryClient.invalidateQueries({ queryKey: ['shareholders'] });
-    },
-    onError: (error) => {
+      setIsLoading(false);
+      return { deleted: true, shareholder_id: shareholderId };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Hissedar silinirken bir hata oluştu';
+
       toast({
         variant: 'destructive',
         title: 'Hata',
-        description: error instanceof Error ? error.message : 'Hissedar silinirken bir hata oluştu'
+        description: errorMessage
       });
+
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      setIsLoading(false);
+      throw err;
     }
-  });
-}
+  };
 
-// Transaction ID ile hissedarları getiren hook
-export const useGetShareholdersByTransactionId = (transaction_id: string) => {
-  const { shareholders, isInitialized: isShareholdersInitialized } = useShareholderStore();
+  return {
+    mutate,
+    isLoading,
+    error
+  };
+};
 
-  // Store'dan bu transaction_id için shareholders'ları al
-  // Tip uyumsuzluğunu çözmek için interface extension
-  type ShareholderWithTransaction = shareholderSchema & { transaction_id: string };
+// Get all shareholders with Zustand
+export const useGetShareholders = () => {
+  const { fetchShareholders, shareholders, isLoading, error } = useShareholderStore();
 
-  const cachedShareholders = useMemo(() => {
-    // Type assertion ile filtreleme
-    return shareholders.filter(s =>
-      (s as unknown as ShareholderWithTransaction).transaction_id === transaction_id
-    ) as unknown as ShareholderWithTransaction[];
-  }, [shareholders, transaction_id]);
+  useEffect(() => {
+    fetchShareholders();
+  }, [fetchShareholders]);
 
-  return useQuery({
-    queryKey: ['shareholders', transaction_id],
-    queryFn: async () => {
-      if (!transaction_id) {
-        throw new Error('transaction_id is required');
-      }
+  return {
+    data: shareholders,
+    isLoading,
+    error,
+    refetch: fetchShareholders
+  };
+};
 
-      // Eğer store boşsa veya bu transaction_id için veri yoksa
-      if (!isShareholdersInitialized || cachedShareholders.length === 0) {
-        const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
+// Get shareholders by sacrifice ID
+export const useGetShareholdersBySacrificeId = (sacrificeId: string) => {
+  const { shareholders, isLoading, error, fetchShareholders } = useShareholderStore();
+  const [filteredData, setFilteredData] = useState<shareholderSchema[]>([]);
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch shareholder data');
-        }
+  useEffect(() => {
+    // Ensure we have shareholders data
+    if (shareholders.length === 0) {
+      fetchShareholders();
+    }
 
-        const data = await response.json();
-        return data;
-      }
+    // Filter shareholders by sacrifice_id
+    if (sacrificeId && shareholders.length > 0) {
+      const filtered = shareholders.filter(
+        shareholder => shareholder.sacrifice_id === sacrificeId
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData([]);
+    }
+  }, [sacrificeId, shareholders, fetchShareholders]);
 
-      // Store'da veri varsa onu kullan
-      return cachedShareholders;
-    },
-    enabled: !!transaction_id, // Sorguyu yalnızca transaction_id varsa aktifleştir
-    staleTime: Infinity,
-    gcTime: 0, // React Query v5 için
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
+  return {
+    data: filteredData,
+    isLoading,
+    error,
+    refetch: fetchShareholders
+  };
+};
+
+// Get shareholders by transaction ID with Zustand
+export const useGetShareholdersByTransactionId = (transactionId: string) => {
+  const { fetchShareholdersByTransactionId } = useShareholderStore();
+  const [data, setData] = useState<shareholderSchema[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (!transactionId) {
+      setData([]);
+      return;
+    }
+
+    setIsLoading(true);
+    fetchShareholdersByTransactionId(transactionId)
+      .then((result) => {
+        setData(result);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setIsLoading(false);
+      });
+  }, [transactionId, fetchShareholdersByTransactionId]);
+
+  return {
+    data,
+    isLoading,
+    error,
+    refetch: () => fetchShareholdersByTransactionId(transactionId)
+  };
 };

@@ -11,6 +11,7 @@ interface ShareholderState {
 
   // Actions
   fetchShareholders: () => Promise<void>;
+  fetchShareholdersByTransactionId: (transactionId: string) => Promise<shareholderSchema[]>;
   setShareholders: (data: shareholderSchema[]) => void;
   updateShareholder: (shareholder: shareholderSchema) => void;
   addShareholder: (shareholder: shareholderSchema) => void;
@@ -185,6 +186,35 @@ export const useShareholderStore = create<ShareholderState>((set, get) => {
           error: error instanceof Error ? error.message : "Unknown error",
           isLoading: false
         });
+      }
+    },
+
+    // Yeni metot: Belirli bir transaction_id ile ilişkili hissedarları getir
+    fetchShareholdersByTransactionId: async (transactionId: string): Promise<shareholderSchema[]> => {
+      try {
+        set({ isLoading: true, error: null });
+
+        const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transactionId}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || response.statusText);
+        }
+
+        const data = await response.json();
+
+        // Dönen veriyi formatla
+        const shareholders = data.shareholders || [];
+
+        // Store'da güncelleme yapmadan veriyi döndür
+        set({ isLoading: false, error: null });
+        return shareholders;
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : "Unknown error",
+          isLoading: false
+        });
+        return [];
       }
     },
 

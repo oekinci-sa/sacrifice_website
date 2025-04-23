@@ -27,8 +27,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/useUsers";
+import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as React from "react";
@@ -100,9 +100,9 @@ const WEIGHT_PRICE_OPTIONS = [
 
 export function NewSacrificeAnimal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
   const { data: userData } = useUser(session?.user?.email);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -115,8 +115,10 @@ export function NewSacrificeAnimal() {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
+  // Function to create a new sacrifice
+  const createSacrifice = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    try {
       if (!userData?.name) {
         throw new Error("Kullanıcı bilgisi bulunamadı");
       }
@@ -150,30 +152,37 @@ export function NewSacrificeAnimal() {
         throw new Error(errorData.error || 'Failed to create sacrifice');
       }
 
-      return await response.json();
-    },
-    onSuccess: () => {
+      const result = await response.json();
+
+      // Show success message
       toast({
         title: "Başarılı! ✅",
         description: "Yeni kurbanlık başarıyla eklendi!",
         variant: "default",
       });
+
+      // Reset form and close dialog
       form.reset();
       setIsOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['sacrifices'] });
-    },
-    onError: (error) => {
+
+      // Trigger a data refresh to update all components that display sacrifice data
+      triggerSacrificeRefresh();
+
+      return result;
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Hata! ❌",
-        description: `Kurbanlık eklenirken bir hata oluştu: ${error instanceof Error ? error.message : String(error)
-          }`,
+        description: `Kurbanlık eklenirken bir hata oluştu: ${error instanceof Error ? error.message : String(error)}`,
       });
-    },
-  });
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutation.mutate(values);
+    createSacrifice(values);
   };
 
   return (
@@ -268,10 +277,13 @@ export function NewSacrificeAnimal() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
               >
                 İptal
               </Button>
-              <Button type="submit">Kaydet</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
+              </Button>
             </div>
           </form>
         </Form>

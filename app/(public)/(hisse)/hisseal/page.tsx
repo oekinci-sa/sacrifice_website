@@ -1,9 +1,10 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-import { SacrificeQueryResult } from "@/types";
-import { usePathname } from "next/navigation";
-import { useCallback, useRef } from "react";
+import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
+import { SacrificeQueryResult, sacrificeSchema } from "@/types";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PageLayout } from "./components/layout/page-layout";
 import { columns } from "./components/table-step/columns";
 import {
@@ -21,6 +22,8 @@ import { useReservationAndWarningManager } from "./hooks/useReservationAndWarnin
 const Page = () => {
   const { toast } = useToast();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const priceParam = searchParams.get('price');
 
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
@@ -31,6 +34,8 @@ const Page = () => {
     isLoadingSacrifices,
     isRefetching,
     refetchSacrifices,
+    subscribeToRealtime,
+    unsubscribeFromRealtime,
     selectedSacrifice,
     tempSelectedSacrifice,
     formData,
@@ -54,6 +59,77 @@ const Page = () => {
     shouldCheckStatus,
     isLoading
   } = usePageInitialization();
+
+  // URL'den gelen fiyat filtresi için state
+  const [filteredSacrifices, setFilteredSacrifices] = useState<sacrificeSchema[]>([]);
+
+  // Veri ilk yüklendiğinde manuel olarak bir kez refetch yapalım
+  useEffect(() => {
+    console.log("Page.tsx: İlk yükleme kontrolü, mevcut veri sayısı:", sacrifices.length);
+
+    // Eğer veriler zaten yüklenmişse, filtreleri uygula
+    if (sacrifices.length > 0) {
+      console.log("Page.tsx: Veriler zaten mevcut, filtreleri uyguluyorum");
+      if (priceParam && !isNaN(Number(priceParam))) {
+        const price = Number(priceParam);
+        setFilteredSacrifices(sacrifices.filter(sacrifice => sacrifice.share_price === price));
+      } else {
+        setFilteredSacrifices([...sacrifices]);
+      }
+    }
+    // Eğer veriler yüklenmemişse ve yükleme durumunda değilse, manuel refetch
+    else if (!isLoadingSacrifices && !isRefetching) {
+      console.log("Page.tsx: Veriler mevcut değil, manuel refetch yapılıyor");
+      refetchSacrifices().then(data => {
+        console.log("Page.tsx: Manuel refetch tamamlandı, veri sayısı:", data.length);
+      }).catch(err => {
+        console.error("Page.tsx: Manuel refetch hatası:", err);
+      });
+    }
+  }, []);  // Sadece bir kez çalışsın
+
+  // Veri güncellendiğinde filtrelemeyi yapacak useEffect
+  useEffect(() => {
+    console.log("Page.tsx: sacrifices değişti, filtreleme yapılıyor, veri sayısı:", sacrifices.length);
+    if (sacrifices.length === 0) return;
+
+    if (priceParam && !isNaN(Number(priceParam))) {
+      const price = Number(priceParam);
+      setFilteredSacrifices(sacrifices.filter(sacrifice => sacrifice.share_price === price));
+    } else {
+      setFilteredSacrifices([...sacrifices]);
+    }
+  }, [sacrifices, priceParam]);
+
+  // Realtime subscription ve veri yenileme için useEffect
+  useEffect(() => {
+    console.log("Page.tsx: Realtime aboneliği ve veri dinleyicileri kuruluyor...");
+
+    // Sadece yüklenen veriler için filtreleme işlemini yapacak event listener'ı kuralım
+    const handleDataUpdate = () => {
+      console.log("Page.tsx: SACRIFICE_UPDATED_EVENT alındı, filteredSacrifices güncelleniyor...");
+
+      // Store verileri zaten güncel, sadece filtreleri yeniden uygula
+      setFilteredSacrifices(priceParam && !isNaN(Number(priceParam))
+        ? sacrifices.filter(s => s.share_price === Number(priceParam))
+        : [...sacrifices]);
+
+      console.log("Page.tsx: Filtreler yeniden uygulandı, veri sayısı:",
+        priceParam && !isNaN(Number(priceParam))
+          ? sacrifices.filter(s => s.share_price === Number(priceParam)).length
+          : sacrifices.length
+      );
+    };
+
+    // Event listener ekle
+    window.addEventListener(SACRIFICE_UPDATED_EVENT, handleDataUpdate);
+
+    // Temizleme fonksiyonu
+    return () => {
+      console.log("Page.tsx: Event listener temizleniyor...");
+      window.removeEventListener(SACRIFICE_UPDATED_EVENT, handleDataUpdate);
+    };
+  }, [refetchSacrifices, sacrifices, priceParam]); // sacrifices ve priceParam değişikliklerini de izleyelim
 
   // Create key handlers directly in the component to avoid circular dependencies
   const handleTimeoutRedirect = useCallback(async () => {
@@ -270,7 +346,7 @@ const Page = () => {
     TIMEOUT_DURATION,
     WARNING_THRESHOLD,
     handleCustomTimeout: handleCustomTimeoutWithPromise,
-    toast
+    toast,
   });
 
   // Add a debug utility to test expire-reservation API (DEV only)
@@ -306,23 +382,16 @@ const Page = () => {
 
   return (
     <PageLayout
-      // Success state
       isSuccess={isSuccess}
       onPdfDownload={handlePdfDownload}
-
-      // Form state
       currentStep={currentStep}
       tabValue={tabValue}
       timeLeft={timeLeft}
       showWarning={showWarning}
       columns={columns}
-      data={sacrifices}
+      data={filteredSacrifices}
       selectedSacrifice={selectedSacrifice}
       formData={formData}
-      isLoading={isLoading || isReservationLoading}
-      serverTimeRemaining={safeServerTimeRemaining}
-
-      // Form handlers
       onSacrificeSelect={handleSacrificeSelect}
       updateShareCount={handleUpdateShareCount}
       setFormData={setFormData}
@@ -332,8 +401,6 @@ const Page = () => {
       setTimeLeft={setTimeLeft}
       handleApprove={handleApprove}
       toast={toast}
-
-      // Dialog states
       tempSelectedSacrifice={tempSelectedSacrifice}
       isDialogOpen={isDialogOpen}
       setIsDialogOpen={setIsDialogOpen}
@@ -343,13 +410,13 @@ const Page = () => {
       setShowThreeMinuteWarning={setShowThreeMinuteWarning}
       showOneMinuteWarning={showOneMinuteWarning}
       setShowOneMinuteWarning={setShowOneMinuteWarning}
-
-      // Dialog handlers
       handleShareCountSelect={handleShareCountSelect}
       handleReservationInfoClose={handleReservationInfoClose}
       handleDismissWarning={handleDismissWarningWrapper}
       getRemainingMinutesText={getRemainingMinutesText}
       isReservationLoading={isReservationLoading}
+      isLoading={isLoading}
+      serverTimeRemaining={safeServerTimeRemaining}
     />
   );
 };

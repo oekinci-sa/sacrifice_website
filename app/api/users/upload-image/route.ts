@@ -1,5 +1,5 @@
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/utils/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -26,23 +26,33 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 });
         }
 
+        console.log("Resim yükleme bilgileri:", {
+            userId,
+            fileSize: file.size,
+            fileType: file.type,
+            fileName: file.name
+        });
+
         const fileExt = file.name.split(".").pop();
         const fileName = `${userId}.${fileExt}`;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = new Uint8Array(arrayBuffer);
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseAdmin.storage
             .from("avatars")
             .upload(fileName, buffer, { upsert: true });
 
         if (uploadError) {
+            console.error("Resim yükleme hatası:", uploadError);
             return NextResponse.json({ error: uploadError.message }, { status: 500 });
         }
 
-        const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+        const { data } = supabaseAdmin.storage.from("avatars").getPublicUrl(fileName);
+        console.log("Resim yükleme başarılı, URL:", data.publicUrl);
 
         return NextResponse.json({ url: data.publicUrl });
-    } catch {
+    } catch (error) {
+        console.error("Resim yükleme sırasında bilinmeyen hata:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

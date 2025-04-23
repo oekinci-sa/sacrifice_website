@@ -3,7 +3,7 @@ import { GenericReservationMutation, ReservationStatus } from "@/types/reservati
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Constants
-const TIMEOUT_DURATION = 180; // 15 minutes in seconds (15 * 60)
+const TIMEOUT_DURATION = 900; // 15 minutes in seconds (15 * 60)
 const THREE_MINUTE_WARNING = 180; // 3 minutes in seconds 
 const ONE_MINUTE_WARNING = 60; // 1 minute in seconds
 

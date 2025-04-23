@@ -8,7 +8,7 @@ export const reminders = [
   {
     src: "wallet-fill.svg",
     header: "Kapora IBAN Bilgisi",
-    description: "TR12 3456 7890 1234 5678 9012 34<br/>Ahmet oğlu Mehmet",
+    description: "TR12 3456 7890 1234 5678 9012 34 - Ahmet oğlu Mehmet (Açıklama: Kurban 2025)",
   },
   {
     src: "exclamation.svg",

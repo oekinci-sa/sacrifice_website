@@ -4,9 +4,10 @@ import {
     useUpdateShareCount
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { SACRIFICE_UPDATED_EVENT, useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
+import { setupRefreshListener } from "@/utils/data-refresh";
 import { useEffect } from "react";
 
 export function usePageInitialization() {
@@ -15,7 +16,9 @@ export function usePageInitialization() {
         sacrifices,
         isLoadingSacrifices,
         isRefetching,
-        refetchSacrifices
+        refetchSacrifices,
+        subscribeToRealtime,
+        unsubscribeFromRealtime
     } = useSacrificeStore();
 
     // Zustand UI flow store
@@ -39,18 +42,48 @@ export function usePageInitialization() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                await refetchSacrifices();
-            } catch {
+                console.log("usePageInitialization: İlk veri yüklemesi başlatılıyor...");
+                const data = await refetchSacrifices();
+                console.log("usePageInitialization: İlk veri yüklemesi tamamlandı, veri sayısı:", data.length);
+
+                // Realtime subscription'ı aktifleştir
+                subscribeToRealtime();
+                console.log("usePageInitialization: Realtime aboneliği aktifleştirildi");
+            } catch (error) {
+                console.error("usePageInitialization: Veri yükleme hatası:", error);
+                // Hata durumunda da bir sonraki denemede çalışabilmesi için
+                setTimeout(() => {
+                    refetchSacrifices().catch(e =>
+                        console.error("usePageInitialization: Yeniden veri yükleme hatası:", e)
+                    );
+                }, 3000);
             }
         };
 
         fetchData();
-    }, [refetchSacrifices]);
 
-    // Reservation store - transaction_id yönetimi
+        // Set up listener for sacrifice data updates triggered by admin operations
+        const cleanupRefreshListener = setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => {
+            console.log("usePageInitialization: SACRIFICE_UPDATED_EVENT alındı, veriler yenileniyor...");
+            // Burada doğrudan store'u güncelliyoruz
+            refetchSacrifices().then(data => {
+                console.log("usePageInitialization: Veriler güncellendi, veri sayısı:", data.length);
+            }).catch(error => {
+                console.error("usePageInitialization: Veri güncelleme hatası:", error);
+            });
+        });
+
+        // Cleanup on unmount
+        return () => {
+            unsubscribeFromRealtime();
+            cleanupRefreshListener();
+        };
+    }, [refetchSacrifices, subscribeToRealtime, unsubscribeFromRealtime]);
+
+    // Reservation store - transaction_id management
     const { transaction_id, generateNewTransactionId } = useReservationIDStore();
 
-    // React Query hooks
+    // Custom hooks for operations (now using Zustand instead of React Query)
     const updateShareCount = useUpdateShareCount();
     const createShareholders = useCreateShareholders();
     const createReservation = useCreateReservation();
@@ -63,8 +96,8 @@ export function usePageInitialization() {
         isLoading: isStatusLoading,
     } = useReservationStatus(shouldCheckStatus ? transaction_id : "");
 
-    // Combined loading state - Yükleniyor göstergesini ilk yüklenme sırasında göstermeyelim
-    // Sadece kullanıcı işlem yaparken (hisse seçimi, rezervasyon vb.) gösterelim
+    // Combined loading state - don't show loading indicator during initial load
+    // Only show when user is performing actions (share selection, reservation, etc.)
     const isLoading =
         (currentStep !== "selection" && isLoadingSacrifices) ||
         isStatusLoading ||
@@ -76,6 +109,8 @@ export function usePageInitialization() {
         isLoadingSacrifices,
         isRefetching,
         refetchSacrifices,
+        subscribeToRealtime,
+        unsubscribeFromRealtime,
         selectedSacrifice,
         tempSelectedSacrifice,
         formData,
@@ -93,7 +128,7 @@ export function usePageInitialization() {
         transaction_id,
         generateNewTransactionId,
 
-        // React Query hooks
+        // Operation hooks
         updateShareCount,
         createShareholders,
         createReservation,

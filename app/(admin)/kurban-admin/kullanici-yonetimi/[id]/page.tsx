@@ -95,16 +95,21 @@ export default function UserProfilePage() {
         formData.append("file", imageFile);
         formData.append("userId", id as string);
 
+        console.log("Resim yükleniyor...", { userId: id, fileSize: imageFile.size });
+        
         const uploadResponse = await fetch("/api/users/upload-image", {
           method: "POST",
           body: formData,
         });
 
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
+          const uploadErrorData = await uploadResponse.json().catch(() => ({ error: "Parse error" }));
+          console.error("Resim yükleme hatası:", { status: uploadResponse.status, error: uploadErrorData });
+          throw new Error(`Failed to upload image: ${uploadResponse.status}`);
         }
 
         const uploadResult = await uploadResponse.json();
+        console.log("Resim yükleme başarılı:", uploadResult);
         imageUrl = uploadResult.url;
       }
 
@@ -115,6 +120,8 @@ export default function UserProfilePage() {
         image: imageUrl,
       };
 
+      console.log("Kullanıcı güncelleniyor...", { id, updateData });
+      
       const updateResponse = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
@@ -124,8 +131,17 @@ export default function UserProfilePage() {
       });
 
       if (!updateResponse.ok) {
-        throw new Error("Failed to update user");
+        const errorData = await updateResponse.json().catch(() => ({ error: "Parse error" }));
+        console.error("Kullanıcı güncelleme hatası:", { 
+          status: updateResponse.status, 
+          error: errorData, 
+          responseText: await updateResponse.text().catch(() => null) 
+        });
+        throw new Error(`Failed to update user: ${updateResponse.status}`);
       }
+
+      const updatedData = await updateResponse.json();
+      console.log("Kullanıcı güncelleme başarılı:", updatedData);
 
       // Dispatch an event to notify other components about the user update
       window.dispatchEvent(new CustomEvent('user-updated'));
@@ -134,7 +150,8 @@ export default function UserProfilePage() {
         title: "Başarılı",
         description: "Kullanıcı bilgileri güncellendi.",
       });
-    } catch {
+    } catch (error) {
+      console.error("Kullanıcı güncelleme işlemi sırasında hata:", error);
       toast({
         title: "Hata",
         description: "Kullanıcı bilgileri güncellenirken bir hata oluştu.",

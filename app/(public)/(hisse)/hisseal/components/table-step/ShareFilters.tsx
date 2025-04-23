@@ -21,7 +21,7 @@ import { sacrificeSchema } from "@/types";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
@@ -248,6 +248,7 @@ function ClientShareFilters({
   const { sacrifices } = useSacrificeStore();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   // Updated sharePrices to include weight information
   const sharePrices = useMemo(() => {
@@ -349,6 +350,30 @@ function ClientShareFilters({
     handleURLFilters();
   }, [table, searchParams, pathname]);
 
+  // Filtreleri temizlerken URL'i de temizleme fonksiyonu
+  const clearFiltersAndURL = () => {
+    // Filtreleri temizle
+    table.resetColumnFilters();
+    onColumnFiltersChange([]);
+    setShowHideFullOption(true);
+
+    // URL'den price parametresini temizle
+    if (searchParams.has('price')) {
+      // Yeni bir URLSearchParams oluşturup mevcut parametreleri kopyala
+      const newParams = new URLSearchParams(searchParams.toString());
+      // Price parametresini kaldır
+      newParams.delete('price');
+
+      // Yeni URL'i oluştur (pathname ile parametre string'ini birleştir)
+      const newURL = newParams.toString()
+        ? `${pathname}?${newParams.toString()}`
+        : pathname;
+
+      // URL'i güncelle
+      router.push(newURL);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-center gap-2 md:gap-4">
       {/* Filtreler */}
@@ -392,11 +417,7 @@ function ClientShareFilters({
         <div className="flex justify-center md:-mt-4">
           <Button
             variant="ghost"
-            onClick={() => {
-              table.resetColumnFilters();
-              onColumnFiltersChange([]);
-              setShowHideFullOption(true);
-            }}
+            onClick={clearFiltersAndURL}
             className="h-8 px-2 lg:px-3 text-sm"
           >
             Tüm filtreleri temizle
@@ -404,9 +425,14 @@ function ClientShareFilters({
           </Button>
         </div>
       )}
-      <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
-        * Tüm tabloyu görmek için sağa kaydırınız.
-      </p>
+      <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2 md:hidden mt-2">
+        <p className="text-xs flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Tüm tabloyu görmek için sağa kaydırınız.
+        </p>
+      </div>
     </div>
   );
 }
@@ -419,9 +445,14 @@ function ShareFiltersFallback() {
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
       </div>
-      <p className="text-xs text-muted-foreground mt-3 text-center md:hidden">
-        * Tüm tabloyu görmek için sağa kaydırınız.
-      </p>
+      <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2 md:hidden mt-2">
+        <p className="text-xs flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Tüm tabloyu görmek için sağa kaydırınız.
+        </p>
+      </div>
     </div>
   );
 }

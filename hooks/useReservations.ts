@@ -1,15 +1,15 @@
 import { useToast } from "@/components/ui/use-toast";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import {
   GenericReservationMutation,
   ReservationData as ImportedReservationData,
   ReservationStatus,
   UpdateShareCountData,
-  UpdateShareCountMutation,
   UpdateShareCountResponse
 } from "@/types/reservation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
-// Rezervasyon durumu için olası değerler (local use only)
+// Reservation status enum (local use only)
 export enum ReservationStatusLocal {
   PENDING = 'pending',
   APPROVED = 'approved',
@@ -18,7 +18,7 @@ export enum ReservationStatusLocal {
   COMPLETED = 'completed'
 }
 
-// Rezervasyon verisi tanımı
+// Reservation data definition
 export interface ReservationData {
   id: string;
   name: string;
@@ -33,7 +33,7 @@ export interface ReservationData {
   updated_at: string;
 }
 
-// Rezervasyon yanıtı için tip tanımı
+// Reservation response type definition
 export interface ReservationResponse {
   success: boolean;
   message: string;
@@ -51,183 +51,209 @@ export interface ReservationStatusData {
   share_count: number;
 }
 
-// New hook for checking reservation status
+// New hook for checking reservation status using Zustand
 export const useReservationStatus = (transaction_id: string) => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const [data, setData] = useState<ReservationStatusData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Skip query if no transaction_id
-  const enabled = !!transaction_id && transaction_id.length > 0;
+  useEffect(() => {
+    if (!transaction_id || transaction_id.length === 0) {
+      setData(null);
+      return;
+    }
 
-  return useQuery<ReservationStatusData, Error>({
-    queryKey: ['reservation-status', transaction_id],
-    queryFn: async () => {
-      if (!transaction_id) {
-        throw new Error('Transaction ID is required');
-      }
+    let isMounted = true;
+    const controller = new AbortController();
+    const signal = controller.signal;
 
+    const checkStatus = async () => {
+      if (!isMounted) return;
+      setIsLoading(true);
 
       try {
-        const response = await fetch(`/api/check-reservation-status?transaction_id=${transaction_id}`);
+        const response = await fetch(`/api/check-reservation-status?transaction_id=${transaction_id}`, { signal });
 
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
-        const data = await response.json();
-        return data as ReservationStatusData;
+        const result = await response.json();
+
+        if (isMounted) {
+          setData(result);
+          setIsLoading(false);
+        }
       } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('An unexpected error occurred while checking reservation status');
+        if (error instanceof Error && error.name === 'AbortError') return;
+
+        if (isMounted) {
+          setError(error instanceof Error ? error : new Error(String(error)));
+          setIsLoading(false);
         }
       }
-    },
-    enabled: enabled,
-    refetchInterval: 30000, // Check every 30 seconds while window is open
-    refetchOnWindowFocus: true,
-    refetchIntervalInBackground: false, // Don't refetch when tab is not active
-    retry: 3,
-  });
+    };
+
+    // Check immediately
+    checkStatus();
+
+    // Periodic check - every 30 seconds
+    const interval = setInterval(checkStatus, 30000);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearInterval(interval);
+    };
+  }, [transaction_id]);
+
+  return { data, isLoading, error };
 };
 
-// Rezervasyonu ekle hook'u tipini daha iyi tanımlayalım
+// Reservation data interface
 interface CreateReservationData {
   transaction_id: string;
   sacrifice_id: string;
   share_count: number;
-  status?: ReservationStatusLocal; // Opsiyonel status alanı
+  status?: ReservationStatusLocal; // Optional status field
 }
 
-// Reservation_transactions tablosuna yeni kayıt eklemek için mutation hook
+// Create reservation hook using Zustand
 export const useCreateReservation = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const { refetchSacrifices } = useSacrificeStore();
 
-  const mutation = useMutation<any, Error, CreateReservationData>({
-    mutationFn: async ({
-      transaction_id,
-      sacrifice_id,
-      share_count,
-      status,
-    }: CreateReservationData) => {
+  const mutate = async ({
+    transaction_id,
+    sacrifice_id,
+    share_count,
+    status,
+  }: CreateReservationData) => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        // Yeni API endpoint'imizi kullanarak server-side işlemi gerçekleştir
-        const response = await fetch('/api/create-reservation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_id, sacrifice_id, share_count, status })
-        });
+    try {
+      // Use server-side API endpoint
+      const response = await fetch('/api/create-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id, sacrifice_id, share_count, status })
+      });
 
-        // Başarısız yanıt durumunda
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
-        }
-
-        // Başarılı yanıt
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        // Network hatası veya diğer beklenmeyen hatalar
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Rezervasyon oluşturulurken beklenmeyen bir hata oluştu');
-        }
+      // Handle error response
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
-    },
 
-    // Mutation başarılı olduğunda
-    onSuccess: (data) => {
-      // Kurbanlıklar verisini yenile (cache güncelleme)
-      queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
+      // Successful response
+      const responseData = await response.json();
+
+      // Refresh sacrifices data to get updated counts
+      await refetchSacrifices();
 
       toast({
         title: "Başarılı",
         description: "Hisse rezervasyonu başarıyla oluşturuldu",
       });
-    },
 
-    // Mutation hata verdiğinde
-    onError: (error: Error) => {
+      setIsLoading(false);
+      return responseData;
+    } catch (error) {
+      // Network or other unexpected errors
+      const errorMessage = error instanceof Error ? error.message : 'Beklenmeyen bir hata oluştu';
+
       toast({
         variant: "destructive",
         title: "Hata",
-        description: `Rezervasyon işlemi sırasında bir sorun oluştu: ${error.message}`,
+        description: `Rezervasyon işlemi sırasında bir sorun oluştu: ${errorMessage}`,
       });
-    },
-  });
 
-  // Tip uyumluluğu için GenericReservationMutation'a uygun şekilde dönüştürüyoruz
+      setError(error instanceof Error ? error : new Error(errorMessage));
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  // Ensure type compatibility with GenericReservationMutation
   return {
-    ...mutation,
-    status: mutation.status || 'idle'
-  } as GenericReservationMutation;
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  } as unknown as GenericReservationMutation;
 };
 
-// Hisse adedini güncellemek için mutation hook
+// Update share count hook using Zustand
 export const useUpdateShareCount = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const { refetchSacrifices } = useSacrificeStore();
 
-  return useMutation<UpdateShareCountResponse, Error, UpdateShareCountData>({
-    mutationFn: async ({
-      transaction_id,
-      share_count,
-      operation
-    }: UpdateShareCountData) => {
+  const mutate = async ({
+    transaction_id,
+    share_count,
+    operation
+  }: UpdateShareCountData) => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        // Server-side API endpoint'i kullan
-        const response = await fetch('/api/update-share-count', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_id, share_count, operation })
-        });
+    try {
+      // Use server-side API endpoint
+      const response = await fetch('/api/update-share-count', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id, share_count, operation })
+      });
 
-        // Başarısız yanıt durumunda
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
-        }
-
-        // Başarılı yanıt
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        // Network hatası veya diğer beklenmeyen hatalar
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Hisse adedi güncellenirken beklenmeyen bir hata oluştu');
-        }
+      // Handle error response
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
-    },
 
-    // Mutation başarılı olduğunda
-    onSuccess: (data) => {
-      // Kurbanlıklar verisini yenile (cache güncelleme)
-      queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
+      // Successful response
+      const responseData = await response.json();
 
-    },
+      // Refresh sacrifices data to get updated counts
+      await refetchSacrifices();
 
-    // Mutation hata verdiğinde
-    onError: (error: Error) => {
+      setIsLoading(false);
+      return responseData as UpdateShareCountResponse;
+    } catch (error) {
+      // Handle errors
+      const errorMessage = error instanceof Error ? error.message : 'Beklenmeyen bir hata oluştu';
+
       toast({
         variant: "destructive",
         title: "Hata",
-        description: `Hisse adedi güncellenirken bir sorun oluştu: ${error.message}`,
+        description: `Hisse adedini güncellerken bir sorun oluştu: ${errorMessage}`,
       });
-    },
-  }) as UpdateShareCountMutation;
+
+      setError(error instanceof Error ? error : new Error(errorMessage));
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  } as unknown as GenericReservationMutation;
 };
 
 // Yeni eklenen hook: Rezervasyonu iptal etmek için
@@ -236,66 +262,72 @@ interface CancelReservationData {
 }
 
 export const useCancelReservation = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const { refetchSacrifices } = useSacrificeStore();
 
-  return useMutation<any, Error, CancelReservationData>({
-    mutationFn: async ({ transaction_id }: CancelReservationData) => {
+  const mutate = async ({ transaction_id }: CancelReservationData) => {
+    if (!transaction_id) {
+      throw new Error("İşlem kimliği (transaction_id) eksik");
+    }
 
-      if (!transaction_id) {
-        throw new Error("İşlem kimliği (transaction_id) eksik");
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Server-side API endpoint'i kullan
+      const response = await fetch('/api/cancel-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id })
+      });
+
+      // Başarısız yanıt durumunda
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
       }
 
-      try {
-        // Server-side API endpoint'i kullan
-        const response = await fetch('/api/cancel-reservation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_id })
-        });
+      // Başarılı yanıt
+      const responseData = await response.json();
 
-        // Başarısız yanıt durumunda
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
-        }
-
-        // Başarılı yanıt
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        // Network hatası veya diğer beklenmeyen hatalar
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Rezervasyon iptal edilirken beklenmeyen bir hata oluştu');
-        }
-      }
-    },
-
-    // Mutation başarılı olduğunda
-    onSuccess: (data, variables) => {
-      // Rezervasyon ve kurbanlık verilerini yenile (cache güncelleme)
-      queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
-      queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
+      // Refresh sacrifices data
+      await refetchSacrifices();
 
       toast({
         title: "Başarılı",
         description: "Hisse rezervasyonu başarıyla iptal edildi",
       });
-    },
 
-    // Mutation hata verdiğinde
-    onError: (error: Error) => {
+      setIsLoading(false);
+      return responseData;
+    } catch (error) {
+      // Network hatası veya diğer beklenmeyen hatalar
+      const errorMessage = error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu";
+
       toast({
         variant: "destructive",
         title: "Hata",
-        description: `Rezervasyon iptal edilirken bir sorun oluştu: ${error.message}`,
+        description: `Rezervasyon iptal edilirken bir sorun oluştu: ${errorMessage}`,
       });
-    },
-  });
+
+      setError(error instanceof Error ? error : new Error(errorMessage));
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  } as unknown as GenericReservationMutation;
 };
 
 // Yeni eklenen hook: Rezervasyonu zaman aşımına uğratmak için
@@ -304,61 +336,67 @@ interface TimeoutReservationData {
 }
 
 export const useTimeoutReservation = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const { refetchSacrifices } = useSacrificeStore();
 
-  return useMutation<any, Error, TimeoutReservationData>({
-    mutationFn: async ({ transaction_id }: TimeoutReservationData) => {
-      if (!transaction_id) {
-        throw new Error("İşlem kimliği (transaction_id) eksik");
+  const mutate = async ({ transaction_id }: TimeoutReservationData) => {
+    if (!transaction_id) {
+      throw new Error("İşlem kimliği (transaction_id) eksik");
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Server-side API endpoint'i kullan
+      const response = await fetch('/api/timeout-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id })
+      });
+
+      // Başarısız yanıt durumunda
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
       }
 
-      try {
-        // Server-side API endpoint'i kullan
-        const response = await fetch('/api/timeout-reservation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_id })
-        });
+      // Başarılı yanıt
+      const responseData = await response.json();
 
-        // Başarısız yanıt durumunda
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
-        }
+      // Refresh sacrifices data
+      await refetchSacrifices();
 
-        // Başarılı yanıt
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        // Network hatası veya diğer beklenmeyen hatalar
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Rezervasyon zaman aşımına uğratılırken beklenmeyen bir hata oluştu');
-        }
-      }
-    },
+      setIsLoading(false);
+      return responseData;
+    } catch (error) {
+      // Network hatası veya diğer beklenmeyen hatalar
+      const errorMessage = error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu";
 
-    // Mutation başarılı olduğunda
-    onSuccess: (data, variables) => {
-      // Rezervasyon ve kurbanlık verilerini yenile (cache güncelleme)
-      queryClient.invalidateQueries({ queryKey: ["sacrifices"] });
-      queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
-
-    },
-
-    // Mutation hata verdiğinde
-    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: `Rezervasyon zaman aşımına uğratılırken bir sorun oluştu: ${error.message}`,
+        description: `Rezervasyon zaman aşımına uğratılırken bir sorun oluştu: ${errorMessage}`,
       });
-    },
-  });
+
+      setError(error instanceof Error ? error : new Error(errorMessage));
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  } as unknown as GenericReservationMutation;
 };
 
 // Hook for completing a reservation
@@ -367,57 +405,61 @@ interface CompleteReservationData {
 }
 
 export const useCompleteReservation = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
 
-  return useMutation<any, Error, CompleteReservationData>({
-    mutationFn: async ({ transaction_id }: CompleteReservationData) => {
+  const mutate = async ({ transaction_id }: CompleteReservationData) => {
+    if (!transaction_id) {
+      throw new Error("İşlem kimliği (transaction_id) eksik");
+    }
 
-      if (!transaction_id) {
-        throw new Error("İşlem kimliği (transaction_id) eksik");
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Call the API endpoint
+      const response = await fetch('/api/complete-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transaction_id })
+      });
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
       }
 
-      try {
-        // Call the API endpoint
-        const response = await fetch('/api/complete-reservation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_id })
-        });
+      // Handle successful response
+      const responseData = await response.json();
 
-        // Handle non-OK responses
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Sunucu hatası: ${response.status}`);
-        }
+      setIsLoading(false);
+      return responseData;
+    } catch (error) {
+      // Handle errors
+      const errorMessage = error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu";
 
-        // Handle successful response
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Rezervasyon tamamlanırken beklenmeyen bir hata oluştu');
-        }
-      }
-    },
-
-    // On success, invalidate relevant queries
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["reservation", variables.transaction_id] });
-      // Optionally invalidate other related queries if needed
-    },
-
-    // On error, show a toast
-    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Hata",
-        description: `Rezervasyon tamamlanırken bir sorun oluştu: ${error.message}`,
+        description: `Rezervasyon tamamlanırken bir sorun oluştu: ${errorMessage}`,
       });
-    },
-  });
+
+      setError(error instanceof Error ? error : new Error(errorMessage));
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    error,
+    isPending: isLoading,
+    status: isLoading ? 'loading' : error ? 'error' : 'idle'
+  } as unknown as GenericReservationMutation;
 }; 

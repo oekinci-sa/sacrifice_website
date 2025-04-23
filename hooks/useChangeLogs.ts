@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import type { ChangeLog } from "@/app/(admin)/kurban-admin/degisiklik-kayitlari/components/columns";
+import { useEffect, useState } from "react";
 
 export interface changeLogSchema {
   event_id: number;
@@ -16,33 +16,73 @@ export interface changeLogSchema {
 
 /**
  * Hook for fetching all change logs
- * Uses React Query to manage data fetching, caching, and refetching
- * Data is fetched from the API endpoint only when the component is mounted
+ * Uses useState and useEffect to manage data fetching and refetching
+ * Data is fetched from the API endpoint when the component is mounted
  * No realtime subscription is used
  */
 export const useChangeLogs = () => {
-  return useQuery<changeLogSchema[], Error, ChangeLog[]>({
-    queryKey: ["change-logs"],
-    queryFn: async () => {
+  const [data, setData] = useState<ChangeLog[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  // Function to fetch change logs
+  const fetchChangeLogs = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
       const response = await fetch("/api/get-change-logs");
-      
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to fetch change logs");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch change logs");
       }
-      
-      const data = await response.json();
-      return data.logs;
-    },
-    // Transform the raw API data to match the ChangeLog type
-    select: (data) => {
-      return data.map(log => ({
+
+      const result = await response.json();
+
+      // Transform the raw API data to match the ChangeLog type
+      const transformedData: ChangeLog[] = result.logs.map((log: changeLogSchema) => ({
         ...log,
         // Ensure change_type is one of the allowed values
         change_type: log.change_type as "Ekleme" | "Güncelleme" | "Silme"
       }));
-    },
-    staleTime: 60000, // Consider data fresh for 1 minute
-    refetchOnWindowFocus: true,
-  });
+
+      setData(transformedData);
+      return transformedData;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setIsRefetching(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchChangeLogs();
+
+    // Setup window focus event listener for refetching
+    const handleFocus = () => {
+      setIsRefetching(true);
+      fetchChangeLogs();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  return {
+    data,
+    isLoading,
+    error,
+    isRefetching,
+    refetch: fetchChangeLogs
+  };
 }; 

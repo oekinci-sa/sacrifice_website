@@ -10,7 +10,6 @@ import { shareholderSchema } from "@/types";
 import { format } from "date-fns";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ShareholderDetails } from "../components/shareholder-details";
@@ -149,32 +148,33 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       last_edited_by: userData.name // Kullanıcı adını ekle
     };
 
-    updateMutation.mutate({
-      shareholderId: params.id,
-      data: updatedData
-    }, {
-      onSuccess: () => {
-        setShareholder(prevState => {
-          if (!prevState) return prevState;
-          return {
-            ...prevState,
-            ...updatedData
-          };
-        });
-        setIsEditing(false);
-        toast({
-          title: "Başarılı",
-          description: "Hissedar bilgileri güncellendi.",
-        });
-      },
-      onError: () => {
-        toast({
-          title: "Hata",
-          description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
-          variant: "destructive",
-        });
-      }
-    });
+    try {
+      updateMutation.mutate({
+        shareholderId: params.id,
+        data: updatedData
+      });
+
+      setShareholder(prevState => {
+        if (!prevState) return prevState;
+        return {
+          ...prevState,
+          ...updatedData
+        };
+      });
+
+      setIsEditing(false);
+
+      toast({
+        title: "Başarılı",
+        description: "Hissedar bilgileri güncellendi.",
+      });
+    } catch (error) {
+      toast({
+        title: "Hata",
+        description: "Hissedar bilgileri güncellenirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -186,22 +186,20 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   };
 
   const confirmDelete = () => {
-    deleteMutation.mutate(params.id, {
-      onSuccess: () => {
-        toast({
-          title: "Başarılı",
-          description: "Hissedar başarıyla silindi.",
-        });
-        router.push("/kurban-admin/hissedarlar/tum-hissedarlar");
-      },
-      onError: () => {
-        toast({
-          title: "Hata",
-          description: "Hissedar silinirken bir hata oluştu.",
-          variant: "destructive",
-        });
-      }
-    });
+    try {
+      deleteMutation.mutate(params.id);
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi.",
+      });
+      router.push("/kurban-admin/hissedarlar/tum-hissedarlar");
+    } catch (error) {
+      toast({
+        title: "Hata",
+        description: "Hissedar silinirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -234,12 +232,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         <div className="text-sm text-muted-foreground">
           Son düzenleyen: <span className="font-medium">{shareholder.last_edited_by || "Belirtilmemiş"}</span> - {shareholder.last_edited_time ? format(new Date(shareholder.last_edited_time), "dd.MM.yyyy HH:mm") : ""}
         </div>
-
-        <Button asChild>
-          <Link href={`/kurban-admin/hissedarlar/duzenle/${shareholder.shareholder_id}`}>
-            Düzenle
-          </Link>
-        </Button>
       </div>
 
       {/* Header */}

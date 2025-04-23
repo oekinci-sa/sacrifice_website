@@ -2,7 +2,6 @@ import { TripleInfo } from "@/app/(public)/components/triple-info";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetShareholdersByTransactionId } from "@/hooks/useShareholders";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { BlobProvider } from "@react-pdf/renderer";
 import { AlertCircle } from "lucide-react";
@@ -14,19 +13,108 @@ interface SuccessViewProps {
   onPdfDownload?: () => void;
 }
 
+// Create receipt data from DB data for each shareholder
+interface ShareholderData {
+  shareholder_name?: string;
+  name?: string;
+  phone_number?: string;
+  phone?: string;
+  delivery_location?: string;
+  sacrifice_consent?: boolean;
+  proxy_status?: string;
+  paid_amount?: number;
+  security_code?: string;
+}
+
+// Veritabanından veri tiplerini tanımlayalım
+interface SacrificeData {
+  sacrifice_id?: string;
+  sacrifice_no?: string;
+  sacrifice_time?: string;
+  share_price?: number;
+  share_weight?: string;
+  [key: string]: any;
+}
+
+interface ReservationData {
+  transaction_id?: string;
+  created_at?: string;
+  [key: string]: any;
+}
+
+// API yanıt formatı
+interface ShareholderApiResponse {
+  sacrifice?: SacrificeData;
+  reservation?: ReservationData;
+  shareholders?: ShareholderData[];
+}
+
 export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
   const { transaction_id } = useReservationIDStore();
 
   const [isClient, setIsClient] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [dbData, setDbData] = useState<ShareholderApiResponse>({ shareholders: [], sacrifice: {}, reservation: {} });
+  const [isDbLoading, setIsDbLoading] = useState(true);
+  const [isDbError, setIsDbError] = useState(false);
+  const [dbError, setDbError] = useState<Error | null>(null);
 
-  // Veritabanından güncel verileri çek
-  const {
-    data: dbData,
-    isLoading: isDbLoading,
-    isError: isDbError,
-    error: dbError,
-  } = useGetShareholdersByTransactionId(transaction_id);
+  // Debug fonksiyonu
+  useEffect(() => {
+    if (transaction_id) {
+      console.log("SuccessView: transaction_id mevcut:", transaction_id);
+      setDebugInfo(`Transaction ID: ${transaction_id}`);
+    } else {
+      console.error("SuccessView: transaction_id eksik!");
+      setDebugInfo("Transaction ID eksik!");
+    }
+  }, [transaction_id]);
+
+  // Doğrudan API çağrısı ile verileri çek
+  useEffect(() => {
+    if (!transaction_id) {
+      setIsDbLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      setIsDbLoading(true);
+      setIsDbError(false);
+      setDbError(null);
+
+      try {
+        console.log("API çağrısı yapılıyor:", `/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
+        const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || response.statusText);
+        }
+
+        const data = await response.json();
+        console.log("API yanıtı:", data);
+
+        setDbData(data);
+      } catch (error) {
+        console.error("API çağrısı sırasında hata:", error);
+        setIsDbError(true);
+        setDbError(error instanceof Error ? error : new Error(String(error)));
+      } finally {
+        setIsDbLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [transaction_id]);
+
+  // Debug: Veri durumunu izle
+  useEffect(() => {
+    console.log("SuccessView dbData:", dbData);
+    console.log("SuccessView isDbLoading:", isDbLoading);
+    console.log("SuccessView isDbError:", isDbError);
+    console.log("SuccessView dbError:", dbError);
+  }, [dbData, isDbLoading, isDbError, dbError]);
 
   useEffect(() => {
     setIsClient(true);
@@ -35,8 +123,10 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   // Format phone number to 0555 555 55 55
   const formatPhoneNumber = (phone: string): string =>
     phone
-      .replace(/\D/g, "")
-      .replace(/^90(\d{3})(\d{3})(\d{2})(\d{2})$/, "0$1 $2 $3 $4");
+      ? phone
+        .replace(/\D/g, "")
+        .replace(/^90(\d{3})(\d{3})(\d{2})(\d{2})$/, "0$1 $2 $3 $4")
+      : "";
 
   // Generate a security code (this would typically come from backend)
   const generateSecurityCode = () => {
@@ -48,19 +138,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     if (!time) return "";
     return time.split(":").slice(0, 2).join(":");
   };
-
-  // Create receipt data from DB data for each shareholder
-  interface ShareholderData {
-    shareholder_name?: string;
-    name?: string;
-    phone_number?: string;
-    phone?: string;
-    delivery_location?: string;
-    sacrifice_consent?: boolean;
-    proxy_status?: string;
-    paid_amount?: number;
-    security_code?: string;
-  }
 
   const createReceiptDataFromDb = (shareholder: ShareholderData) => {
     const sacrifice = dbData?.sacrifice || {};
@@ -95,13 +172,15 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       // Veritabanından paid_amount değerini kullan, yoksa total_amount'a eşitle
       paid_amount: paidAmount.toString(),
       remaining_payment: remainingPayment.toString(),
-      purchase_time: new Date(reservation.created_at).toLocaleString("tr-TR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      purchase_time: reservation.created_at
+        ? new Date(reservation.created_at).toLocaleString("tr-TR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        : new Date().toLocaleString("tr-TR"),
 
       // Hayvana Ait Bilgiler
       sacrifice_no: sacrifice.sacrifice_no?.toString() || "",
@@ -167,6 +246,9 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
         {dbError && (
           <p className="mt-2 text-xs">{(dbError as Error).message}</p>
         )}
+        {debugInfo && (
+          <p className="mt-2 text-xs">Debug: {debugInfo}</p>
+        )}
       </AlertDescription>
     </Alert>
   );
@@ -174,7 +256,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   // Veritabanı durumuna göre içerik gösterimi
   useEffect(() => {
     if (dbData && dbData.shareholders && dbData.shareholders.length > 0) {
-      // Log removed
+      console.log("SuccessView: Hissedar verileri başarıyla alındı:", dbData.shareholders.length);
     }
   }, [dbData]);
 
@@ -191,11 +273,19 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     );
   };
 
+  // Determine if we should show fallback data
+  const shouldShowFallback =
+    (!dbData || !dbData.shareholders || dbData.shareholders.length === 0) &&
+    !isDbLoading &&
+    !isDbError;
+
+  // Use fallback data if needed - artık fallback kullanmıyoruz
+  const shareholdersToDisplay = dbData?.shareholders || [];
+
   return (
     <div className="flex flex-col items-center justify-center py-8 space-y-12 md:space-y-16">
       {/* Icons + Thanks message */}
       <div className="flex flex-col items-center justify-center space-y-4">
-        {/* Icon */}
         <div className="rounded-full flex items-center justify-center">
           <i className="bi bi-patch-check-fill text-8xl text-sac-primary"></i>
         </div>
@@ -220,23 +310,25 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       </div>
 
       {/* Veritabanı durumuna göre içerik gösterimi */}
-      {isClient && (
+      {
         <>
           {isDbLoading && renderLoadingSkeletons()}
 
           {isDbError && renderErrorMessage()}
 
-          {/* Veritabanından veriler başarıyla alındıysa hissedar PDF'lerini göster */}
-          {dbData &&
-            dbData.shareholders &&
-            dbData.shareholders.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
-                  Hissedar Bilgi Dökümanları
-                </h2>
-                <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-                  {dbData.shareholders.map(
-                    (shareholder: ShareholderData, index: number) => (
+          {/* Veritabanından veriler başarıyla alındıysa PDF'leri göster */}
+          {dbData && dbData.shareholders && dbData.shareholders.length > 0 ? (
+            <div className="mt-8">
+              <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
+                Hissedar Bilgi Dökümanları
+              </h2>
+              <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+                {shareholdersToDisplay.map(
+                  (shareholder: ShareholderData, index: number) => {
+                    // Create receipt data using dbData
+                    const receiptData = createReceiptDataFromDb(shareholder);
+
+                    return (
                       <div
                         key={index}
                         className="border p-3 flex justify-between gap-8 items-center bg-gray-50"
@@ -253,7 +345,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
                         <BlobProvider
                           document={
                             <ReceiptPDF
-                              data={createReceiptDataFromDb(shareholder)}
+                              data={receiptData}
                             />
                           }
                         >
@@ -283,32 +375,25 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
                           )}
                         </BlobProvider>
                       </div>
-                    )
-                  )}
+                    );
+                  }
+                )}
+              </div>
+            </div>
+          ) : (
+            !isDbLoading && !isDbError && (
+              <div className="mt-8 text-center">
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-4 max-w-md mx-auto">
+                  <h3 className="text-amber-800 font-medium mb-2">Veri Bulunamadı</h3>
+                  <p className="text-amber-700 text-sm">
+                    Hissedar bilgileri görüntülenemiyor. Lütfen Hisse Sorgula sayfasından işleminizi kontrol ediniz.
+                  </p>
                 </div>
               </div>
-            )}
-
-          {/* Veritabanından veri alınamazsa - Hata mesajı göster ama formData kullanma */}
-          {(!dbData ||
-            !dbData.shareholders ||
-            dbData.shareholders.length === 0) &&
-            !isDbLoading &&
-            !isDbError && (
-              <Alert
-                variant="destructive"
-                className="mt-8 max-w-xl mx-auto"
-              >
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Veri Bulunamadı</AlertTitle>
-                <AlertDescription>
-                  Hissedar bilgileri veritabanından alınamadı. Lütfen sistem
-                  yöneticisiyle iletişime geçin.
-                </AlertDescription>
-              </Alert>
-            )}
+            )
+          )}
         </>
-      )}
+      }
 
       <TripleInfo />
     </div>

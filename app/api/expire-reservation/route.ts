@@ -1,5 +1,5 @@
-import { ReservationStatus } from '@/types/reservation';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { ReservationStatus } from '@/types/reservation';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -59,17 +59,17 @@ export async function POST(request: Request) {
             );
         }
 
-        // Don't update if already expired
-        if (existingReservation.status === ReservationStatus.EXPIRED) {
+        // Don't update if already expired or timed out
+        if (existingReservation.status === ReservationStatus.EXPIRED || existingReservation.status === 'timed_out') {
             return NextResponse.json(
-                { message: 'Reservation is already expired', reservation: existingReservation },
+                { message: 'Reservation is already expired or timed out', reservation: existingReservation },
                 { status: 200 }
             );
         }
 
-        // Update reservation status to EXPIRED
+        // Update reservation status to "timed_out" (instead of EXPIRED)
         const updatePayload = {
-            status: ReservationStatus.EXPIRED,
+            status: 'timed_out',
         };
 
         try {
@@ -95,9 +95,9 @@ export async function POST(request: Request) {
             }
 
 
-            // Return the expired reservation
+            // Return the timed out reservation
             return NextResponse.json({
-                message: 'Reservation expired successfully',
+                message: 'Reservation timed out successfully',
                 reservation: updatedReservation
             });
         } catch (updateException) {

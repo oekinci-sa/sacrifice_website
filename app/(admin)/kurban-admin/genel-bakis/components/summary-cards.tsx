@@ -55,11 +55,7 @@ export function SummaryCards() {
 
         // Calculate remaining deposits (less than 5000 TL paid after 3 days)
         const remainingDeposits = shareholders.filter((s) => {
-            const purchaseDate = new Date(s.purchase_time);
-            const threeDaysAfterPurchase = new Date(purchaseDate);
-            threeDaysAfterPurchase.setDate(threeDaysAfterPurchase.getDate() + 3);
-
-            return s.paid_amount < 5000 && new Date() > threeDaysAfterPurchase;
+            return s.paid_amount < 5000;
         }).length;
 
         // Calculate shareholders with incomplete payments

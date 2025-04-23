@@ -1,5 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
 import { shareholderSchema } from "@/types";
+import { useState } from "react";
 
 interface ShareholderLookupParams {
   phone: string;
@@ -11,8 +11,15 @@ interface ShareholderLookupResponse {
 }
 
 export const useShareholderLookup = () => {
-  return useMutation<ShareholderLookupResponse, Error, ShareholderLookupParams>({
-    mutationFn: async ({ phone, securityCode }: ShareholderLookupParams) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<ShareholderLookupResponse | null>(null);
+
+  const mutate = async ({ phone, securityCode }: ShareholderLookupParams) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
       // Format phone for query
       const formattedPhone = phone.replace(/\D/g, '');
       
@@ -39,8 +46,26 @@ export const useShareholderLookup = () => {
         }
       }
       
-      const data = await response.json();
-      return data;
-    },
-  });
+      const responseData = await response.json();
+      setData(responseData);
+      setIsLoading(false);
+      return responseData;
+    } catch (err) {
+      const errorObj = err instanceof Error ? err : new Error(String(err));
+      setError(errorObj);
+      setIsLoading(false);
+      throw errorObj;
+    }
+  };
+
+  // React Query API uyumluluğu için mutateAsync da ekleyelim
+  return {
+    mutate,
+    mutateAsync: mutate,
+    isLoading,
+    isPending: isLoading,
+    error,
+    data,
+    status: isLoading ? 'loading' : error ? 'error' : data ? 'success' : 'idle'
+  };
 }; 

@@ -70,6 +70,11 @@ export const FormView = ({
   const cancelReservation = useCancelReservation();
   const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
 
+  // Debug log for data changes
+  useEffect(() => {
+    console.log("FormView: Data değişikliği algılandı, uzunluk:", data?.length);
+  }, [data]);
+
   // Check reservation status directly in component if needed
   const shouldCheckStatus = currentStep === "details" || currentStep === "confirmation";
   const { data: reservationStatus } = useReservationStatus(
@@ -133,7 +138,7 @@ export const FormView = ({
       <Tabs value={tabValue} className="space-y-4 md:space-y-6">
         <TabsContent value="tab-1">
           <CustomDataTable
-            data={data}
+            data={data || []}
             columns={columns}
             meta={{
               onSacrificeSelect,
@@ -148,6 +153,12 @@ export const FormView = ({
             )}
             tableSize="large"
           />
+          {/* Debug bilgisi */}
+          {data && data.length === 0 && !isLoading && (
+            <div className="text-center my-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-amber-800">Yüklenecek kayıt bulunamadı. Lütfen veri bağlantınızı kontrol edin ve sayfayı yenileyin.</p>
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="tab-2">
           <Checkout

@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrifices } from "@/hooks/useSacrifices";
 import { cn } from "@/lib/utils";
+import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { sacrificeSchema, shareholderSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Pencil, X } from "lucide-react";
@@ -31,35 +32,48 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
   const sacrificeId = row.original.sacrifice_id;
   const [shareholders, setShareholders] = useState<shareholderSchema[]>([]);
 
+  // Get shareholders from the store
+  const { shareholders: allShareholders } = useShareholderStore();
+
   useEffect(() => {
-    const fetchShareholderDetails = async () => {
-      try {
-        const response = await fetch(`/api/sacrifices/${sacrificeId}/shareholders`);
+    if (isDialogOpen) {
+      // Use the existing data from the store instead of making a new API call
+      const sacrificeShareholders = allShareholders.filter(
+        (shareholder: shareholderSchema) => shareholder.sacrifice_id === sacrificeId
+      );
 
-        if (!response.ok) {
-          toast({
-            variant: "destructive",
-            title: "Hata",
-            description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
-          });
-          return;
-        }
+      if (sacrificeShareholders.length > 0) {
+        setShareholders(sacrificeShareholders);
+      } else {
+        // Fallback to API call if data not in store
+        fetchShareholderDetails();
+      }
+    }
+  }, [sacrificeId, isDialogOpen, allShareholders]);
 
-        const data = await response.json();
-        setShareholders(data);
-      } catch {
+  const fetchShareholderDetails = async () => {
+    try {
+      const response = await fetch(`/api/sacrifices/${sacrificeId}/shareholders`);
+
+      if (!response.ok) {
         toast({
           variant: "destructive",
           title: "Hata",
           description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
         });
+        return;
       }
-    };
 
-    if (isDialogOpen) {
-      fetchShareholderDetails();
+      const data = await response.json();
+      setShareholders(data);
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Hissedar bilgileri yüklenirken bir hata oluştu.",
+      });
     }
-  }, [sacrificeId, isDialogOpen, toast]);
+  };
 
   const handleDelete = async () => {
     try {

@@ -1,5 +1,3 @@
-import { UseMutationResult } from '@tanstack/react-query';
-
 // Reservation durumları
 export enum ReservationStatus {
     ACTIVE = 'active',
@@ -93,10 +91,22 @@ export interface ShareholderResponse {
     message: string;
     data?: any;
     error?: string;
+}
+
+// Daha genel bir mutation tipi tanımlayalım
+export type GenericReservationMutation = {
+    mutate: (data: any) => Promise<any>;
+    mutateAsync: (data: any) => Promise<any>;
+    isLoading?: boolean;
+    isPending?: boolean;
+    isFetching?: boolean;
+    status: string;
+    error?: Error | null;
+    [key: string]: any; // Diğer özelliklere de izin verelim
 };
 
-// Daha genel bir React Query mutation tipi tanımlayalım (type uyumsuzluklarına çözüm olarak)
-export type GenericReservationMutation = {
+// React Query mutation tipleri
+export type CreateReservationMutation = {
     mutateAsync: (data: any) => Promise<any>;
     isLoading?: boolean;
     isPending?: boolean;
@@ -105,14 +115,6 @@ export type GenericReservationMutation = {
     [key: string]: any; // Diğer özelliklere de izin verelim
 };
 
-// React Query mutation tipleri
-export type CreateReservationMutation = UseMutationResult<
-    ReservationResponse,
-    Error,
-    ReservationData,
-    unknown
->;
-
 // UpdateShareCountMutation tipini daha esnek hale getirelim
 export type UpdateShareCountMutation = {
     mutateAsync: (data: UpdateShareCountData) => Promise<any>;
@@ -120,9 +122,12 @@ export type UpdateShareCountMutation = {
 };
 
 // createShareholders artık gerçek API beklentisine uygun
-export type CreateShareholdersMutation = UseMutationResult<
-    ShareholderResponse,
-    Error,
-    ShareholderInput[],
-    unknown
->; 
+export type CreateShareholdersMutation = {
+    mutateAsync: (data: any) => Promise<any>;
+    isLoading?: boolean;
+    isPending?: boolean;
+    isFetching?: boolean;
+    status: string;
+    error?: Error | null;
+    [key: string]: any; // Diğer özelliklere de izin verelim
+}; 

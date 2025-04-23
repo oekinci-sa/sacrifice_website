@@ -9,7 +9,15 @@ import Image from "next/image";
 import { ProgressBar } from "./ProgressBar";
 
 interface ShareholderDetailsProps {
-  shareholderInfo: shareholderSchema;
+  shareholderInfo: shareholderSchema & {
+    sacrifice?: {
+      sacrifice_id: string;
+      sacrifice_no: string;
+      sacrifice_time?: string;
+      share_price?: number;
+      share_weight?: number;
+    };
+  };
 }
 
 export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps) {
@@ -20,7 +28,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   // Format sacrifice time (remove seconds)
   const formatSacrificeTime = (timeString: string | null | undefined) => {
     if (!timeString) return "-";
-    
+
     try {
       // If there are seconds (format: HH:MM:SS), remove them
       if (timeString.split(':').length > 2) {
@@ -105,7 +113,10 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               </div>
               <div>
                 <p className="text-slate-600 font-medium mb-1">Kilogram</p>
-                <p className="font-medium">26 ±3</p>
+                <p className="font-medium">
+                  {shareholderInfo.sacrifice?.share_weight || "-"}
+                  {shareholderInfo.sacrifice?.share_weight ? " ±3" : ""} kg
+                </p>
               </div>
             </div>
           </div>

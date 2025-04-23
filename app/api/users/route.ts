@@ -1,10 +1,7 @@
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/utils/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 // GET /api/users - Get all users
 export async function GET() {
@@ -16,19 +13,20 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { data, error: _error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from("users")
             .select("*")
             .order("created_at", { ascending: false });
 
-        if (_error) {
-            return NextResponse.json({ error: _error.message }, { status: 500 });
+        if (error) {
+            console.error("Kullanıcıları getirme hatası:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json(data, {
-            headers: { 'Cache-Control': 'no-store, max-age=0' }
-        });
-    } catch {
+        console.log(`${data.length} kullanıcı başarıyla getirildi`);
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error("Kullanıcıları getirme sırasında bilinmeyen hata:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -41,24 +39,29 @@ export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);
 
-        // Check authorization
-        if (!session || !session.user || session.user.role !== "admin") {
+        // Check authorization (only admin can create users)
+        if (!session?.user || session.user.role !== "admin") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const userData = await request.json();
+        const json = await request.json();
+        console.log("Yeni kullanıcı oluşturma verileri:", json);
 
-        const { data, error: _error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from("users")
-            .insert([userData])
-            .select();
+            .insert(json)
+            .select()
+            .single();
 
-        if (_error) {
-            return NextResponse.json({ error: _error.message }, { status: 500 });
+        if (error) {
+            console.error("Kullanıcı oluşturma hatası:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json(data[0], { status: 201 });
-    } catch {
+        console.log("Yeni kullanıcı başarıyla oluşturuldu:", data);
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error("Kullanıcı oluşturma sırasında bilinmeyen hata:", error);
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

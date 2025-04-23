@@ -39,22 +39,20 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    deleteMutation.mutate(row.original.shareholder_id, {
-      onSuccess: () => {
-        setIsOpen(false);
-        toast({
-          title: "Başarılı",
-          description: "Hissedar başarıyla silindi.",
-        });
-      },
-      onError: (error: unknown) => {
-        toast({
-          title: "Hata",
-          description: error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu",
-          variant: "destructive",
-        });
-      }
-    });
+    try {
+      await deleteMutation.mutate(row.original.shareholder_id);
+      setIsOpen(false);
+      toast({
+        title: "Başarılı",
+        description: "Hissedar başarıyla silindi.",
+      });
+    } catch (error) {
+      toast({
+        title: "Hata",
+        description: error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -88,13 +86,13 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>İptal</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isLoading}>İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isLoading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? (
+              {deleteMutation.isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Siliniyor...

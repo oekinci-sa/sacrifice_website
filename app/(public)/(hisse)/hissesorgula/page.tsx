@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { motion } from "framer-motion"; // Import motion for animations
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import OTPOriginUI from "../hisseal/components/confirmation-step/otp-origin-ui";
 import { ShareholderDetails } from "./components/shareholder-details";
 
@@ -77,6 +77,19 @@ export default function HisseSorgula() {
       }
     }
   };
+
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to results when shareholders are loaded
+  useEffect(() => {
+    if (shareholderInfoList.length > 0 && resultsRef.current) {
+      // Smooth scroll to results
+      resultsRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, [shareholderInfoList]);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPhoneNumber(e.target.value);
@@ -224,6 +237,7 @@ export default function HisseSorgula() {
         {/* Results Section - with animation matching process.tsx */}
         {shareholderInfoList.length > 0 && (
           <motion.div
+            ref={resultsRef}
             className="w-full mt-12 md:mt-16"
             variants={container}
             initial="hidden"

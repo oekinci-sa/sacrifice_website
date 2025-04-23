@@ -138,11 +138,13 @@ export default function ShareholderSummary({
         throw new Error("Kurbanlık ID bilgisi eksik!");
       }
 
-      if (!validateShareholdersMutation || !validateShareholdersMutation.mutateAsync) {
+      // Hem mutate hem de mutateAsync metodu için kontrol
+      const validateMethod = validateShareholdersMutation?.mutateAsync || validateShareholdersMutation?.validate;
+      if (!validateShareholdersMutation || !validateMethod) {
         throw new Error("Hissedar doğrulama fonksiyonu bulunamadı!");
       }
 
-      await validateShareholdersMutation.mutateAsync({
+      await validateMethod({
         sacrificeId: sacrifice.sacrifice_id,
         newShareholderCount: shareholders.length
       });
@@ -167,7 +169,6 @@ export default function ShareholderSummary({
 
         const remainingPayment = totalAmount - paidAmount;
 
-
         // Create the data object without the is_purchaser field
         const shareholderData = {
           shareholder_name: shareholder.name,
@@ -188,21 +189,23 @@ export default function ShareholderSummary({
         return shareholderData
       })
 
-      // Save shareholders to DB
-      if (!createShareholdersMutation || !createShareholdersMutation.mutateAsync) {
+      // Save shareholders to DB - Hem mutate hem de mutateAsync metodu için kontrol
+      const createMethod = createShareholdersMutation?.mutateAsync || createShareholdersMutation?.mutate;
+      if (!createShareholdersMutation || !createMethod) {
         throw new Error("Hissedar kaydetme fonksiyonu bulunamadı!");
       }
 
       // Create shareholders in the database
-      await createShareholdersMutation.mutateAsync(shareholderDataForApi);
+      await createMethod(shareholderDataForApi);
 
-      // Complete the reservation
-      if (!completeReservationMutation || !completeReservationMutation.mutateAsync) {
+      // Complete the reservation - Hem mutate hem de mutateAsync metodu için kontrol
+      const completeMethod = completeReservationMutation?.mutateAsync || completeReservationMutation?.mutate;
+      if (!completeReservationMutation || !completeMethod) {
         throw new Error("Rezervasyon tamamlama fonksiyonu bulunamadı!");
       }
 
       // Complete the reservation in the database
-      await completeReservationMutation.mutateAsync({ transaction_id });
+      await completeMethod({ transaction_id });
 
       // Close dialog and proceed
       setShowTermsDialog(false);
@@ -212,11 +215,6 @@ export default function ShareholderSummary({
         throw new Error("onApprove fonksiyonu bulunamadı!");
       }
       onApprove();
-
-      toast({
-        title: "Başarılı!",
-        description: "Hissedarlar kaydedildi ve rezervasyon tamamlandı.",
-      });
 
     } catch (_error) {
       // Close dialog on error

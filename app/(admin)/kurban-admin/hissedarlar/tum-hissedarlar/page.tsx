@@ -34,15 +34,27 @@ export default function TumHissedarlarPage() {
     isLoading,
     error,
     isInitialized,
-    fetchShareholders
+    fetchShareholders,
+    enableRealtime,
+    realtimeEnabled
   } = useShareholderStore();
 
-  // Initialize data if not already loaded
+  // Initialize data if not already loaded and enable realtime updates
   useEffect(() => {
     if (!isInitialized || allShareholders.length === 0) {
       fetchShareholders();
     }
-  }, [isInitialized, allShareholders.length, fetchShareholders]);
+
+    // Ensure realtime updates are enabled
+    if (!realtimeEnabled) {
+      enableRealtime();
+    }
+
+    // Cleanup realtime subscription when component unmounts
+    return () => {
+      // We don't disable realtime here to keep the store updated for other components
+    };
+  }, [isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
 
   // Column header mapping for dropdown - more descriptive names
   const columnHeaderMap: { [key: string]: string } = {

@@ -46,7 +46,7 @@ const Features = () => {
             height={24}
             className="mt-1"
           />
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col md:gap-2">
             <p className="text-lg md:text-xl font-bold">{feature.header}</p>
             <p className="text-sm md:text-base">{feature.description}</p>
           </div>

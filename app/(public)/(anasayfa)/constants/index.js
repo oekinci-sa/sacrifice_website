@@ -81,8 +81,8 @@ export const features = [
   },
   {
     src: "truck.svg",
-    header: "Teslimat Seçeneği",
-    description: "Dileyen hissedarların evine teslim (Ücret karşılığı)",
+    header: "Teslimat Seçeneğimiz",
+    description: "Kesimhaneden ya da Ulus'tan teslim (Ücret karşılığı)",
   },
 ];
 
@@ -132,7 +132,7 @@ export const processes = [
     number: "02",
     header: "Hissedar Bilgileri",
     description:
-      "Seçtiğiniz kurbanlık için hissedar bilgilerini girdikten sonra, ileride güvenli sorgulama yapabilmeniz için kendi belirleyeceğiniz bir güvenlik kodu oluşturun. Bu kodla daha sonra sorgulama yapabilirsiniz."
+      "Hissedar bilgilerini girdikten sonra, hisse sorgulama için kendi belirleyeceğiniz bir güvenlik kodu oluşturun."
   },
   {
     number: "03",
@@ -150,7 +150,7 @@ export const processes = [
     number: "05",
     header: "Ödeme",
     description:
-      "Kaydınızın kalıcı olması için 3 gün içinde kaporanızı, 1 Haziran Cuma gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
+      "Kaydınızın kalıcı olması için 3 gün içinde kaporanızı, 30 Mayıs Cuma gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
   },
   {
     number: "06",
@@ -163,57 +163,63 @@ export const processes = [
 export const faq_categories = [
   {
     id: "hisse-satin-alma",
-    title: "Hisse Satın Alma & Ödeme",
+    title: "Hisse Alımı",
     items: [
       {
         id: "1",
         title: "Hisse nasıl satın alabilirim?",
         content:
-          "Hisse almak için web sitemizin 'Hisse Al' bölümünden size uygun kurbanlığı seçebilir ve bilgilerinizi girerek hisse kaydınızı gerçekleştirebilirsiniz.",
+          "Hisse almak için web sitemizin \"Hisse Al\" bölümünden size uygun kurbanlığı seçebilir ve bilgilerinizi girerek hisse kaydınızı gerçekleştirebilirsiniz.",
       },
       {
         id: "28",
         title:
           "Hisse seçimi yapıldıktan sonra, hissedar bilgilerini doldururken başkaları aynı hisseyi alabilir mi?",
         content:
-          "Hayır, Hisse seçiminizi yaptıktan sonra, sistem bu hisseleri sizin için ayırır. Bilgilerinizi doldurduğunuz süre boyunca başka kimse aynı hisseler üzerinde işlem yapamaz.",
+          "Hayır, hisse seçiminizi yaptıktan sonra, sistem bu hisseleri sizin için ayırır. Bilgilerinizi doldurduğunuz süre boyunca başka kimse aynı hisseler üzerinde işlem yapamaz.",
       },
       {
         id: "5",
         title:
           "Hisse seçimi yaptıktan sonra ne kadar süre içinde işlemi tamamlamalıyım?",
         content:
-          "3 dakika boyunca hiçbir işlem yapılmazsa, işleminiz zaman aşımına uğrar ve otomatik olarak yeniden hisse seçim ekranına döndürülürsünüz. 15 dakika içinde işleminizi tamamlamazsanız, süre dolduğu için sistem sizi ne olursa olsun otomatik olarak başa döndürür ve işleminiz iptal edilir.",
-      },
-      {
-        id: "7",
-        title: "Kapora var mı, hisse bedelini taksitle ödeyebilir miyim?",
-        content:
-          "İlk etapta minimum 2.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 1 Haziran Cuma gününe kadar tamamlamanız gerekmektedir.",
+          "3 dakika boyunca hiçbir işlem yapılmazsa, işleminiz zaman aşımına uğrar ve otomatik olarak yeniden hisse seçim ekranına döndürülürsünüz. Ayrıca 15 dakika içinde işleminizi tamamlamazsanız, süre dolduğu için sistem sizi otomatik olarak başa döndürür ve işleminiz iptal edilir.",
       },
       {
         id: "9",
         title: "Aynı kurbandan birden fazla hisse alabilir miyim?",
         content:
-          "Evet, aynı kurbandan birden fazla hisse alabilirsiniz. Ancak bu durumda da her hisse için ayrı kayıt oluşturulması gerekmektedir.",
-      },
-      {
-        id: "14",
-        title: "Hisse ücretimi iade alabilir miyim??????",
-        content:
-          "Kesim öncesinde yazılı başvuru yapmanız halinde hisse ücretinizi iade alabilirsiniz. Kesim sonrası iade işlemi yapılamamaktadır.",
+          "Evet, aynı kurbandan birden fazla hisse alabilirsiniz. Ancak bu durumda da her hisse için ayrı kayıtlar oluşturulması gerekmektedir.",
       },
       {
         id: "3",
         title: "Hisse kaydımı nasıl sorgulayabilirim?",
         content:
-          "Hisse kaydınızı, hisse seçimi yaptıktan sonra oluşturulan telefon numaranız ve güvenlik kodunuz ile 'Hisse Sorgula' bölümünden kontrol edebilirsiniz. Burada hissenizle ilgili tüm detayları görebilirsiniz.",
+          "Hisse kaydınızı, hisse seçimi yaptıktan sonra oluşturulan telefon numaranız ve belirleyeceğiniz güvenlik kodunuz ile \"Hisse Sorgula\" bölümünden kontrol edebilirsiniz. Burada hissenizle ilgili tüm detayları görebilirsiniz.",
       },
       {
         id: "19",
         title: "İletişim bilgilerimi nasıl güncelleyebilirim?",
         content:
-          "İletişim bilgilerinizi güncellemek için bizimle iletişime geçebilirsiniz. Özellikle telefon numarası değişikliklerini bildirmeniz önemlidir.",
+          "İletişim bilgilerinizi güncellemek için bizimle iletişime geçebilirsiniz. Özellikle telefon numaranızdaki değişiklikleri bildirmeniz, sizlerle sağlıklı iletişim kurabilmemiz için önemlidir.",
+      },
+    ],
+  },
+  {
+    id: "odeme",
+    title: "Ödeme",
+    items: [
+      {
+        id: "7",
+        title: "Kapora ücreti var mı, hisse bedelini taksitle ödeyebilir miyim?",
+        content:
+          "İlk etapta minimum 5.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 30 Mayıs Cuma gününe kadar tamamlamanız gerekmektedir.",
+      },
+      {
+        id: "14",
+        title: "Hisse ücretimi iade alabilir miyim?",
+        content:
+          "Kurban Bayramı'ndan en az bir hafta (7 gün) önce yazılı başvuru yapmanız halinde hisse ücretinizi iade alabilirsiniz. Bu süreyi geçirenlerin talepleri kabul edilmeyecektir.",
       },
     ],
   },
@@ -225,68 +231,49 @@ export const faq_categories = [
         id: "17",
         title: "Hisse bedelleri neye göre belirleniyor?",
         content:
-          "Hisse bedelleri, kurbanlığın ağırlığı ve piyasa koşulları göz önünde bulundurularak belirlenmektedir. Her kurbanlık için hisse bedeli farklılık gösterebilir.",
-      },
-      {
-        id: "4",
-        title: "Bir kurbanda kaç hisse bulunmaktadır?",
-        content:
-          "Her büyükbaş kurbanlık 7 hisseye bölünmektedir. Bu hisselerin her biri eşit değerdedir ve İslami kurallara uygun olarak paylaştırılmaktadır.",
+          "Hisse bedelleri, kurbanlığın ağırlığı ve piyasa koşulları göz önünde bulundurularak belirlenmektedir.",
       },
       {
         id: "15",
         title: "Kurbanlıklar nasıl seçiliyor?",
         content:
-          "Kurbanlıklarımız, dini vecibelere uygunluk ve sağlık durumu göz önünde bulundurularak uzman ekibimiz tarafından titizlikle seçilmektedir.",
+          "Kurbanlıklarımız, dini vecibelere uygunluk ve sağlık durumu göz önünde bulundurularak titizlikle seçilmektedir.",
       },
       {
         id: "13",
-        title: "Kesim yerine gidip kurbanımı görebilir miyim????",
+        title: "Kesim yerine gidip kurbanımı görebilir miyim?",
         content:
-          "Evet, kesim yerine gelerek kurbanınızı görebilirsiniz. Ancak kesim alanına güvenlik nedeniyle sadece yetkili personel girebilmektedir.",
+          "Evet, 30 Mayıs Cuma gününden itibaren bizlerle iletişime geçtikten sonra kurbanınızı görebilirsiniz.",
       },
       {
         id: "8",
         title: "Kurbanımın kesim saatini nasıl öğrenebilirim?",
         content:
-          "Kurbanınızın kesim saati, bayram sabahı SMS yoluyla size bildirilecektir. Ayrıca web sitemizin 'Hisse Sorgula' bölümünden de bu bilgiye ulaşabilirsiniz.",
-      },
-      {
-        id: "35",
-        title:
-          "Bir kurbanlık seçtim fakat değiştirmek istiyorum, bu mümkün mü?",
-        content:
-          "Evet, bizimle iletişime geçerek uygun durumda olan başka bir kurbanlığı seçebilir ve yeni kaydınızı birlikte oluşturabiliriz. Ancak bu değişikliğin, kurban kesim tarihinden en az 1 ay önce yapılması gerekmektedir.",
-      },
-      {
-        id: "16",
-        title: "Kurbanlıkların sağlık kontrolleri yapılıyor mu???",
-        content:
-          "Evet, tüm kurbanlıklarımız veteriner kontrolünden geçmektedir ve gerekli sağlık belgeleri bulunmaktadır.",
+          "Kurbanınızın kesim saati bilgisine web sitemizin \"Hisse Sorgula\" bölümünden ulaşabilirsiniz.",
       },
       {
         id: "6",
         title: "Vekalet işlemi nasıl gerçekleşiyor?",
         content:
-          "Vekalet işlemi, kurban kesimi öncesinde hissedarlarımızdan alınmaktadır. Bu işlem, kurbanınızın İslami usullere uygun olarak kesilmesi için gerekli dini prosedürün bir parçasıdır.",
+          "Vekaletler, kurban kesimi öncesinde hissedarlarımızdan telefon görüşmesi ile alınmaktadır.",
       },
       {
         id: "12",
-        title: "Kurban derileri ne oluyor?",
+        title: "Kurban derileri nasıl değerlendiriliyor?",
         content:
-          "Kurban derileri, İslami usullere uygun olarak hayır kurumlarına bağışlanmaktadır. Bu konuda tercih hakkı hissedarlara aittir.",
+          "Kurban derileri, vakfımızca eğitim, insani yardım vb. faaliyetler için değerlendirilmektedir. Hissedarların ortak kararı ile deriler istenilen başka bir hayır kurumuna da bağış yapılabilmektedir.",
       },
     ],
   },
   {
     id: "kesim-dagitim-sureci",
-    title: "Kesim & Dağıtım Süreci",
+    title: "Kesim ve Dağıtım Süreci",
     items: [
       {
         id: "2",
         title: "Kesim ve dağıtım süreci nasıl işliyor?",
         content:
-          "Kurbanlar bayramın ilk günü İslami usullere uygun olarak, çiftlik kasapları tarafından kesilmektedir. Kesim sonrası etler hijyenik ortamda işlenir ve tercih ettiğiniz teslimat şekline göre size ulaştırılır.",
+          "Kurbanlar, bayramın ilk günü İslami usullere uygun olarak, çiftlik kasapları tarafından kesilmektedir. Kesim sonrası etler hijyenik ortamda işlenir ve tercih ettiğiniz teslimat şekline göre size ulaştırılır.",
       },
       {
         id: "20",
@@ -296,15 +283,15 @@ export const faq_categories = [
       },
       {
         id: "11",
-        title: "Kurban etleri nasıl dağıtılıyor????",
+        title: "Kurban etleri nasıl paylaştırılıyor?",
         content:
-          "Kurban etleri, profesyonel kasaplar tarafından eşit olarak paylaştırılır. Tercih ettiğiniz teslimat şekline göre ya kesimhaneden teslim alabilir ya da belirlenen toplama noktalarından alabilirsiniz.",
+          "Her kurbanın eti, profesyonel kasaplarımız tarafından kıymetli parçalarına özen gösterilerek hisselere eşit olarak paylaştırılır. Tercihinize göre dilerseniz kesimhaneden, dilerseniz belirlenen toplama noktalarından teslim alabilirsiniz.",
       },
       {
         id: "18",
-        title: "Toplama noktalarında hisselerin dağıtım saatleri nedir???",
+        title: "Toplama noktalarında hisselerin dağıtım saatleri nedir?",
         content:
-          "Toplama noktalarındaki et dağıtım saatleri bayramın ilk günü 14:00-20:00 saatleri arasındadır. Size özel belirlenen saatte gelmeniz önemlidir.",
+          "Teslim noktalarındaki et dağıtımı bayramın ilk günü size bildirilen saatte yapılmaktadır. Size özel belirlenen saatte teslim noktasına gelmeniz önemlidir.",
       },
     ],
   },

@@ -19,7 +19,8 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${instrumentSans.variable} min-h-screen overflow-x-hidden`}>
+    // overflow-x-hidden belki lazım olur.
+    <div className={`${instrumentSans.variable} min-h-screen`}>
       <Header />
       {children}
       <Analytics />

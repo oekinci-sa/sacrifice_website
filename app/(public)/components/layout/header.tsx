@@ -15,30 +15,26 @@ const Header = () => {
   };
 
   return (
-    <header className="pt-4 sticky top-0 z-50 w-full bg-background">
-      <div className="container flex items-center justify-between h-20">
-        <Logo className="w-[200px] md:w-[250px]" />
+    <header className="container flex items-center justify-between h-20 md:my-6 sticky top-0 z-50 bg-background">
+      <Logo className="w-[200px] md:w-[250px]" />
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:block">
-          <DesktopNavigation />
-        </div>
-
-        <div className="flex justify-end gap-4 items-center">
-          <MobileNavigation
-            open={open}
-            onOpenChange={setOpen}
-            onLinkClick={handleLinkClick}
-          />
-
-          {/* Desktop Button */}
-          <Button className="hidden md:flex bg-sac-primary text-white hover:bg-sac-primary/90 text-md">
-            <Link href="/hisseal" className="flex items-center">
-              Hemen al
-            </Link>
-          </Button>
-        </div>
+      {/* Desktop Navigation */}
+      <div className="hidden md:block">
+        <DesktopNavigation />
       </div>
+
+      {/* Desktop Hemen Al Button */}
+      <Button className="hidden md:flex bg-sac-primary text-white hover:bg-sac-primary/90 text-md">
+        <Link href="/hisseal" className="flex items-center">
+          Hemen al
+        </Link>
+      </Button>
+
+      <MobileNavigation
+        open={open}
+        onOpenChange={setOpen}
+        onLinkClick={handleLinkClick}
+      />
     </header>
   );
 };

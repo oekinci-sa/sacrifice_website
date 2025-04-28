@@ -78,7 +78,7 @@ function MobileHome({ scrollToTop }: { scrollToTop: () => void }) {
   }, [throttledScrollHandler, checkScrollPosition]); // checkScrollPosition eklendi
 
   return (
-    <div className="flex flex-col space-y-16 md:space-y-24 relative">
+    <div className="flex flex-col space-y-12 md:space-y-24 relative">
       <Ayah />
       <Banner />
       <Features />
@@ -212,11 +212,11 @@ export default function Home() {
     // Responsive component wrapper kaldırıldı
     // Tailwind sınıfları ile koşullu render
     <>
-      <div className="block md:hidden">
-        <MobileHome scrollToTop={scrollToTop} />
-      </div>
       <div className="hidden md:block">
         <DesktopHome />
+      </div>
+      <div className="block md:hidden">
+        <MobileHome scrollToTop={scrollToTop} />
       </div>
     </>
   );

@@ -14,7 +14,7 @@ export const reminders = [
     src: "exclamation.svg",
     header: "Tüm Ödemeler",
     description:
-      "Tüm ödemeler 1 Haziran Cuma<br/>gününe kadar tamamlanmalıdır.",
+      "Tüm ödemeler 30 Mayıs Cuma<br/>gününe kadar tamamlanmalıdır.",
   },
 ];
 
@@ -22,7 +22,7 @@ export const agreementTerms = [
   {
     title: "Ödeme ve Kapora",
     description:
-      "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 1 Haziran Cuma gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Bu tarihe kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
+      "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 30 Mayıs Cuma gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Bu tarihe kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
   },
   {
     title: "Vekalet ve Dini Usuller",

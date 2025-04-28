@@ -135,9 +135,9 @@ function MobileFaqContent() {
   };
 
   return (
-    <div className="space-y-4 mb-12">
+    <div className="space-y-4">
       {faq_categories.map(category => (
-        <div key={category.id} className="w-full mb-4">
+        <div key={category.id} className="w-full">
           <button
             onClick={() => toggleCategory(category.id)}
             className={`w-full text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${activeCategory === category.id
@@ -151,7 +151,7 @@ function MobileFaqContent() {
           <AnimatePresence>
             {activeCategory === category.id && (
               <motion.div
-                className="mt-4 overflow-hidden"
+                className="mt-4 -mb-2 overflow-hidden"
                 initial="hidden"
                 animate="visible"
                 exit="exit"

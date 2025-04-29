@@ -18,7 +18,6 @@ export function triggerSacrificeRefresh(): void {
   if (typeof window !== 'undefined') {
     const event = new CustomEvent(SACRIFICE_UPDATED_EVENT);
     window.dispatchEvent(event);
-    console.log('Sacrifice refresh event triggered');
   }
 }
 

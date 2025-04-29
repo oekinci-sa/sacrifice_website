@@ -26,13 +26,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 });
         }
 
-        console.log("Resim yükleme bilgileri:", {
-            userId,
-            fileSize: file.size,
-            fileType: file.type,
-            fileName: file.name
-        });
-
         const fileExt = file.name.split(".").pop();
         const fileName = `${userId}.${fileExt}`;
         const arrayBuffer = await file.arrayBuffer();
@@ -48,7 +41,6 @@ export async function POST(request: Request) {
         }
 
         const { data } = supabaseAdmin.storage.from("avatars").getPublicUrl(fileName);
-        console.log("Resim yükleme başarılı, URL:", data.publicUrl);
 
         return NextResponse.json({ url: data.publicUrl });
     } catch (error) {

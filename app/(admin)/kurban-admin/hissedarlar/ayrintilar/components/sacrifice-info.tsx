@@ -26,11 +26,6 @@ export function SacrificeInfo({
     }
   };
 
-  // Sorun giderme için sacrifice nesnesinin yapısını konsola yazdır
-  console.log("Sacrifice nesnesi:", shareholderInfo.sacrifice);
-  console.log("share_weight var mı?", shareholderInfo.sacrifice && 'share_weight' in shareholderInfo.sacrifice);
-  console.log("share_weight değeri:", shareholderInfo.sacrifice?.share_weight);
-
   return (
     <div className={sectionClass}>
       <h3 className="text-lg md:text-xl font-semibold mb-4">Kurbanlık Bilgileri</h3>

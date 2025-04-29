@@ -32,7 +32,6 @@ function FilteredSacrificesContent({
 
   // Apply filtering when sacrifices or priceParam changes
   useEffect(() => {
-    console.log("FilteredSacrificesContent: Filtering with price param:", priceParam);
     if (sacrifices.length === 0) return;
 
     if (priceParam && !isNaN(Number(priceParam))) {
@@ -88,27 +87,34 @@ const Page = () => {
   const [filteredSacrifices, setFilteredSacrifices] = useState<sacrificeSchema[]>([]);
 
   // Veri ilk yüklendiğinde manuel olarak bir kez refetch yapalım
-  useEffect(() => {
-    console.log("Page.tsx: İlk yükleme kontrolü, mevcut veri sayısı:", sacrifices.length);
+  // Use a ref to track if we've already done the initial fetch
+  const initialFetchPerformed = useRef(false);
 
-    // Eğer veriler zaten yüklenmişse, bunları yeni filtrelenecek komponent işleyecek
-    if (sacrifices.length === 0 && !isLoadingSacrifices && !isRefetching) {
-      console.log("Page.tsx: Veriler mevcut değil, manuel refetch yapılıyor");
-      refetchSacrifices().then(data => {
-        console.log("Page.tsx: Manuel refetch tamamlandı, veri sayısı:", data.length);
-      }).catch(err => {
-        console.error("Page.tsx: Manuel refetch hatası:", err);
-      });
+  useEffect(() => {
+
+    // Check if we've already done the initial fetch
+    if (!initialFetchPerformed.current) {
+      // Eğer veriler zaten yüklenmişse, bunları yeni filtrelenecek komponent işleyecek
+      if (sacrifices.length === 0 && !isLoadingSacrifices && !isRefetching) {
+        initialFetchPerformed.current = true;
+        refetchSacrifices().then(data => {
+        }).catch(err => {
+          console.error("Page.tsx: Manuel refetch hatası:", err);
+          // Reset the flag if there was an error so we can retry
+          initialFetchPerformed.current = false;
+        });
+      } else {
+        // Data is already loaded or being loaded
+        initialFetchPerformed.current = true;
+      }
     }
-  }, []); // Sadece bir kez çalışsın
+  }, [sacrifices.length, isLoadingSacrifices, isRefetching, refetchSacrifices]); // Include all dependencies
 
   // Realtime subscription ve veri yenileme için useEffect
   useEffect(() => {
-    console.log("Page.tsx: Realtime aboneliği ve veri dinleyicileri kuruluyor...");
 
     // Sadece yüklenen veriler için filtreleme işlemini yapacak event listener'ı kuralım
     const handleDataUpdate = () => {
-      console.log("Page.tsx: SACRIFICE_UPDATED_EVENT alındı, filteredSacrifices güncellenmesi gerekecek");
       // Actual filtering will be handled by the FilteredSacrificesContent component
     };
 
@@ -117,7 +123,6 @@ const Page = () => {
 
     // Temizleme fonksiyonu
     return () => {
-      console.log("Page.tsx: Event listener temizleniyor...");
       window.removeEventListener(SACRIFICE_UPDATED_EVENT, handleDataUpdate);
     };
   }, []);

@@ -46,16 +46,13 @@ export const useSacrificeStore = create<SacrificeState>()(
         const state = get();
 
         if (state.isRefetching || state.isLoadingSacrifices) {
-          console.log("Store: Veri zaten yükleniyor, mevcut verileri döndürüyorum...");
           return state.sacrifices;
         }
 
         try {
-          console.log("Store: Veri yüklemesi başlatılıyor...");
           set({ isLoadingSacrifices: true, isRefetching: true, error: null });
 
           const response = await fetch("/api/get-sacrifice-animals");
-          console.log("Store: API yanıt durumu:", response.status);
 
           if (!response.ok) {
             const errorData = await response.json();
@@ -64,7 +61,6 @@ export const useSacrificeStore = create<SacrificeState>()(
           }
 
           const data = await response.json() as sacrificeSchema[];
-          console.log("Store: Veriler başarıyla yüklendi, veri sayısı:", data.length);
 
           set({
             sacrifices: data,
@@ -93,7 +89,6 @@ export const useSacrificeStore = create<SacrificeState>()(
       },
 
       updateSacrifice: (sacrifice: sacrificeSchema) => {
-        console.log("Store: Sacrifice veri güncelleniyor:", sacrifice);
 
         // State güncellemeden önce orijinal ID'yi saklayalım
         const sacrificeId = sacrifice.sacrifice_id;
@@ -103,7 +98,6 @@ export const useSacrificeStore = create<SacrificeState>()(
             (s) => s.sacrifice_id === sacrificeId
           );
 
-          console.log(`Store: ${existingIndex === -1 ? 'Yeni kurban ekleniyor' : 'Mevcut kurban güncelleniyor'} ID: ${sacrificeId}`);
 
           // Mevcut dizide yoksa, ekle
           if (existingIndex === -1) {
@@ -120,7 +114,6 @@ export const useSacrificeStore = create<SacrificeState>()(
         // State güncellemesi tamamlandıktan sonra event'i tetikle
         // setTimeout kullanmak micro-task queue'dan sonra çalışmasını sağlar
         setTimeout(() => {
-          console.log("Store: SACRIFICE_UPDATED_EVENT tetikleniyor...");
           window.dispatchEvent(new CustomEvent(SACRIFICE_UPDATED_EVENT));
         }, 0);
       },
@@ -147,7 +140,6 @@ export const useSacrificeStore = create<SacrificeState>()(
 
       // Realtime methods
       subscribeToRealtime: () => {
-        console.log("Supabase Realtime: sacrifice_animals tablosuna abone olunuyor...");
 
         // Önce mevcut abonelikleri temizle
         RealtimeManager.cleanup();
@@ -156,11 +148,9 @@ export const useSacrificeStore = create<SacrificeState>()(
         RealtimeManager.subscribeToTable(
           "sacrifice_animals",
           (payload) => {
-            console.log("Supabase Realtime: Yeni veri alındı:", payload);
             const { eventType, new: newData, old: oldData } = payload;
 
             if (eventType === "INSERT" || eventType === "UPDATE") {
-              console.log("Supabase Realtime: Kurban verisi güncelleniyor:", newData);
               get().updateSacrifice(newData as sacrificeSchema);
 
               // Otomatik veri yenilemeyi önle - her değişiklik için tüm verileri yeniden çekme
@@ -168,7 +158,6 @@ export const useSacrificeStore = create<SacrificeState>()(
               //   get().refetchSacrifices();
               // }, 300);
             } else if (eventType === "DELETE" && oldData?.sacrifice_id) {
-              console.log("Supabase Realtime: Kurban verisi siliniyor:", oldData.sacrifice_id);
               get().removeSacrifice(oldData.sacrifice_id);
             }
 
@@ -182,7 +171,6 @@ export const useSacrificeStore = create<SacrificeState>()(
       },
 
       unsubscribeFromRealtime: () => {
-        console.log("Supabase Realtime: sacrifice_animals tablosundan abonelik kaldırılıyor...");
 
         // RealtimeManager handles cleanup internally
 
@@ -194,7 +182,6 @@ export const useSacrificeStore = create<SacrificeState>()(
       setupEventListeners: () => {
         // Event handler function for sacrifice-updated events
         const handleSacrificeUpdated = () => {
-          console.log("Custom Event: sacrifice-updated event alındı, veriler yenileniyor...");
           get().refetchSacrifices();
         };
 

@@ -40,7 +40,6 @@ export async function GET() {
             });
         }
 
-        console.log(`${data.length} kullanıcı başarıyla getirildi`);
         return NextResponse.json(data, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -82,7 +81,6 @@ export async function POST(request: Request) {
         }
 
         const json = await request.json();
-        console.log("Yeni kullanıcı oluşturma verileri:", json);
 
         const { data, error } = await supabaseAdmin
             .from("users")
@@ -102,7 +100,6 @@ export async function POST(request: Request) {
             });
         }
 
-        console.log("Yeni kullanıcı başarıyla oluşturuldu:", data);
         return NextResponse.json(data, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',

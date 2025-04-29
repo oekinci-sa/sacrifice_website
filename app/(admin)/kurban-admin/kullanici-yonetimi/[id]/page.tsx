@@ -95,8 +95,6 @@ export default function UserProfilePage() {
         formData.append("file", imageFile);
         formData.append("userId", id as string);
 
-        console.log("Resim yükleniyor...", { userId: id, fileSize: imageFile.size });
-        
         const uploadResponse = await fetch("/api/users/upload-image", {
           method: "POST",
           body: formData,
@@ -109,7 +107,6 @@ export default function UserProfilePage() {
         }
 
         const uploadResult = await uploadResponse.json();
-        console.log("Resim yükleme başarılı:", uploadResult);
         imageUrl = uploadResult.url;
       }
 
@@ -120,8 +117,6 @@ export default function UserProfilePage() {
         image: imageUrl,
       };
 
-      console.log("Kullanıcı güncelleniyor...", { id, updateData });
-      
       const updateResponse = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
@@ -141,7 +136,6 @@ export default function UserProfilePage() {
       }
 
       const updatedData = await updateResponse.json();
-      console.log("Kullanıcı güncelleme başarılı:", updatedData);
 
       // Dispatch an event to notify other components about the user update
       window.dispatchEvent(new CustomEvent('user-updated'));

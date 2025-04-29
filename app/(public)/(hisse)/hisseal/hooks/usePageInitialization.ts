@@ -42,13 +42,10 @@ export function usePageInitialization() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                console.log("usePageInitialization: İlk veri yüklemesi başlatılıyor...");
                 const data = await refetchSacrifices();
-                console.log("usePageInitialization: İlk veri yüklemesi tamamlandı, veri sayısı:", data.length);
 
                 // Realtime subscription'ı aktifleştir
                 subscribeToRealtime();
-                console.log("usePageInitialization: Realtime aboneliği aktifleştirildi");
             } catch (error) {
                 console.error("usePageInitialization: Veri yükleme hatası:", error);
                 // Hata durumunda da bir sonraki denemede çalışabilmesi için
@@ -64,10 +61,8 @@ export function usePageInitialization() {
 
         // Set up listener for sacrifice data updates triggered by admin operations
         const cleanupRefreshListener = setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => {
-            console.log("usePageInitialization: SACRIFICE_UPDATED_EVENT alındı, veriler yenileniyor...");
             // Burada doğrudan store'u güncelliyoruz
             refetchSacrifices().then(data => {
-                console.log("usePageInitialization: Veriler güncellendi, veri sayısı:", data.length);
             }).catch(error => {
                 console.error("usePageInitialization: Veri güncelleme hatası:", error);
             });

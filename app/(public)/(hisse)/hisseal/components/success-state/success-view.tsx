@@ -62,7 +62,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   // Debug fonksiyonu
   useEffect(() => {
     if (transaction_id) {
-      console.log("SuccessView: transaction_id mevcut:", transaction_id);
       setDebugInfo(`Transaction ID: ${transaction_id}`);
     } else {
       console.error("SuccessView: transaction_id eksik!");
@@ -83,7 +82,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       setDbError(null);
 
       try {
-        console.log("API çağrısı yapılıyor:", `/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
         const response = await fetch(`/api/get-shareholder-by-transaction_id?transaction_id=${transaction_id}`);
 
         if (!response.ok) {
@@ -92,7 +90,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
         }
 
         const data = await response.json();
-        console.log("API yanıtı:", data);
 
         setDbData(data);
       } catch (error) {
@@ -106,14 +103,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
 
     fetchData();
   }, [transaction_id]);
-
-  // Debug: Veri durumunu izle
-  useEffect(() => {
-    console.log("SuccessView dbData:", dbData);
-    console.log("SuccessView isDbLoading:", isDbLoading);
-    console.log("SuccessView isDbError:", isDbError);
-    console.log("SuccessView dbError:", dbError);
-  }, [dbData, isDbLoading, isDbError, dbError]);
 
   // Format phone number to 0555 555 55 55
   const formatPhoneNumber = (phone: string): string =>
@@ -251,7 +240,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   // Veritabanı durumuna göre içerik gösterimi
   useEffect(() => {
     if (dbData && dbData.shareholders && dbData.shareholders.length > 0) {
-      console.log("SuccessView: Hissedar verileri başarıyla alındı:", dbData.shareholders.length);
     }
   }, [dbData]);
 

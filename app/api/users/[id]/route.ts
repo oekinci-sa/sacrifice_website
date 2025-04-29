@@ -27,7 +27,6 @@ export async function GET(
         }
 
         const userId = params.id;
-        console.log(`Kullanıcı bilgisi getiriliyor: id=${userId}`);
 
         const { data, error } = await supabaseAdmin
             .from("users")
@@ -48,7 +47,6 @@ export async function GET(
         }
 
         if (!data) {
-            console.log(`Kullanıcı bulunamadı: id=${userId}`);
             return NextResponse.json({ error: "User not found" }, {
                 status: 404,
                 headers: {
@@ -59,7 +57,6 @@ export async function GET(
             });
         }
 
-        console.log(`Kullanıcı bilgisi başarıyla getirildi: id=${userId}`);
         return NextResponse.json(data, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -108,7 +105,6 @@ export async function PUT(
         const isSameUser = session.user.id === userId;
 
         if (!isAdmin && !isSameUser) {
-            console.log(`Yetkisiz kullanıcı güncelleme denemesi: id=${userId}, requester=${session.user.id}`);
             return NextResponse.json({ error: "Unauthorized" }, {
                 status: 401,
                 headers: {
@@ -120,12 +116,10 @@ export async function PUT(
         }
 
         const json = await request.json();
-        console.log(`Kullanıcı güncelleme verileri: id=${userId}`, json);
 
         // If not admin, they cannot update role
         if (!isAdmin && json.role) {
             delete json.role;
-            console.log("Admin olmayan kullanıcı rol güncelleyemez, rol bilgisi kaldırıldı");
         }
 
         const { data, error } = await supabaseAdmin
@@ -147,7 +141,6 @@ export async function PUT(
             });
         }
 
-        console.log(`Kullanıcı başarıyla güncellendi: id=${userId}`);
         return NextResponse.json(data, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -192,7 +185,6 @@ export async function DELETE(
         }
 
         const userId = params.id;
-        console.log(`Kullanıcı silme işlemi: id=${userId}`);
 
         const { error } = await supabaseAdmin
             .from("users")
@@ -211,7 +203,6 @@ export async function DELETE(
             });
         }
 
-        console.log(`Kullanıcı başarıyla silindi: id=${userId}`);
         return NextResponse.json({ success: true }, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',

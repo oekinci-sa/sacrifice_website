@@ -99,7 +99,7 @@ const Prices = () => {
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik gösterebilmektedir.
           </span>
           <span className="block mt-2">
-            * Kapora ücreti <b>5000 TL</b>'dir.
+            * Kapora ücreti <b>5000 TL</b>&apos;dir.
           </span>
         </p>
       </motion.div>

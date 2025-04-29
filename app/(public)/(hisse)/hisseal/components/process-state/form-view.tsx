@@ -63,17 +63,11 @@ export const FormView = ({
   setLastInteractionTime,
   setTimeLeft,
   handleApprove,
-  isLoading = false,
   serverTimeRemaining = null
 }: FormViewProps) => {
   const transaction_id = useReservationIDStore(state => state.transaction_id);
   const cancelReservation = useCancelReservation();
   const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
-
-  // Debug log for data changes
-  useEffect(() => {
-    console.log("FormView: Data değişikliği algılandı, uzunluk:", data?.length);
-  }, [data]);
 
   // Check reservation status directly in component if needed
   const shouldCheckStatus = currentStep === "details" || currentStep === "confirmation";

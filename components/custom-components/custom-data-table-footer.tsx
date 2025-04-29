@@ -26,7 +26,7 @@ export function CustomDataTableFooter<TData>({
       <div className="hidden md:flex items-center justify-between">
         {/* Row Number */}
         <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">Sayfa başına satır</p>
+          <p className="text-sm md:text text-muted-foreground">Sayfa başına satır</p>
           <Select
             value={table.getState().pagination.pageSize.toString()}
             onValueChange={(value) => {
@@ -103,18 +103,18 @@ export function CustomDataTableFooter<TData>({
         <div className="flex justify-between">
           {/* Row Number */}
           <div className="space-y-0.5">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Sayfa başına
             </p>
             <div className="flex items-center gap-1">
-              <span className="text-xs text-muted-foreground">satır</span>
+              <span className="text-sm text-muted-foreground">satır</span>
               <Select
                 value={table.getState().pagination.pageSize.toString()}
                 onValueChange={(value) => {
                   table.setPageSize(Number(value))
                 }}
               >
-                <SelectTrigger className="h-6 w-[45px] bg-muted border-0 text-[10px] px-2">
+                <SelectTrigger className="ml-1 h-8 w-[48px] bg-muted border-0 text-[11px] px-1">
                   <SelectValue placeholder={table.getState().pagination.pageSize.toString()} />
                 </SelectTrigger>
                 <SelectContent side="top">

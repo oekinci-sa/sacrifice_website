@@ -18,7 +18,7 @@ export function CustomTableBody<TData, TValue>({
   const rowSizeClasses = {
     small: "text-[10px] md:text-xs",
     medium: "text-xs md:text-sm",
-    large: "text-base md:text-lg"
+    large: "text-[14px] md:text-lg"
   }
 
   // Get the appropriate class for current size

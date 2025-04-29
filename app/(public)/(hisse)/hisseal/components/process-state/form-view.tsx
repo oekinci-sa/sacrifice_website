@@ -115,8 +115,8 @@ export const FormView = ({
   };
 
   return (
-    <>
-      <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-4 text-center mt-8">Hisse Al</h1>
+    <div className="flex flex-col gap-10 md:gap-12">
+      <h1 className="text-3xl md:text-4xl font-bold mt-8 text-center">Hisse Al</h1>
       <ProgressBar currentStep={currentStep as Step} />
 
       {/* Süre göstergesi - formun üst kısmında gösteriliyor */}
@@ -127,15 +127,9 @@ export const FormView = ({
         />
       )}
 
-      {/* Non-blocking loading indicator */}
-      {isLoading && (
-        <div className="fixed bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg flex items-center z-40">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sac-primary mr-2"></div>
-          <p className="text-sm font-medium text-sac-primary">Yükleniyor...</p>
-        </div>
-      )}
-
+      {/* Tablar */}
       <Tabs value={tabValue} className="space-y-4 md:space-y-6">
+        {/* Tab 1 - Hisse Seçimi */}
         <TabsContent value="tab-1">
           <CustomDataTable
             data={data || []}
@@ -153,13 +147,9 @@ export const FormView = ({
             )}
             tableSize="large"
           />
-          {/* Debug bilgisi */}
-          {data && data.length === 0 && !isLoading && (
-            <div className="text-center my-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <p className="text-amber-800">Yüklenecek kayıt bulunamadı. Lütfen veri bağlantınızı kontrol edin ve sayfayı yenileyin.</p>
-            </div>
-          )}
         </TabsContent>
+
+        {/* Tab 2 - Ödeme Bilgileri */}
         <TabsContent value="tab-2">
           <Checkout
             onBack={(_shareCount) => {
@@ -180,6 +170,8 @@ export const FormView = ({
             onApprove={() => goToStep("confirmation")}
           />
         </TabsContent>
+
+        {/* Tab 3 - Ödeme Onayı */}
         <TabsContent value="tab-3" className="space-y-8">
           <ShareholderSummary
             sacrifice={selectedSacrifice}
@@ -201,6 +193,6 @@ export const FormView = ({
           </AlertDialogDescription>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }; 

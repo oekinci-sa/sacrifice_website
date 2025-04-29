@@ -259,12 +259,12 @@ export default function ShareholderSummary({
             >
               {/* Purchaser badge - only shown for the purchaser */}
               {isPurchaser && shareholders.length > 1 && (
-                <div className="absolute -top-2 right-4 bg-blue-500 text-white text-[8px] md:text-xs py-1 px-2 rounded-full">
+                <div className="absolute -top-2 right-4 bg-blue-500 text-white text-xl md:text-2xl py-1 px-2 rounded-full">
                   İşlemi Gerçekleştiren Kişi
                 </div>
               )}
 
-              <h3 className="text-sm md:text-lg font-semibold text-center mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold text-center mb-4 md:mb-6">
                 {index + 1}. Hissedar Bilgileri
               </h3>
 
@@ -272,12 +272,12 @@ export default function ShareholderSummary({
                 {/* Sol Sütun */}
                 <div className="space-y-3 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-xs md:text-base">Ad Soyad</span>
-                    <span className="text-black text-sm md:text-lg">{shareholder.name}</span>
+                    <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Ad Soyad</span>
+                    <span className="text-black font-medium text-[16px] md:text-lg">{shareholder.name}</span>
                   </div>
                   <div>
-                    <span className="text-[#5b725e] block text-xs md:text-base">Teslimat Tercihi</span>
-                    <span className="text-black text-sm md:text-lg">
+                    <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Teslimat Tercihi</span>
+                    <span className="text-black font-medium text-[16px] md:text-lg">
                       {shareholder.delivery_location}
                     </span>
                   </div>
@@ -285,8 +285,8 @@ export default function ShareholderSummary({
 
                 {/* Sağ Sütun */}
                 <div>
-                  <span className="text-[#5b725e] block text-xs md:text-base">Telefon</span>
-                  <span className="text-black text-sm md:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+                  <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Telefon</span>
+                  <span className="text-black font-medium text-[16px] md:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
                 </div>
               </div>
 
@@ -297,19 +297,19 @@ export default function ShareholderSummary({
               <div className="grid grid-cols-2 gap-2 md:gap-8">
                 <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] md:text-base">Kurbanlık No</span>
-                    <span className="text-black text-xs md:text-lg">{sacrifice?.sacrifice_no}</span>
+                    <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Kurbanlık No</span>
+                    <span className="text-black font-medium text-[16px] md:text-lg">{sacrifice?.sacrifice_no}</span>
                   </div>
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] md:text-base">Hisse Bedeli</span>
-                    <span className="text-black text-xs md:text-lg">{sacrifice?.share_price} TL</span>
+                    <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Hisse Bedeli</span>
+                    <span className="text-black font-medium text-[16px] md:text-lg">{sacrifice?.share_price} TL</span>
                   </div>
                 </div>
 
                 <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-[#5b725e] block text-[10px] md:text-base">Kesim Saati</span>
-                    <span className="text-black text-xs md:text-lg">
+                    <span className="text-[#5b725e] font-medium block text-[16px] md:text-lg">Kesim Saati</span>
+                    <span className="text-black font-medium text-[16px] md:text-lg">
                       {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
                     </span>
                   </div>
@@ -321,8 +321,8 @@ export default function ShareholderSummary({
 
               {/* Toplam Ücret */}
               <div className="grid grid-cols-2 gap-2 md:gap-8">
-                <span className="col-span-1 text-[#5b725e] text-[10px] md:text-base">Toplam Ücret</span>
-                <span className="col-span-1 text-black text-xs md:text-lg font-medium">
+                <span className="col-span-1 text-[#5b725e] font-medium text-[16px] md:text-lg">Toplam Ücret</span>
+                <span className="col-span-1 text-black font-medium text-[16px] md:text-lg font-medium">
                   {new Intl.NumberFormat('tr-TR').format(
                     shareholder.delivery_location !== "Kesimhane"
                       ? (sacrifice?.share_price || 0) + 750
@@ -343,7 +343,7 @@ export default function ShareholderSummary({
           disabled={isProcessing}
         >
           <ArrowLeft className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-0.5 md:mr-2" />
-          <span className="text-xs md:text-base">Hissedar Bilgileri</span>
+          <span className="text-[16px] md:text-lg">Hissedar Bilgileri</span>
         </Button>
 
         <Button
@@ -352,7 +352,7 @@ export default function ShareholderSummary({
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >
-          <span className="text-xs md:text-base">Hisseleri Onayla</span>
+          <span className="text-[16px] md:text-lg">Hisseleri Onayla</span>
           <ArrowRight className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 ml-0.5 md:ml-2" />
         </Button>
       </div>

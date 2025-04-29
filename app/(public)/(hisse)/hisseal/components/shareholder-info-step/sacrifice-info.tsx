@@ -53,10 +53,10 @@ export default function SacrificeInfo({
     <div className="grid grid-cols-2 justify-items-center items-center md:flex md:items-center md:justify-center px-4 min-w-full whitespace-nowrap gap-4 md:gap-0">
       {/* Kurbanlık Sırası */}
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground text-xs md:text-xl">
+        <span className="text-muted-foreground text-base md:text-xl">
           Kurbanlık Sırası:
         </span>
-        <span className="ml-2 font-medium text-xs md:text-xl">
+        <span className="ml-2 font-medium text-base md:text-xl">
           {displaySacrifice.sacrifice_no}
         </span>
       </div>
@@ -66,10 +66,10 @@ export default function SacrificeInfo({
 
       {/* Kesim Saati */}
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground text-xs md:text-xl">
+        <span className="text-muted-foreground text-base md:text-xl">
           Kesim Saati:
         </span>
-        <span className="ml-2 font-medium text-xs md:text-xl">
+        <span className="ml-2 font-medium text-base md:text-xl">
           {formatTime(displaySacrifice.sacrifice_time)}
         </span>
       </div>
@@ -79,10 +79,10 @@ export default function SacrificeInfo({
 
       {/* Hisse Bedeli */}
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground text-xs md:text-xl">
+        <span className="text-muted-foreground text-base md:text-xl">
           Hisse Bedeli:
         </span>
-        <span className="ml-2 font-medium text-xs md:text-xl">
+        <span className="ml-2 font-medium text-base md:text-xl">
           {formatPrice(displaySacrifice.share_price)}
         </span>
       </div>
@@ -92,10 +92,10 @@ export default function SacrificeInfo({
 
       {/* Kalan Hisse */}
       <div className="flex items-center flex-shrink-0">
-        <span className="text-muted-foreground text-xs md:text-xl">
+        <span className="text-muted-foreground text-base md:text-xl">
           Kalan Hisse:
         </span>
-        <span className="ml-2 font-medium text-xs md:text-xl">
+        <span className="ml-2 font-medium text-base md:text-xl">
           {displaySacrifice.empty_share}
         </span>
       </div>

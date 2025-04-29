@@ -7,7 +7,7 @@ export const reminders = [
   },
   {
     src: "wallet-fill.svg",
-    header: "Kapora IBAN Bilgisi",
+    header: "Kapora IBAN Bilgisi (5000 TL)",
     description: "TR12 3456 7890 1234 5678 9012 34 - Ahmet oğlu Mehmet (Açıklama: Kurban 2025)",
   },
   {

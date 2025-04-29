@@ -105,10 +105,10 @@ const Banner = () => {
               alt="Location Icon"
               width={28}
               height={28}
-              className="mt-1"
+              className="mt-1 w-[28px] h-[28px] md:w-[40px] md:h-[40px]"
             />
-            <p className="md:text-lg text-black/90">
-              Kurban kesim yerimiz, Kahramankazan&apos;a bağlı<br className="block md:hidden" /> Ciğir köyündedir.
+            <p className="text-sm md:text-lg text-black/90">
+              Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
               <br className="hidden md:block" />
               <Link
                 target="_blank"

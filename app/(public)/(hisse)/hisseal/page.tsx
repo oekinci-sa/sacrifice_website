@@ -97,7 +97,7 @@ const Page = () => {
       // Eğer veriler zaten yüklenmişse, bunları yeni filtrelenecek komponent işleyecek
       if (sacrifices.length === 0 && !isLoadingSacrifices && !isRefetching) {
         initialFetchPerformed.current = true;
-        refetchSacrifices().then(data => {
+        refetchSacrifices().then(() => {
         }).catch(err => {
           console.error("Page.tsx: Manuel refetch hatası:", err);
           // Reset the flag if there was an error so we can retry

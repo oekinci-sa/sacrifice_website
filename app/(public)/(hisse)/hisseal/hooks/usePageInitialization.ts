@@ -42,8 +42,6 @@ export function usePageInitialization() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await refetchSacrifices();
-
                 // Realtime subscription'ı aktifleştir
                 subscribeToRealtime();
             } catch (error) {
@@ -62,7 +60,7 @@ export function usePageInitialization() {
         // Set up listener for sacrifice data updates triggered by admin operations
         const cleanupRefreshListener = setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => {
             // Burada doğrudan store'u güncelliyoruz
-            refetchSacrifices().then(data => {
+            refetchSacrifices().then(() => {
             }).catch(error => {
                 console.error("usePageInitialization: Veri güncelleme hatası:", error);
             });

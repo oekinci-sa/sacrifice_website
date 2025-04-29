@@ -135,8 +135,6 @@ export default function UserProfilePage() {
         throw new Error(`Failed to update user: ${updateResponse.status}`);
       }
 
-      const updatedData = await updateResponse.json();
-
       // Dispatch an event to notify other components about the user update
       window.dispatchEvent(new CustomEvent('user-updated'));
 

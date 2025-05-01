@@ -1,13 +1,73 @@
 "use client";
 
+import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Ban, Plus } from "lucide-react";
+import { useEffect } from "react";
 
 interface TableMeta {
   onSacrificeSelect: (sacrifice: sacrificeSchema) => void;
 }
 
+// Aktif rezervasyon işlemlerini takip eden client component
+export const ActiveReservationsInitializer = () => {
+  const { fetchActiveReservations, subscribeToRealtimeReservations, unsubscribeFromRealtimeReservations } = useActiveReservationsStore();
+
+  // Component mount olduğunda verileri yükle ve realtime aboneliği başlat
+  useEffect(() => {
+    console.log("ActiveReservationsInitializer: Initializing...");
+    fetchActiveReservations();
+    subscribeToRealtimeReservations();
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribeFromRealtimeReservations();
+    };
+  }, [fetchActiveReservations, subscribeToRealtimeReservations, unsubscribeFromRealtimeReservations]);
+
+  return null; // Bu component bir şey render etmez
+};
+
+// Boş hisse hücresini gösteren özel component - store'dan doğrudan veri alır
+const EmptyShareCell = ({ sacrifice }: { sacrifice: sacrificeSchema }) => {
+  const emptyShare = sacrifice.empty_share;
+  const sacrificeId = sacrifice.sacrifice_id;
+  const activeReservations = useActiveReservationsStore(state => state.reservations);
+  const activeCount = activeReservations[sacrificeId] || 0;
+
+  // Debug: sacrifice_id değerini ve aktif rezervasyon bilgisini göster
+  useEffect(() => {
+    if (activeCount > 0) {
+      console.log(`Sacrifice ID: ${sacrificeId} has ${activeCount} active reservations`);
+    }
+  }, [sacrificeId, activeCount]);
+
+  return (
+    <div className="flex items-center justify-center py-0.5 md:py-1">
+      {/* Boş hisse ikonu */}
+      <span className="inline-flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-md">
+        {emptyShare}
+      </span>
+
+      {activeCount > 0 && (
+        <>
+          {/* Mobil için kısa mesaj (inline, margin-left ile) */}
+          <span className="ml-1 text-xs bg-sac-primary text-white px-1.5 py-0.5 rounded font-medium md:hidden">
+            {activeCount} hisse işlemde
+          </span>
+
+          {/* Desktop için uzun mesaj (inline, md:ml-1 ile) */}
+          <span className="ml-1 hidden md:inline text-sm bg-sac-primary text-white px-1.5 py-0.5 rounded font-medium">
+            {activeCount} hissede işlem yapılıyor
+          </span>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Ana columns tanımı
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "sacrifice_no",
@@ -76,16 +136,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "empty_share",
     header: "Boş Hisse",
-    cell: ({ row }) => {
-      const emptyShare = row.getValue("empty_share") as number;
-      return (
-        <div className="text-center py-0.5 md:py-1">
-          <span className="inline-flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-md">
-            {emptyShare}
-          </span>
-        </div>
-      );
-    },
+    cell: ({ row }) => <EmptyShareCell sacrifice={row.original} />,
     filterFn: (row, id, value: (string | number)[]) => {
       return value.includes((row.getValue(id) as number).toString());
     },

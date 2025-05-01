@@ -60,8 +60,7 @@ export function usePageInitialization() {
         // Set up listener for sacrifice data updates triggered by admin operations
         const cleanupRefreshListener = setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => {
             // Burada doğrudan store'u güncelliyoruz
-            refetchSacrifices().then(() => {
-            }).catch(error => {
+            refetchSacrifices().catch(error => {
                 console.error("usePageInitialization: Veri güncelleme hatası:", error);
             });
         });
@@ -71,7 +70,11 @@ export function usePageInitialization() {
             unsubscribeFromRealtime();
             cleanupRefreshListener();
         };
-    }, [refetchSacrifices, subscribeToRealtime, unsubscribeFromRealtime]);
+    }, [
+        refetchSacrifices, 
+        subscribeToRealtime, 
+        unsubscribeFromRealtime
+    ]);
 
     // Reservation store - transaction_id management
     const { transaction_id, generateNewTransactionId } = useReservationIDStore();

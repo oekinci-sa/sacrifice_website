@@ -1,12 +1,13 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
+import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { SacrificeQueryResult, sacrificeSchema } from "@/types";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { PageLayout } from "./components/layout/page-layout";
-import { columns } from "./components/table-step/columns";
+import { ActiveReservationsInitializer, columns } from "./components/table-step/columns";
 import {
   createHandleApprove,
   createHandlePdfDownload,
@@ -29,13 +30,21 @@ function FilteredSacrificesContent({
 }) {
   const searchParams = useSearchParams();
   const priceParam = searchParams.get('price');
+  const activeReservations = useActiveReservationsStore(state => state.reservations);
 
   // Apply filtering when sacrifices or priceParam changes
   useEffect(() => {
     if (sacrifices.length === 0) return;
 
-    // First filter out sacrifices with empty_share = 0
-    const availableSacrifices = sacrifices.filter(sacrifice => sacrifice.empty_share > 0);
+    // Yeni filtreleme mantığı:
+    // 1. empty_share > 0 VEYA bu hayvan üzerinde aktif işlem varsa (activeCount > 0) göster
+    const availableSacrifices = sacrifices.filter(sacrifice => {
+      // Hayvan üzerinde aktif işlem var mı?
+      const hasActiveReservations = Boolean(activeReservations[sacrifice.sacrifice_id]);
+
+      // Eğer boş hisse varsa VEYA aktif işlem yapılıyorsa göster
+      return sacrifice.empty_share > 0 || hasActiveReservations;
+    });
 
     if (priceParam && !isNaN(Number(priceParam))) {
       const price = Number(priceParam);
@@ -43,7 +52,7 @@ function FilteredSacrificesContent({
     } else {
       onFilteredSacrificesChange(availableSacrifices);
     }
-  }, [sacrifices, priceParam, onFilteredSacrificesChange]);
+  }, [sacrifices, priceParam, onFilteredSacrificesChange, activeReservations]);
 
   return null; // This component doesn't render anything, just handles the filtering
 }
@@ -51,7 +60,6 @@ function FilteredSacrificesContent({
 const Page = () => {
   const { toast } = useToast();
   const pathname = usePathname();
-  // Remove useSearchParams from here - moved to FilteredSacrificesContent
 
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
@@ -185,9 +193,9 @@ const Page = () => {
 
   // Callback for updating filtered sacrifices from the FilteredSacrificesContent
   const handleFilteredSacrificesChange = useCallback((data: sacrificeSchema[]) => {
-    // Filter out sacrifices with empty_share = 0
-    const availableSacrifices = data.filter(sacrifice => sacrifice.empty_share > 0);
-    setFilteredSacrifices(availableSacrifices);
+    // Bu noktada artık FilteredSacrificesContent bileşeni filtrelemeyi zaten yaptı
+    // Bu nedenle direkt olarak gelen datayı kullanabiliriz
+    setFilteredSacrifices(data);
   }, []);
 
   // Create action handlers
@@ -415,6 +423,9 @@ const Page = () => {
           onFilteredSacrificesChange={handleFilteredSacrificesChange}
         />
       </Suspense>
+
+      {/* Aktif rezervasyonları izleyen bileşen */}
+      <ActiveReservationsInitializer />
 
       <PageLayout
         isSuccess={isSuccess}

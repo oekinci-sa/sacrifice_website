@@ -34,11 +34,14 @@ function FilteredSacrificesContent({
   useEffect(() => {
     if (sacrifices.length === 0) return;
 
+    // First filter out sacrifices with empty_share = 0
+    const availableSacrifices = sacrifices.filter(sacrifice => sacrifice.empty_share > 0);
+
     if (priceParam && !isNaN(Number(priceParam))) {
       const price = Number(priceParam);
-      onFilteredSacrificesChange(sacrifices.filter(sacrifice => sacrifice.share_price === price));
+      onFilteredSacrificesChange(availableSacrifices.filter(sacrifice => sacrifice.share_price === price));
     } else {
-      onFilteredSacrificesChange([...sacrifices]);
+      onFilteredSacrificesChange(availableSacrifices);
     }
   }, [sacrifices, priceParam, onFilteredSacrificesChange]);
 
@@ -182,7 +185,9 @@ const Page = () => {
 
   // Callback for updating filtered sacrifices from the FilteredSacrificesContent
   const handleFilteredSacrificesChange = useCallback((data: sacrificeSchema[]) => {
-    setFilteredSacrifices(data);
+    // Filter out sacrifices with empty_share = 0
+    const availableSacrifices = data.filter(sacrifice => sacrifice.empty_share > 0);
+    setFilteredSacrifices(availableSacrifices);
   }, []);
 
   // Create action handlers

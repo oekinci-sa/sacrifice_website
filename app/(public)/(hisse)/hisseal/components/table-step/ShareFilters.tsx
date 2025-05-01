@@ -7,8 +7,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
-  CommandSeparator,
+  CommandList
 } from "@/components/ui/command";
 import {
   Popover,
@@ -22,7 +21,7 @@ import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
@@ -112,37 +111,14 @@ function DataTableFacetedFilter<TData, TValue>({
   title,
   options,
   type,
-  showHideFullOption,
-  setShowHideFullOption,
 }: {
   column?: Column<TData, TValue>;
   title?: string;
   options: { label: string; value: string }[];
   type: "price" | "share";
-  showHideFullOption?: boolean;
-  setShowHideFullOption?: (show: boolean) => void;
 }) {
   const selectedValues = new Set(column?.getFilterValue() as string[]);
   const facets = column?.getFacetedUniqueValues();
-
-  const handleHideFullOnes = () => {
-    const isCurrentlyHidingFull =
-      selectedValues.has("0") && selectedValues.size === 1;
-
-    if (isCurrentlyHidingFull) {
-      selectedValues.clear();
-      column?.setFilterValue(undefined);
-    } else {
-      selectedValues.clear();
-      options.forEach((option) => {
-        if (option.value !== "0") {
-          selectedValues.add(option.value);
-        }
-      });
-      column?.setFilterValue(Array.from(selectedValues));
-    }
-    setShowHideFullOption?.(false);
-  };
 
   return (
     <Popover>
@@ -166,28 +142,6 @@ function DataTableFacetedFilter<TData, TValue>({
           <CommandInput placeholder={title} />
           <CommandList className="max-h-full">
             <CommandEmpty>Sonuç bulunamadı.</CommandEmpty>
-            {type === "share" && (
-              <AnimatePresence>
-                {showHideFullOption && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <CommandGroup>
-                      <CommandItem
-                        onSelect={handleHideFullOnes}
-                        className="flex justify-center font-medium transition-colors data-[highlighted]:bg-transparent hover:text-sac-primary"
-                      >
-                        Dolu olanları gizle
-                      </CommandItem>
-                    </CommandGroup>
-                    <CommandSeparator />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            )}
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
@@ -301,13 +255,11 @@ function ClientShareFilters({
     return priceOptions;
   }, [sacrifices]);
 
-  const [showHideFullOption, setShowHideFullOption] = useState(true);
-
   const emptyShares = useMemo(
     () =>
-      Array.from({ length: 8 }, (_, i) => ({
-        label: i.toString(),
-        value: i.toString(),
+      Array.from({ length: 7 }, (_, i) => ({
+        label: (i + 1).toString(),
+        value: (i + 1).toString(),
       })),
     []
   );
@@ -355,7 +307,6 @@ function ClientShareFilters({
     // Filtreleri temizle
     table.resetColumnFilters();
     onColumnFiltersChange([]);
-    setShowHideFullOption(true);
 
     // URL'den price parametresini temizle
     if (searchParams.has('price')) {
@@ -390,10 +341,8 @@ function ClientShareFilters({
             title: "Boş Hisse",
             options: emptyShares,
             type: "share" as const,
-            showHideFullOption,
-            setShowHideFullOption,
           },
-        ].map(({ column, title, options, type, ...rest }) => {
+        ].map(({ column, title, options, type }) => {
           const col = table.getColumn(column);
           return (
             <div key={column} className="relative">
@@ -405,7 +354,6 @@ function ClientShareFilters({
                 title={title}
                 options={options}
                 type={type}
-                {...rest}
               />
             </div>
           );

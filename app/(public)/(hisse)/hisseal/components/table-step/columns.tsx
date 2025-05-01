@@ -69,21 +69,22 @@ const EmptyShareCell = ({ sacrifice }: { sacrifice: sacrificeSchema }) => {
 
 // Ana columns tanımı
 export const columns: ColumnDef<sacrificeSchema>[] = [
-  {
-    accessorKey: "sacrifice_no",
-    header: "Kurbanlık Sırası",
-    cell: ({ row }) => (
-      <div className="text-center py-0.5 md:py-1">
-        {row.getValue("sacrifice_no")}
-      </div>
-    ),
-    filterFn: (row, id, value: string) => {
-      const searchValue = value.toLowerCase();
-      const cellValue = String(row.getValue(id)).toLowerCase();
-      return cellValue.includes(searchValue);
-    },
-    enableSorting: true,
-  },
+  // 
+  // {
+  //   accessorKey: "sacrifice_no",
+  //   header: "Kurbanlık Sırası",
+  //   cell: ({ row }) => (
+  //     <div className="text-center py-0.5 md:py-1">
+  //       {row.getValue("sacrifice_no")}
+  //     </div>
+  //   ),
+  //   filterFn: (row, id, value: string) => {
+  //     const searchValue = value.toLowerCase();
+  //     const cellValue = String(row.getValue(id)).toLowerCase();
+  //     return cellValue.includes(searchValue);
+  //   },
+  //   enableSorting: true,
+  // },
   {
     accessorKey: "sacrifice_time",
     header: "Kesim Saati",

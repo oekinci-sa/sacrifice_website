@@ -1,5 +1,6 @@
 "use client"
 
+import { agreementTerms } from "@/app/(public)/(hisse)/constants"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -89,6 +90,7 @@ export default function TermsAgreementDialog({
                 // Make the dialog take 80% of screen height
                 style={{ maxHeight: '80vh' }}
             >
+                {/* Header */}
                 <DialogHeader className="px-6 pt-6 pb-2">
                     <DialogTitle className="text-base md:text-lg text-center">
                         Kullanıcı Sözleşmesi
@@ -97,15 +99,17 @@ export default function TermsAgreementDialog({
 
                 {/* Main scrollable content area */}
                 <div className="flex-1 overflow-hidden px-6">
+
+                    {/* Security code */}
                     <div className="flex items-center gap-2 p-3 rounded-md mb-4">
-                        <span className="text-xs md:text-sm font-medium">Güvenlik Kodunuz:</span>
-                        <span className="text-sm md:text-base font-bold">{securityCode}</span>
+                        <span className="text-[14px] md:text-lg font-medium">Güvenlik Kodunuz:</span>
+                        <span className="text-[14px] md:text-lg font-bold">{securityCode}</span>
 
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={onBackToSecurityCode}
-                            className="ml-auto text-xs flex items-center gap-1 text-muted-foreground hover:text-primary"
+                            className="ml-auto text-xs flex items-center text-[14px] md:text-lg gap-1 text-muted-foreground hover:text-primary"
                         >
                             <ArrowLeft className="h-3 w-3" />
                             Kodu yeniden al
@@ -114,99 +118,65 @@ export default function TermsAgreementDialog({
 
                     {/* Scrollable area with visible scrollbar */}
                     <ScrollArea className="h-[calc(100%-3rem)] pr-2 border rounded-md" type="always">
-                        <div className="p-4 text-sm text-muted-foreground">
+                        <div className="flex flex-col gap-2 md:gap-4 p-4 text-sm md:text-base text-muted-foreground">
                             {/* Enhanced agreement styling */}
-                            <h3 className="text-base font-semibold text-primary mb-4 text-center">
+                            <h3 className="text-base md:text-lg font-semibold text-primary mb:2 md:mb-4 text-center">
                                 KURBANLIK HİSSE SÖZLEŞMESİ
                             </h3>
 
-                            <p className="mb-4 text-sm leading-relaxed">
-                                Bu sözleşme, kurban satın alan kişi (&quot;Hissedar&quot;) ile kurban satış hizmeti sunan
-                                şirket (&quot;Şirket&quot;) arasında akdedilmiştir.
+                            {/* Introduction - 1 */}
+                            <p className="leading-relaxed">
+                                Bu metin, kurban hissesi almak isteyen gönüllüler ile bu organizasyonu gönüllülük esasıyla yürüten ekibimiz arasında, sürecin karşılıklı olarak şeffaf, anlaşılır ve düzenli ilerlemesini sağlamak amacıyla hazırlanmıştır. Amacımız, ibadet niyetiyle yapılan bu hizmetin sorunsuz ve güvenilir şekilde gerçekleşmesidir.
                             </p>
 
+                            {/* Introduction - 2 */}
+                            <p className="leading-relaxed">
+
+                                Lütfen aşağıdaki maddeleri dikkatlice okuyunuz. Hisse kaydı ve işlemleri sırasında bu şartları kabul etmiş sayılırsınız.
+                            </p>
+
+                            {/* Agreement terms */}
                             <div className="space-y-3">
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">1</div>
-                                    <p className="pt-0.5">Hissedar, şirket tarafından belirlenen kurban bedelini öder ve kurbanın
-                                        belirtilen hisselerine sahip olur.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">2</div>
-                                    <p className="pt-0.5">Şirket, kurbanın teminini, kesimini ve teslimini bu sözleşmede belirtilen
-                                        şartlara uygun olarak gerçekleştirmeyi taahhüt eder.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">3</div>
-                                    <p className="pt-0.5">Hissedar, kurban kesimi için dini vekaleti şirkete verdiğini beyan eder.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">4</div>
-                                    <p className="pt-0.5">Şirket, kurbanın İslami usullere uygun olarak kesilmesini sağlayacaktır.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">5</div>
-                                    <p className="pt-0.5">Hissedar, kurban etinin teslim şeklini ve adresini belirtmekle yükümlüdür.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">6</div>
-                                    <p className="pt-0.5">Kurban eti, kesim sonrası en kısa sürede ve hijyenik koşullarda teslim edilecektir.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">7</div>
-                                    <p className="pt-0.5">Mücbir sebeplerden dolayı kurban kesimi veya eti tesliminde gecikmeler olabilir.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">8</div>
-                                    <p className="pt-0.5">Bu hizmetle ilgili tüm bilgiler gizli tutulacak ve üçüncü şahıslarla paylaşılmayacaktır.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">9</div>
-                                    <p className="pt-0.5">Tüm hisse sahipleri, bu sözleşmeyi kabul ederek kurban hissesine ortak olduklarını beyan ederler.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">10</div>
-                                    <p className="pt-0.5">Teslimat adresi değişikliği, kesim günü öncesinde şirkete bildirilmelidir.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">11</div>
-                                    <p className="pt-0.5">Şirket, kurbanlık hayvanların İslami usullere uygun bir şekilde kesileceğini taahhüt eder.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-shrink-0 bg-primary/10 w-7 h-7 rounded-full flex items-center justify-center text-primary font-medium">12</div>
-                                    <p className="pt-0.5">Ek ücret ödenmesi gereken durumlarda, bu ödeme kesim tarihinden önce yapılmalıdır.</p>
-                                </div>
+                                {agreementTerms.map((term, index) => (
+                                    <div key={index} className="flex gap-1">
+                                        <p className="flex-shrink-0 justify-center font-medium ">
+                                            {index + 1}.
+                                        </p>
+                                        <div>
+                                            <p className="font-medium ">{term.title}</p>
+                                            <p className="leading-relaxed">{term.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
+
+                            {/* Not */}
+                            <p className="leading-relaxed">
+                                <b>Not:</b> Bu hizmet <b>ticari bir faaliyet değildir.</b> Gönüllülük esasıyla yürütülmekte olup, ibadetin paylaşılması ve kolaylaştırılması amacı taşımaktadır.
+                                <br />
+                                Siz değerli hissedarlarımızın da bu anlayışla sürece katkı sağlaması bizler için kıymetlidir.
+                            </p>
 
                             {/* Add extra padding at the bottom for better scrolling experience */}
                             <div className="h-4"></div>
+
+
                         </div>
                     </ScrollArea>
                 </div>
 
                 {/* Fixed footer with checkbox and button */}
-                <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row items-start md:items-center gap-4">
-                    <div className="flex items-start gap-2 items-center">
+                <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex gap-2 items-center">
                         <Checkbox
                             id="terms"
                             checked={isAgreed}
                             onCheckedChange={(checked) => setIsAgreed(!!checked)}
-                            className="mt-1"
+                            className=""
                         />
                         <label
                             htmlFor="terms"
-                            className="text-xs md:text-sm text-muted-foreground cursor-pointer"
+                            className="text-sm md:text-base text-muted-foreground cursor-pointer"
                         >
                             Kullanıcı sözleşmesini okudum, kabul ediyorum.
                         </label>

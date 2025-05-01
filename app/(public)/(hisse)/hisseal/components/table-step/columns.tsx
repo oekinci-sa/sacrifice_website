@@ -138,7 +138,17 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     header: "Boş Hisse",
     cell: ({ row }) => <EmptyShareCell sacrifice={row.original} />,
     filterFn: (row, id, value: (string | number)[]) => {
-      return value.includes((row.getValue(id) as number).toString());
+      if (!value || value.length === 0) return true;
+
+      const rowValue = row.getValue(id) as number;
+
+      // Check if rowValue is greater than or equal to ANY of the selected filter values
+      return value.some(filterValue => {
+        const numericFilterValue = typeof filterValue === 'string'
+          ? parseInt(filterValue)
+          : filterValue;
+        return rowValue >= numericFilterValue;
+      });
     },
     enableSorting: true,
   },

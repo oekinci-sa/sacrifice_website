@@ -50,7 +50,7 @@ export function ReservationInfoDialog({ isOpen, onClose }: ReservationInfoDialog
         </div>
 
         <DialogFooter>
-          <Button onClick={onClose} className="w-full">
+          <Button onClick={onClose} className="w-full text-sm md:text-lg">
             Anladım, devam et
           </Button>
         </DialogFooter>

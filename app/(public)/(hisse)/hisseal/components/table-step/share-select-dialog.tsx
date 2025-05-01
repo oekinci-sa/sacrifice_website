@@ -194,7 +194,7 @@ export function ShareSelectDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="md:max-w-xl md:mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-center text-base md:text-xl font-bold">Hisse Adedi Seçimi</DialogTitle>
+          <DialogTitle className="text-center text-lg md:text-xl font-bold">Hisse Adedi Seçimi</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 md:space-y-8">
           {currentEmptyShare === 0 ? (
@@ -204,14 +204,14 @@ export function ShareSelectDialog({
                 "bg-destructive/15 text-destructive border-destructive/50"
               )}
             >
-              <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <p className="text-xs md:text-sm">
+              <AlertCircle className="h-5 w-5" />
+              <p className="text-base md:text-lg">
                 Üzgünüz, şu anda bu kurbanlıkta boş hisse kalmadı.
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-muted-foreground font-medium text-xs md:text-lg">
+              <p className="text-center text-muted-foreground font-medium text-base md:text-lg">
                 Seçmiş olduğunuz{" "}
                 <span className="text-sac-primary font-bold">
                   {currentSacrifice.share_price.toLocaleString("tr-TR")} TL
@@ -223,7 +223,7 @@ export function ShareSelectDialog({
                   <Button
                     key={count}
                     variant={selectedShareCount === count ? "default" : "outline"}
-                    className="h-8 w-8 md:h-12 md:w-12 text-sm md:text-lg"
+                    className="h-10 w-10 md:h-12 md:w-12 text-base md:text-lg"
                     onClick={() => handleButtonClick(count)}
                   >
                     {count}
@@ -234,7 +234,7 @@ export function ShareSelectDialog({
               <Button
                 onClick={handleContinue}
                 disabled={isButtonLoading}
-                className="h-8 md:h-10 text-xs md:text-base whitespace-nowrap mx-auto block"
+                className="pb-8 text-base md:text-lg whitespace-nowrap mx-auto block"
               >
                 {isButtonLoading ? "İşleminiz Yapılıyor..." : "Devam"}
               </Button>

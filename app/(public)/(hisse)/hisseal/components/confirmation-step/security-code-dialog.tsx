@@ -81,7 +81,7 @@ export default function SecurityCodeDialog({
         </DialogHeader>
 
         <div className="space-y-4 mb-4">
-          <p className="text-sm md:text-base text-muted-foreground text-center">
+          <p className="text-base md:text-lg text-muted-foreground text-center">
             Lütfen daha sonra hisse sorgulama işleminizi güvenli bir şekilde yapmak için 6 rakamlı bir güvenlik kodu belirleyin.
           </p>
           <div className="flex justify-center">
@@ -97,7 +97,7 @@ export default function SecurityCodeDialog({
           <Button
             onClick={validateAndSubmit}
             disabled={isLoading || securityCode.length !== 6}
-            className="h-8 md:h-10 text-xs md:text-base whitespace-nowrap mx-auto"
+            className="h-10 md:h-12 text-base md:text-lg whitespace-nowrap mx-auto"
           >
             Onayla
           </Button>

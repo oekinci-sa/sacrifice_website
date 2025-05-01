@@ -32,11 +32,11 @@ export default function TripleButtons({
     <div className="flex justify-center items-center gap-2 md:gap-4">
       <Button
         variant="ghost"
-        className="rounded-full bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 min-w-[100px] md:min-w-[140px]"
+        className="flex-1 md:flex-none rounded-md bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onBack}
       >
-        <ArrowLeft className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-0.5 md:mr-2" />
-        <span className="text-xs md:text-base">Geri Dön</span>
+        <ArrowLeft className="mr-0.5 md:mr-2" />
+        <span className="text-sm md:text-lg">Geri Dön</span>
       </Button>
 
       {onAddShareholder && (
@@ -49,7 +49,7 @@ export default function TripleButtons({
                     <Button
                       onClick={onAddShareholder}
                       variant="outline"
-                      className="rounded-full bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 disabled:bg-[#7FB69B] disabled:text-white/70 disabled:cursor-not-allowed h-8 md:h-10 px-2 md:px-4 md:min-w-[140px] text-xs md:text-base whitespace-nowrap"
+                      className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 disabled:bg-[#7FB69B] disabled:text-white/70 disabled:cursor-not-allowed h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
                       disabled={true}
                     >
                       <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -69,7 +69,7 @@ export default function TripleButtons({
             <Button
               onClick={onAddShareholder}
               variant="outline"
-              className="rounded-full bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 h-8 md:h-10 px-4 md:px-4 md:min-w-[140px] text-xs md:text-base whitespace-nowrap"
+              className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
             >
               <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
               <span className="md:hidden">Yeni Ekle</span>
@@ -81,11 +81,11 @@ export default function TripleButtons({
 
       <Button
         variant="ghost"
-        className="rounded-full bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 min-w-[100px] md:min-w-[140px]"
+        className="flex-1 md:flex-none rounded-md bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onContinue}
       >
-        <span className="text-xs md:text-base">Devam Et</span>
-        <ArrowRight className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 ml-0.5 md:ml-2" />
+        <span className="text-sm md:text-lg">Devam Et</span>
+        <ArrowRight className="ml-0.5 md:ml-2" />
       </Button>
     </div>
   )

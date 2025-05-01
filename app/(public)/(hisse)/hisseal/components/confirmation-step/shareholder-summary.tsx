@@ -241,7 +241,7 @@ export default function ShareholderSummary({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 w-full mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 w-full mx-auto">
         {shareholders.map((shareholder, index) => {
           // Check if this shareholder is the purchaser
           const isPurchaser = index === effectivePurchaserIndex
@@ -259,12 +259,12 @@ export default function ShareholderSummary({
             >
               {/* Purchaser badge - only shown for the purchaser */}
               {isPurchaser && shareholders.length > 1 && (
-                <div className="absolute -top-2 right-4 bg-blue-500 text-white text-xl md:text-2xl py-1 px-2 rounded-full">
+                <div className="absolute -top-3 right-4 bg-sac-primary text-white text-xs md:text-base py-1 px-2 rounded-full">
                   İşlemi Gerçekleştiren Kişi
                 </div>
               )}
 
-              <h3 className="text-base md:text-lg font-semibold text-center mb-4 md:mb-6">
+              <h3 className="text-lg md:text-xl font-semibold text-center mt-2 md:mt-0 mb-4 md:mb-6">
                 {index + 1}. Hissedar Bilgileri
               </h3>
 
@@ -338,7 +338,7 @@ export default function ShareholderSummary({
       <div className="flex justify-between items-center gap-4 w-full max-w-2xl mx-auto">
         <Button
           variant="ghost"
-          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 flex-1 rounded-full"
+          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={() => setCurrentStep("details")}
           disabled={isProcessing}
         >
@@ -348,7 +348,7 @@ export default function ShareholderSummary({
 
         <Button
           variant="ghost"
-          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-8 md:h-10 px-3 md:px-4 flex-1 rounded-full"
+          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >

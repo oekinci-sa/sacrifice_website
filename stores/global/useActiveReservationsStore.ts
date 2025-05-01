@@ -67,7 +67,7 @@ export const useActiveReservationsStore = create<ActiveReservationsState>()(
 
                     // Reservations tablosuna abone ol
                     RealtimeManager.subscribeToTable(
-                        'reservations',
+                        'reservation_transactions',
                         () => {
                             // Herhangi bir değişiklik olduğunda rezervasyonları yeniden yükle
                             get().fetchActiveReservations();

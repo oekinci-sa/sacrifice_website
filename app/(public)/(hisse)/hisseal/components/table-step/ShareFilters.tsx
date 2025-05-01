@@ -88,19 +88,25 @@ const SelectedFiltersDisplay = ({
   // Boş hisse sayısı filtreleri için
   return (
     <div className="hidden md:flex gap-1 ml-2">
+      {/* For share type, we only ever have one filter selected, so use a single animated element */}
       <AnimatePresence>
-        {sortedValues.map((value, index) => (
+        {sortedValues.length > 0 && (
           <motion.span
-            key={value}
+            key="share-filter" // Use a fixed key to avoid remounting
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ duration: 0.2 }}
             className="bg-[#f4f4f5] text-xs px-2 py-0.5"
           >
-            {value}
+            {/* Find the selected option and display its label */}
+            {(() => {
+              const value = sortedValues[0]; // We only have one value due to single-select
+              const option = options.find(opt => opt.value === value);
+              return option ? option.label : value;
+            })()}
           </motion.span>
-        ))}
+        )}
       </AnimatePresence>
     </div>
   );
@@ -152,6 +158,10 @@ function DataTableFacetedFilter<TData, TValue>({
                       if (isSelected) {
                         selectedValues.delete(option.value);
                       } else {
+                        // For "share" type (Boş Hisse), clear previous selections first (make it single-select)
+                        if (type === "share") {
+                          selectedValues.clear();
+                        }
                         selectedValues.add(option.value);
                       }
                       const filterValues = Array.from(selectedValues);
@@ -258,7 +268,7 @@ function ClientShareFilters({
   const emptyShares = useMemo(
     () =>
       Array.from({ length: 7 }, (_, i) => ({
-        label: (i + 1).toString(),
+        label: `${i + 1} veya daha fazla`,
         value: (i + 1).toString(),
       })),
     []
@@ -373,13 +383,8 @@ function ClientShareFilters({
           </Button>
         </div>
       )}
-      <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2 md:hidden mt-2">
-        <p className="text-xs flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Tüm tabloyu görmek için sağa kaydırınız.
-        </p>
+      <div className="bg-blue-50 border border-blue-200 text-sm text-center text-blue-800 rounded-md p-2 md:hidden mt-4">
+        Tüm tabloyu görmek için sağa kaydırınız.
       </div>
     </div>
   );
@@ -393,13 +398,8 @@ function ShareFiltersFallback() {
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
       </div>
-      <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2 md:hidden mt-2">
-        <p className="text-xs flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Tüm tabloyu görmek için sağa kaydırınız.
-        </p>
+      <div className="bg-blue-50 border border-blue-200 text-sm text-center text-blue-800 rounded-md p-2 md:hidden mt-4">
+        Tüm tabloyu görmek için sağa kaydırınız.
       </div>
     </div>
   );

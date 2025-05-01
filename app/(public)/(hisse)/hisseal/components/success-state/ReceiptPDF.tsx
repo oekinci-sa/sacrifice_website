@@ -192,9 +192,7 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
 
       {/* Intro Message */}
       <Text style={styles.intro}>
-        Kurban ibadetinizi yerine getirmenize yardımcı olduğumuz için teşekkür
-        ederiz.{"\n"}
-        Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.
+      Bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.{"\n"}Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.
       </Text>
 
       {/* First row of sections: 1 and 3 side by side */}

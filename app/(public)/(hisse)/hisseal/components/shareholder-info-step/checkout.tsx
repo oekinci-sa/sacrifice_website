@@ -432,12 +432,13 @@ export default function Checkout({
   };
 
   return (
-    <div className="space-y-4 md:space-y-16">
+    <div className="space-y-8 md:space-y-16">
       <div className="w-full">
         <SacrificeInfo sacrifice={selectedSacrifice} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 justify-items-stretch mx-auto">
+      {/* Hisse Alım Formu */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 justify-items-stretch mx-auto">
         {formData.map((data, index) => (
           <div
             key={index}
@@ -477,10 +478,10 @@ export default function Checkout({
       <AlertDialog open={showBackDialog} onOpenChange={setShowBackDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader className="space-y-4 md:space-y-6">
-            <AlertDialogTitle className="text-base md:text-xl font-semibold">
+            <AlertDialogTitle className="text-lg md:text-xl font-semibold">
               Emin misiniz?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs md:text-base leading-relaxed">
+            <AlertDialogDescription className="text-base md:text-lg leading-relaxed">
               Eğer geri dönerseniz, yaptığınız değişiklikler kaybolacaktır.
               Ayrıca, daha önce seçmiş olduğunuz hisseler başkaları tarafından
               seçilebilir hale gelecektir. Devam etmek istediğinize emin
@@ -489,7 +490,7 @@ export default function Checkout({
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col md:flex-row gap-2 md:gap-4 pt-4 md:pt-6">
             <AlertDialogAction
-              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 md:h-10 text-xs md:text-base"
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-10 md:h-12 text-base md:text-lg"
               onClick={confirmBack}
               disabled={isCanceling || cancelReservation.isPending}
             >
@@ -498,7 +499,7 @@ export default function Checkout({
                 : "Evet, geri dönmek istiyorum"}
             </AlertDialogAction>
             <AlertDialogCancel
-              className="flex-1 h-8 md:h-10 text-xs md:text-base"
+              className="flex-1 h-10 md:h-12 text-base md:text-lg"
               onClick={cancelBack}
               disabled={isCanceling || cancelReservation.isPending}
             >
@@ -522,7 +523,8 @@ export default function Checkout({
               işlemi seçiniz.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex space-x-4 pt-6">
+
+          <AlertDialogFooter className="flex flex-col-reverse gap-2 pt-6 md:flex-row md:justify-end md:gap-4">
             <AlertDialogAction
               className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => handleLastShareAction("return")}
@@ -532,6 +534,7 @@ export default function Checkout({
                 ? "İşleminiz yapılıyor..."
                 : "Hisse Seçim Ekranına Dön"}
             </AlertDialogAction>
+
             <AlertDialogCancel
               className="flex-1"
               onClick={() => handleLastShareAction("stay")}
@@ -542,6 +545,7 @@ export default function Checkout({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </div>
   );
 }

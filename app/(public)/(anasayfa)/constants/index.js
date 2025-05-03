@@ -309,7 +309,7 @@ export const contact_infos = [
   {
     icon: "mail.svg",
     header: "E-maillerinize 24 saat içerisinde dönüş sağlıyoruz.",
-    info: "imhankara06@hotmail.com",
+    info: "iletisim@ankarakurban.com.tr",
   },
   {
     icon: "phone.svg",

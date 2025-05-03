@@ -19,7 +19,7 @@ const CustomLink = ({
 }: CustomLinkProps) => {
   return (
     <Link
-      className={`font-medium text-lg hover:text-sac-primary transition-all duration-300 ${className}`}
+      className={`font-medium md:text-lg hover:text-sac-primary transition-all duration-300 ${className}`}
       href={href}
       target={target}
       {...props}

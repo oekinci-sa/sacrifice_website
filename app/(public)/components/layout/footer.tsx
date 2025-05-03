@@ -58,10 +58,10 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row gap-4 md:gap-24">
           {/* Hızlı Linkler */}
           <div>
-            <p className="text-lg md:text-xl font-semibold mb-4">
+            <p className="md:text-xl font-semibold mb-4">
               Hızlı Linkler
             </p>
-            <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75 text-sm md:text-base">
+            <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
@@ -82,7 +82,7 @@ const Footer = () => {
 
           {/* İletişim */}
           <div className="mt-8 md:mt-0">
-            <p className="text-lg md:text-xl font-semibold mb-4">
+            <p className="md:text-xl font-semibold mb-4">
               İletişim
             </p>
             <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
@@ -106,7 +106,7 @@ const Footer = () => {
               {/* Mail */}
               <div className="flex gap-3">
                 <i className="bi bi-envelope text-sac-primary"></i>
-                <p className="font-normal">imhankara@gmail.com</p>
+                <p className="font-normal">iletisim@ankarakurban.com.tr</p>
               </div>
             </div>
           </div>

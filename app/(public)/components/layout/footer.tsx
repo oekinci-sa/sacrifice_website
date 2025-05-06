@@ -21,19 +21,19 @@ const Footer = () => {
           <CustomLink href="/">
             <Image
               src={websiteLogoWhite}
-              width={200}
               alt="Website Logo"
-              className="w-[180px] md:w-[200px]"
+              className="w-[225px] md:w-[250px]"
             />
           </CustomLink>
-
-          <div className="text-base text-white/75">
+          
+          {/* Don't remove the below */}
+          {/* <div className="text-base text-white/75">
             <p>
               İnsan ve Medeniyet Hareketi Ankara&apos;nın
               <br />
               katkılarıyla düzenlenmektedir.
             </p>
-          </div>
+          </div> */}
 
           {/* Social Media */}
           <div className="flex gap-6">
@@ -114,7 +114,9 @@ const Footer = () => {
       </div>
       <hr className="container border border-white/10 border-1 mb-6" />
       <p className="container text-xs md:text-sm text-white/75 text-center md:text-left">
-        Tüm hakları saklıdır. © 2025 İnsan ve Medeniyet Hareketi Ankara
+        Tüm hakları saklıdır.
+        {/* Don't remove the below */}
+        {/* © 2025 İnsan ve Medeniyet Hareketi Ankara */}
       </p>
     </div>
   );

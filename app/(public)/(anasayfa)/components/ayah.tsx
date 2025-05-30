@@ -1,11 +1,12 @@
-import React from "react";
+"use client";
+
 import { motion } from "framer-motion";
 
 const Ayah = () => {
   const item = {
     hidden: { opacity: 0, y: 20 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.6,
@@ -15,8 +16,8 @@ const Ayah = () => {
   };
 
   return (
-    <motion.div 
-      variants={item} 
+    <motion.div
+      variants={item}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true }}

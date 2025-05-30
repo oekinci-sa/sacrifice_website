@@ -1,13 +1,11 @@
-import NumberChanger from "@/app/(takip)/components/number-changer";
-import QueueCard from "@/app/(takip)/components/queue-card";
 import React from "react";
+import QueueCardWithButtons from "../components/queue-card-with-buttons";
 
 const page = () => {
   return (
-    <>
-      <QueueCard></QueueCard>
-      <NumberChanger></NumberChanger>
-    </>
+    <div className="container flex flex-col items-center justify-center gap-12 md:gap-16">
+      <QueueCardWithButtons></QueueCardWithButtons>
+    </div>
   );
 };
 

@@ -1,5 +1,7 @@
 import "@/app/globals.css";
 import { Instrument_Sans } from "next/font/google";
+import HeaderMinimal from "@/components/layout/header/header-minimal";
+import FooterMinimal from "@/components/layout/footer/footer-minimal";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -12,8 +14,10 @@ export default function FollowLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${instrumentSans.variable} flex flex-col min-h-screen justify-between`}>
+    <div className={`${instrumentSans.variable} min-h-screen flex flex-col justify-between`}>
+      <HeaderMinimal />
       {children}
+      <FooterMinimal />
     </div>
   );
 }

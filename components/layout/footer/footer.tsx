@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import CustomLink from "@/components/common/custom-link";
 import EmptySharesBadge from "@/components/common/empty-shares-badge";
-import { mediaLinks } from "../../constants";
+import { mediaLinks } from "../../../app/(public)/constants";
 
 interface MediaLink {
   href: string;
@@ -25,7 +25,7 @@ const Footer = () => {
               className="w-[225px] md:w-[250px]"
             />
           </CustomLink>
-          
+
           {/* Don't remove the below */}
           {/* <div className="text-base text-white/75">
             <p>

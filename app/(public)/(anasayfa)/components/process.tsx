@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { motion } from "framer-motion";
 import { processes } from "../constants";
 
@@ -15,8 +16,8 @@ const Process = () => {
 
   const item = {
     hidden: { opacity: 0, y: 50 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.6,
@@ -26,11 +27,11 @@ const Process = () => {
   };
 
   const numberVariant = {
-    hidden: { 
+    hidden: {
       scale: 0.5,
-      opacity: 0 
+      opacity: 0
     },
-    show: { 
+    show: {
       scale: 1,
       opacity: 1,
       transition: {
@@ -44,7 +45,7 @@ const Process = () => {
   return (
     <div id="process" className="md:bg-transparent bg-sac-section-background">
       {/* Heading - white on mobile, hidden on desktop */}
-      <motion.p 
+      <motion.p
         className="text-3xl md:text-4xl font-bold text-center text-white my-12 md:hidden"
         variants={item}
         initial="hidden"
@@ -54,7 +55,7 @@ const Process = () => {
         Hisse Alım Sürecimiz
       </motion.p>
 
-      <motion.div 
+      <motion.div
         className="container grid grid-cols-1 md:grid-cols-3 gap-x-24 gap-y-12 md:gap-y-16 pb-16 md:pb-20"
         variants={container}
         initial="hidden"
@@ -70,7 +71,7 @@ const Process = () => {
               variants={item}
             >
               {/* Numaralandırma */}
-              <motion.div 
+              <motion.div
                 className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-sac-primary w-14 h-14 md:w-20 md:h-20 text-2xl md:text-4xl font-semibold mb-2 md:mb-0"
                 variants={numberVariant}
               >

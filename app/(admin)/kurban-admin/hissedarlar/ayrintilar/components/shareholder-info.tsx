@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
-import { formatPhoneForDisplay } from "@/utils/formatters";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -56,14 +56,14 @@ export function ShareholderInfo({
           {isEditing ? (
             <Input
               value={editFormData?.phone_number?.startsWith('+90')
-                ? '0' + editFormData.phone_number.substring(3)
+                ? formatPhoneForDisplayWithSpacing(editFormData.phone_number)
                 : editFormData?.phone_number}
               onChange={(e) => handleChange?.('phone_number', e.target.value)}
               placeholder="0555 555 55 55"
               className="h-9"
             />
           ) : (
-            <p className={valueClass}>{formatPhoneForDisplay(shareholderInfo.phone_number)}</p>
+            <p className={valueClass}>{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number)}</p>
           )}
         </div>
 

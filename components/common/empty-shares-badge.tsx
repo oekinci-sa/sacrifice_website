@@ -22,7 +22,10 @@ export default function EmptySharesBadge({
     const { totalEmptyShares } = useSacrificeStore();
 
     // Display empty shares count - use Zustand store first, fallback to API data
-    const displayEmptyShares = totalEmptyShares || apiEmptyShares || "...";
+    const emptySharesCount = totalEmptyShares || apiEmptyShares || 0;
+
+    // Determine display text based on remaining shares
+    const displayText = emptySharesCount === 0 ? "Tüm hisseler tükendi" : `Son ${emptySharesCount} Hisse`;
 
     // Size-based classes
     const sizeClasses = {
@@ -37,7 +40,7 @@ export default function EmptySharesBadge({
             sizeClasses[size],
             className
         )}>
-            <span className={textClassName}>Son {displayEmptyShares} Hisse</span>
+            <span className={textClassName}>{displayText}</span>
         </span>
     );
 } 

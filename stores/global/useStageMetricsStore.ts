@@ -36,7 +36,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                 try {
                     set({ isLoading: true, error: null });
 
-                    console.log('[StageMetricsStore] Fetching stage metrics...');
                     const response = await fetch("/api/get-stage-metrics");
 
                     if (!response.ok) {
@@ -44,7 +43,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                     }
 
                     const data: StageMetrics[] = await response.json();
-                    console.log('[StageMetricsStore] Fetched data:', data);
 
                     // Convert array to keyed object
                     const stageMetrics: Record<StageType, StageMetrics> = {} as Record<StageType, StageMetrics>;
@@ -60,7 +58,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                     });
 
                 } catch (error) {
-                    console.error('[StageMetricsStore] Error fetching stage metrics:', error);
                     set({
                         isLoading: false,
                         error: error instanceof Error ? error : new Error(String(error))
@@ -69,8 +66,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
             },
 
             updateStageMetric: (stageMetric: StageMetrics) => {
-                console.log('[StageMetricsStore] Updating stage metric:', stageMetric);
-
                 set((state) => ({
                     stageMetrics: {
                         ...state.stageMetrics,
@@ -85,8 +80,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
 
             // Realtime methods
             subscribeToRealtime: () => {
-                console.log('[StageMetricsStore] Setting up real-time subscription...');
-
                 // Clean up any existing subscriptions first
                 RealtimeManager.cleanup();
 
@@ -94,13 +87,10 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                 RealtimeManager.subscribeToTable(
                     "stage_metrics",
                     (payload) => {
-                        console.log('[StageMetricsStore] Real-time update received:', payload);
-
                         const { eventType, new: newData, old: oldData } = payload;
 
                         if (eventType === "INSERT" || eventType === "UPDATE") {
                             const updatedMetric = newData as StageMetrics;
-                            console.log('[StageMetricsStore] Updating metric for stage:', updatedMetric.stage);
                             get().updateStageMetric(updatedMetric);
                         }
                     }
@@ -108,7 +98,6 @@ export const useStageMetricsStore = create<StageMetricsState>()(
             },
 
             unsubscribeFromRealtime: () => {
-                console.log('[StageMetricsStore] Unsubscribing from real-time...');
                 RealtimeManager.cleanup();
             },
         }),

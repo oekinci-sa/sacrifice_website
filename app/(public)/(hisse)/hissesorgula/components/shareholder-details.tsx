@@ -3,7 +3,7 @@
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
-import { formatPhoneForDisplay } from "@/utils/formatters";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { addDays } from "date-fns";
 import Image from "next/image";
 import { ProgressBar } from "./ProgressBar";
@@ -63,7 +63,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
         <div className="flex flex-row md:flex-col justify-between gap-4 md:gap-12">
           <div className="space-y-1 text-center">
             <p className="text-xs md:text-lg text-slate-600">Telefon</p>
-            <p className="font-medium text-sm md:text-lg">{formatPhoneForDisplay(shareholderInfo.phone_number)}</p>
+            <p className="font-medium text-sm md:text-lg">{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number)}</p>
           </div>
 
           <div className="space-y-1 text-center">

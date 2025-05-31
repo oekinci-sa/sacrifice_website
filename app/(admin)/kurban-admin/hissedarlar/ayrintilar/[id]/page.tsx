@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
 import { useUser } from "@/hooks/useUsers";
 import { shareholderSchema } from "@/types";
+import { formatPhoneForDB } from "@/utils/formatters";
 import { format } from "date-fns";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -135,10 +136,10 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       return;
     }
 
-    // Create updated data object including last_edited_by
+    // Create updated data object including last_edited_by and formatted phone
     const updatedData = {
       shareholder_name: editFormData.shareholder_name,
-      phone_number: editFormData.phone_number,
+      phone_number: formatPhoneForDB(editFormData.phone_number), // Format phone number
       delivery_location: editFormData.delivery_location,
       sacrifice_consent: editFormData.sacrifice_consent,
       paid_amount: editFormData.paid_amount,

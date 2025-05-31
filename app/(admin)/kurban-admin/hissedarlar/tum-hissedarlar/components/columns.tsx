@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -160,15 +161,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const phoneRaw = row.getValue("phone_number") as string | null;
-
-      // Telefon numarası null ise mesaj göster
-      if (!phoneRaw) return "-";
-
-      const phoneFormatted = phoneRaw.startsWith("+9")
-        ? `0${phoneRaw.substring(3)}`
-        : phoneRaw;
-
-      return phoneFormatted.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
+      return formatPhoneForDisplayWithSpacing(phoneRaw || "");
     },
   },
   {

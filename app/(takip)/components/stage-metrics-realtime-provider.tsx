@@ -17,30 +17,28 @@ export default function StageMetricsRealtimeProvider({
         fetchStageMetrics,
         subscribeToRealtime,
         unsubscribeFromRealtime,
-        isInitialized
+        isInitialized,
+        isLoading
     } = useStageMetricsStore();
 
     // Initialize store with data and real-time subscription
     useEffect(() => {
-        console.log('[StageMetricsRealtimeProvider] Initializing store...');
-
-        // Fetch initial data
-        if (!isInitialized) {
+        // Fetch initial data if not already initialized and not currently loading
+        if (!isInitialized && !isLoading) {
             fetchStageMetrics().then(() => {
-                // Then set up real-time subscription
+                // Set up real-time subscription after data is loaded
                 subscribeToRealtime();
             });
-        } else {
+        } else if (isInitialized) {
             // If already initialized, just set up subscription
             subscribeToRealtime();
         }
 
         // Cleanup on unmount
         return () => {
-            console.log('[StageMetricsRealtimeProvider] Provider cleanup - unsubscribing from real-time');
             unsubscribeFromRealtime();
         };
-    }, [fetchStageMetrics, subscribeToRealtime, unsubscribeFromRealtime, isInitialized]);
+    }, [fetchStageMetrics, subscribeToRealtime, unsubscribeFromRealtime, isInitialized, isLoading]);
 
     // Just render children, this is a context-less provider
     return <>{children}</>;

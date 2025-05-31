@@ -1,7 +1,6 @@
+import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
 import FeedbackForm from "@/app/(takip)/components/feedback-form";
 import QueueCard from "@/app/(takip)/components/queue-card";
-import React from "react";
-import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
 
 const page = () => {
   return (
@@ -11,17 +10,13 @@ const page = () => {
         <Ayah />
       </div>
       <div className="grid grid-cols-2 gap-8 md:flex md:flex-row md:gap-16">
-        <QueueCard />
-
-        <QueueCard />
+        <QueueCard title="Kesim Sırası" stage="slaughter_stage" />
+        <QueueCard title="Parçalama Sırası" stage="butcher_stage" />
         <div className="col-span-2 flex justify-center">
-          <QueueCard />
+          <QueueCard title="Teslimat Sırası" stage="delivery_stage" />
         </div>
       </div>
       <FeedbackForm></FeedbackForm>
-
-
-
     </div>
   );
 };

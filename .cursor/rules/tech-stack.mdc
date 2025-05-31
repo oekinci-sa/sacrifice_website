@@ -1,6 +1,7 @@
 ---
 description: 
 globs: 
+alwaysApply: false
 ---
 ---
 description: Project technology stack
@@ -38,6 +39,9 @@ Table 1: sacrifice_animals and its fields are:
   - share_weight: The weight of a share. 
   - share_price: The price of a share. 
   - empty_share: The number of remaining empty shares. Maximum number is 7 and minimum number is 0.
+  - slaughter_time:
+  - butcher_time:
+  - delivery_time: 
   - last_edited_time: The date and time when the sacrifice information was last edited. There is a trigger in the database that updates this field when the sacrifice information is edited.
   - last_edited_by: Information about the last person who edited the record (e.g., admin ID or name).
   - notes: Additional information or notes.
@@ -97,5 +101,10 @@ Typically set to the current time in Istanbul timezone using now() AT TIME ZONE 
   - expires_at: Timestamp indicating when the reservation expires. This field is 15 minutes ahead of the created_at field.
   - status: Tracks the current state of the reservation. Values are: "active", "expired", "completed", "canceled", "timed out".
   - last_edited_time: Timestamp of the most recent update made to the reservation. Automatically set or updated via triggers to reflect change history.
+
+Table 6: stage_metrics and its fields are:
+  - stage: Values are slaughter_stage, delivery_stage, butcher_stage
+  - avg_progress_duration
+  - current_sacrifice_number
 
 Your are not limited to these if you find a more clean solution. But mention about the situation using other frameworks or libraries etc.

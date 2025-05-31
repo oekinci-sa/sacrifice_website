@@ -72,6 +72,10 @@ export interface sacrificeSchema {
   last_edited_by: string | null;
   notes: string | null;
 
+  slaughter_time: string | null;
+  butcher_time: string | null;
+  delivery_time: string | null;
+
   // İlişkili hissedar bilgileri (opsiyonel)
   shareholders?: Partial<shareholderSchema>[];
 }

@@ -2,6 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
 import React, { useEffect, useState } from "react";
 
@@ -22,38 +23,48 @@ interface SacrificeTimingData {
 const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stage }) => {
     const [isCompleted, setIsCompleted] = useState(false);
     const [localNumber, setLocalNumber] = useState<number>(0);
-    const [dbNumber, setDbNumber] = useState<number>(0);
     const [isSwitchDisabled, setIsSwitchDisabled] = useState(false);
 
-    // Get initial DB number
+    // ✅ FIX: Direct store subscription - this will trigger React re-renders
+    const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
+    const dbNumber = currentStageMetric?.current_sacrifice_number || 0;
+
+    console.log(`[QueueCardWithButtons] Rendering ${stage}: localNumber=${localNumber}, dbNumber=${dbNumber}, stageMetric:`, currentStageMetric);
+
+    // Update local number when store data changes
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const response = await fetch(`/api/get-stage-metrics?stage=${stage}`);
-                const data = await response.json();
+        if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
+            const newDbNumber = currentStageMetric.current_sacrifice_number;
+            console.log(`[QueueCardWithButtons] Store updated for ${stage}: ${localNumber} -> ${newDbNumber}`);
 
-                if (data && data.length > 0) {
-                    const currentNumber = data[0].current_sacrifice_number || 0;
-                    setDbNumber(currentNumber);
-                    setLocalNumber(currentNumber);
-
-                    // Check initial switch state for the current number
-                    await checkSwitchState(currentNumber);
-                }
-            } catch (error) {
-                console.error('Error fetching initial data:', error);
+            // Only update localNumber if it's currently synced with previous dbNumber or is initial load
+            if (localNumber === 0 || localNumber === dbNumber) {
+                console.log(`[QueueCardWithButtons] Syncing local number for ${stage}: ${localNumber} -> ${newDbNumber}`);
+                setLocalNumber(newDbNumber);
+                // Check switch state for the new number
+                checkSwitchState(newDbNumber);
+            } else {
+                console.log(`[QueueCardWithButtons] Local number (${localNumber}) manually changed, not syncing with DB (${newDbNumber})`);
             }
-        };
+        }
+    }, [currentStageMetric?.current_sacrifice_number, stage]); // ✅ FIX: More specific dependency
 
-        fetchInitialData();
-    }, [stage]);
+    // Initial setup - check switch state for the initial number
+    useEffect(() => {
+        if (localNumber > 0) {
+            checkSwitchState(localNumber);
+        }
+    }, [localNumber]);
 
     // Function to check if switch should be on and enabled based on database
     const checkSwitchState = async (number: number) => {
+        console.log(`[QueueCardWithButtons] Checking switch state for ${stage}, number: ${number}`);
         try {
             const sacrificeId = `SAC${number.toString().padStart(3, '0')}`;
             const response = await fetch(`/api/check-sacrifice-timing?sacrifice_id=${sacrificeId}`);
             const data: SacrificeTimingData = await response.json();
+
+            console.log(`[QueueCardWithButtons] Switch state data for ${stage}:`, data);
 
             if (response.ok) {
                 // Set completion status based on current stage
@@ -75,16 +86,19 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                         break;
                 }
 
+                console.log(`[QueueCardWithButtons] Switch state for ${stage}: completed=${currentStageCompleted}, enabled=${canBeEnabled}`);
+
                 setIsCompleted(currentStageCompleted);
                 setIsSwitchDisabled(!canBeEnabled);
             }
         } catch (error) {
-            console.error('Error checking switch state:', error);
+            console.error(`[QueueCardWithButtons] Error checking switch state for ${stage}:`, error);
         }
     };
 
     const handleDecrement = async () => {
         const newNumber = Math.max(0, localNumber - 1);
+        console.log(`[QueueCardWithButtons] Decrementing ${stage}: ${localNumber} -> ${newNumber}`);
         setLocalNumber(newNumber);
         // Check switch state for the new number
         await checkSwitchState(newNumber);
@@ -93,6 +107,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const handleIncrement = async () => {
         // Limit to maximum 135
         const newNumber = Math.min(135, localNumber + 1);
+        console.log(`[QueueCardWithButtons] Incrementing ${stage}: ${localNumber} -> ${newNumber}`);
         setLocalNumber(newNumber);
         // Check switch state for the new number
         await checkSwitchState(newNumber);
@@ -101,13 +116,14 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const handleSwitchChange = async (checked: boolean) => {
         if (isSwitchDisabled) return;
 
+        console.log(`[QueueCardWithButtons] Switch changed for ${stage}: ${isCompleted} -> ${checked}`);
         setIsCompleted(checked);
 
         // Generate sacrifice_id based on current local number
         const sacrificeId = `SAC${localNumber.toString().padStart(3, '0')}`;
 
         try {
-            await fetch('/api/update-sacrifice-timing', {
+            const response = await fetch('/api/update-sacrifice-timing', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,8 +134,10 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                     is_completed: checked
                 })
             });
+
+            console.log(`[QueueCardWithButtons] Switch update response for ${stage}:`, response.status);
         } catch (error) {
-            console.error('Error updating sacrifice timing:', error);
+            console.error(`[QueueCardWithButtons] Error updating sacrifice timing for ${stage}:`, error);
         }
     };
 

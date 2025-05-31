@@ -1,7 +1,7 @@
 'use client';
 
-import { StageMetrics, StageType } from '@/types/stage-metrics';
-import RealtimeManager from '@/utils/RealtimeManager';
+import { useStageMetricsStore } from '@/stores/global/useStageMetricsStore';
+import { StageType } from '@/types/stage-metrics';
 import React, { useEffect, useState } from 'react';
 
 interface AverageDurationProps {
@@ -12,44 +12,19 @@ const AverageDuration: React.FC<AverageDurationProps> = ({ stage }) => {
   const [avgDurationMinutes, setAvgDurationMinutes] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  // Fetch initial data
+  // ✅ FIX: Direct store subscription - this will trigger React re-renders
+  const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
+
+  // Update average duration when store data changes
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await fetch(`/api/get-stage-metrics?stage=${stage}`);
-        const data: StageMetrics[] = await response.json();
-
-        if (data && data.length > 0) {
-          const avgDurationSeconds = data[0].avg_progress_duration || 0;
-          const avgDurationMinutes = Math.round(avgDurationSeconds / 60);
-          setAvgDurationMinutes(avgDurationMinutes);
-        }
-      } catch (error) {
-        console.error('Error fetching average duration:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInitialData();
-  }, [stage]);
-
-  // Setup realtime subscription
-  useEffect(() => {
-    const channel = RealtimeManager.subscribeToTable('stage_metrics', (payload) => {
-      if (payload.new && payload.new.stage === stage) {
-        const avgDurationSeconds = payload.new.avg_progress_duration || 0;
-        const avgDurationMinutes = Math.round(avgDurationSeconds / 60);
-        setAvgDurationMinutes(avgDurationMinutes);
-      }
-    });
-
-    return () => {
-      if (channel) {
-        RealtimeManager.cleanup();
-      }
-    };
-  }, [stage]);
+    if (currentStageMetric && currentStageMetric.avg_progress_duration !== undefined) {
+      const avgDurationSeconds = currentStageMetric.avg_progress_duration;
+      const avgDurationMinutes = Math.round(avgDurationSeconds / 60);
+      console.log(`[AverageDuration] Store updated for ${stage}: ${avgDurationMinutes} minutes`);
+      setAvgDurationMinutes(avgDurationMinutes);
+      setLoading(false);
+    }
+  }, [currentStageMetric?.avg_progress_duration, stage]); // ✅ FIX: More specific dependency
 
   return (
     <div className='text-center md:text-lg tracking-wide'>

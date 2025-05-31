@@ -1,7 +1,7 @@
 'use client';
 
-import { StageMetrics, StageType } from '@/types/stage-metrics';
-import RealtimeManager from '@/utils/RealtimeManager';
+import { useStageMetricsStore } from '@/stores/global/useStageMetricsStore';
+import { StageType } from '@/types/stage-metrics';
 import React, { useEffect, useState } from 'react';
 import AverageDuration from './average-duration';
 
@@ -14,40 +14,18 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
   const [currentNumber, setCurrentNumber] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  // Fetch initial data
+  // ✅ FIX: Direct store subscription - this will trigger React re-renders
+  const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
+
+  // Update local number when store data changes
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await fetch(`/api/get-stage-metrics?stage=${stage}`);
-        const data: StageMetrics[] = await response.json();
-
-        if (data && data.length > 0) {
-          setCurrentNumber(data[0].current_sacrifice_number || 0);
-        }
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInitialData();
-  }, [stage]);
-
-  // Setup realtime subscription
-  useEffect(() => {
-    const channel = RealtimeManager.subscribeToTable('stage_metrics', (payload) => {
-      if (payload.new && payload.new.stage === stage) {
-        setCurrentNumber(payload.new.current_sacrifice_number || 0);
-      }
-    });
-
-    return () => {
-      if (channel) {
-        RealtimeManager.cleanup();
-      }
-    };
-  }, [stage]);
+    if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
+      const newNumber = currentStageMetric.current_sacrifice_number;
+      console.log(`[QueueCard] Store updated for ${stage}: ${currentNumber} -> ${newNumber}`);
+      setCurrentNumber(newNumber);
+      setLoading(false);
+    }
+  }, [currentStageMetric?.current_sacrifice_number, stage]); // ✅ FIX: More specific dependency
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">

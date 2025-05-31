@@ -22,7 +22,7 @@ const AverageDuration: React.FC<AverageDurationProps> = ({ stage }) => {
       const avgDurationMinutes = Math.round(avgDurationSeconds / 60);
       setAvgDurationMinutes(avgDurationMinutes);
     }
-  }, [currentStageMetric?.avg_progress_duration, stage]);
+  }, [currentStageMetric, stage]);
 
   // Show loading if store is not initialized yet
   const displayDuration = isStoreInitialized ? `${avgDurationMinutes} dakika` : '...';

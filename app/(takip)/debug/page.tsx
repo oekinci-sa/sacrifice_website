@@ -4,9 +4,16 @@ import { Button } from "@/components/ui/button";
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { useState } from "react";
 
+interface ApiResult {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    [key: string]: unknown;
+}
+
 export default function DebugPage() {
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<ApiResult | null>(null);
 
     // ✅ FIX: Direct store subscription for proper React re-renders
     const { stageMetrics, isLoading: storeLoading, isInitialized, error } = useStageMetricsStore(

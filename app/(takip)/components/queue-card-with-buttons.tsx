@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface QueueCardWithButtonsProps {
     title: string;
@@ -29,29 +29,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
     const dbNumber = currentStageMetric?.current_sacrifice_number || 0;
 
-    // Update local number when store data changes
-    useEffect(() => {
-        if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
-            const newDbNumber = currentStageMetric.current_sacrifice_number;
-
-            // Only update localNumber if it's currently synced with previous dbNumber or is initial load
-            if (localNumber === 0 || localNumber === dbNumber) {
-                setLocalNumber(newDbNumber);
-                // Check switch state for the new number
-                checkSwitchState(newDbNumber);
-            }
-        }
-    }, [currentStageMetric?.current_sacrifice_number, stage]);
-
-    // Initial setup - check switch state for the initial number
-    useEffect(() => {
-        if (localNumber > 0) {
-            checkSwitchState(localNumber);
-        }
-    }, [localNumber]);
-
     // Function to check if switch should be on and enabled based on database
-    const checkSwitchState = async (number: number) => {
+    const checkSwitchState = useCallback(async (number: number) => {
         try {
             const sacrificeId = `SAC${number.toString().padStart(3, '0')}`;
             const response = await fetch(`/api/check-sacrifice-timing?sacrifice_id=${sacrificeId}`);
@@ -83,7 +62,28 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
         } catch (error) {
             console.error(`Error checking switch state for ${stage}:`, error);
         }
-    };
+    }, [stage]);
+
+    // Update local number when store data changes
+    useEffect(() => {
+        if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
+            const newDbNumber = currentStageMetric.current_sacrifice_number;
+
+            // Only update localNumber if it's currently synced with previous dbNumber or is initial load
+            if (localNumber === 0 || localNumber === dbNumber) {
+                setLocalNumber(newDbNumber);
+                // Check switch state for the new number
+                checkSwitchState(newDbNumber);
+            }
+        }
+    }, [currentStageMetric, dbNumber, localNumber, checkSwitchState]);
+
+    // Initial setup - check switch state for the initial number
+    useEffect(() => {
+        if (localNumber > 0) {
+            checkSwitchState(localNumber);
+        }
+    }, [localNumber, checkSwitchState]);
 
     const handleDecrement = async () => {
         const newNumber = Math.max(0, localNumber - 1);
@@ -109,7 +109,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
         const sacrificeId = `SAC${localNumber.toString().padStart(3, '0')}`;
 
         try {
-            const response = await fetch('/api/update-sacrifice-timing', {
+            await fetch('/api/update-sacrifice-timing', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

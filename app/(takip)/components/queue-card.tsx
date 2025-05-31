@@ -16,7 +16,6 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
   // Direct store subscription - this will trigger React re-renders
   const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
   const isStoreInitialized = useStageMetricsStore(state => state.isInitialized);
-  const isStoreLoading = useStageMetricsStore(state => state.isLoading);
 
   // Update local number when store data changes
   useEffect(() => {
@@ -24,7 +23,7 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
       const newNumber = currentStageMetric.current_sacrifice_number;
       setCurrentNumber(newNumber);
     }
-  }, [currentStageMetric?.current_sacrifice_number, stage]);
+  }, [currentStageMetric, stage]);
 
   // Show loading if store is not initialized yet
   const displayNumber = isStoreInitialized ? currentNumber : '...';

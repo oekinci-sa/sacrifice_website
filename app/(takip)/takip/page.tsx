@@ -1,5 +1,4 @@
 import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
-import FeedbackForm from "@/app/(takip)/components/feedback-form";
 import QueueCard from "@/app/(takip)/components/queue-card";
 
 const page = () => {
@@ -16,7 +15,6 @@ const page = () => {
           <QueueCard title="Teslimat Sırası" stage="delivery_stage" />
         </div>
       </div>
-      {/* <FeedbackForm></FeedbackForm> */}
     </div>
   );
 };

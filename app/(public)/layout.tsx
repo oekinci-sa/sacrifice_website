@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import Footer from "../../components/layout/footer/footer";
-import Header from "../../components/layout/Header/header";
+import Header from "../../components/layout/header/header";
 
 // Fonts
 const instrumentSans = Instrument_Sans({

@@ -183,12 +183,13 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
             </div>
 
             {/* Switch */}
-            <div className="flex items-center space-x-4 md:space-x-6">
+            <div className="flex items-start space-x-4 md:space-x-6">
                 <Switch
                     id="completion-switch"
                     checked={isCompleted}
                     disabled={isSwitchDisabled}
                     onCheckedChange={handleSwitchChange}
+                    className="mt-1"
                 />
                 <div className="flex flex-col">
                     <Label

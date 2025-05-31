@@ -1,7 +1,7 @@
 import StageMetricsRealtimeProvider from "@/app/(takip)/components/stage-metrics-realtime-provider";
 import "@/app/globals.css";
 import FooterMinimal from "@/components/layout/footer/footer-minimal";
-import HeaderMinimal from "@/components/layout/Header/header-minimal";
+import HeaderMinimal from "@/components/layout/header/header-minimal";
 import { Instrument_Sans } from "next/font/google";
 
 const instrumentSans = Instrument_Sans({

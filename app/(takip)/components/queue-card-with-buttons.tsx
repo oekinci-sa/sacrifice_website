@@ -25,29 +25,23 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const [localNumber, setLocalNumber] = useState<number>(0);
     const [isSwitchDisabled, setIsSwitchDisabled] = useState(false);
 
-    // ✅ FIX: Direct store subscription - this will trigger React re-renders
+    // Direct store subscription - this will trigger React re-renders
     const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
     const dbNumber = currentStageMetric?.current_sacrifice_number || 0;
-
-    console.log(`[QueueCardWithButtons] Rendering ${stage}: localNumber=${localNumber}, dbNumber=${dbNumber}, stageMetric:`, currentStageMetric);
 
     // Update local number when store data changes
     useEffect(() => {
         if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
             const newDbNumber = currentStageMetric.current_sacrifice_number;
-            console.log(`[QueueCardWithButtons] Store updated for ${stage}: ${localNumber} -> ${newDbNumber}`);
 
             // Only update localNumber if it's currently synced with previous dbNumber or is initial load
             if (localNumber === 0 || localNumber === dbNumber) {
-                console.log(`[QueueCardWithButtons] Syncing local number for ${stage}: ${localNumber} -> ${newDbNumber}`);
                 setLocalNumber(newDbNumber);
                 // Check switch state for the new number
                 checkSwitchState(newDbNumber);
-            } else {
-                console.log(`[QueueCardWithButtons] Local number (${localNumber}) manually changed, not syncing with DB (${newDbNumber})`);
             }
         }
-    }, [currentStageMetric?.current_sacrifice_number, stage]); // ✅ FIX: More specific dependency
+    }, [currentStageMetric?.current_sacrifice_number, stage]);
 
     // Initial setup - check switch state for the initial number
     useEffect(() => {
@@ -58,13 +52,10 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
 
     // Function to check if switch should be on and enabled based on database
     const checkSwitchState = async (number: number) => {
-        console.log(`[QueueCardWithButtons] Checking switch state for ${stage}, number: ${number}`);
         try {
             const sacrificeId = `SAC${number.toString().padStart(3, '0')}`;
             const response = await fetch(`/api/check-sacrifice-timing?sacrifice_id=${sacrificeId}`);
             const data: SacrificeTimingData = await response.json();
-
-            console.log(`[QueueCardWithButtons] Switch state data for ${stage}:`, data);
 
             if (response.ok) {
                 // Set completion status based on current stage
@@ -86,19 +77,16 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                         break;
                 }
 
-                console.log(`[QueueCardWithButtons] Switch state for ${stage}: completed=${currentStageCompleted}, enabled=${canBeEnabled}`);
-
                 setIsCompleted(currentStageCompleted);
                 setIsSwitchDisabled(!canBeEnabled);
             }
         } catch (error) {
-            console.error(`[QueueCardWithButtons] Error checking switch state for ${stage}:`, error);
+            console.error(`Error checking switch state for ${stage}:`, error);
         }
     };
 
     const handleDecrement = async () => {
         const newNumber = Math.max(0, localNumber - 1);
-        console.log(`[QueueCardWithButtons] Decrementing ${stage}: ${localNumber} -> ${newNumber}`);
         setLocalNumber(newNumber);
         // Check switch state for the new number
         await checkSwitchState(newNumber);
@@ -107,7 +95,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const handleIncrement = async () => {
         // Limit to maximum 135
         const newNumber = Math.min(135, localNumber + 1);
-        console.log(`[QueueCardWithButtons] Incrementing ${stage}: ${localNumber} -> ${newNumber}`);
         setLocalNumber(newNumber);
         // Check switch state for the new number
         await checkSwitchState(newNumber);
@@ -116,7 +103,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
     const handleSwitchChange = async (checked: boolean) => {
         if (isSwitchDisabled) return;
 
-        console.log(`[QueueCardWithButtons] Switch changed for ${stage}: ${isCompleted} -> ${checked}`);
         setIsCompleted(checked);
 
         // Generate sacrifice_id based on current local number
@@ -134,10 +120,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                     is_completed: checked
                 })
             });
-
-            console.log(`[QueueCardWithButtons] Switch update response for ${stage}:`, response.status);
         } catch (error) {
-            console.error(`[QueueCardWithButtons] Error updating sacrifice timing for ${stage}:`, error);
+            console.error(`Error updating sacrifice timing for ${stage}:`, error);
         }
     };
 
@@ -157,11 +141,19 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
         }
 
         if (isSwitchDisabled) {
-            return `${action} yapılamaz (önceki aşama tamamlanmamış).`;
+            return {
+                main: `${action} yapılamaz`,
+                sub: '*Önceki aşama tamamlanmamış.'
+            };
         }
 
-        return `${action} ${isCompleted ? 'yapıldı' : 'yapılmadı'}.`;
+        return {
+            main: `${action} ${isCompleted ? 'yapıldı' : 'yapılmadı'}.`,
+            sub: null
+        };
     };
+
+    const displayText = getDisplayText();
 
     return (
         <div className="flex flex-col items-center justify-center gap-8 md:gap-12">
@@ -198,12 +190,19 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                     disabled={isSwitchDisabled}
                     onCheckedChange={handleSwitchChange}
                 />
-                <Label
-                    className={`text-lg md:text-xl ${isSwitchDisabled ? 'text-gray-400' : 'text-black/75'}`}
-                    htmlFor="completion-switch"
-                >
-                    {getDisplayText()}
-                </Label>
+                <div className="flex flex-col">
+                    <Label
+                        className={`text-lg md:text-xl ${isSwitchDisabled ? 'text-gray-400' : 'text-black/75'}`}
+                        htmlFor="completion-switch"
+                    >
+                        {displayText.main}
+                    </Label>
+                    {displayText.sub && (
+                        <span className={`text-sm md:text-base ${isSwitchDisabled ? 'text-gray-300' : 'text-gray-500'} mt-1`}>
+                            {displayText.sub}
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );

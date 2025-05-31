@@ -16,7 +16,7 @@ const page = () => {
           <QueueCard title="Teslimat Sırası" stage="delivery_stage" />
         </div>
       </div>
-      <FeedbackForm></FeedbackForm>
+      {/* <FeedbackForm></FeedbackForm> */}
     </div>
   );
 };

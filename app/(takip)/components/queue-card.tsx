@@ -12,20 +12,22 @@ interface QueueCardProps {
 
 const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
   const [currentNumber, setCurrentNumber] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
 
-  // ✅ FIX: Direct store subscription - this will trigger React re-renders
+  // Direct store subscription - this will trigger React re-renders
   const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
+  const isStoreInitialized = useStageMetricsStore(state => state.isInitialized);
+  const isStoreLoading = useStageMetricsStore(state => state.isLoading);
 
   // Update local number when store data changes
   useEffect(() => {
     if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
       const newNumber = currentStageMetric.current_sacrifice_number;
-      console.log(`[QueueCard] Store updated for ${stage}: ${currentNumber} -> ${newNumber}`);
       setCurrentNumber(newNumber);
-      setLoading(false);
     }
-  }, [currentStageMetric?.current_sacrifice_number, stage]); // ✅ FIX: More specific dependency
+  }, [currentStageMetric?.current_sacrifice_number, stage]);
+
+  // Show loading if store is not initialized yet
+  const displayNumber = isStoreInitialized ? currentNumber : '...';
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
@@ -35,7 +37,7 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
           {title}
         </div>
         <div className="bg-black/90 py-4 md:py-8 text-center text-white w-full text-6xl md:text-8xl font-bold">
-          {loading ? '...' : currentNumber}
+          {displayNumber}
         </div>
       </div>
 

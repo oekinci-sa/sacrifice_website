@@ -1,6 +1,6 @@
 "use client";
 
-import Logo from "@/components/layout/footer/logo";
+import Logo from "@/components/layout/header/logo";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

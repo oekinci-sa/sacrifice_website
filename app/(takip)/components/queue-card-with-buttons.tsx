@@ -160,7 +160,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
             {/* Counter */}
             <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
                 <i
-                    className="bi bi-dash flex items-center justify-center text-xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-8 h-8 md:w-10 md:h-10 rounded rounded-md transition-all duration-200 cursor-pointer"
+                    className="bi bi-dash flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 cursor-pointer"
                     onClick={handleDecrement}
                 ></i>
 
@@ -177,20 +177,22 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({ title, stag
                 </div>
 
                 <i
-                    className="bi bi-plus flex items-center justify-center text-xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-8 h-8 md:w-10 md:h-10 rounded rounded-md transition-all duration-200 cursor-pointer"
+                    className="bi bi-plus flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 cursor-pointer"
                     onClick={handleIncrement}
                 ></i>
             </div>
 
             {/* Switch */}
             <div className="flex items-start space-x-4 md:space-x-6">
-                <Switch
-                    id="completion-switch"
-                    checked={isCompleted}
-                    disabled={isSwitchDisabled}
-                    onCheckedChange={handleSwitchChange}
-                    className="mt-1"
-                />
+                <div className="transform scale-110 md:scale-125 origin-left">
+                    <Switch
+                        id="completion-switch"
+                        checked={isCompleted}
+                        disabled={isSwitchDisabled}
+                        onCheckedChange={handleSwitchChange}
+                        className="mt-1"
+                    />
+                </div>
                 <div className="flex flex-col">
                     <Label
                         className={`text-lg md:text-xl ${isSwitchDisabled ? 'text-gray-400' : 'text-black/75'}`}

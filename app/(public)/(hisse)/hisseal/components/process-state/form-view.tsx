@@ -1,4 +1,4 @@
-import { CustomDataTable } from "@/components/custom-components/custom-data-table";
+import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast as ToastType } from "@/components/ui/use-toast";

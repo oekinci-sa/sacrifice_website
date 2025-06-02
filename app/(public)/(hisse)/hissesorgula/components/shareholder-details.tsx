@@ -42,7 +42,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[192px_1fr] gap-12 border border-gray-200 rounded-lg p-4 mx-auto md:w-2/3 mb-4">
+    <div className="grid grid-cols-1 md:grid-cols-[192px_1fr] gap-12 border border-gray-200 rounded-lg p-4 md:p-8 mx-auto md:w-2/3 mb-4">
       {/* Sol Bölüm - Kişisel Bilgiler */}
       <div className="space-y-6 md:space-y-8">
         {/* Resim + İsim */}

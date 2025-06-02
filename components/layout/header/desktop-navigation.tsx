@@ -1,7 +1,7 @@
 "use client";
 
-import CustomLink from '@/components/common/custom-link';
 import EmptySharesBadge from '@/components/common/empty-shares-badge';
+import CustomLink from '@/components/custom-data-components/custom-link';
 
 const DesktopNavigation = () => {
 

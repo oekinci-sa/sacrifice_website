@@ -11,7 +11,7 @@ const HeaderMinimal = () => {
       <Logo className="w-[200px] md:w-[250px]" />
 
       {/* Desktop Hemen Al Button */}
-      <Button className="bg-sac-primary text-white hover:bg-sac-primary/90 text-sm md:text-md">
+      <Button className="bg-sac-primary text-white hover:bg-sac-primary/90 text-sm md:text-lg">
         <Link href="https://maps.app.goo.gl/yfA3h5mdS1uxAXTU9" target="_blank" className="flex items-center">
           Kesim Yeri
         </Link>

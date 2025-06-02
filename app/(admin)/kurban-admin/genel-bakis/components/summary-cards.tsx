@@ -1,6 +1,6 @@
 "use client";
 
-import { StatCardWithProgress } from "@/components/custom-components/stat-card-with-progress";
+import { StatCardWithProgress } from "@/components/custom-data-components/stat-card-with-progress";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { CreditCard } from "lucide-react";

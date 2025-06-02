@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomDataTable } from "@/components/custom-components/custom-data-table";
+import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
 import {

@@ -1,6 +1,6 @@
 "use client";
 
-import CustomLink from "@/components/common/custom-link";
+import CustomLink from "@/components/custom-data-components/custom-link";
 import { mediaLinks } from "../../../app/(public)/constants";
 
 interface MediaLink {
@@ -11,10 +11,10 @@ interface MediaLink {
 const Footer = () => {
   return (
     <div className="container flex flex-col md:flex-row items-center justify-center md:justify-between gap-4 py-6 md:py-12">
-      <p className="text-sm md:text-base text-black text-center md:text-left">
+      <p className="text-sm md:text-base text-black/75 text-center md:text-left">
         Tüm hakları saklıdır. © 2025 Ankara Kurban
       </p>
-      
+
       {/* Social Media */}
       <div className="flex gap-6">
         {mediaLinks.map((item: MediaLink) => (

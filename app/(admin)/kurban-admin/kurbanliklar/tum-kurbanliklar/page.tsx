@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomDataTable } from "@/components/custom-components/custom-data-table";
+import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";

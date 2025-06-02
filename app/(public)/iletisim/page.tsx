@@ -1,4 +1,4 @@
-import Form from "@/app/(public)/iletisim/components/form";
+import Form from "@/app/(public)/iletisim/form";
 import FollowUs from "./components/follow-us";
 import Info from "./components/info";
 

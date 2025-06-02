@@ -1,8 +1,8 @@
 "use client";
 
-import DesktopNavigation from "@/components/layout/header/desktop-navigations";
-import Logo from "@/components/layout/header/logos";
-import MobileNavigation from "@/components/layout/header/mobile-navigations";
+import DesktopNavigation from "@/components/layout/header/desktop-navigation";
+import Logo from "@/components/layout/header/logo";
+import MobileNavigation from "@/components/layout/header/mobile-navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";

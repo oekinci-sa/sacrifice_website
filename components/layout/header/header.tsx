@@ -1,6 +1,6 @@
 "use client";
 
-import DesktopNavigation from "@/components/layout/header/desktop-navigation";
+import DesktopNavigation from "@/components/layout/header/desktop-navigationas";
 import Logo from "@/components/layout/header/logo";
 import MobileNavigation from "@/components/layout/header/mobile-navigation";
 import { Button } from "@/components/ui/button";

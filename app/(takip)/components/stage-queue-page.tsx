@@ -11,7 +11,11 @@ const StageQueuePage: React.FC<StageQueuePageProps> = ({ title, stage }) => {
     return (
         <div className="container flex flex-col items-center justify-center gap-8 md:gap-12">
             <AverageDuration stage={stage} />
-            <QueueCardWithButtons title={title} stage={stage} />
+            <QueueCardWithButtons
+                title={title}
+                stage={stage}
+                enableAnimation={false}
+            />
         </div>
     );
 };

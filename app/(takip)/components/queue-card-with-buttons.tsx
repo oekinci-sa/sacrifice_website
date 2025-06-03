@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
+import { supabase } from "@/utils/supabaseClient";
 import React, { useCallback, useEffect, useState } from "react";
 
 interface QueueCardWithButtonsProps {
@@ -102,6 +103,46 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             checkSwitchState(localNumber);
         }
     }, [localNumber, checkSwitchState]);
+
+    // Realtime subscription for sacrifice_animals table to detect timing changes
+    useEffect(() => {
+        if (localNumber === 0) return; // Don't subscribe if no number is set
+
+        const sacrificeId = `SAC${localNumber.toString().padStart(3, '0')}`;
+
+        // Create a unique channel name for this component instance
+        const channelName = `sacrifice-timing-${sacrificeId}-${stage}-${Date.now()}`;
+
+        const channel = supabase
+            .channel(channelName)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'sacrifice_animals',
+                    filter: `sacrifice_id=eq.${sacrificeId}`
+                },
+                (payload) => {
+                    console.log(`[QueueCardWithButtons] Received realtime update for ${sacrificeId}:`, payload);
+
+                    // Re-check switch state when sacrifice_animals table is updated
+                    checkSwitchState(localNumber);
+                }
+            )
+            .subscribe((status, err) => {
+                console.log(`[QueueCardWithButtons] Subscription status for ${sacrificeId}:`, status);
+                if (err) {
+                    console.error(`[QueueCardWithButtons] Subscription error for ${sacrificeId}:`, err);
+                }
+            });
+
+        // Cleanup subscription on unmount or when localNumber changes
+        return () => {
+            console.log(`[QueueCardWithButtons] Cleaning up subscription for ${sacrificeId}`);
+            supabase.removeChannel(channel);
+        };
+    }, [localNumber, stage, checkSwitchState]);
 
     const handleDecrement = async () => {
         if (isLoading) return;

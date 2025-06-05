@@ -67,7 +67,7 @@ const page = () => {
         className="w-full max-w-6xl mb-8"
         variants={item}
       >
-        <p className="text-center text-lg md:text-2xl font-bold mb-4 md:mb-6">
+        <p className="text-center text-base md:text-2xl font-bold mb-4 md:mb-6">
           Hisse bilgilerinizi öğrenmek ister misiniz?
         </p>
 

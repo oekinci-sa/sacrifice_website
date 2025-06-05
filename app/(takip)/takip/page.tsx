@@ -61,21 +61,22 @@ const page = () => {
       initial="hidden"
       animate="show"
     >
+      {/* Ayah */}
+      <motion.div
+        className=""
+        variants={item}
+      >
+        <Ayah />
+      </motion.div>
+
       {/* Title */}
       <motion.h1
-        className="text-3xl md:text-4xl font-bold mt-8 text-center"
+        className="text-3xl md:text-4xl font-bold text-center"
         variants={item}
       >
         Kurbanlık Takip<br className="md:hidden" /> Sayfası
       </motion.h1>
 
-      {/* Ayah */}
-      <motion.div
-        className="-mt-8"
-        variants={item}
-      >
-        <Ayah />
-      </motion.div>
 
       {/* Queue Cards */}
       <motion.div
@@ -83,18 +84,18 @@ const page = () => {
         variants={container}
       >
         <motion.div variants={cardItem}>
-          <QueueCard title="Kesim Sırası" stage="slaughter_stage" />
+          <QueueCard title="Kesim Sırası" stage="slaughter_stage" showAverageDuration={false} />
         </motion.div>
 
         <motion.div variants={cardItem}>
-          <QueueCard title="Parçalama Sırası" stage="butcher_stage" />
+          <QueueCard title="Parçalama Sırası" stage="butcher_stage" showAverageDuration={false} />
         </motion.div>
 
         <motion.div
           className="col-span-2 flex justify-center"
           variants={cardItem}
         >
-          <QueueCard title="Teslimat Sırası" stage="delivery_stage" />
+          <QueueCard title="Teslimat Sırası" stage="delivery_stage" showAverageDuration={false} />
         </motion.div>
       </motion.div>
 

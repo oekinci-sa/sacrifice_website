@@ -20,8 +20,15 @@ import { Separator } from "@/components/ui/separator";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AppSidebar } from "./components/layout/app-sidebar";
+
+// Type for shareholder data from API
+interface ShareholderData {
+  shareholder_id: string;
+  shareholder_name: string;
+  [key: string]: unknown;
+}
 
 function UserNav() {
   const { data: session } = useSession();
@@ -62,6 +69,10 @@ function UserNav() {
 
 function DynamicBreadcrumb() {
   const pathname = usePathname();
+  const [sacrificeNo, setSacrificeNo] = useState<string>("");
+  const [shareholderName, setShareholderName] = useState<string>("");
+  const [isLoadingSacrifice, setIsLoadingSacrifice] = useState(false);
+  const [isLoadingShareholder, setIsLoadingShareholder] = useState(false);
 
   // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
   const turkishCorrections = (text: string): string => {
@@ -91,42 +102,142 @@ function DynamicBreadcrumb() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
+  // API çağrıları ile sacrifice_no ve shareholder_name'i al
+  useEffect(() => {
+    const paths = pathname.split('/').filter(Boolean);
+
+    // Kurban detay sayfası kontrolü: /kurban-admin/kurbanliklar/ayrintilar/[id]
+    if (paths.length === 4 &&
+      paths[0] === 'kurban-admin' &&
+      paths[1] === 'kurbanliklar' &&
+      paths[2] === 'ayrintilar') {
+      const sacrificeId = paths[3];
+
+      setIsLoadingSacrifice(true);
+      setSacrificeNo(""); // Reset previous value
+
+      // Sacrifice API çağrısı
+      fetch(`/api/get-sacrifice-by-id?id=${sacrificeId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.sacrifice_no) {
+            setSacrificeNo(data.sacrifice_no);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching sacrifice data:', error);
+        })
+        .finally(() => {
+          setIsLoadingSacrifice(false);
+        });
+    }
+
+    // Hissedar detay sayfası kontrolü: /kurban-admin/hissedarlar/ayrintilar/[id]
+    if (paths.length === 4 &&
+      paths[0] === 'kurban-admin' &&
+      paths[1] === 'hissedarlar' &&
+      paths[2] === 'ayrintilar') {
+      const shareholderId = paths[3];
+
+      setIsLoadingShareholder(true);
+      setShareholderName(""); // Reset previous value
+
+      // Shareholder API çağrısı - tüm hissedarları al ve ID ile eşleştir
+      fetch('/api/get-shareholders')
+        .then(response => response.json())
+        .then(data => {
+          if (data.shareholders) {
+            const shareholder = data.shareholders.find((s: ShareholderData) => s.shareholder_id === shareholderId);
+            if (shareholder && shareholder.shareholder_name) {
+              setShareholderName(shareholder.shareholder_name);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching shareholder data:', error);
+        })
+        .finally(() => {
+          setIsLoadingShareholder(false);
+        });
+    }
+
+    // Diğer sayfalarda state'i temizle
+    if (!(paths.length === 4 && paths[0] === 'kurban-admin' && paths[2] === 'ayrintilar')) {
+      setSacrificeNo("");
+      setShareholderName("");
+      setIsLoadingSacrifice(false);
+      setIsLoadingShareholder(false);
+    }
+  }, [pathname]);
+
   const breadcrumbs = useMemo(() => {
     const paths = pathname.split('/').filter(Boolean);
 
     const pathItems = paths.map((path, index) => {
-      // Türkçe karakter düzeltmeleri ile formatlama
-      const formattedPath = turkishCorrections(path);
+      let formattedPath = turkishCorrections(path);
+      let shouldShowItem = true;
+
+      // Son path elementi ise (detay sayfası), özel isim kullan
+      if (index === paths.length - 1) {
+        // Kurban detay sayfası için sacrifice_no kullan
+        if (paths.length === 4 &&
+          paths[0] === 'kurban-admin' &&
+          paths[1] === 'kurbanliklar' &&
+          paths[2] === 'ayrintilar') {
+          if (isLoadingSacrifice) {
+            shouldShowItem = false; // Loading sırasında gösterme
+          } else if (sacrificeNo) {
+            formattedPath = sacrificeNo;
+          } else {
+            shouldShowItem = false; // Veri yoksa gösterme
+          }
+        }
+        // Hissedar detay sayfası için shareholder_name kullan
+        else if (paths.length === 4 &&
+          paths[0] === 'kurban-admin' &&
+          paths[1] === 'hissedarlar' &&
+          paths[2] === 'ayrintilar') {
+          if (isLoadingShareholder) {
+            shouldShowItem = false; // Loading sırasında gösterme
+          } else if (shareholderName) {
+            formattedPath = shareholderName;
+          } else {
+            shouldShowItem = false; // Veri yoksa gösterme
+          }
+        }
+      }
 
       const fullPath = `/${paths.slice(0, index + 1).join('/')}`;
-
       const isActive = index === paths.length - 1;
 
       return {
         name: formattedPath,
         path: fullPath,
         isActive,
+        shouldShow: shouldShowItem,
       };
     });
 
     return pathItems;
-  }, [pathname]);
+  }, [pathname, sacrificeNo, shareholderName, isLoadingSacrifice, isLoadingShareholder]);
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {breadcrumbs.map((item, index) => (
-          <React.Fragment key={item.path}>
-            {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
-            <BreadcrumbItem className="hidden md:block">
-              {item.isActive ? (
-                <BreadcrumbPage>{item.name}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink href={item.path}>{item.name}</BreadcrumbLink>
-              )}
-            </BreadcrumbItem>
-          </React.Fragment>
-        ))}
+        {breadcrumbs
+          .filter(item => item.shouldShow)
+          .map((item, index) => (
+            <React.Fragment key={item.path}>
+              {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+              <BreadcrumbItem className="hidden md:block">
+                {item.isActive ? (
+                  <BreadcrumbPage>{item.name}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink href={item.path}>{item.name}</BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </React.Fragment>
+          ))}
       </BreadcrumbList>
     </Breadcrumb>
   );

@@ -15,7 +15,7 @@ export default function FollowLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${instrumentSans.variable} flex flex-col gap-8 md:gap-10 justify-between`}>
+    <div className={`${instrumentSans.variable} flex flex-col justify-between`}>
       <HeaderMinimal />
       <StageMetricsRealtimeProvider>
         {children}

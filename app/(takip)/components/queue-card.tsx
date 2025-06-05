@@ -9,25 +9,34 @@ import AverageDuration from './average-duration';
 interface QueueCardProps {
   title: string;
   stage: StageType;
+  showAverageDuration?: boolean;
 }
 
-const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
+const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration = true }) => {
   const [currentNumber, setCurrentNumber] = useState<number>(0);
+  const [isLocalLoading, setIsLocalLoading] = useState(true);
 
   // Direct store subscription - this will trigger React re-renders
   const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
   const isStoreInitialized = useStageMetricsStore(state => state.isInitialized);
+  const isStoreLoading = useStageMetricsStore(state => state.isLoading);
 
   // Update local number when store data changes
   useEffect(() => {
-    if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
+    if (isStoreInitialized && currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
       const newNumber = currentStageMetric.current_sacrifice_number;
       setCurrentNumber(newNumber);
+      setIsLocalLoading(false);
+    } else if (isStoreInitialized) {
+      // Store is initialized but no data for this stage
+      setCurrentNumber(0);
+      setIsLocalLoading(false);
     }
-  }, [currentStageMetric, stage]);
+  }, [currentStageMetric, isStoreInitialized, isStoreLoading, stage]);
 
-  // Show loading if store is not initialized yet
-  const displayNumber = isStoreInitialized ? currentNumber : '...';
+  // Determine what to display
+  const shouldShowLoading = !isStoreInitialized || isStoreLoading || isLocalLoading;
+  const displayNumber = shouldShowLoading ? '...' : currentNumber;
 
   return (
     <motion.div
@@ -70,14 +79,16 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage }) => {
         </motion.div>
       </motion.div>
 
-      {/* Average Duration */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.4 }}
-      >
-        <AverageDuration stage={stage} />
-      </motion.div>
+      {/* Conditionally render Average Duration */}
+      {showAverageDuration && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+        >
+          <AverageDuration stage={stage} />
+        </motion.div>
+      )}
     </motion.div>
   );
 };

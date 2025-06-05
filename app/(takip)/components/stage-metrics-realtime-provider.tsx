@@ -25,17 +25,23 @@ export default function StageMetricsRealtimeProvider({
     useEffect(() => {
         // Fetch initial data if not already initialized and not currently loading
         if (!isInitialized && !isLoading) {
+            console.log("[StageMetricsRealtimeProvider] Fetching initial stage metrics...");
             fetchStageMetrics().then(() => {
-                // Set up real-time subscription after data is loaded
-                subscribeToRealtime();
+                console.log("[StageMetricsRealtimeProvider] Data loaded. Setting up realtime subscription...");
+                // Add a small delay to ensure store is properly updated
+                setTimeout(() => {
+                    subscribeToRealtime();
+                }, 100);
             });
         } else if (isInitialized) {
             // If already initialized, just set up subscription
+            console.log("[StageMetricsRealtimeProvider] Data already initialized. Setting up realtime subscription...");
             subscribeToRealtime();
         }
 
         // Cleanup on unmount
         return () => {
+            console.log("[StageMetricsRealtimeProvider] Cleaning up realtime subscription...");
             unsubscribeFromRealtime();
         };
     }, [fetchStageMetrics, subscribeToRealtime, unsubscribeFromRealtime, isInitialized, isLoading]);

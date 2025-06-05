@@ -63,7 +63,6 @@ const page = () => {
     >
       {/* Ayah */}
       <motion.div
-        className=""
         variants={item}
       >
         <Ayah />

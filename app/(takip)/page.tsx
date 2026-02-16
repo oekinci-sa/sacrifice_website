@@ -33,7 +33,7 @@ const page = () => {
 
   return (
     <motion.div
-      className="container flex flex-col  items-center"
+      className="container h-full flex flex-col  items-center"
       variants={container}
       initial="hidden"
       animate="show"
@@ -56,10 +56,7 @@ const page = () => {
           <p className="md:w-2/3 text-muted-foreground text-center text-base md:text-xl">
             <br/>2026 yılında da kurbanlıklarımızı en hijyenik <br/>ve dini usullere uygun şekilde sizlerle buluşturacağız.
             <br/>
-            <br/>Hazırlık sürecimiz devam ediyor; güncel duyurular ve bilgilendirmeler için sayfamızı takip etmeyi unutmayın.
-            <br/>
-            <br/> Birlikte daha nice bayramlara...
-            
+            <br/>Hazırlık sürecimiz devam ediyor; güncel duyurular ve bilgilendirmeler için sayfamızı takip etmeyi unutmayın.            
           </p>
         </motion.div>
 

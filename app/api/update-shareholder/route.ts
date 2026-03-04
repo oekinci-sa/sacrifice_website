@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to update shareholder", details: error.message },
+        { error: "Failed to update shareholder" },
         { status: 500 }
       );
     }
@@ -101,10 +101,9 @@ export async function POST(request: NextRequest) {
       data: data[0]
     });
 
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+  } catch {
     return NextResponse.json(
-      { error: "Internal Server Error", details: errorMessage },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

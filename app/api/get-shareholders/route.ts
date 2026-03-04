@@ -20,7 +20,7 @@ export async function GET() {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to fetch shareholders", details: error.message },
+        { error: "Failed to fetch shareholders" },
         {
           status: 500,
           headers: {
@@ -40,10 +40,9 @@ export async function GET() {
       }
     });
 
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+  } catch {
     return NextResponse.json(
-      { error: "Internal Server Error", details: errorMessage },
+      { error: "Internal Server Error" },
       {
         status: 500,
         headers: {

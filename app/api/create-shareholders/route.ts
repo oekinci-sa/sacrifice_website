@@ -40,17 +40,16 @@ export async function POST(req: Request) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to create shareholders", details: error.message },
+        { error: "Failed to create shareholders" },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ success: true, data }, { status: 201 }); // 201 Created
 
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+  } catch {
     return NextResponse.json(
-      { error: "Internal Server Error", details: errorMessage },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

@@ -2,7 +2,6 @@
 export enum ReservationStatus {
     ACTIVE = 'active',
     COMPLETED = 'completed',
-    CANCELLED = 'cancelled',
     CANCELED = 'canceled',
     TIMED_OUT = 'timed out',
     EXPIRED = 'expired'

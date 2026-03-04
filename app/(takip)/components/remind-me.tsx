@@ -44,7 +44,7 @@ const RemindMe = () => {
         return true;
     };
 
-    const handleReminder = async (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent) => {
+    const handleReminder = async (_e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent) => {
         // e.preventDefault();
 
         // Telefon numarası kontrolü
@@ -111,15 +111,10 @@ const RemindMe = () => {
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
-        console.log("Debug Click")
         if (e.key === 'Enter') {
             handleReminder(e);
         }
     };
-
-    const Mobile=()=>{
-        return 
-    }
 
   return (
     <form>

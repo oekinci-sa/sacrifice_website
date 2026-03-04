@@ -14,7 +14,7 @@ export enum ReservationStatusLocal {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
-  CANCELLED = 'cancelled',
+  CANCELED = 'canceled',
   COMPLETED = 'completed'
 }
 

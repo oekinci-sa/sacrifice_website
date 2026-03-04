@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to complete reservation", details: error.message },
+        { error: "Failed to complete reservation" },
         { status: 500 }
       );
     }
@@ -35,10 +35,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data }, { status: 200 });
 
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+  } catch {
     return NextResponse.json(
-      { error: "Internal Server Error", details: errorMessage },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

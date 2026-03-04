@@ -24,20 +24,6 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Check if it's the default admin account
-        if (
-          credentials.email === "admin@ankarakurban.com.tr" &&
-          credentials.password === "1q2w3e"
-        ) {
-          return {
-            id: "admin",
-            email: credentials.email,
-            name: "Admin",
-            role: "admin" as UserRole,
-            status: "approved",
-          };
-        }
-
         // Check user in database
         const { data: user, error } = await supabase
           .from("users")

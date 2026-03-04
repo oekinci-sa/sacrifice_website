@@ -1,6 +1,5 @@
 "use client";
 
-import { ShareholderLookup } from "@/components/common/shareholder-lookup";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 import RemindMe from "./components/remind-me";

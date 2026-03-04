@@ -115,10 +115,9 @@ export async function GET(request: NextRequest) {
         'Expires': '0'
       }
     });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  } catch {
     return NextResponse.json(
-      { error: "An unexpected error occurred", details: errorMessage },
+      { error: "An unexpected error occurred" },
       {
         status: 500,
         headers: {

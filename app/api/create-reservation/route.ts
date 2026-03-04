@@ -9,7 +9,7 @@ const TRANSACTION_ID_LENGTH = 16;
 enum ReservationStatus {
   ACTIVE = 'active',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELED = 'canceled'
 }
 
 // Türkiye saati için yardımcı fonksiyon
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     if (checkError) {
       return NextResponse.json(
-        { error: "Sacrifice not found or database error", details: checkError.message },
+        { error: "Sacrifice not found or database error" },
         { status: 500 }
       );
     }
@@ -135,24 +135,15 @@ export async function POST(request: NextRequest) {
 
       // Check constraint hatası için daha spesifik mesaj
       let errorMessage = "Failed to create reservation";
-      let errorHint = null;
 
       if (error.code === '23514') { // Check constraint violation
         errorMessage = "Database constraint violation: Invalid status value";
-        errorHint = "Check allowed values for status field in the reservation_transactions table";
       } else if (error.code === '22001') { // Value too long
         errorMessage = "Value too long for database field";
-        errorHint = "transaction_id length exceeds database column size (must be 16 characters)";
       }
 
       return NextResponse.json(
-        {
-          error: errorMessage,
-          details: error.message,
-          code: error.code,
-          hint: errorHint,
-          raw_details: error.details
-        },
+        { error: errorMessage },
         { status: 500 }
       );
     }
@@ -164,13 +155,9 @@ export async function POST(request: NextRequest) {
       message: "Reservation created successfully",
       data
     });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  } catch {
     return NextResponse.json(
-      {
-        error: "An unexpected error occurred",
-        details: errorMessage
-      },
+      { error: "An unexpected error occurred" },
       { status: 500 }
     );
   }

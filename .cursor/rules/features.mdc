@@ -2,9 +2,9 @@
 description: features
 globs: 
 ---
-#COMPONENT FEATURES
+# COMPONENT FEATURES
 
-#COLOR MANAGEMENT
+# COLOR MANAGEMENT
 - When using green color, text color: #39C645 background color: #F0FBF1
   - Green Tones ->  #1DC355 -  #3A9E5F -  #125427
 - When using red color, text color: #D22D2D background color: #FCEFEF
@@ -17,8 +17,9 @@ Sidebar Component
 - When the sidebar is minimized, the icons related to it should be visible.
 - The information of the logged in user should be on the bottom left of the sidebar. Dark - light mode selection should be possible as a feature in this menu.
 
-#PAGE FEATURES
-
-Admin Pages: The general layout should be as follows:nlardsss
-
-- A sidebar on the left. Its feature was given in the "Component Features" part
+# TÜRKÇE UI METNİ
+- Tüm kullanıcıya görünen metinler (label, buton, placeholder, tooltip, mesaj) Türkçe olmalı.
+- Varsayılan İngilizce metin bırakma: Submit, Cancel, Search, Save, Edit, Delete vb.
+- Örnek içerik üretirken Türkçe kullan.
+- Terminoloji tutarlı ve profesyonel olsun.
+- Türkçe karakterleri doğru kullan (Ş, İ, Ğ, Ü, Ö, Ç).

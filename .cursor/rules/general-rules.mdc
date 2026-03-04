@@ -4,7 +4,27 @@ globs:
 ---
 #YOUR RULES
 
-- Component Organization Guidelines: Design website based on components. Do not stuff code into a single page. Here’s a clear and structured prompt for this approach: When creating pages, follow this structure for organizing components:
+## Çıktı Formatı
+- Her istek için: 1) Düzenlenecek dosyalar (liste), 2) Mini not (max 2 satır): Risk: Düşük/Orta/Yüksek + Kısa gerekçe
+- Küçük, cerrahi değişiklikleri tercih et; geniş refactor'lardan kaçın.
+
+## Kesin Yasaklar (Yapma)
+- node_modules/, .next/ içindeki hiçbir şeyi değiştirme
+- Tek dosyada 300 satırı geçme (zorunlu değilse)
+- Tüm layout'u küçük bir widget için Client Component yapma
+- Hardcoded renkleri birçok dosyaya dağıtma; tailwind.config veya CSS variable kullan
+
+## Dokunulmayacaklar
+- .next/, node_modules/
+- package-lock.json (dependency değişikliği yoksa)
+- Dikkatli dokun: middleware.ts, app/layout.tsx, lib/auth.ts
+
+## Implementation Workflow
+- Her istek için en az kırılgan seviyeyi seç (CSS -> config -> override -> wrapper)
+- Mümkünse <= 3 dosya ile minimal patch üret
+- Mini not ekle (Risk + 1 cümle gerekçe)
+
+## Component Organization Guidelines: Design website based on components. Do not stuff code into a single page. Here’s a clear and structured prompt for this approach: When creating pages, follow this structure for organizing components:
   1.	Page-Specific Components:
       - If a component is only used within a specific page, create a components folder inside that page's directory.
       - Example: For a page at /app/dashboard, store its components under /app/dashboard/components.
@@ -19,14 +39,13 @@ globs:
 - Follow the user’s requirements carefully & to the letter.
 - Don't remove comment lines.
 - First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
-- Confirm, then write code!
-- Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code also it should be aligned to listed rules down below at Code Implementation Guidelines .
-- Focus on easy and readability code, over being performant.
-- Fully implement all requested functionality.
-- Leave NO todo’s, placeholders or missing pieces.
-- Ensure code is complete! Verify thoroughly finalised.
-- Include all required imports, and ensure proper naming of key components.
-- Be concise Minimize any other prose.
-- If you think there might not be a correct answer, you say so.
-- If you do not know the answer, say so, instead of guessing.
-- Correct linter errors and warnings.
+- Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code.
+  - Focus on easy and readability code, over being performant.
+  - Fully implement all requested functionality.
+  - Leave NO todo’s, placeholders or missing pieces.
+  - Ensure code is complete! Verify thoroughly finalised.
+  - Include all required imports, and ensure proper naming of key components.
+  - Be concise Minimize any other prose.
+  - If you think there might not be a correct answer, you say so.
+  - If you do not know the answer, say so, instead of guessing.
+  - Correct linter errors and warnings.

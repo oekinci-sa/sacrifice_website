@@ -85,7 +85,7 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
         <div className="flex items-center gap-4">
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
             <div
-              className="h-full bg-[#F9BC06] rounded-full"
+              className="h-full bg-sac-yellow rounded-full"
               style={{ width: `${missingPaymentPercentage}%` }}
             />
           </div>

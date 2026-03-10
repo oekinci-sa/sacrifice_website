@@ -42,7 +42,7 @@ export const columns: ColumnDef<ChangeLog>[] = [
             className={cn(
               "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center",
               type === "Ekleme" && "bg-sac-green-lightest text-sac-green",
-              type === "Güncelleme" && "bg-[#FFFAEC] text-[#F9BC06]",
+              type === "Güncelleme" && "bg-sac-yellow-light text-sac-yellow",
               type === "Silme" && "bg-sac-red-light text-sac-red"
             )}
           >

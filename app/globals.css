@@ -81,7 +81,20 @@
     --sac-blue: #367CFE;
     --sac-blue-light: #E6EAF2;
 
+    --sac-icon-green: #09B850;
+    --sac-avatar-bg: #E8F7EF;
+
+    --sac-border-light: #c7ddcd;
+    --sac-border-blue: #b8c7dd;
+    --sac-muted-green: #5b725e;
+    --sac-form-bg: #fcfcfa;
+
     --sac-primary-muted: #7FB69B;
+
+    /* Progress bar muted backgrounds (20% opacity) */
+    --sac-red-muted: rgb(210 45 45 / 0.2);
+    --sac-yellow-muted: rgb(249 188 6 / 0.2);
+    --sac-green-muted: rgb(57 198 69 / 0.2);
 
     /* For Graphs */
     --sac-graph-green-tone-light: #1DC355;

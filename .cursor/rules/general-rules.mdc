@@ -8,11 +8,20 @@ globs:
 - Her istek için: 1) Düzenlenecek dosyalar (liste), 2) Mini not (max 2 satır): Risk: Düşük/Orta/Yüksek + Kısa gerekçe
 - Küçük, cerrahi değişiklikleri tercih et; geniş refactor'lardan kaçın.
 
+## Agent Log (ZORUNLU – Her Agent oturumunda son adım)
+Agent modda iş bitince **mutlaka** `.cursor/agent-log.txt` dosyasına şunu ekle:
+- Tarih (YYYY-MM-DD)
+- Kullanıcı isteği (kısa)
+- Yapılan değişiklikler (madde madde)
+- Değiştirilen dosya listesi
+- Risk notu
+Örnek format: `=== 2025-03-04 ===` başlığı altında yukarıdaki bilgiler.
+
 ## Kesin Yasaklar (Yapma)
 - node_modules/, .next/ içindeki hiçbir şeyi değiştirme
 - Tek dosyada 300 satırı geçme (zorunlu değilse)
 - Tüm layout'u küçük bir widget için Client Component yapma
-- Hardcoded renkleri birçok dosyaya dağıtma; tailwind.config veya CSS variable kullan
+- **Renk:** Hex (#xxx), rgb(), rgba() veya bg-[#xxx] gibi hardcoded/arbitrary renk KULLANMA. Sadece proje token'larını kullan (features.mdc → COLOR MANAGEMENT). Yeni renk gerekiyorsa önce kullanıcıya sor.
 
 ## Dokunulmayacaklar
 - .next/, node_modules/

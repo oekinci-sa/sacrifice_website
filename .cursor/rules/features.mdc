@@ -4,12 +4,37 @@ globs:
 ---
 # COMPONENT FEATURES
 
-# COLOR MANAGEMENT
-- When using green color, text color: text-sac-green background color: bg-sac-green-lightest
-  - Green Tones -> sac-graph-green-tone-light, sac-graph-green-tone-dark, sac-graph-green-tone-darkest
-- When using red color, text color: text-sac-red background color: bg-sac-red-light
-- When using yellow color, text color: #F9BC06 background color: #FFFAEC
-- When using blue color, text color: #367CFE background color: #E6EAF2
+# COLOR MANAGEMENT (ZORUNLU – Başka renk kullanma)
+
+**Yasak:** Hex (#xxx), rgb(), rgba(), `bg-[#xxx]`, `text-[#xxx]` vb. hardcoded/arbitrary renk kullanımı. Sadece aşağıdaki token'ları kullan.
+
+## Proje Renk Token'ları (app/globals.css + tailwind.config.ts)
+
+| Kullanım | Token | Örnek |
+|----------|-------|-------|
+| Yeşil (status/başarı) | sac-green, sac-green-lightest | text-sac-green, bg-sac-green-lightest |
+| Kırmızı (hata/uyarı) | sac-red, sac-red-light | text-sac-red, bg-sac-red-light |
+| Sarı (beklemede) | sac-yellow, sac-yellow-light | text-sac-yellow, bg-sac-yellow-light |
+| Mavi (bilgi/link) | sac-blue, sac-blue-light | text-sac-blue, bg-sac-blue-light |
+| Primary (buton/CTA) | sac-primary | bg-sac-primary, text-sac-primary |
+| Primary disabled | sac-primary-muted | disabled:bg-sac-primary-muted |
+| İkon/avatar yeşil | sac-icon-green, sac-avatar-bg | text-sac-icon-green, bg-sac-avatar-bg |
+| Form border (yeşilimsi) | sac-border-light | border-sac-border-light |
+| Form border (mavimsi/alıcı) | sac-border-blue | border-sac-border-blue |
+| Label/metin (soluk yeşil) | sac-muted-green | text-sac-muted-green |
+| Form kart arka planı | sac-form-bg | bg-sac-form-bg |
+| Grafik yeşil tonları | sac-graph-green-tone-* | Grafik/chart bileşenlerinde |
+
+## Shadcn/Genel token'lar
+- Arka plan: bg-background, bg-card, bg-muted
+- Metin: text-foreground, text-muted-foreground
+- Hata: text-destructive, bg-destructive
+- Border: border-border, border-input
+
+## Yeni renk ihtiyacı
+Yukarıdaki listede olmayan bir renk gerekiyorsa, kullanıcıya sor; kafana göre hex/arbitrary renk ekleme.
+
+---
 
 Sidebar Component
 

@@ -214,7 +214,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         statusColorClass = "bg-sac-red-light text-sac-red";
       } else if (paid < total) {
         statusText = "Tüm Ödeme Bekleniyor";
-        statusColorClass = "bg-[#FFFAEC] text-[#F9BC06]";
+        statusColorClass = "bg-sac-yellow-light text-sac-yellow";
       } else {
         statusText = "Tamamlandı";
         statusColorClass = "bg-sac-green-lightest text-sac-green";

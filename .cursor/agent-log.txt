@@ -1,0 +1,23 @@
+=== 2025-03-04 ===
+
+[İstek] Renk token refaktörü ve rules güncellemesi
+
+[Yapılan Değişiklikler]
+1. Hardcoded hex renkler → proje token'larına taşındı
+2. sac-yellow, sac-blue, sac-icon-green, sac-avatar-bg kullanımı
+3. Progress bar: rgb() → var(--sac-red-muted), var(--sac-yellow-muted), var(--sac-green-muted)
+4. Filter badge'ler: bg-[#f4f4f5] → bg-muted
+5. Yeni token'lar: sac-border-light, sac-border-blue, sac-muted-green, sac-form-bg
+6. shareholder-form.tsx, shareholder-summary.tsx: border ve label renkleri token'larla güncellendi
+7. general-rules.mdc: Renk yasağı netleştirildi
+8. features.mdc: COLOR MANAGEMENT tablosu eklendi, token listesi tamamlandı
+
+[Dosyalar]
+- app/globals.css, tailwind.config.ts
+- components/custom-data-components/stat-card-with-progress.tsx
+- app/(admin)/kurban-admin/**/columns.tsx, payment-analytics.tsx, ProgressBar.tsx, shareholder-info.tsx, payment-details.tsx
+- app/(public)/(hisse)/**/ProgressBar.tsx, shareholder-details.tsx, ShareFilters.tsx, columns.tsx, shareholder-form.tsx, shareholder-summary.tsx, triple-buttons.tsx
+- app/(public)/iletisim/components/follow-us.tsx
+- .cursor/rules/general-rules.mdc, features.mdc
+
+[Risk] Düşük – Sadece renk sınıfları değişti, işlevsellik aynı kaldı.

@@ -109,7 +109,7 @@ export default function ShareholderForm({
     const isCurrentPurchaser = data.is_purchaser === true;
 
     return (
-        <div className="max-w-3xl p-4 md:p-6 border border-dashed border-[#c7ddcd] rounded-[8px] md:space-y-4 ">
+        <div className="max-w-3xl p-4 md:p-6 border border-dashed border-sac-border-light rounded-[8px] md:space-y-4 ">
             {/* İlk satır */}
             <div className="flex items-center justify-between mb-2 md:mb-4">
                 <h3 className="text-sm md:text-xl font-semibold">
@@ -141,7 +141,7 @@ export default function ShareholderForm({
                             onChange={(e) => onInputChange(index, "name", e.target.value)}
                             onBlur={(e) => onInputBlur(index, "name", e.target.value)}
                             className={cn(
-                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
                                 errors?.name ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
@@ -161,7 +161,7 @@ export default function ShareholderForm({
                             onChange={handlePhoneChange}
                             onBlur={handlePhoneBlur}
                             className={cn(
-                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-[#c7ddcd] focus-visible:ring-0 focus-visible:border-[#c7ddcd] placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
                                 errors?.phone ? "border-destructive/50 bg-destructive/10" : ""
                             )}
                         />
@@ -190,7 +190,7 @@ export default function ShareholderForm({
                                         type="button"
                                         onClick={() => onSelectChange(index, "delivery_location", cleanDeliveryLocation(option))}
                                         className={cn(
-                                            "w-1/2 border border-dashed border-[#c7ddcd] hover:text-white transition-all text-base md:text-[18px] h-10 pt-2 md:h-12",
+                                            "w-1/2 border border-dashed border-sac-border-light hover:text-white transition-all text-base md:text-[18px] h-10 pt-2 md:h-12",
                                             isOptionSelected(option)
                                                 ? "bg-sac-primary border-none text-white hover:bg-sac-primary"
                                                 : "bg-background text-foreground hover:bg-sac-primary",

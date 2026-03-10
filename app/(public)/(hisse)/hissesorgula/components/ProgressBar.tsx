@@ -20,7 +20,7 @@ export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
             "h-full transition-all duration-300",
             {
               "bg-sac-red": !isDeposit, // Kırmızı - Kapora ödenmemiş
-              "bg-[#F9BC06]": isDeposit && !isFullyPaid, // Sarı - Kapora ödenmiş ama tamamlanmamış
+              "bg-sac-yellow": isDeposit && !isFullyPaid, // Sarı - Kapora ödenmiş ama tamamlanmamış
               "bg-sac-green": isFullyPaid, // Yeşil - Tamamı ödenmiş
             }
           )}

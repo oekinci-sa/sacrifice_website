@@ -63,7 +63,7 @@ const SelectedFiltersDisplay = ({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.5 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-[#f4f4f5] text-xs px-2 py-0.5"
+                  className="bg-muted text-xs px-2 py-0.5"
                 >
                   {option.label}
                 </motion.span>
@@ -78,7 +78,7 @@ const SelectedFiltersDisplay = ({
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.5 }}
-        className="hidden md:inline ml-2 bg-[#f4f4f5] text-xs px-2 py-0.5"
+        className="hidden md:inline ml-2 bg-muted text-xs px-2 py-0.5"
       >
         {selectedValues.size} seçili
       </motion.span>
@@ -97,7 +97,7 @@ const SelectedFiltersDisplay = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.2 }}
-            className="bg-[#f4f4f5] text-xs px-2 py-0.5"
+            className="bg-muted text-xs px-2 py-0.5"
           >
             {/* Find the selected option and display its label */}
             {(() => {

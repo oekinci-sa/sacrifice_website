@@ -62,7 +62,7 @@ const SelectedFiltersDisplay = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-[#f4f4f5] text-xs px-2 py-0.5 truncate max-w-[100px]"
+                className="bg-muted text-xs px-2 py-0.5 truncate max-w-[100px]"
                 title={option.label}
               >
                 {option.label}
@@ -78,7 +78,7 @@ const SelectedFiltersDisplay = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
               transition={{ delay: index * 0.05 }}
-              className="bg-[#f4f4f5] text-xs px-2 py-0.5 truncate max-w-[100px]"
+              className="bg-muted text-xs px-2 py-0.5 truncate max-w-[100px]"
               title={value}
             >
               {value}

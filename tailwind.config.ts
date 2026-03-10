@@ -47,6 +47,14 @@ const config: Config = {
         "sac-blue": "#367CFE",
         "sac-blue-light": "#E6EAF2",
 
+        "sac-icon-green": "#09B850",
+        "sac-avatar-bg": "#E8F7EF",
+
+        "sac-border-light": "#c7ddcd",
+        "sac-border-blue": "#b8c7dd",
+        "sac-muted-green": "#5b725e",
+        "sac-form-bg": "#fcfcfa",
+
         /* For Graphs */
         "sac-graph-green-tone-light": "#1DC355",
         "sac-graph-green-tone-dark": "#3A9E5F",

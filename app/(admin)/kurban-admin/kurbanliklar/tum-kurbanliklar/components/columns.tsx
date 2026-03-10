@@ -108,7 +108,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 hover:bg-[#E8F7EF] hover:text-[#09B850]"
+          className="h-8 w-8 p-0 hover:bg-sac-avatar-bg hover:text-sac-icon-green"
           onClick={() => setIsDialogOpen(true)}
         >
           <Eye className="h-4 w-4" />
@@ -116,7 +116,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 hover:bg-[#E6EAF2] hover:text-[#367CFE]"
+          className="h-8 w-8 p-0 hover:bg-sac-blue-light hover:text-sac-blue"
           onClick={() => {
             router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
           }}
@@ -142,7 +142,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
               <br />
               <Link
                 href="/kurban-admin/hissedarlar/tum-hissedarlar"
-                className="font-semibold hover:text-[#09B850] transition-all duration-300"
+                className="font-semibold hover:text-sac-icon-green transition-all duration-300"
               >
                 Tüm Hissedarlar
               </Link>{" "}
@@ -159,8 +159,8 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                     className="transition-all duration-200 hover:bg-gray-50 rounded-lg p-4 cursor-pointer"
                   >
                     <div className="grid grid-cols-[auto_1fr_1fr] gap-6 items-center">
-                      <div className="flex items-center justify-center bg-[#E8F7EF] rounded-full p-2 w-12 h-12">
-                        <i className="bi bi-person-circle text-[#09B850] text-2xl"></i>
+                      <div className="flex items-center justify-center bg-sac-avatar-bg rounded-full p-2 w-12 h-12">
+                        <i className="bi bi-person-circle text-sac-icon-green text-2xl"></i>
                       </div>
 
                       {/* Left */}
@@ -183,14 +183,14 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                   style={{
                                     ["--progress-background" as string]: (shareholder.remaining_payment > 0)
                                       ? shareholder.paid_amount < 5000
-                                        ? "rgb(220 38 38 / 0.2)"
-                                        : "rgb(202 138 4 / 0.2)"
-                                      : "rgb(22 163 74 / 0.2)",
+                                        ? "var(--sac-red-muted)"
+                                        : "var(--sac-yellow-muted)"
+                                      : "var(--sac-green-muted)",
                                     ["--progress-foreground" as string]: (shareholder.remaining_payment > 0)
                                       ? shareholder.paid_amount < 5000
-                                        ? "rgb(220 38 38)"
-                                        : "rgb(202 138 4)"
-                                      : "rgb(22 163 74)",
+                                        ? "var(--sac-red)"
+                                        : "var(--sac-yellow)"
+                                      : "var(--sac-green)",
                                   } as React.CSSProperties}
                                 />
                                 <span className={cn(
@@ -504,15 +504,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
             className="min-w-[100px]"
             style={{
               ["--progress-background" as string]: ratio < 50
-                ? "rgb(220 38 38 / 0.2)"
+                ? "var(--sac-red-muted)"
                 : ratio < 100
-                  ? "rgb(202 138 4 / 0.2)"
-                  : "rgb(22 163 74 / 0.2)",
+                  ? "var(--sac-yellow-muted)"
+                  : "var(--sac-green-muted)",
               ["--progress-foreground" as string]: ratio < 50
-                ? "rgb(220 38 38)"
+                ? "var(--sac-red)"
                 : ratio < 100
-                  ? "rgb(202 138 4)"
-                  : "rgb(22 163 74)",
+                  ? "var(--sac-yellow)"
+                  : "var(--sac-green)",
             } as React.CSSProperties}
           />
           <div

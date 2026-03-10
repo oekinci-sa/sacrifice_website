@@ -174,7 +174,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
                 "font-medium",
                 {
                   "text-sac-red": shareholderInfo.paid_amount < 5000,
-                  "text-[#F9BC06]": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
+                  "text-sac-yellow": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
                   "text-sac-green": shareholderInfo.remaining_payment <= 0,
                 }
               )}>

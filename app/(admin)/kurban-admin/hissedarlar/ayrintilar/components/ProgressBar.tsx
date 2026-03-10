@@ -13,9 +13,9 @@ export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
 
   // Determine color based on payment status
   const getColor = () => {
-    if (paidAmount < 5000) return "bg-[#D22D2D]"; // Red for kapora not paid
+    if (paidAmount < 5000) return "bg-sac-red"; // Red for kapora not paid
     if (paidAmount < totalAmount) return "bg-[#F9BC06]"; // Yellow for partial payment
-    return "bg-[#39C645]"; // Green for full payment
+    return "bg-sac-green"; // Green for full payment
   };
 
   return (

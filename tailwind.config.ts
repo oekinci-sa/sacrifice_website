@@ -31,7 +31,9 @@ const config: Config = {
         // icon background
         "sac-primary-more-lighter": "#e5f8ed",
         // buton with icon background
+        "sac-green": "#39C645",
         "sac-green-lightest": "#F0FBF1",
+        "sac-primary-muted": "#7FB69B",
 
         "sac-icon-light-green": "#c1edd3",
         "sac-icon-bg-green": "#f0fcf6",

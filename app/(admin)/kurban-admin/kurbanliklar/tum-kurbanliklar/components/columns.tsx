@@ -126,7 +126,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 hover:bg-[#FCEFEF] hover:text-[#D22D2D]"
+          className="h-8 w-8 p-0 hover:bg-sac-red-light hover:text-sac-red"
           onClick={() => setIsDeleteConfirmOpen(true)}
         >
           <X className="h-4 w-4" />
@@ -232,7 +232,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                     </div>
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-[#D22D2D]" />
+                                        <div className="w-2 h-2 rounded-full bg-sac-red" />
                                         <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                                       </div>
                                       <span className="text-sm font-medium text-[#000000]">
@@ -554,7 +554,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#D22D2D]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-red" />
                           <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                         </div>
                         <span className="text-sm font-medium text-[#000000]">{formatCurrency(total - totalPaid)}</span>

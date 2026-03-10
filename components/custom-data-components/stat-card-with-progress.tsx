@@ -82,8 +82,8 @@ function StatCard({
         <div className="flex items-start gap-4">
           {Icon && (
             <div className={`rounded-lg p-2 ${type === "warning"
-              ? "bg-[#FCEFEF] text-[#D22D2D]"
-              : "bg-[#F0FBF1] text-[#39C645]"
+              ? "bg-sac-red-light text-sac-red"
+              : "bg-sac-green-lightest text-sac-green"
               }`}>
               <Icon className="h-4 w-4" />
             </div>
@@ -110,18 +110,18 @@ function StatCard({
   const getProgressColors = (percentage: number) => {
     if (percentage < 25) {
       return {
-        progressColor: "#D22D2D",
-        progressBgColor: "#FCEFEF",
+        progressColor: "var(--sac-red)",
+        progressBgColor: "var(--sac-red-light)",
       };
     } else if (percentage < 75) {
       return {
-        progressColor: "#F9BC06",
-        progressBgColor: "#FFFAEC",
+        progressColor: "var(--sac-yellow)",
+        progressBgColor: "var(--sac-yellow-light)",
       };
     } else {
       return {
-        progressColor: "#39C645",
-        progressBgColor: "#F0FBF1",
+        progressColor: "var(--sac-green)",
+        progressBgColor: "var(--sac-green-lightest)",
       };
     }
   };
@@ -256,7 +256,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
             value={(stats.consentStats.verildi / stats.totalShareholders) * 100}
             className="h-2 mt-2 bg-red-100"
             style={{
-              '--progress-foreground': '#39C645', // green-600 color
+              '--progress-foreground': 'var(--sac-green)',
             } as React.CSSProperties}
           />
         </CardContent>

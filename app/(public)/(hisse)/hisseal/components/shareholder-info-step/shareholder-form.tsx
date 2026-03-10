@@ -117,7 +117,7 @@ export default function ShareholderForm({
                 </h3>
                 <Button
                     variant="ghost"
-                    className="flex items-center justify-center gap-1 md:gap-2 hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 text-lg h-9 md:h-11"
+                    className="flex items-center justify-center gap-1 md:gap-2 hover:bg-sac-red text-sac-red hover:text-white transition-all duration-300 text-lg h-9 md:h-11"
                     onClick={() => onRemove(index)}
                 >
                     <X className="h-3 w-3 md:h-4 md:w-4" />

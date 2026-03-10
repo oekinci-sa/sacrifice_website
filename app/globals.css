@@ -69,6 +69,7 @@
     /* My Colors */
     --sac-primary: hsl(140, 60%, 50%);
     --sac-primary-more-lighter: hsl(140, 60%, 50%);
+    --sac-green: #39C645;
     --sac-green-lightest: #F0FBF1;
 
     --sac-red: #D22D2D;
@@ -79,6 +80,8 @@
 
     --sac-blue: #367CFE;
     --sac-blue-light: #E6EAF2;
+
+    --sac-primary-muted: #7FB69B;
 
     /* For Graphs */
     --sac-graph-green-tone-light: #1DC355;

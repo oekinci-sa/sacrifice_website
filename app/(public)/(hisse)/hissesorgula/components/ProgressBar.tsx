@@ -19,9 +19,9 @@ export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
           className={cn(
             "h-full transition-all duration-300",
             {
-              "bg-[#D22D2D]": !isDeposit, // Kırmızı - Kapora ödenmemiş
+              "bg-sac-red": !isDeposit, // Kırmızı - Kapora ödenmemiş
               "bg-[#F9BC06]": isDeposit && !isFullyPaid, // Sarı - Kapora ödenmiş ama tamamlanmamış
-              "bg-[#39C645]": isFullyPaid, // Yeşil - Tamamı ödenmiş
+              "bg-sac-green": isFullyPaid, // Yeşil - Tamamı ödenmiş
             }
           )}
           style={{ width: `${Math.min(100, progress)}%` }}

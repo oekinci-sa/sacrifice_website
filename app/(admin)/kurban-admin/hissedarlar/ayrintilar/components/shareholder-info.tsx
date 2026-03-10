@@ -129,7 +129,7 @@ export function ShareholderInfo({
           ) : (
             <p className={cn(
               valueClass,
-              shareholderInfo.sacrifice_consent ? "text-[#39C645]" : "text-[#D22D2D]"
+              shareholderInfo.sacrifice_consent ? "text-sac-green" : "text-sac-red"
             )}>
               {shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}
             </p>

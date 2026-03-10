@@ -41,9 +41,9 @@ export const columns: ColumnDef<ChangeLog>[] = [
           <span
             className={cn(
               "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center",
-              type === "Ekleme" && "bg-[#F0FBF1] text-[#39C645]",
+              type === "Ekleme" && "bg-sac-green-lightest text-sac-green",
               type === "Güncelleme" && "bg-[#FFFAEC] text-[#F9BC06]",
-              type === "Silme" && "bg-[#FCEFEF] text-[#D22D2D]"
+              type === "Silme" && "bg-sac-red-light text-sac-red"
             )}
           >
             {type}

@@ -211,13 +211,13 @@ export const columns: ColumnDef<shareholderSchema>[] = [
 
       if (paid < 5000) {
         statusText = "Kapora Bekleniyor";
-        statusColorClass = "bg-[#FCEFEF] text-[#D22D2D]";
+        statusColorClass = "bg-sac-red-light text-sac-red";
       } else if (paid < total) {
         statusText = "Tüm Ödeme Bekleniyor";
         statusColorClass = "bg-[#FFFAEC] text-[#F9BC06]";
       } else {
         statusText = "Tamamlandı";
-        statusColorClass = "bg-[#F0FBF1] text-[#39C645]";
+        statusColorClass = "bg-sac-green-lightest text-sac-green";
       }
 
       // Format currency 
@@ -263,7 +263,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#D22D2D]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-red" />
                           <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                         </div>
                         <span className="text-sm font-medium text-[#000000]">{formatCurrency(remaining)}</span>
@@ -297,8 +297,8 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         <span className={cn(
           "inline-block rounded-md px-2 py-1 min-w-[80px] text-center",
           sacrifice_consent
-            ? "bg-[#F0FBF1] text-[#39C645]"
-            : "bg-[#FCEFEF] text-[#D22D2D]"
+            ? "bg-sac-green-lightest text-sac-green"
+            : "bg-sac-red-light text-sac-red"
         )}>
           {sacrifice_consent ? "Alındı" : "Alınmadı"}
         </span>

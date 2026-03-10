@@ -10,7 +10,7 @@ const FollowUs = () => {
         {mediaLinks.map((item) => (
           <div
             key={item.href}
-            className={`bg-[#f8f8f8] hover:bg-[#dce0e5] transition-colors duration-200 flex items-center justify-center rounded-full w-8 h-8 lg:w-10 lg:h-10 ${item.color}`}
+            className={`bg-muted hover:bg-muted/80 transition-colors duration-200 flex items-center justify-center rounded-full w-8 h-8 lg:w-10 lg:h-10 ${item.color}`}
           >
             <Link href={item.href} target="_blank">
               <i className={`text-base lg:text-lg ${item.iconName}`}></i>

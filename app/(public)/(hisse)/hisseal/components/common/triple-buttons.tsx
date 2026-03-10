@@ -32,7 +32,7 @@ export default function TripleButtons({
     <div className="flex justify-center items-center gap-2 md:gap-4">
       <Button
         variant="ghost"
-        className="flex-1 md:flex-none rounded-md bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
+        className="flex-1 md:flex-none rounded-md bg-sac-red-light hover:bg-sac-red text-sac-red hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onBack}
       >
         <ArrowLeft className="mr-0.5 md:mr-2" />
@@ -49,7 +49,7 @@ export default function TripleButtons({
                     <Button
                       onClick={onAddShareholder}
                       variant="outline"
-                      className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 disabled:bg-[#7FB69B] disabled:text-white/70 disabled:cursor-not-allowed h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
+                      className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 disabled:bg-sac-primary-muted disabled:text-white/70 disabled:cursor-not-allowed h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
                       disabled={true}
                     >
                       <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -81,7 +81,7 @@ export default function TripleButtons({
 
       <Button
         variant="ghost"
-        className="flex-1 md:flex-none rounded-md bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
+        className="flex-1 md:flex-none rounded-md bg-sac-green-lightest hover:bg-sac-primary text-sac-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onContinue}
       >
         <span className="text-sm md:text-lg">Devam Et</span>

@@ -338,7 +338,7 @@ export default function ShareholderSummary({
       <div className="flex justify-between items-center gap-4 w-full max-w-2xl mx-auto">
         <Button
           variant="ghost"
-          className="bg-[#FCEFEF] hover:bg-[#D22D2D] text-[#D22D2D] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
+          className="bg-sac-red-light hover:bg-sac-red text-sac-red hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={() => setCurrentStep("details")}
           disabled={isProcessing}
         >
@@ -348,7 +348,7 @@ export default function ShareholderSummary({
 
         <Button
           variant="ghost"
-          className="bg-[#F0FBF1] hover:bg-[#22C55E] text-[#22C55E] hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
+          className="bg-sac-green-lightest hover:bg-sac-primary text-sac-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >

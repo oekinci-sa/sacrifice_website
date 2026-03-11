@@ -21,3 +21,32 @@
 - .cursor/rules/general-rules.mdc, features.mdc
 
 [Risk] Düşük – Sadece renk sınıfları değişti, işlevsellik aynı kaldı.
+
+=== 2025-03-10 ===
+
+[İstek] Prisma ORM entegrasyonu ve tüm API route'ların Supabase'den Prisma'ya geçişi
+
+[Yapılan Değişiklikler]
+1. Prisma + @prisma/client kurulumu (v5.22.0)
+2. prisma/schema.prisma oluşturuldu – Supabase tabloları manuel map edildi (sacrifice_animals, reservation_transactions, shareholders, change_logs, stage_metrics, users, failed_reservation_transactions_logs)
+3. lib/prisma.ts – Serverless uyumlu PrismaClient singleton
+4. .env.local: DATABASE_URL (pooler 6543, pgbouncer=true), DIRECT_URL (direct 5432)
+5. Tüm API route'lar supabaseAdmin → prisma geçirildi:
+   - Kritik rezervasyon: complete-reservation, cancel-reservation, timeout-reservation, expire-reservation
+   - Get: get-sacrifice-animals, get-sacrifice-by-id, get-shareholders, get-shareholder-by-transaction_id, get-shareholder-by-phone-and-code, get-shareholders-by-phone, get-shareholder-count-by-sacrifice-id, get-reservation-transactions, get-active-reservations, get-empty-share-count, check-reservation-status, get-latest-sacrifice-share, get-stage-metrics, get-change-logs
+   - Create/Update/Delete: create-reservation, create-sacrifice, create-shareholders, update-sacrifice, update-shareholder, update-share-count, update-sacrifice-share, update-sacrifice-timing, update-stage-metrics, delete-shareholder, reset-shares, check-sacrifice-timing
+   - Users: users (GET, POST), users/[id] (GET, PUT, DELETE), users/[id]/status (PATCH)
+6. get-shareholders, get-shareholder-by-phone-and-code, get-shareholders-by-phone: sacrifice_animals ilişkisi "sacrifice" key ile map edildi (frontend uyumu)
+7. create-shareholders: shareholder_id DB trigger ile üretiliyor, geçici placeholder kullanıldı
+
+[Dosyalar]
+- package.json (prisma, @prisma/client, postinstall, db:pull, db:studio)
+- prisma/schema.prisma, .env.example
+- lib/prisma.ts
+- app/api/**/route.ts (upload-image hariç – Supabase Storage kullanıyor)
+
+[Supabase Kaldı]
+- upload-image: Supabase Storage
+- Auth, Realtime: supabase client (lib/auth, stores, hooks)
+
+[Risk] Orta – DB erişim katmanı değişti; Realtime ve Auth aynı kaldı.

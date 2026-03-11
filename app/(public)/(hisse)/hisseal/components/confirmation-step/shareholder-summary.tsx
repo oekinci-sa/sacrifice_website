@@ -259,7 +259,7 @@ export default function ShareholderSummary({
             >
               {/* Purchaser badge - only shown for the purchaser */}
               {isPurchaser && shareholders.length > 1 && (
-                <div className="absolute -top-3 right-4 bg-sac-primary text-white text-xs md:text-base py-1 px-2 rounded-full">
+                <div className="absolute -top-3 right-4 bg-primary text-white text-xs md:text-base py-1 px-2 rounded-full">
                   İşlemi Gerçekleştiren Kişi
                 </div>
               )}
@@ -348,7 +348,7 @@ export default function ShareholderSummary({
 
         <Button
           variant="ghost"
-          className="bg-sac-green-lightest hover:bg-sac-primary text-sac-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
+          className="bg-sac-green-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >

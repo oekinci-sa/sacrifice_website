@@ -68,7 +68,7 @@ const Banner = () => {
             <p className="text-3xl md:text-6xl font-bold md:mb-2">
               Kurban ibadetini
             </p>
-            <p className="text-3xl md:text-6xl font-bold text-sac-primary">
+            <p className="text-3xl md:text-6xl font-bold text-primary">
               birlikte gerçekleştirelim.
             </p>
           </div>
@@ -114,7 +114,7 @@ const Banner = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 href="https://maps.app.goo.gl/yfA3h5mdS1uxAXTU9"
-                className="text-sac-primary hover:underline hover:text-primary-dark ml-2 md:ml-0"
+                className="text-primary hover:underline hover:text-primary-dark ml-2 md:ml-0"
               >
                 Konum için tıklayınız.
               </Link>

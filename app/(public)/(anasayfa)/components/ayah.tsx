@@ -26,13 +26,13 @@ const Ayah = () => {
       <p className="font-medium">
         Şüphesiz kurbanlarınızın,{" "}
         <br className="block md:hidden" />
-        <span className="text-sac-primary font-semibold">
+        <span className="text-primary font-semibold">
           ne etleri ne de kanları
         </span>{" "}
         Allah&apos;a ulaşır.
         <br />
         Fakat O&apos;na sizin ancak{" "}
-        <span className="text-sac-primary font-semibold">
+        <span className="text-primary font-semibold">
           takvanız{" "}
         </span>
         ulaşır.

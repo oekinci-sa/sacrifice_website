@@ -12,7 +12,7 @@ export function TripleInfo() {
     // Replace ankarakurban.com.tr with a link that opens in a new tab
     return html.replace(
       /ankarakurban\.com\.tr/g,
-      '<a href="https://www.ankarakurban.com.tr/" target="_blank" rel="noopener noreferrer" class="text-sac-primary hover:underline">ankarakurban.com.tr</a>'
+      '<a href="https://www.ankarakurban.com.tr/" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">ankarakurban.com.tr</a>'
     );
   };
 

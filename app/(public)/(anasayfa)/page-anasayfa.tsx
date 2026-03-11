@@ -16,7 +16,7 @@ const ScrollToTopButton = React.memo(({ onClick }: { onClick: () => void }) => {
   return (
     <Button
       onClick={onClick}
-      className="fixed bottom-8 right-8 w-12 h-12 rounded-lg bg-sac-primary hover:bg-sac-primary/90 p-0 shadow-lg z-50"
+      className="fixed bottom-8 right-8 w-12 h-12 rounded-lg bg-primary hover:bg-primary/90 p-0 shadow-lg z-50"
       size="icon"
       aria-label="Sayfanın başına dön"
     >
@@ -116,7 +116,7 @@ const AnimatedTabTrigger = ({ value, children }: { value: string, children: Reac
       <TabsTrigger
         value={value}
         className="px-4 py-2 bg-black/5 text-base text-black rounded-md transition-all duration-300 
-          data-[state=active]:bg-sac-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
+          data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:font-medium data-[state=active]:text-lg hover:bg-black/10"
       >
         {children}
       </TabsTrigger>

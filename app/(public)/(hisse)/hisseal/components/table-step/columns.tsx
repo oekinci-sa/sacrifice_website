@@ -53,12 +53,12 @@ const EmptyShareCell = ({ sacrifice }: { sacrifice: sacrificeSchema }) => {
       {activeCount > 0 && (
         <>
           {/* Mobil için kısa mesaj (inline, margin-left ile) */}
-          <span className="ml-1 text-xs bg-sac-primary text-white px-1.5 py-0.5 rounded font-medium md:hidden">
+          <span className="ml-1 text-xs bg-primary text-white px-1.5 py-0.5 rounded font-medium md:hidden">
             {activeCount} hisse işlemde
           </span>
 
           {/* Desktop için uzun mesaj (inline, md:ml-1 ile) */}
-          <span className="ml-1 hidden md:inline text-sm bg-sac-primary text-white px-1.5 py-0.5 rounded font-medium">
+          <span className="ml-1 hidden md:inline text-sm bg-primary text-white px-1.5 py-0.5 rounded font-medium">
             {activeCount} hissede işlem yapılıyor
           </span>
         </>
@@ -176,7 +176,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         <div className="flex justify-center py-0.5 md:py-1">
           <button
             onClick={() => meta?.onSacrificeSelect(sacrifice)}
-            className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-green-lightest hover:bg-sac-primary text-sac-primary font-medium hover:text-white px-2 md:px-4 py-1 md:py-1.5 rounded transition-colors duration-200"
+            className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-green-lightest hover:bg-primary text-primary font-medium hover:text-white px-2 md:px-4 py-1 md:py-1.5 rounded transition-colors duration-200"
           >
             <Plus className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5" />
             Hisse Al

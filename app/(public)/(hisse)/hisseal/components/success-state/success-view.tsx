@@ -264,7 +264,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       {/* Icons + Thanks message */}
       <div className="flex flex-col items-center justify-center space-y-4">
         <div className="rounded-full flex items-center justify-center">
-          <i className="bi bi-patch-check-fill text-8xl text-sac-primary"></i>
+          <i className="bi bi-patch-check-fill text-8xl text-primary"></i>
         </div>
         {/* Teşekkürler mesajı */}
         <h1 className="text-2xl md:text-4xl text-center font-bold">
@@ -328,7 +328,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
                         >
                           {({ blob, loading, error }) => (
                             <Button
-                              className="flex items-center justify-center gap-1 md:gap-2 bg-sac-primary hover:bg-sac-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
+                              className="flex items-center justify-center gap-1 md:gap-2 bg-primary hover:bg-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
                               onClick={() =>
                                 blob &&
                                 downloadPdf(

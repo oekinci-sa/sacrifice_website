@@ -94,7 +94,7 @@ function DesktopFaqContent() {
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
             className={`text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${activeCategory === category.id
-              ? "bg-sac-primary text-white"
+              ? "bg-primary text-white"
               : "bg-black/5 text-black hover:bg-black/10"
               }`}
           >
@@ -143,7 +143,7 @@ function MobileFaqContent() {
           <button
             onClick={() => toggleCategory(category.id)}
             className={`w-full text-left px-4 py-3 rounded-md transition-all duration-300 font-medium ${activeCategory === category.id
-              ? "bg-sac-primary text-white"
+              ? "bg-primary text-white"
               : "bg-black/5 text-black hover:bg-black/10"
               }`}
           >

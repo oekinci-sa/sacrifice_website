@@ -46,7 +46,7 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
               {/* Step number */}
               <div
                 className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-medium transition-all duration-300 ${isActive
-                  ? "bg-sac-primary text-white"
+                  ? "bg-primary text-white"
                   : "bg-black/5 text-black/50"
                   }`}
               >

@@ -26,7 +26,7 @@ import { Suspense, useEffect, useMemo } from "react";
 // 🔹 Filtre Badge'i (Sadece mobil için)
 const FilterCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
-    <div className="absolute -top-2 -right-2 bg-sac-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs md:hidden">
+    <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs md:hidden">
       {count}
     </div>
   ) : null;
@@ -174,7 +174,7 @@ function DataTableFacetedFilter<TData, TValue>({
                       className={cn(
                         "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border rounded-md",
                         isSelected
-                          ? "bg-sac-primary border-sac-primary text-primary-foreground"
+                          ? "bg-primary border-primary text-primary-foreground"
                           : "border-primary opacity-50 [&_svg]:invisible"
                       )}
                     >

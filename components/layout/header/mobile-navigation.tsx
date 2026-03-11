@@ -1,8 +1,8 @@
 "use client";
 
+import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,40 +26,40 @@ const MobileNavigation = ({ open, onOpenChange, onLinkClick }: MobileNavigationP
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
           <nav className="flex flex-col gap-2 mt-8">
-            <Link 
-              href="/" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/" ? "text-sac-primary font-medium" : ""}`}
+            <Link
+              href="/"
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/" ? "text-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Anasayfa
             </Link>
-            <Link 
-              href="/hakkimizda" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hakkimizda" ? "text-sac-primary font-medium" : ""}`}
+            <Link
+              href="/hakkimizda"
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hakkimizda" ? "text-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Hakkımızda
             </Link>
             <div className="flex items-center">
-              <Link 
-                href="/hisseal" 
-                className={`p-2 hover:bg-accent text-sm rounded-md transition-colors flex-grow ${pathname === "/hisseal" ? "text-sac-primary font-medium" : ""}`}
+              <Link
+                href="/hisseal"
+                className={`p-2 hover:bg-accent text-sm rounded-md transition-colors flex-grow ${pathname === "/hisseal" ? "text-primary font-medium" : ""}`}
                 onClick={onLinkClick}
               >
                 Hisse Al
                 <EmptySharesBadge size="sm" className="ml-1 inline-block" />
               </Link>
             </div>
-            <Link 
-              href="/hissesorgula" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hissesorgula" ? "text-sac-primary font-medium" : ""}`}
+            <Link
+              href="/hissesorgula"
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/hissesorgula" ? "text-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               Hisse Sorgula
             </Link>
-            <Link 
-              href="/iletisim" 
-              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/iletisim" ? "text-sac-primary font-medium" : ""}`}
+            <Link
+              href="/iletisim"
+              className={`p-2 hover:bg-accent text-sm rounded-md transition-colors ${pathname === "/iletisim" ? "text-primary font-medium" : ""}`}
               onClick={onLinkClick}
             >
               İletişim

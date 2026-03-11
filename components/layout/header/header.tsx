@@ -24,7 +24,7 @@ const Header = () => {
       </div>
 
       {/* Desktop Hemen Al Button */}
-      <Button className="hidden md:flex bg-sac-primary text-white hover:bg-sac-primary/90 text-md">
+      <Button className="hidden md:flex bg-primary text-white hover:bg-primary/90 text-md">
         <Link href="/hisseal" className="flex items-center">
           Hemen al
         </Link>

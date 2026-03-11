@@ -26,14 +26,9 @@ const config: Config = {
         serif: ["var(--font-playfair-display)"],
       },
       colors: {
-        // My Colors
-        "sac-primary": "#22c55e",
-        // icon background
-        "sac-primary-more-lighter": "#e5f8ed",
-        // buton with icon background
+        // Domain-specific renkler
         "sac-green": "#39C645",
         "sac-green-lightest": "#F0FBF1",
-        "sac-primary-muted": "#7FB69B",
 
         "sac-icon-light-green": "#c1edd3",
         "sac-icon-bg-green": "#f0fcf6",
@@ -76,14 +71,12 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           dark: "hsl(var(--primary-dark))",
+          muted: "hsl(var(--primary-muted))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
-        },
-        tertiary: {
-          DEFAULT: "hsl(var(--tertiary))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",

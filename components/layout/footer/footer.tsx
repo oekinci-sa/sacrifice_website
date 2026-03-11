@@ -88,7 +88,7 @@ const Footer = () => {
             <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
               {/* Location */}
               <div className="flex gap-3">
-                <i className="bi bi-geo-alt text-sac-primary"></i>
+                <i className="bi bi-geo-alt text-primary"></i>
                 <p className="font-normal">
                   Hacı Bayram, Ulus, Adliye Sk. No:1 &nbsp;
                   <br className="hidden md:block" />
@@ -97,15 +97,15 @@ const Footer = () => {
               </div>
               {/* Phone */}
               <div className="flex gap-3">
-                <i className="bi bi-telephone text-sac-primary"></i>
+                <i className="bi bi-telephone text-primary"></i>
                 <p className="font-normal">
-                  0312 312 44 64 <span className="text-sac-primary">/</span>{" "}
+                  0312 312 44 64 <span className="text-primary">/</span>{" "}
                   0552 652 90 00
                 </p>
               </div>
               {/* Mail */}
               <div className="flex gap-3">
-                <i className="bi bi-envelope text-sac-primary"></i>
+                <i className="bi bi-envelope text-primary"></i>
                 <p className="font-normal">iletisim@ankarakurban.com.tr</p>
               </div>
             </div>

@@ -299,14 +299,14 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             {/* Counter */}
             <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
                 <i
-                    className={`bi bi-dash flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`bi bi-dash flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     onClick={handleDecrement}
                 ></i>
 
                 {/* Custom QueueCard that shows local number */}
                 <div className="flex flex-col items-center justify-center gap-4">
                     <div className='flex flex-col items-center justify-center w-40 md:w-60'>
-                        <div className="bg-sac-primary py-1 md:py-2 text-center text-white w-full text-lg md:text-2xl font-bold">
+                        <div className="bg-primary py-1 md:py-2 text-center text-white w-full text-lg md:text-2xl font-bold">
                             {title}
                         </div>
                         <div className={`py-4 md:py-8 text-center text-white w-full text-6xl md:text-8xl font-bold bg-black/90 ${enableAnimation ? 'transition-all duration-300' : ''
@@ -317,7 +317,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 </div>
 
                 <i
-                    className={`bi bi-plus flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-sac-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`bi bi-plus flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     onClick={handleIncrement}
                 ></i>
             </div>

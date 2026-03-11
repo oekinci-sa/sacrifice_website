@@ -192,8 +192,8 @@ export default function ShareholderForm({
                                         className={cn(
                                             "w-1/2 border border-dashed border-sac-border-light hover:text-white transition-all text-base md:text-[18px] h-10 pt-2 md:h-12",
                                             isOptionSelected(option)
-                                                ? "bg-sac-primary border-none text-white hover:bg-sac-primary"
-                                                : "bg-background text-foreground hover:bg-sac-primary",
+                                                ? "bg-primary border-none text-white hover:bg-primary"
+                                                : "bg-background text-foreground hover:bg-primary",
                                             errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
                                         )}
                                     >

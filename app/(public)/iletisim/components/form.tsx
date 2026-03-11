@@ -117,7 +117,7 @@ const Form = () => {
         {/* Submit Button */}
         <Button
           type="button"
-          className="w-full bg-sac-primary hover:bg-sac-primary text-white text-sm lg:text-base py-2 lg:py-3"
+          className="w-full bg-primary hover:bg-primary text-white text-sm lg:text-base py-2 lg:py-3"
         >
           Mesaj gönder
         </Button>

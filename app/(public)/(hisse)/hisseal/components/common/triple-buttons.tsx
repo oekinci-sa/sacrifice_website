@@ -49,7 +49,7 @@ export default function TripleButtons({
                     <Button
                       onClick={onAddShareholder}
                       variant="outline"
-                      className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 disabled:bg-sac-primary-muted disabled:text-white/70 disabled:cursor-not-allowed h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
+                      className="rounded-md bg-primary text-white hover:text-white hover:bg-primary/90 transition-all duration-300 border-0 disabled:bg-primary-muted disabled:text-white/70 disabled:cursor-not-allowed h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
                       disabled={true}
                     >
                       <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -69,7 +69,7 @@ export default function TripleButtons({
             <Button
               onClick={onAddShareholder}
               variant="outline"
-              className="rounded-md bg-sac-primary text-white hover:text-white hover:bg-sac-primary/90 transition-all duration-300 border-0 h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
+              className="rounded-md bg-primary text-white hover:text-white hover:bg-primary/90 transition-all duration-300 border-0 h-10 md:h-12 px-4 md:px-6 md:min-w-[140px] text-sm md:text-lg whitespace-nowrap"
             >
               <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
               <span className="md:hidden">Yeni Ekle</span>
@@ -81,7 +81,7 @@ export default function TripleButtons({
 
       <Button
         variant="ghost"
-        className="flex-1 md:flex-none rounded-md bg-sac-green-lightest hover:bg-sac-primary text-sac-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
+        className="flex-1 md:flex-none rounded-md bg-sac-green-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onContinue}
       >
         <span className="text-sm md:text-lg">Devam Et</span>

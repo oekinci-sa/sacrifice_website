@@ -45,7 +45,7 @@ const page = () => {
           variants={item}
         >
           {/* Check Icon */}
-          <i className="bi bi-patch-check-fill text-8xl text-sac-primary mb-6 md:mb-8" />
+          <i className="bi bi-patch-check-fill text-8xl text-primary mb-6 md:mb-8" />
 
           {/* Thank you message */}
           <h1 className="text-2xl md:text-4xl text-center font-bold mb-4">

@@ -45,7 +45,7 @@ const page = () => {
           variants={item}
         >
           {/* Check Icon */}
-          <i className="bi bi-patch-check-fill text-8xl text-sac-primary mb-6 md:mb-8" />
+          <i className="bi bi-patch-check-fill text-8xl text-primary mb-6 md:mb-8" />
 
           {/* Thank you message */}
           <h1 className="text-2xl md:text-4xl text-center font-bold mb-4">
@@ -53,12 +53,12 @@ const page = () => {
           </h1>
 
           <p className="md:w-2/3 text-muted-foreground text-center text-base md:text-xl">
-            <br/>2026 yılında da kurbanlıklarımızı en hijyenik <br/>ve dini usullere uygun şekilde sizlerle buluşturacağız.
-            <br/>
-            <br/>Hazırlık sürecimiz devam ediyor; güncel duyurular ve bilgilendirmeler için sayfamızı takip etmeyi unutmayın.
-            <br/>
-            <br/> Birlikte daha nice bayramlara...
-            
+            <br />2026 yılında da kurbanlıklarımızı en hijyenik <br />ve dini usullere uygun şekilde sizlerle buluşturacağız.
+            <br />
+            <br />Hazırlık sürecimiz devam ediyor; güncel duyurular ve bilgilendirmeler için sayfamızı takip etmeyi unutmayın.
+            <br />
+            <br /> Birlikte daha nice bayramlara...
+
           </p>
         </motion.div>
 
@@ -79,7 +79,7 @@ const page = () => {
             Hisse bilgilerinizi öğrenmek ister misiniz?
           </p> */}
           <div className="md:w-2/3 w-3/4">
-            <RemindMe/>
+            <RemindMe />
           </div>
         </motion.div>
 

@@ -78,14 +78,14 @@ const AnimatedCounter = () => {
         >
           <p className="text-xl md:text-4xl font-bold">
             <Counter from={0} to={7} duration={1.5} />
-            &nbsp;Yıl<span className="text-sac-primary">+</span>
+            &nbsp;Yıl<span className="text-primary">+</span>
           </p>
           <p className="text-lg md:text-3xl">Tecrübe</p>
         </motion.div>
 
         {/* 1000+ Kurban */}
         <motion.div
-          className="flex flex-col items-center justify-center bg-sac-primary text-white rounded-md px-4 py-2 md:px-8 md:py-6"
+          className="flex flex-col items-center justify-center bg-primary text-white rounded-md px-4 py-2 md:px-8 md:py-6"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -106,7 +106,7 @@ const AnimatedCounter = () => {
         >
           <p className="text-xl md:text-4xl font-bold">
             <Counter from={0} to={5000} duration={1.5} />
-            <span className="text-sac-primary">+</span>
+            <span className="text-primary">+</span>
           </p>
           <p className="text-lg md:text-3xl">Hissedar</p>
         </motion.div>

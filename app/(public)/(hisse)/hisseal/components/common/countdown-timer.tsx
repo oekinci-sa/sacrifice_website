@@ -22,7 +22,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ expirationTime, remaini
       <div className="w-px h-10 bg-gray-300 hidden md:block"></div>
       <div className="flex flex-col items-center">
         <p className="text-base md:text-lg text-gray-500">Kalan Süre</p>
-        <p className={`font-bold text-xl md:text-2xl lg:text-3xl ${remainingTime < 60 ? 'text-red-600 animate-pulse' : remainingTime < 180 ? 'text-yellow-600' : 'text-sac-primary'}`}>
+        <p className={`font-bold text-xl md:text-2xl lg:text-3xl ${remainingTime < 60 ? 'text-red-600 animate-pulse' : remainingTime < 180 ? 'text-yellow-600' : 'text-primary'}`}>
           {formatRemainingTime()}
         </p>
       </div>

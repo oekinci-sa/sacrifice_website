@@ -213,7 +213,7 @@ export function ShareSelectDialog({
             <>
               <p className="text-center text-muted-foreground font-medium text-base md:text-lg">
                 Seçmiş olduğunuz{" "}
-                <span className="text-sac-primary font-bold">
+                <span className="text-primary font-bold">
                   {currentSacrifice.share_price.toLocaleString("tr-TR")} TL
                 </span>
                 &apos;lik kurbanlıktan<br />kaç adet hisse almak istersiniz?

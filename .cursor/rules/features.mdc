@@ -16,8 +16,8 @@ globs:
 | Kırmızı (hata/uyarı) | sac-red, sac-red-light | text-sac-red, bg-sac-red-light |
 | Sarı (beklemede) | sac-yellow, sac-yellow-light | text-sac-yellow, bg-sac-yellow-light |
 | Mavi (bilgi/link) | sac-blue, sac-blue-light | text-sac-blue, bg-sac-blue-light |
-| Primary (buton/CTA) | sac-primary | bg-sac-primary, text-sac-primary |
-| Primary disabled | sac-primary-muted | disabled:bg-sac-primary-muted |
+| Primary (buton/CTA) | primary | bg-primary, text-primary |
+| Primary disabled | primary-muted | disabled:bg-primary-muted |
 | İkon/avatar yeşil | sac-icon-green, sac-avatar-bg | text-sac-icon-green, bg-sac-avatar-bg |
 | Form border (yeşilimsi) | sac-border-light | border-sac-border-light |
 | Form border (mavimsi/alıcı) | sac-border-blue | border-sac-border-blue |

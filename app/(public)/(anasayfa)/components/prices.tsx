@@ -84,7 +84,7 @@ const Prices = () => {
                 {item.kg} KG
               </motion.div>
               <motion.div
-                className="text-base md:text-2xl font-semibold bg-sac-primary text-white px-2 py-1 rounded-md w-full text-center"
+                className="text-base md:text-2xl font-semibold bg-primary text-white px-2 py-1 rounded-md w-full text-center"
                 variants={boxVariant}
               >
                 {item.price.toLocaleString("tr-TR")} TL

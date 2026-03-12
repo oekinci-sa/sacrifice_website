@@ -1,16 +1,17 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 
-// Dynamic route handler (no caching)
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
     try {
-        // Supabase ile aktif ("active" statüslü) rezervasyonları çek
+        const tenantId = getTenantId();
         const { data, error } = await supabaseAdmin
             .from('reservation_transactions')
             .select('sacrifice_id, share_count')
+            .eq('tenant_id', tenantId)
             .eq('status', 'active');
 
         if (error) {

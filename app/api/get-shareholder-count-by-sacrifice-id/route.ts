@@ -1,13 +1,13 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from "next/server";
 
-// Mark this route as dynamic since it uses request.url
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract sacrifice_id from the URL
+    const tenantId = getTenantId();
     const url = new URL(request.url);
     const sacrifice_id = url.searchParams.get("sacrifice_id");
 
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     const { count, error } = await supabaseAdmin
       .from("shareholders")
       .select("*", { count: "exact" })
+      .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrifice_id);
 
     if (error) {

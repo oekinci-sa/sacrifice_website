@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -37,7 +38,7 @@ interface UpdateFields {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Parse the request body
+    const tenantId = getTenantId();
     const updateData: ShareholderUpdateInput = await request.json();
 
     // Validate required fields
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("shareholders")
       .update(updateFields)
+      .eq("tenant_id", tenantId)
       .eq("shareholder_id", updateData.shareholder_id)
       .select();
 

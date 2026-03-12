@@ -1,7 +1,9 @@
 import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { headers } from "next/headers";
 import { supabase } from "@/utils/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { UserRole } from "@/types";
 
 export const authOptions: AuthOptions = {
@@ -48,6 +50,25 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // İstek host'una göre baseUrl kullan (golbasi.localhost, kahramankazan.localhost vb.)
+      try {
+        const h = await headers();
+        const host = h.get("host") ?? h.get("x-forwarded-host");
+        const proto = (h.get("x-forwarded-proto") || "http").replace(/,$/, "");
+        const requestOrigin = host ? `${proto}://${host}` : baseUrl;
+        const effectiveBaseUrl = requestOrigin.replace(/\/$/, "");
+        if (url.startsWith("/")) return `${effectiveBaseUrl}${url}`;
+        try {
+          if (new URL(url).origin === effectiveBaseUrl) return url;
+        } catch {
+          // url geçersiz olabilir
+        }
+        return effectiveBaseUrl;
+      } catch {
+        return url.startsWith("/") ? `${baseUrl}${url}` : baseUrl;
+      }
+    },
     async signIn({ user, account }) {
       // For credentials login, we've already checked everything in authorize
       if (account?.type === "credentials") return true;
@@ -62,16 +83,28 @@ export const authOptions: AuthOptions = {
 
         // If user doesn't exist, create them with pending status
         if (!existingUser) {
-          const { error } = await supabase.from("users").insert([
-            {
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              status: "pending",
-              role: null as UserRole,
-            },
-          ]);
-          if (error) return false;
+          const { data: newUser, error } = await supabase
+            .from("users")
+            .insert([
+              {
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                status: "pending",
+                role: null as UserRole,
+              },
+            ])
+            .select("id")
+            .single();
+          if (error || !newUser) return false;
+          const tenantId = (await headers()).get("x-tenant-id");
+          if (tenantId) {
+            await supabaseAdmin.from("user_tenants").insert({
+              user_id: newUser.id,
+              tenant_id: tenantId,
+              approved_at: null,
+            });
+          }
           return "/";
         }
 
@@ -85,8 +118,49 @@ export const authOptions: AuthOptions = {
         // If user exists but is blacklisted
         if (existingUser.status === "blacklisted") return false;
 
-        // If user exists but is pending
-        if (existingUser.status === "pending") return "/";
+        // user_tenants: Per-tenant erişim ve onay
+        const tenantId = (await headers()).get("x-tenant-id");
+        if (tenantId) {
+          const { data: utRow } = await supabaseAdmin
+            .from("user_tenants")
+            .select("tenant_id, approved_at")
+            .eq("user_id", existingUser.id)
+            .eq("tenant_id", tenantId)
+            .single();
+
+          if (utRow) {
+            // Kayıt var: approved_at null ise bu tenant için onay bekliyor
+            if (utRow.approved_at == null) {
+              return "/giris?error=TenantPendingApproval";
+            }
+            return true;
+          }
+
+          // Kayıt yok: user_tenants'a ekle (admin panelinde görünsün)
+          const { data: otherTenants } = await supabaseAdmin
+            .from("user_tenants")
+            .select("tenant_id, approved_at")
+            .eq("user_id", existingUser.id);
+          const hasApprovedElsewhere =
+            (otherTenants ?? []).some((ut) => ut.approved_at != null);
+
+          await supabaseAdmin.from("user_tenants").upsert(
+            {
+              user_id: existingUser.id,
+              tenant_id: tenantId,
+              approved_at: null,
+            },
+            { onConflict: "user_id,tenant_id" }
+          );
+
+          if (
+            existingUser.status === "approved" &&
+            hasApprovedElsewhere
+          ) {
+            return "/giris?error=TenantAccessDenied";
+          }
+          return "/";
+        }
 
         return true;
       }
@@ -112,6 +186,14 @@ export const authOptions: AuthOptions = {
         session.user.role = token.role as UserRole;
         session.user.status = token.status as string;
         session.user.image = token.image as string;
+      }
+      // Tenant bilgisi middleware'den gelen header'dan eklenir
+      try {
+        const h = await headers();
+        session.tenant_id = h.get("x-tenant-id") ?? undefined;
+        // tenant_slug için DB'den çekilebilir; şimdilik boş bırakıyoruz
+      } catch {
+        // headers() bazı ortamlarda (middleware dışı) hata verebilir
       }
       return session;
     },

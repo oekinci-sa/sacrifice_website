@@ -1,3 +1,4 @@
+import { getTenantId } from "@/lib/tenant";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -6,9 +7,11 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
+    const tenantId = getTenantId();
     const { data, error } = await supabaseAdmin
       .from("change_logs")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("changed_at", { ascending: false });
 
     if (error) {

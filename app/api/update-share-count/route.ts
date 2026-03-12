@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -8,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    // İstek gövdesinden gerekli verileri al
+    const tenantId = getTenantId();
     const { transaction_id, share_count } = await request.json();
 
     // Gelen veriyi kontrol et
@@ -26,10 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Önce mevcut rezervasyonu kontrol et
     const { error: fetchError } = await supabaseAdmin
       .from("reservation_transactions")
       .select("share_count, sacrifice_id")
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .single();
 
@@ -40,10 +41,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rezervasyon işlemini güncelle
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .update({ share_count: share_count })
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .select();
 

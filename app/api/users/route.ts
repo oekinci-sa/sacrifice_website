@@ -1,12 +1,13 @@
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// GET /api/users - Get all users
+// GET /api/users - Sadece mevcut tenant'a erişimi olan kullanıcıları getir
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -23,9 +24,34 @@ export async function GET() {
             });
         }
 
-        const { data, error } = await supabaseAdmin
+        const tenantId = getTenantId();
+
+        // user_tenants üzerinden bu tenant'a erişimi olan kullanıcıları getir
+        const { data: userTenants, error: utError } = await supabaseAdmin
+            .from("user_tenants")
+            .select("user_id, approved_at")
+            .eq("tenant_id", tenantId);
+
+        if (utError) {
+            console.error("user_tenants getirme hatası:", utError);
+            return NextResponse.json({ error: utError.message }, { status: 500 });
+        }
+
+        const userIds = (userTenants ?? []).map((ut) => ut.user_id);
+        if (userIds.length === 0) {
+            return NextResponse.json([], {
+                headers: {
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+        }
+
+        const { data: usersData, error } = await supabaseAdmin
             .from("users")
             .select("*")
+            .in("id", userIds)
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -39,6 +65,17 @@ export async function GET() {
                 }
             });
         }
+
+        const utMap = new Map(
+            (userTenants ?? []).map((ut: { user_id: string; approved_at: string | null }) => [
+                ut.user_id,
+                ut.approved_at,
+            ])
+        );
+        const data = (usersData ?? []).map((u) => ({
+            ...u,
+            tenant_approved_at: utMap.get(u.id) ?? null,
+        }));
 
         return NextResponse.json(data, {
             headers: {
@@ -81,6 +118,7 @@ export async function POST(request: Request) {
         }
 
         const json = await request.json();
+        const tenantId = getTenantId();
 
         const { data, error } = await supabaseAdmin
             .from("users")
@@ -97,6 +135,14 @@ export async function POST(request: Request) {
                     'Pragma': 'no-cache',
                     'Expires': '0'
                 }
+            });
+        }
+
+        // Yeni kullanıcıyı mevcut tenant'a ekle
+        if (data?.id) {
+            await supabaseAdmin.from("user_tenants").insert({
+                user_id: data.id,
+                tenant_id: tenantId,
             });
         }
 

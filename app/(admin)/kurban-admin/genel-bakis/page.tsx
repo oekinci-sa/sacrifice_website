@@ -10,17 +10,26 @@ import { SummaryCards } from "./components/summary-cards";
 import { SummaryGraphs } from "./components/summary-graphs";
 
 export default function GenelBakisPage() {
-  // Get data from Zustand stores to check if loaded
-  const { sacrifices } = useSacrificeStore();
-  const { shareholders } = useShareholderStore();
+  const {
+    sacrifices,
+    isInitialized: sacrificesInitialized,
+    refetchSacrifices,
+  } = useSacrificeStore();
+  const {
+    shareholders,
+    isInitialized: shareholdersInitialized,
+    fetchShareholders,
+  } = useShareholderStore();
   const [loading, setLoading] = useState(true);
 
-  // Check if data is loaded
   useEffect(() => {
-    if (sacrifices.length > 0 && shareholders.length > 0) {
-      setLoading(false);
-    }
-  }, [sacrifices, shareholders]);
+    if (!sacrificesInitialized) refetchSacrifices();
+    if (!shareholdersInitialized) fetchShareholders();
+  }, [sacrificesInitialized, shareholdersInitialized, refetchSacrifices, fetchShareholders]);
+
+  useEffect(() => {
+    setLoading(!(sacrificesInitialized && shareholdersInitialized));
+  }, [sacrificesInitialized, shareholdersInitialized]);
 
   if (loading) {
     return (

@@ -1,11 +1,11 @@
 import { authOptions } from '@/lib/auth';
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 export async function PUT(request: Request) {
     try {
-        // Check authentication
         const session = await getServerSession(authOptions);
         if (!session || !session.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Sacrifice ID is required' }, { status: 400 });
         }
 
-        // Update the sacrifice record in the database using supabaseAdmin
+        const tenantId = getTenantId();
         const { data: updatedSacrifice, error } = await supabaseAdmin
             .from('sacrifice_animals')
             .update({
@@ -42,6 +42,7 @@ export async function PUT(request: Request) {
                 last_edited_by,
                 last_edited_time: last_edited_time || new Date().toISOString()
             })
+            .eq('tenant_id', tenantId)
             .eq('sacrifice_id', sacrifice_id)
             .select()
             .single();

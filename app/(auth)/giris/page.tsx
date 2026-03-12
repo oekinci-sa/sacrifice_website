@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
@@ -16,6 +16,24 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "TenantAccessDenied") {
+      toast({
+        variant: "destructive",
+        title: "Erişim reddedildi",
+        description: "Bu organizasyona erişim yetkiniz bulunmuyor.",
+      });
+    } else if (error === "TenantPendingApproval") {
+      toast({
+        variant: "destructive",
+        title: "Onay bekleniyor",
+        description: "Bu organizasyona erişim için yönetici onayı gerekiyor.",
+      });
+    }
+  }, [searchParams, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +53,13 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/kurban-admin/genel-bakis");
+    router.push(`${window.location.origin}/kurban-admin/genel-bakis`);
   };
 
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/kurban-admin/genel-bakis" });
+    signIn("google", {
+      callbackUrl: `${window.location.origin}/kurban-admin/genel-bakis`,
+    });
   };
 
   return (

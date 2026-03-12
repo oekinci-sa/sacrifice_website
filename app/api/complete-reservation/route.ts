@@ -1,8 +1,10 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
+    const tenantId = getTenantId();
     const { transaction_id } = await req.json();
 
     if (!transaction_id) {
@@ -15,6 +17,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .update({ status: "completed" })
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .select(); // Select to check if the update was successful
 

@@ -1,12 +1,12 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mark this route as dynamic since it uses request.url
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
-  // URL'den transaction_id'yi al
+  const tenantId = getTenantId();
   const { searchParams } = new URL(request.url);
   const transaction_id = searchParams.get('transaction_id');
 
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     const { data: reservationData, error: reservationError } = await supabaseAdmin
       .from("reservation_transactions")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .single();
 
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
     const { data: sacrificeData, error: sacrificeError } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("sacrifice_id", reservationData.sacrifice_id)
       .single();
 
@@ -85,6 +87,7 @@ export async function GET(request: NextRequest) {
     const { data: shareholderData, error: shareholderError } = await supabaseAdmin
       .from("shareholders")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id);
 
     if (shareholderError) {

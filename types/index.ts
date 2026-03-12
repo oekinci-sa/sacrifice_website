@@ -21,25 +21,43 @@ export const shareholderFormSchema = z.object({
 // Form için tip
 export type ShareholderFormValues = z.infer<typeof shareholderFormSchema>;
 
+export interface TenantSchema {
+  id: string;
+  slug: string;
+  name: string;
+  status: string;
+  created_at?: string;
+}
+
+export interface TenantSettings {
+  tenant_id: string;
+  theme_json: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface shareholderSchema {
   // Temel alanlar
   shareholder_id: string;
+  tenant_id: string;
   shareholder_name: string;
-  phone_number: string;
+  phone_number: string | null;
   purchase_time: string;
   sacrifice_id: string;
-  security_code: string; // Veritabanındaki security_code alanı (varchar(6))
+  security_code: string | null; // Veritabanındaki security_code alanı (varchar(6))
+  purchased_by: string | null;
 
   // Ödeme ile ilgili alanlar
-  delivery_fee: number;
-  share_price: number;
+  delivery_fee: number | null;
+  share_price: number | null;
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;
 
   // Teslimat ve onay
-  delivery_location: "Kesimhane" | "Ulus";
-  sacrifice_consent: boolean;
+  delivery_location: string | null;
+  sacrifice_consent: boolean | null;
+  transaction_id: string | null;
 
   // Düzenleme bilgileri
   last_edited_time: string | null;
@@ -59,8 +77,9 @@ export interface shareholderSchema {
 export interface sacrificeSchema {
   // Temel alanlar
   sacrifice_id: string;
+  tenant_id: string;
   sacrifice_no: number;
-  sacrifice_time: string | null;
+  sacrifice_time: string;
 
   // Hisse bilgileri
   share_price: number;
@@ -81,19 +100,38 @@ export interface sacrificeSchema {
 }
 
 export interface changeLogSchema {
-  event_id: number
-  table_name: string
-  row_id: string
-  column_name: string
-  old_value: string | null
-  new_value: string | null
-  change_type: string
-  description: string
-  change_owner: string
-  changed_at: string
+  event_id: number;
+  table_name: string;
+  row_id: string;
+  column_name: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  change_type: string;
+  description: string;
+  change_owner: string;
+  changed_at: string | null;
+  tenant_id: string | null;
 }
 
 export type UserRole = "admin" | "editor" | null;
+export type UserStatus = "pending" | "approved" | "blacklisted";
+
+export interface UserSchema {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  role: UserRole;
+  status: UserStatus | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface UserTenantSchema {
+  user_id: string;
+  tenant_id: string;
+  approved_at?: string | null;
+}
 
 // Hisse alma adımlarını temsil eden tip
 export type Step = "selection" | "details" | "confirmation" | "success";

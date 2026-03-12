@@ -1,0 +1,20 @@
+---
+description: Tarih gösterimi kuralları
+globs: 
+---
+# TARİH GÖSTERİMİ
+
+## Veritabanı
+- Tüm timestamp alanları **UTC (TIMESTAMPTZ)** olarak saklanır.
+- API/backend: `new Date().toISOString()` veya DB default `now()` kullan.
+
+## Frontend
+- DB'den okunan tarihleri kullanıcıya gösterirken **Türkiye saati (Europe/Istanbul)** kullan.
+- **Zorunlu:** `lib/date-utils.ts` içindeki fonksiyonları kullan:
+  - `formatDate()` – varsayılan (dd.MM.yyyy HH:mm)
+  - `formatDateShort()` – kısa
+  - `formatDateMedium()` – "dd MMM yyyy - HH:mm"
+  - `formatDateLong()` – "dd MMMM yyyy - HH:mm"
+  - `formatDateChart()` – grafik (dd MMM yyyy)
+  - `formatDateChartShort()` – grafik kısa (dd MMM)
+- `date-fns` format/tr ile manuel formatlama yapma; `lib/date-utils.ts` kullan.

@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation";
 interface User {
   id: string;
   status: 'pending' | 'approved' | 'blacklisted';
+  tenant_approved_at?: string | null;
   email: string;
   name: string;
   role: string;
@@ -43,26 +44,31 @@ export function DataTableRowActions<TData>({
   const { toast } = useToast();
   const user = row.original as User;
 
-  const handleStatusChange = async (userId: string, newStatus: string) => {
+  const handleStatusChange = async (
+    userId: string,
+    newStatus: string,
+    addToOtherTenant = false
+  ) => {
     try {
       const response = await fetch(`/api/users/${userId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, addToOtherTenant }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update user status');
       }
 
-      // Dispatch an event to notify other components about the user update
       window.dispatchEvent(new CustomEvent('user-updated'));
 
       toast({
-        title: "Durum güncellendi",
-        description: "Kullanıcı durumu başarıyla güncellendi.",
+        title: addToOtherTenant ? "Onaylandı ve diğer siteye eklendi" : "Durum güncellendi",
+        description: addToOtherTenant
+          ? "Kullanıcı onaylandı ve diğer organizasyona da erişim verildi."
+          : "Kullanıcı durumu başarıyla güncellendi.",
       });
     } catch {
       toast({
@@ -118,11 +124,19 @@ export function DataTableRowActions<TData>({
           Düzenle
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {user.status === "pending" && (
-          <DropdownMenuItem onClick={() => handleStatusChange(user.id, "approved")}>
-            <Check className="mr-2 h-4 w-4" />
-            Onayla
-          </DropdownMenuItem>
+        {(user.status === "pending" || user.tenant_approved_at == null) && (
+          <>
+            <DropdownMenuItem onClick={() => handleStatusChange(user.id, "approved")}>
+              <Check className="mr-2 h-4 w-4" />
+              Onayla
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleStatusChange(user.id, "approved", true)}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Onayla ve diğer siteye de ekle
+            </DropdownMenuItem>
+          </>
         )}
         {user.status !== "blacklisted" && (
           <DropdownMenuItem onClick={() => handleStatusChange(user.id, "blacklisted")}>

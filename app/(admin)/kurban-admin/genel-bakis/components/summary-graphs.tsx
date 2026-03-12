@@ -8,8 +8,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
-import { eachDayOfInterval, format, subDays } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatDateChartShort } from "@/lib/date-utils";
+import { eachDayOfInterval, subDays } from "date-fns";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -148,7 +148,7 @@ export function SummaryGraphs() {
         }).length;
 
         return {
-          date: format(date, "dd MMM", { locale: tr }),
+          date: formatDateChartShort(date),
           count,
         };
       });

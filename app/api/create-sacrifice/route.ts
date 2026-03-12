@@ -1,11 +1,12 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
+        const tenantId = getTenantId();
         const sacrificeData = await request.json();
 
-        // Gerekli alanları kontrol et
         if (!sacrificeData.sacrifice_no || !sacrificeData.share_price || !sacrificeData.share_weight) {
             return NextResponse.json(
                 { error: 'Gerekli alanlar eksik' },
@@ -13,15 +14,12 @@ export async function POST(request: Request) {
             );
         }
 
-        // Generate sacrifice_id based on sacrifice_no
-        const sacrifice_id = `SAC${sacrificeData.sacrifice_no}`;
-
-        // Use supabaseAdmin client instead of createRouteHandlerClient to bypass RLS
+        // sacrifice_id DB'de UUID olarak otomatik üretilir
         const { data, error } = await supabaseAdmin
             .from('sacrifice_animals')
             .insert([
                 {
-                    sacrifice_id: sacrifice_id,
+                    tenant_id: tenantId,
                     sacrifice_no: sacrificeData.sacrifice_no,
                     sacrifice_time: sacrificeData.sacrifice_time,
                     share_weight: sacrificeData.share_weight,

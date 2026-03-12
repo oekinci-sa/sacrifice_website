@@ -1,14 +1,13 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mark this route as dynamic
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/update-sacrifice-timing
 export async function POST(request: NextRequest) {
     try {
+        const tenantId = getTenantId();
         const body = await request.json();
         const { sacrifice_id, stage, is_completed } = body;
 
@@ -52,19 +51,13 @@ export async function POST(request: NextRequest) {
                 );
         }
 
-        // Get current Istanbul time (+03:00) or null based on is_completed
-        let istanbulTime = null;
-        if (is_completed) {
-            const utcTime = new Date();
-            // Add 3 hours to UTC to get Istanbul time
-            const istanbulTimeMs = utcTime.getTime() + (3 * 60 * 60 * 1000);
-            istanbulTime = new Date(istanbulTimeMs).toISOString();
-        }
+        // DB TIMESTAMPTZ: UTC ile sakla
+        const completedTime = is_completed ? new Date().toISOString() : null;
 
-        // Update the sacrifice timing
         const { data, error } = await supabaseAdmin
             .from("sacrifice_animals")
-            .update({ [timeField]: istanbulTime })
+            .update({ [timeField]: completedTime })
+            .eq("tenant_id", tenantId)
             .eq("sacrifice_id", sacrifice_id)
             .select();
 

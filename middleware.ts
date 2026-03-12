@@ -1,46 +1,77 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 
-// Unprotected routes that don't need authentication
 const publicRoutes = ["/giris"];
+
+// OAuth cookie'lerinin çalışması için subdomain → localhost yönlendirmesi
+// (kahramankazan.localhost:3001 ile localhost:3001 farklı origin, state mismatch olur)
+const SUBDOMAIN_TO_PORT: Record<string, number> = {
+  "golbasi.localhost": 3000,
+  "kahramankazan.localhost": 3001,
+};
 
 export default withAuth(
   function middleware(req) {
+    const host = req.headers.get("host") ?? "";
+    const hostWithoutPort = host.split(":")[0];
+    const port = host.includes(":") ? host.split(":")[1] : null;
+
+    // Subdomain kullanılıyorsa localhost:port'a yönlendir (OAuth uyumluluğu)
+    const targetPort = SUBDOMAIN_TO_PORT[hostWithoutPort];
+    if (targetPort !== undefined) {
+      const url = new URL(req.url);
+      url.host = `localhost:${targetPort}`;
+      return NextResponse.redirect(url, 307);
+    }
+
+    const tenantId = resolveTenantIdFromHost(host);
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: "Bilinmeyen tenant. localhost:3000 (golbasi), localhost:3001 (kahramankazan) veya localhost:3002 (test) kullanın." },
+        { status: 404 }
+      );
+    }
+
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-tenant-id", tenantId);
+
     const token = req.nextauth.token;
     const isAdminRoute = req.nextUrl.pathname.startsWith("/kurban-admin");
     const isUserManagementRoute = req.nextUrl.pathname.startsWith("/kurban-admin/kullanici-yonetimi");
 
-    // If the route is public, allow access
     if (publicRoutes.includes(req.nextUrl.pathname)) {
-      return NextResponse.next();
+      return NextResponse.next({ request: { headers: requestHeaders } });
     }
 
-    // Kullanıcı giriş yapmamışsa ve admin sayfasına erişmeye çalışıyorsa
     if (!token && isAdminRoute) {
       return NextResponse.redirect(new URL("/giris", req.url));
     }
 
-    // Kullanıcı admin değilse ve kullanıcı yönetimi sayfasına erişmeye çalışıyorsa
     if (token?.role !== "admin" && isUserManagementRoute) {
       return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
     }
 
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Admin sayfaları için token gerekli
         if (req.nextUrl.pathname.startsWith("/kurban-admin")) {
           return !!token;
         }
-        // Diğer sayfalar için her zaman izin ver
         return true;
-      }
+      },
     },
   }
 );
 
 export const config = {
-  matcher: ["/kurban-admin/:path*"]
-}; 
+  matcher: [
+    "/api/:path*",
+    "/kurban-admin/:path*",
+    "/giris",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};

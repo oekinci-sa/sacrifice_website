@@ -1,13 +1,13 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from "next/server";
 
-// Mark this route as dynamic since it uses request.url
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract phone and security code from the URL parameters
+    const tenantId = getTenantId();
     const url = new URL(request.url);
     const phone = url.searchParams.get("phone");
     const securityCode = url.searchParams.get("security_code");
@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
           share_weight
         )
       `)
+      .eq("tenant_id", tenantId)
       .eq("phone_number", formattedPhone)
       .order("purchase_time", { ascending: false });
 

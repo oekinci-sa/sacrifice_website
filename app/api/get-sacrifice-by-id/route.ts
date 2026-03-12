@@ -1,14 +1,13 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mark this route as dynamic since it uses request.nextUrl.searchParams
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/get-sacrifice-by-id
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantId();
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get('id');
 
@@ -30,6 +29,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("*")
+      .eq("tenant_id", tenantId)
       .eq("sacrifice_id", id)
       .single();
 

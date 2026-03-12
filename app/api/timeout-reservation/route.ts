@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -19,10 +20,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // İşlem öncesi mevcut rezervasyonu kontrol et
+    const tenantId = getTenantId();
     const { data: existingReservation, error: fetchError } = await supabaseAdmin
       .from("reservation_transactions")
       .select("status, share_count, sacrifice_id")
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .single();
 
@@ -42,10 +44,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Rezervasyon işlemini 'timed out' olarak güncelle
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .update({ status: 'timed out' })
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .select();
 

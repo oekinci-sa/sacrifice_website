@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,6 +10,7 @@ export const revalidate = 0;
 // It will be accessible at /api/check-sacrifice-timing
 export async function GET(request: NextRequest) {
     try {
+        const tenantId = getTenantId();
         const { searchParams } = new URL(request.url);
         const sacrifice_id = searchParams.get('sacrifice_id');
 
@@ -26,10 +28,10 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get all timing fields for the sacrifice
         const { data, error } = await supabaseAdmin
             .from("sacrifice_animals")
             .select("slaughter_time, butcher_time, delivery_time")
+            .eq("tenant_id", tenantId)
             .eq("sacrifice_id", sacrifice_id)
             .single();
 

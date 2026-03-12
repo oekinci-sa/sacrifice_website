@@ -1,18 +1,17 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mark this route as dynamic since it uses request.nextUrl.searchParams
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/get-stage-metrics
 export async function GET(request: NextRequest) {
     try {
+        const tenantId = getTenantId();
         const searchParams = request.nextUrl.searchParams;
         const stage = searchParams.get('stage');
 
-        let query = supabaseAdmin.from("stage_metrics").select("*");
+        let query = supabaseAdmin.from("stage_metrics").select("*").eq("tenant_id", tenantId);
 
         if (stage) {
             query = query.eq("stage", stage);

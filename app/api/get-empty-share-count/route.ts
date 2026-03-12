@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from "next/server";
 
@@ -6,10 +7,11 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    // Query total empty shares
+    const tenantId = getTenantId();
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
-      .select("empty_share");
+      .select("empty_share")
+      .eq("tenant_id", tenantId);
 
     if (error) {
       return NextResponse.json(

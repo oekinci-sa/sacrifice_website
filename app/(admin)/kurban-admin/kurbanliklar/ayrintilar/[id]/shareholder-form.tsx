@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { ShareholderFormValues } from "@/types";
+import { formatDate } from "@/lib/date-utils";
 import { formatPhoneForDB } from "@/utils/formatters";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -93,7 +94,7 @@ export function ShareholderForm({
                   Hissedar Bilgileri
                 </h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Kayıt Tarihi: {shareholder.purchase_time ? new Date(shareholder.purchase_time).toLocaleString("tr-TR") : "-"}
+                  Kayıt Tarihi: {formatDate(shareholder.purchase_time)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Son düzenleyen: {shareholder.last_edited_by || "-"}

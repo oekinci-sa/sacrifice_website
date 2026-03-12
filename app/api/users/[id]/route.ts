@@ -1,12 +1,23 @@
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// GET /api/users/[id] - Get a user by ID
+async function userBelongsToTenant(userId: string, tenantId: string): Promise<boolean> {
+    const { data } = await supabaseAdmin
+        .from("user_tenants")
+        .select("user_id")
+        .eq("user_id", userId)
+        .eq("tenant_id", tenantId)
+        .single();
+    return !!data;
+}
+
+// GET /api/users/[id] - Get a user by ID (sadece tenant'ta erişimi varsa)
 export async function GET(
     request: Request,
     { params }: { params: { id: string } }
@@ -27,6 +38,12 @@ export async function GET(
         }
 
         const userId = params.id;
+        const tenantId = getTenantId();
+
+        const belongsToTenant = await userBelongsToTenant(userId, tenantId);
+        if (!belongsToTenant) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
 
         const { data, error } = await supabaseAdmin
             .from("users")
@@ -101,8 +118,14 @@ export async function PUT(
         }
 
         const userId = params.id;
+        const tenantId = getTenantId();
         const isAdmin = session.user.role === "admin";
         const isSameUser = session.user.id === userId;
+
+        const belongsToTenant = await userBelongsToTenant(userId, tenantId);
+        if (!belongsToTenant) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
 
         if (!isAdmin && !isSameUser) {
             return NextResponse.json({ error: "Unauthorized" }, {
@@ -185,6 +208,12 @@ export async function DELETE(
         }
 
         const userId = params.id;
+        const tenantId = getTenantId();
+
+        const belongsToTenant = await userBelongsToTenant(userId, tenantId);
+        if (!belongsToTenant) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
 
         const { error } = await supabaseAdmin
             .from("users")

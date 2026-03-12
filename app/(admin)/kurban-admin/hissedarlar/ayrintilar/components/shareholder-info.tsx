@@ -8,8 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatDateLong } from "@/lib/date-utils";
 
 interface ShareholderInfoProps {
   shareholderInfo: shareholderSchema;
@@ -108,7 +107,7 @@ export function ShareholderInfo({
         <div className="space-y-1">
           <p className={labelClass}>Hisse Alım Tarihi</p>
           <p className={valueClass}>
-            {format(new Date(shareholderInfo.purchase_time), "dd MMMM yyyy - HH:mm", { locale: tr })}
+            {formatDateLong(shareholderInfo.purchase_time)}
           </p>
         </div>
 

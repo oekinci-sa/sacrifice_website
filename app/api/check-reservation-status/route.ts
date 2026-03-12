@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -8,6 +9,7 @@ export const revalidate = 0
 // This endpoint checks the status of a reservation and returns expiration details
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantId();
     const { searchParams } = new URL(request.url);
     const transaction_id = searchParams.get('transaction_id');
 
@@ -29,6 +31,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .select("status, expires_at, created_at")
+      .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .single();
 

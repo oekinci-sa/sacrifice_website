@@ -14,5 +14,7 @@ declare module "next-auth" {
       role: UserRole;
       status: string;
     };
+    tenant_id?: string;
+    tenant_slug?: string;
   }
 } 

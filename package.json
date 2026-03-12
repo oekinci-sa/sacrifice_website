@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:golbasi": "cross-env NEXTAUTH_URL=http://localhost:3000 next dev -p 3000",
+    "dev:kahramankazan": "cross-env NEXTAUTH_URL=http://localhost:3001 next dev -p 3001",
+    "dev:test": "cross-env NEXTAUTH_URL=http://localhost:3002 next dev -p 3002",
+    "dev:all": "concurrently -n \"golbasi,kahramankazan,test\" -c \"blue,green,yellow\" \"cross-env NEXTAUTH_URL=http://localhost:3000 next dev -p 3000\" \"cross-env NEXTAUTH_URL=http://localhost:3001 next dev -p 3001\" \"cross-env NEXTAUTH_URL=http://localhost:3002 next dev -p 3002\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -72,6 +76,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "^14.2.35",
     "postcss": "^8.5.1",

@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
@@ -20,7 +21,7 @@ interface ShareholderInput {
 
 export async function POST(req: Request) {
   try {
-    // Expecting an array of shareholders
+    const tenantId = getTenantId();
     const shareholdersData: ShareholderInput[] = await req.json();
 
     if (!Array.isArray(shareholdersData) || shareholdersData.length === 0) {
@@ -30,12 +31,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Optional: Add validation for each shareholder object here if needed
-    // e.g., check for required fields, data types, etc.
+    const shareholdersWithTenant = shareholdersData.map((s) => ({
+      ...s,
+      tenant_id: tenantId,
+    }));
 
     const { data, error } = await supabaseAdmin
       .from("shareholders")
-      .insert(shareholdersData) // Insert the array of shareholder objects
+      .insert(shareholdersWithTenant)
       .select(); // Select the inserted data to confirm
 
     if (error) {

@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { Clock, Edit, LucideIcon, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 
@@ -193,7 +193,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
   // Format date for display
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "dd MMM yy HH:mm");
+      return formatDate(new Date(dateString));
     } catch {
       // Return the original string if date parsing fails
       return dateString;

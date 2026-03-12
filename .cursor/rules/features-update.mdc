@@ -1,0 +1,24 @@
+---
+description: Yeni özellik eklendiğinde features.md güncelleme
+globs: 
+---
+# Features Güncelleme (ZORUNLU)
+
+Yeni özellik eklediğinde **mutlaka** `.project-architecture/features.md` dosyasına ekle.
+
+## Ne zaman güncelle
+- Yeni sayfa, bileşen veya işlevsellik eklendiğinde
+- Önemli UI/UX değişikliği yapıldığında
+- Yeni admin menü öğesi eklendiğinde
+
+## Format
+- Kısa başlık ve açıklama
+- İlgili sayfa/URL varsa belirt
+- Renk ile ilgili değişiklik varsa [colors.md](../.project-architecture/colors.md) dosyasına ekle, features.md'ye değil
+
+## Örnek
+```markdown
+## Yeni Özellik Adı
+- Açıklama
+- Sayfa: `/kurban-admin/xyz`
+```

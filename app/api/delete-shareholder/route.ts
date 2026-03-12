@@ -1,9 +1,10 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
     try {
-        // Body'den gerekli bilgileri al
+        const tenantId = getTenantId();
         const body = await request.json();
         const { shareholder_id } = body;
 
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
         const { data: shareholder, error: fetchError } = await supabaseAdmin
             .from("shareholders")
             .select("sacrifice_id")
+            .eq("tenant_id", tenantId)
             .eq("shareholder_id", shareholder_id)
             .single();
 
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
         const { error: deleteError } = await supabaseAdmin
             .from("shareholders")
             .delete()
+            .eq("tenant_id", tenantId)
             .eq("shareholder_id", shareholder_id);
 
         if (deleteError) {
@@ -51,6 +54,7 @@ export async function POST(request: Request) {
             const { data: sacrifice, error: sacrificeError } = await supabaseAdmin
                 .from("sacrifice_animals")
                 .select("empty_share")
+                .eq("tenant_id", tenantId)
                 .eq("sacrifice_id", sacrificeId)
                 .single();
 
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
                 await supabaseAdmin
                     .from("sacrifice_animals")
                     .update({ empty_share: newEmptyShare })
+                    .eq("tenant_id", tenantId)
                     .eq("sacrifice_id", sacrificeId);
             }
         }

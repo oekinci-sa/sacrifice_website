@@ -19,7 +19,7 @@ import { useGetShareholdersBySacrificeId } from "@/hooks/useShareholders";
 import { useUser } from "@/hooks/useUsers";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { ArrowLeft, Check, Edit, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -150,7 +150,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
             {sacrifice.last_edited_by && (
               <p className="text-sm text-muted-foreground mt-1">
                 Son düzenleyen: <span className="font-medium">{sacrifice.last_edited_by}</span>
-                {sacrifice.last_edited_time ? format(new Date(sacrifice.last_edited_time), " - dd.MM.yyyy HH:mm") : ""}
+                {sacrifice.last_edited_time ? " - " + formatDate(sacrifice.last_edited_time) : ""}
               </p>
             )}
           </div>

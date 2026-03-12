@@ -26,8 +26,7 @@ import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatDateMedium } from "@/lib/date-utils";
 import { Loader2, Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -183,10 +182,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     header: "Kayıt Tarihi",
     enableSorting: true,
     sortingFn: sortingFunctions.date,
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("purchase_time"));
-      return format(date, "dd MMM yyyy - HH:mm", { locale: tr });
-    },
+    cell: ({ row }) => formatDateMedium(row.getValue("purchase_time")),
   },
   {
     id: "payment_status",
@@ -332,11 +328,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     header: "Son Güncelleme",
     enableSorting: true,
     sortingFn: sortingFunctions.date,
-    cell: ({ row }) => {
-      const date = row.getValue("last_edited_time");
-      if (!date) return "-";
-      return format(new Date(date as string), "dd MMM yyyy - HH:mm", { locale: tr });
-    },
+    cell: ({ row }) => formatDateMedium(row.getValue("last_edited_time")),
   },
   {
     accessorKey: "last_edited_by",

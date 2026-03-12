@@ -24,29 +24,138 @@
 
 === 2025-03-10 ===
 
-[İstek] Prisma ORM entegrasyonu ve tüm API route'ların Supabase'den Prisma'ya geçişi
 
-[Yapılan Değişiklikler]
-1. Prisma + @prisma/client kurulumu (v5.22.0)
-2. prisma/schema.prisma oluşturuldu – Supabase tabloları manuel map edildi (sacrifice_animals, reservation_transactions, shareholders, change_logs, stage_metrics, users, failed_reservation_transactions_logs)
-3. lib/prisma.ts – Serverless uyumlu PrismaClient singleton
-4. .env.local: DATABASE_URL (pooler 6543, pgbouncer=true), DIRECT_URL (direct 5432)
-5. Tüm API route'lar supabaseAdmin → prisma geçirildi:
-   - Kritik rezervasyon: complete-reservation, cancel-reservation, timeout-reservation, expire-reservation
-   - Get: get-sacrifice-animals, get-sacrifice-by-id, get-shareholders, get-shareholder-by-transaction_id, get-shareholder-by-phone-and-code, get-shareholders-by-phone, get-shareholder-count-by-sacrifice-id, get-reservation-transactions, get-active-reservations, get-empty-share-count, check-reservation-status, get-latest-sacrifice-share, get-stage-metrics, get-change-logs
-   - Create/Update/Delete: create-reservation, create-sacrifice, create-shareholders, update-sacrifice, update-shareholder, update-share-count, update-sacrifice-share, update-sacrifice-timing, update-stage-metrics, delete-shareholder, reset-shares, check-sacrifice-timing
-   - Users: users (GET, POST), users/[id] (GET, PUT, DELETE), users/[id]/status (PATCH)
-6. get-shareholders, get-shareholder-by-phone-and-code, get-shareholders-by-phone: sacrifice_animals ilişkisi "sacrifice" key ile map edildi (frontend uyumu)
-7. create-shareholders: shareholder_id DB trigger ile üretiliyor, geçici placeholder kullanıldı
-
-[Dosyalar]
-- package.json (prisma, @prisma/client, postinstall, db:pull, db:studio)
-- prisma/schema.prisma, .env.example
-- lib/prisma.ts
-- app/api/**/route.ts (upload-image hariç – Supabase Storage kullanıyor)
-
-[Supabase Kaldı]
-- upload-image: Supabase Storage
-- Auth, Realtime: supabase client (lib/auth, stores, hooks)
 
 [Risk] Orta – DB erişim katmanı değişti; Realtime ve Auth aynı kaldı.
+
+=== 2025-03-10 ===
+
+[İstek] DB sync rule ekleme; Adım 1 ve 2 (şema düzeltmeleri + UUID migration)
+
+[Yapılan Değişiklikler]
+1. .cursor/rules/db-sync.mdc: DB değişikliklerinde db/ klasörünün senkron tutulması kuralı
+2. Adım 1 – DB şema düzeltmeleri:
+   - change_logs: event_id PRIMARY KEY eklendi
+   - sacrifice_animals: sacrifice_no, sacrifice_time, share_weight, share_price, empty_share NOT NULL
+   - shareholders: purchase_time, total_amount, paid_amount, remaining_payment NOT NULL
+   - Para alanları: share_price, delivery_fee, total_amount, paid_amount, remaining_payment → NUMERIC(12,2)
+3. Adım 2 – UUID migration:
+   - sacrifice_id (TEXT→UUID), shareholder_id (TEXT→UUID)
+   - Sequence ve generate_sacrifice_id/generate_shareholder_id trigger'ları kaldırıldı
+   - create-sacrifice route: manuel sacrifice_id üretimi kaldırıldı, DB default kullanılıyor
+4. db/tables/ SQL dosyaları güncellendi (sacrifice_animals, shareholders, reservation_transactions)
+5. random_data_update.sql: SAC001 formatı → sacrifice_animals'dan UUID çekme
+
+[Dosyalar]
+- .cursor/rules/db-sync.mdc
+- db/tables/sacrifice_animals/table.sql, shareholders/table.sql, reservation_transactions/table.sql
+- db/tables/shareholders/operational_scripts/random_data_update.sql
+- db/views/sacrifice_animals_view.sql
+- app/api/create-sacrifice/route.ts
+
+[Risk] Orta – ID formatı değişti (SAC001→UUID); mevcut frontend UUID string ile çalışır.
+
+=== 2025-03-10 ===
+
+[İstek] Adım 3, 4, 5 – Tenant tabloları, tenant_id ekleme, unique/index'ler
+
+[Yapılan Değişiklikler]
+1. Adım 3: tenants, tenant_settings, tenant_domains tabloları oluşturuldu; golbasi ve kahramankazan seed verisi
+2. Adım 4: sacrifice_animals, shareholders, reservation_transactions, change_logs, stage_metrics, failed_reservation_transactions_logs tablolarına tenant_id eklendi; mevcut veri default tenant'a bağlandı
+3. Adım 5: sacrifice_no unique → (tenant_id, sacrifice_no); stage_metrics PK → (tenant_id, stage); performans index'leri eklendi
+4. stage_metrics trigger'ları tenant-aware güncellendi (NEW.tenant_id)
+5. kahramankazan için stage_metrics satırları eklendi
+6. db/tables/ SQL dosyaları senkronize edildi
+
+[Dosyalar]
+- db/tables/tenants/table.sql, tenant_settings/table.sql, tenant_domains/table.sql
+- db/tables/tenants/operational_scripts/seed_initial_tenants.sql
+- db/tables/sacrifice_animals, shareholders, reservation_transactions, change_logs, stage_metrics, failed_reservation_transactions_logs – tenant_id, index'ler
+- db/tables/stage_metrics/functions_and_triggers/update_stage_metrics.sql
+
+[Risk] Orta – Şema değişti; route'lara tenant guard eklenmeden tüm veri tek tenant'ta.
+
+=== 2025-03-10 ===
+
+[İstek] 3 porttan yayın (3000, 3001, 3002); project-evaluation.md mimari dokümantasyonu; rule ekleme
+
+[Yapılan Değişiklikler]
+1. package.json: dev:golbasi (3000), dev:kahramankazan (3001), dev:test (3002), dev:all (concurrently) script'leri
+2. concurrently devDependency eklendi
+3. tenant-resolver: Port bazlı mapping (localhost:3000→golbasi, 3001→kahramankazan, 3002→golbasi/test)
+4. middleware: Bilinmeyen tenant hata mesajı port bilgisiyle güncellendi
+5. .project-architecture/project-evaluation.md: Proje mimarisi, tenant yapısı, port komutları, DB özeti, değişiklik logu
+6. .cursor/rules/project-evaluation.mdc: Önemli değişikliklerde project-evaluation.md güncelleme kuralı
+7. general-rules.mdc: Project Evaluation referansı eklendi
+
+[Dosyalar]
+- package.json
+- lib/tenant-resolver.ts
+- middleware.ts
+- .project-architecture/project-evaluation.md
+- .cursor/rules/project-evaluation.mdc
+- .cursor/rules/general-rules.mdc
+
+[Risk] Düşük – Sadece dev script'leri ve dokümantasyon; mevcut davranış korundu.
+
+=== 2025-03-10 ===
+
+[İstek] project-architecture yeniden yapılandırma; project-description sadeleştirme; rules güncelleme
+
+[Yapılan Değişiklikler]
+1. project-description.mdc: Uzun içerik kaldırıldı, sadece project-details.md referansı kaldı
+2. .project-architecture/: README.md (klasör açıklamaları), project-details.md (ana index), architecture.md (tenant/auth/app), pages/public-pages.md, pages/admin-pages.md, tools-versions.md
+3. general-rules.mdc: "Proje Bilgisi Kaynağı" eklendi – proje bilgisi için project-architecture kullan
+4. project-evaluation.mdc: Tarih bazlı log yerine "ilgili dosyayı güncelle" kuralı; nereye yazılacağı tablosu
+
+[Dosyalar]
+- .cursor/rules/project-description.mdc, general-rules.mdc, project-evaluation.mdc
+- .project-architecture/README.md, project-details.md, architecture.md, tools-versions.md
+- .project-architecture/pages/public-pages.md, admin-pages.md
+
+[Risk] Düşük – Sadece dokümantasyon ve rule değişikliği.
+
+=== 2025-03-10 ===
+
+[İstek] colors.md, controls.md, features-update rule; admin menüye Rezervasyonlar, Aşama Metrikleri, Kiracılar tablo sayfaları
+
+[Yapılan Değişiklikler]
+1. .project-architecture/colors.md: Renk token listesi features.md'den taşındı
+2. .project-architecture/features.md: Renk bölümü kaldırıldı, colors.md referansı eklendi; Admin Tablo Sayfaları bölümü eklendi
+3. .project-architecture/controls.md: Özellik kaybı kontrol listesi (admin sayfaları, sidebar, renk, Türkçe)
+4. .cursor/rules/features-update.mdc: Yeni özellik eklendiğinde features.md güncelleme kuralı
+5. app/api/get-tenants/route.ts: Admin için tenants listesi API (admin rolü zorunlu)
+6. Admin sayfaları: rezervasyonlar, asama-metrikleri, kiracilar (CustomDataTable, mevcut tablo yapısı)
+7. app-sidebar.tsx: Rezervasyonlar, Aşama Metrikleri, Kiracılar menü öğeleri eklendi
+
+[Dosyalar]
+- .project-architecture/colors.md, controls.md, features.md
+- .cursor/rules/features-update.mdc
+- app/api/get-tenants/route.ts
+- app/(admin)/kurban-admin/rezervasyonlar/page.tsx, components/columns.tsx
+- app/(admin)/kurban-admin/asama-metrikleri/page.tsx, components/columns.tsx
+- app/(admin)/kurban-admin/kiracilar/page.tsx, components/columns.tsx
+- app/(admin)/kurban-admin/components/layout/app-sidebar.tsx
+
+[Risk] Düşük – Yeni sayfalar ve dokümantasyon; mevcut işlevsellik değişmedi.
+
+=== 2025-03-10 ===
+
+[İstek] Tenants menüsü kaldır; tenant scope kontrolü; Kahramankazan Genel Bakış loading; components.md
+
+[Yapılan Değişiklikler]
+1. Tenants menüsü, kiracilar sayfası ve get-tenants API kaldırıldı
+2. Genel Bakış: loading koşulu düzeltildi – sacrifices.length && shareholders.length yerine isInitialized kullanıldı (boş tenant’ta sonsuz spinner sorunu giderildi)
+3. Genel Bakış: sayfa mount’ta refetchSacrifices ve fetchShareholders tetikleniyor
+4. controls.md: Tenant Kapsamı bölümü eklendi; tüm admin API’lerin tenant_id ile filtrelendiği doğrulandı
+5. components/COMPONENTS.md: Proje bileşenleri ve özellikleri dokümante edildi
+
+[Dosyalar]
+- app-sidebar.tsx (tenants kaldırıldı)
+- app/(admin)/kurban-admin/genel-bakis/page.tsx
+- app/(admin)/kurban-admin/kiracilar/* silindi
+- app/api/get-tenants/route.ts silindi
+- .project-architecture/controls.md, features.md
+- components/COMPONENTS.md
+
+[Risk] Düşük – Genel Bakış loading mantığı değişti; boş tenant’ta artık UI düzgün yükleniyor.

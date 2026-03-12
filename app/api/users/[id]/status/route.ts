@@ -1,5 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { supabase } from "@/utils/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -7,7 +9,14 @@ interface RouteParams {
   params: { id: string };
 }
 
-// PATCH /api/users/[id]/status - Update user status
+const GOLBASI_ID = "00000000-0000-0000-0000-000000000001";
+const KAHRAMANKAZAN_ID = "00000000-0000-0000-0000-000000000002";
+
+function getOtherTenantId(currentTenantId: string): string {
+  return currentTenantId === GOLBASI_ID ? KAHRAMANKAZAN_ID : GOLBASI_ID;
+}
+
+// PATCH /api/users/[id]/status - Update user status (sadece tenant'ta erişimi varsa)
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,13 +27,26 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const { id } = params;
-    const { status } = await request.json();
+    const tenantId = getTenantId();
+    const body = await request.json();
+    const { status, addToOtherTenant } = body;
 
     if (!status || !["pending", "approved", "blacklisted"].includes(status)) {
       return NextResponse.json(
         { error: "Invalid status value" },
         { status: 400 }
       );
+    }
+
+    const { data: ut } = await supabaseAdmin
+      .from("user_tenants")
+      .select("user_id")
+      .eq("user_id", id)
+      .eq("tenant_id", tenantId)
+      .single();
+
+    if (!ut) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const { data, error: _error } = await supabase
@@ -35,6 +57,28 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (_error) {
       return NextResponse.json({ error: _error.message }, { status: 500 });
+    }
+
+    // Onay: user_tenants.approved_at güncelle (per-tenant onay)
+    if (status === "approved") {
+      await supabaseAdmin
+        .from("user_tenants")
+        .update({ approved_at: new Date().toISOString() })
+        .eq("user_id", id)
+        .eq("tenant_id", tenantId);
+
+      // "Diğer siteye de ekle" seçildiyse: diğer tenant'a pre-approved ekle
+      if (addToOtherTenant) {
+        const otherTenantId = getOtherTenantId(tenantId);
+        await supabaseAdmin.from("user_tenants")        .upsert(
+          {
+            user_id: id,
+            tenant_id: otherTenantId,
+            approved_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,tenant_id" }
+        );
+      }
     }
 
     return NextResponse.json(data[0]);

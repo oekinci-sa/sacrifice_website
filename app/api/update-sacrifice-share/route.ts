@@ -1,11 +1,10 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/update-sacrifice-share
 export async function POST(request: NextRequest) {
   try {
-    // Parse the request body to get sacrificeId and emptyShare
+    const tenantId = getTenantId();
     const { sacrificeId, emptyShare } = await request.json();
 
     // Validate input
@@ -27,6 +26,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
       .update({ empty_share: emptyShare })
+      .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrificeId)
       .select();
 

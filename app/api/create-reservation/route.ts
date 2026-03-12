@@ -1,3 +1,4 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -12,34 +13,12 @@ enum ReservationStatus {
   CANCELED = 'canceled'
 }
 
-// Türkiye saati için yardımcı fonksiyon
-function getTurkeyDateTime() {
-  // ISO formatında doğrudan Türkiye saati oluştur (daha güvenilir yöntem)
-  const now = new Date();
-  // Türkiye'nin zaman dilimi offsetini hesapla (GMT+3 = +180 dakika)
-  const offsetMinutes = 180;
-
-  // UTC zamanını alıp Türkiye offsetini ekle
-  const turkeyDate = new Date(now.getTime() + offsetMinutes * 60 * 1000);
-
-  // ISO formatını al ve formatla (saat 0-23 arasında garanti edilir)
-  const year = turkeyDate.getUTCFullYear();
-  const month = String(turkeyDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(turkeyDate.getUTCDate()).padStart(2, '0');
-  const hours = String(turkeyDate.getUTCHours()).padStart(2, '0');
-  const minutes = String(turkeyDate.getUTCMinutes()).padStart(2, '0');
-  const seconds = String(turkeyDate.getUTCSeconds()).padStart(2, '0');
-
-  // YYYY-MM-DD HH:MM:SS formatında döndür
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
 // Rezervasyon oluşturma API endpoint'i
 // Bu endpoint, empty_share değerini güncellemez - bu işlem DB tarafında tetiklenir
 export async function POST(request: NextRequest) {
 
   try {
-    // İstek verilerini al
+    const tenantId = getTenantId();
     const { transaction_id, sacrifice_id, share_count, status = ReservationStatus.ACTIVE } = await request.json();
 
 
@@ -89,10 +68,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Önce boş hisse durumunu kontrol et
     const { data: currentSacrifice, error: checkError } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("empty_share")
+      .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrifice_id)
       .single();
 
@@ -114,19 +93,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Türkiye saati ile tarih oluştur
-    const turkeyDateTime = getTurkeyDateTime();
-
-    // reservation_transactions tablosuna yeni kayıt ekle
+    // created_at: DB default (now() = UTC) kullanılır
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .insert([
         {
+          tenant_id: tenantId,
           transaction_id,
           sacrifice_id,
           share_count,
-          status: ReservationStatus.ACTIVE, // Enum değerini kullanıyoruz - veritabanında kabul edilen değer
-          created_at: turkeyDateTime
+          status: ReservationStatus.ACTIVE,
         }
       ])
       .select();

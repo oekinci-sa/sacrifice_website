@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useShareholderLookupByPhone } from "@/hooks/useShareholderLookupByPhone";
+import { formatDateShort } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { motion } from "framer-motion";
@@ -211,7 +212,7 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
                             >
                                 {shareholderInfoList.length > 1 && (
                                     <h3 className="md:text-lg text-center font-medium mb-2 md:mb-4">
-                                        {index + 1}. Kayıt - {new Date(info.purchase_time).toLocaleDateString('tr-TR')}
+                                        {index + 1}. Kayıt - {formatDateShort(info.purchase_time)}
                                     </h3>
                                 )}
                                 <ShareholderDetails shareholderInfo={info} />

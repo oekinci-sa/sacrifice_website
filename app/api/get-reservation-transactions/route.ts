@@ -1,3 +1,4 @@
+import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
@@ -6,9 +7,11 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
+    const tenantId = getTenantId();
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
     if (error) {

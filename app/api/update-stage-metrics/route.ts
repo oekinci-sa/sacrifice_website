@@ -1,14 +1,13 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mark this route as dynamic
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/update-stage-metrics
 export async function POST(request: NextRequest) {
     try {
+        const tenantId = getTenantId();
         const body = await request.json();
         const { stage, current_sacrifice_number } = body;
 
@@ -26,10 +25,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Update the stage metrics
         const { data, error } = await supabaseAdmin
             .from("stage_metrics")
-            .update({ current_sacrifice_number, updated_at: new Date().toISOString() })
+            .update({ current_sacrifice_number })
+            .eq("tenant_id", tenantId)
             .eq("stage", stage)
             .select();
 

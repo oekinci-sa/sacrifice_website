@@ -1,4 +1,5 @@
 import { TripleInfo } from "@/app/(public)/components/triple-info";
+import { formatDate } from "@/lib/date-utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -157,14 +158,8 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       paid_amount: paidAmount.toString(),
       remaining_payment: remainingPayment.toString(),
       purchase_time: reservation.created_at
-        ? new Date(reservation.created_at).toLocaleString("tr-TR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-        : new Date().toLocaleString("tr-TR"),
+        ? formatDate(reservation.created_at)
+        : formatDate(new Date()),
 
       // Hayvana Ait Bilgiler
       sacrifice_no: sacrifice.sacrifice_no?.toString() || "",

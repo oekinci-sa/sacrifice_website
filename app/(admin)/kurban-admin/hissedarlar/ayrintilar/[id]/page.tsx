@@ -8,7 +8,7 @@ import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "
 import { useUser } from "@/hooks/useUsers";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -231,7 +231,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         {/* Son düzenleyen bilgisi */}
         <div className="text-sm text-muted-foreground">
-          Son düzenleyen: <span className="font-medium">{shareholder.last_edited_by || "Belirtilmemiş"}</span> - {shareholder.last_edited_time ? format(new Date(shareholder.last_edited_time), "dd.MM.yyyy HH:mm") : ""}
+          Son düzenleyen: <span className="font-medium">{shareholder.last_edited_by || "Belirtilmemiş"}</span> - {shareholder.last_edited_time ? formatDate(shareholder.last_edited_time) : ""}
         </div>
       </div>
 

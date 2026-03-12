@@ -36,7 +36,7 @@ function UserNav() {
   const handleLogout = async () => {
     await signOut({
       redirect: true,
-      callbackUrl: "/giris"
+      callbackUrl: `${window.location.origin}/giris`,
     });
   };
 

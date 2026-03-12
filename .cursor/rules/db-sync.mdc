@@ -1,0 +1,20 @@
+---
+description: Veritabanı değişiklikleri ile db klasörü senkronizasyonu
+globs: 
+---
+# DB SYNC RULE
+
+## Kural
+Supabase veya başka bir ortamda veritabanı şemasında yapılan **her değişiklik** (tablo, kolon, constraint, trigger, fonksiyon, view) mutlaka `db/` klasöründeki ilgili SQL dosyalarına da yansıtılmalıdır.
+- Böylece `db/` klasörü her zaman "source of truth" olarak güncel şemayı yansıtır
+
+## Yapılacaklar
+1. **Tablo değişikliği** → `db/tables/<tablo_adi>/table.sql` güncelle
+2. **Trigger/fonksiyon değişikliği** → `db/tables/<tablo_adi>/functions_and_triggers/<dosya>.sql` güncelle
+3. **View değişikliği** → `db/views/<view_adi>.sql` güncelle
+4. **Operational script** → `db/tables/<tablo_adi>/operational_scripts/<dosya>.sql` güncelle
+
+## Öncelik sırası
+1. Önce migration/SQL ile DB'de değişiklik yap
+2. Ardından `db/` klasöründeki ilgili dosyayı güncelle
+3. Kodda (types, API route'ları) bu değişikliklere uyum sağla

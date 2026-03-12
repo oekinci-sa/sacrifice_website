@@ -12,6 +12,8 @@ import {
   History,
   Home,
   Menu,
+  Receipt,
+  Gauge,
   UserCog
 } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -55,6 +57,20 @@ const navItems: NavItem[] = [
     title: "Değişiklik Kayıtları",
     url: "/kurban-admin/degisiklik-kayitlari",
     icon: History,
+    roles: ["admin", "editor"],
+  },
+  {
+    id: "reservations",
+    title: "Rezervasyonlar",
+    url: "/kurban-admin/rezervasyonlar",
+    icon: Receipt,
+    roles: ["admin", "editor"],
+  },
+  {
+    id: "stage-metrics",
+    title: "Aşama Metrikleri",
+    url: "/kurban-admin/asama-metrikleri",
+    icon: Gauge,
     roles: ["admin", "editor"],
   },
   {

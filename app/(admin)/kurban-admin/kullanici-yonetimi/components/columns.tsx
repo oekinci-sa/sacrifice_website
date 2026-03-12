@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatDateShort } from "@/lib/date-utils";
 
 interface UserType {
   id: string;
@@ -15,6 +14,7 @@ interface UserType {
   image: string | null;
   role: "admin" | "editor" | null;
   status: "pending" | "approved" | "blacklisted";
+  tenant_approved_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,21 +68,25 @@ export const columns: ColumnDef<UserType>[] = [
     ),
     cell: ({ row }) => {
       const status = row.getValue("status");
+      const tenantApprovedAt = row.original.tenant_approved_at;
+      const isPendingForTenant = tenantApprovedAt == null;
+      const isBlacklisted = status === "blacklisted";
+      const displayPending = isBlacklisted ? false : isPendingForTenant || status === "pending";
       return (
         <Badge
           variant={
-            status === "approved"
-              ? "default"
-              : status === "pending"
+            isBlacklisted
+              ? "destructive"
+              : displayPending
               ? "secondary"
-              : "destructive"
+              : "default"
           }
         >
-          {status === "approved"
-            ? "Onaylı"
-            : status === "pending"
+          {isBlacklisted
+            ? "Engellendi"
+            : displayPending
             ? "Onay Bekliyor"
-            : "Engellendi"}
+            : "Onaylı"}
         </Badge>
       );
     },
@@ -95,11 +99,7 @@ export const columns: ColumnDef<UserType>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Kayıt Tarihi" />
     ),
-    cell: ({ row }) => {
-      return format(new Date(row.getValue("created_at")), "dd MMM yyyy", {
-        locale: tr,
-      });
-    },
+    cell: ({ row }) => formatDateShort(row.getValue("created_at")),
   },
   {
     id: "actions",

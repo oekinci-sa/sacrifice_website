@@ -1,17 +1,17 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// This is a server-side API endpoint (Route Handler)
-// It will be accessible at /api/get-sacrifice-animals
 export async function GET() {
   try {
-    // Use the supabaseAdmin client with service role to fetch data
+    const tenantId = getTenantId();
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("sacrifice_no", { ascending: true });
 
     if (error) {

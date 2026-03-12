@@ -1,10 +1,11 @@
+import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { ReservationStatus } from '@/types/reservation';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        // Extract transaction_id and status from the request body
+        const tenantId = getTenantId();
         const { transaction_id, status = 'expired' } = await request.json();
 
         if (!transaction_id) {
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
             const { data: updatedReservation, error: updateError } = await supabaseAdmin
                 .from('reservation_transactions')
                 .update(updatePayload)
+                .eq('tenant_id', tenantId)
                 .eq('transaction_id', transaction_id)
                 .select()
                 .single();

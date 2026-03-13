@@ -21,6 +21,13 @@
 - `http://localhost:3001/api/auth/callback/google`
 - `http://localhost:3002/api/auth/callback/google`
 
+## Tema (Tenant Renkleri)
+
+- **Kaynak:** `tenant_settings.theme_json` (Supabase)
+- **Enjeksiyon:** `ThemeStyles` Server Component → layout `<head>` içinde inline `:root` CSS
+- **Neden sunucu:** Client-side fetch ilk paint'te varsayılan tema gösteriyordu (FOUC). Sunucuda enjekte edince ilk yüklemede doğru tenant renkleri görünür.
+- **Detay:** `.project-architecture/colors.md`
+
 ## Auth
 
 - NextAuth v4, JWT, Credentials + Google OAuth

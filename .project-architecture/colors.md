@@ -6,13 +6,24 @@
 
 ## Tenant Tema Override (DB)
 
-Tenant bazlı tema renkleri `tenant_settings.theme_json` ile saklanır. `ThemeProvider` sayfa yüklenirken `GET /api/tenant-settings` çağrısı yapar ve dönen `theme_json` değerlerini `document.documentElement.style.setProperty("--primary", value)` ile CSS değişkenlerine yazar.
+Tenant bazlı tema renkleri `tenant_settings.theme_json` ile saklanır.
+
+### Tema Enjeksiyon Akışı (Sunucu Tarafı – FOUC Önleme)
+
+Tema **ilk HTML yanıtında** sunucu tarafında enjekte edilir. Böylece tarayıcı ilk paint'te doğru tenant renklerini görür; varsayılan shadcn temasından tenant temasına geçiş (flash) olmaz.
+
+| Bileşen | Rol |
+|---------|-----|
+| **ThemeStyles** (`components/theme/ThemeStyles.tsx`) | Server Component. `headers()` ile tenant_id okur, `tenant_settings.theme_json` çeker, `:root { --primary: ...; }` inline style olarak `<head>` içine yazar |
+| **app/layout.tsx** | `<head>` içinde `<ThemeStyles />` render eder |
+| **ThemeProvider** | Geçmişte client-side fetch yapıyordu; artık passthrough. Tema sunucuda enjekte edildiği için client fetch kaldırıldı |
+| **`/api/tenant-settings`** | API route; tema değişikliği gerektiren diğer kullanımlar için (örn. admin önizleme) mevcut |
 
 **Desteklenen theme_json anahtarları:**
 - **HSL formatı** (örn. `"142 71% 45%"`): `primary`, `primary-foreground`, `primary-dark`, `primary-muted`, `secondary`, `secondary-foreground`, `sidebar-*`
 - **Hex/rgb formatı** (tenant tema rengine göre): `sac-primary`, `sac-primary-lightest`, `sac-icon-primary`, `sac-avatar-bg`, `sac-muted`, `sac-border-light`, `sac-icon-light`, `sac-icon-bg`, `sac-primary-muted`
 
-**Nötr ilk yükleme:** `globals.css` `:root` nötr gri değerlerle başlar. Sayfa ilk paint'te renksiz/gri görünür. ThemeProvider API'den tema alınca override eder.
+**İlk yükleme:** `ThemeStyles` sunucuda HTML içinde tema değişkenlerini enjekte ettiği için ilk paint'te doğru tenant teması görünür. `theme_json` boşsa `globals.css` varsayılanları kullanılır.
 
 **Örnek (Gölbaşı mavi tema):**
 ```json

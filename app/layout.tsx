@@ -1,3 +1,4 @@
+import { ThemeStyles } from "@/components/theme/ThemeStyles";
 import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
@@ -22,6 +23,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
+      <head>
+        {/* Sunucu tarafı tema enjeksiyonu: ilk paint'te doğru tenant renkleri (FOUC önleme) */}
+        <ThemeStyles />
+      </head>
       <body className={`${instrumentSans.variable}`}>
         <Providers>
           {children}

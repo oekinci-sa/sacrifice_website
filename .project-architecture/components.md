@@ -87,6 +87,21 @@ Bu dosya projede oluşturulan özel bileşenleri ve özelliklerini listeler. `co
 - Kurbanlıklar store'unu başlatır, realtime abone eder
 - `subscribeToRealtime` / `unsubscribeFromRealtime` cleanup ile
 
+### ThemeProvider
+- **Amaç:** Tema sağlayıcı (passthrough). Geçmişte client-side tema fetch yapıyordu; FOUC önlemek için tema artık sunucuda enjekte ediliyor.
+- **Kullanım:** `Providers` zincirinde; ileride client-side tema değiştirme gerekirse buraya logic eklenebilir.
+
+---
+
+## theme/
+
+### ThemeStyles
+- **Amaç:** Sunucu tarafı tema enjeksiyonu – FOUC (flash) önleme
+- **Tür:** Server Component (async)
+- **Akış:** `headers()` → tenant_id → `tenant_settings.theme_json` → `:root { --primary: ...; }` inline style
+- **Kullanım:** `app/layout.tsx` içinde `<head>` altında render edilir
+- **Detay:** `.project-architecture/colors.md` içinde "Tenant Tema Override" bölümüne bak
+
 ---
 
 ## ui/ (proje özelleştirmeleri)

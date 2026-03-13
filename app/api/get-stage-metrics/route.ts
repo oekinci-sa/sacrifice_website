@@ -11,7 +11,10 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const stage = searchParams.get('stage');
 
-        let query = supabaseAdmin.from("stage_metrics").select("*").eq("tenant_id", tenantId);
+        let query = supabaseAdmin.from("stage_metrics").select(`
+          *,
+          tenants(name, slug)
+        `).eq("tenant_id", tenantId);
 
         if (stage) {
             query = query.eq("stage", stage);

@@ -43,7 +43,7 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
+          <div className="h-2 bg-muted rounded-full overflow-hidden flex-1">
             <div
               className="h-full bg-sac-red rounded-full"
               style={{ width: `${collectedPercentage}%` }}
@@ -63,7 +63,7 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
+          <div className="h-2 bg-muted rounded-full overflow-hidden flex-1">
             <div
               className="h-full bg-sac-red rounded-full"
               style={{ width: `${missingDepositPercentage}%` }}
@@ -83,7 +83,7 @@ export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex-1">
+          <div className="h-2 bg-muted rounded-full overflow-hidden flex-1">
             <div
               className="h-full bg-sac-yellow rounded-full"
               style={{ width: `${missingPaymentPercentage}%` }}

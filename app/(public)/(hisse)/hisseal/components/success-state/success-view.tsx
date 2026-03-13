@@ -1,5 +1,6 @@
 import { TripleInfo } from "@/app/(public)/components/triple-info";
 import { formatDate } from "@/lib/date-utils";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -105,14 +106,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     fetchData();
   }, [transaction_id]);
 
-  // Format phone number to 0555 555 55 55
-  const formatPhoneNumber = (phone: string): string =>
-    phone
-      ? phone
-        .replace(/\D/g, "")
-        .replace(/^90(\d{3})(\d{3})(\d{2})(\d{2})$/, "0$1 $2 $3 $4")
-      : "";
-
   // Generate a security code (this would typically come from backend)
   const generateSecurityCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit number
@@ -137,7 +130,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     const paidAmount = shareholder.paid_amount || 0;
     const remainingPayment = totalAmount - paidAmount;
 
-    const formattedPhoneNumber = formatPhoneNumber(
+    const formattedPhoneNumber = formatPhoneForDisplayWithSpacing(
       shareholder.phone_number || shareholder.phone || ""
     );
 
@@ -246,7 +239,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   };
 
   const getShareholderDisplayPhone = (shareholder: ShareholderData) => {
-    return formatPhoneNumber(
+    return formatPhoneForDisplayWithSpacing(
       shareholder.phone_number || shareholder.phone || ""
     );
   };

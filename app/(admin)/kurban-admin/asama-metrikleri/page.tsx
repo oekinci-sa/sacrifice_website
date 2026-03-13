@@ -3,10 +3,10 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
-import { columns } from "./components/columns";
+import { columns, type StageMetric } from "./components/columns";
 
 export default function AsamaMetrikleriPage() {
-  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [data, setData] = useState<StageMetric[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

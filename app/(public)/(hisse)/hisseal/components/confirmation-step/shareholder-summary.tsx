@@ -6,6 +6,7 @@ import { useCompleteReservation } from "@/hooks/useReservations"
 import { useCreateShareholders } from "@/hooks/useShareholders"
 import { useValidateShareholders } from "@/hooks/useValidateShareholders"
 import { cn } from "@/lib/utils"
+import { formatPhoneForDB, formatPhoneForDisplayWithSpacing } from "@/utils/formatters"
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore"
 import { sacrificeSchema } from "@/types"
 import { ArrowLeft, ArrowRight } from "lucide-react"
@@ -28,22 +29,6 @@ interface ShareholderSummaryProps {
   setCurrentStep: (step: Step) => void
   remainingTime: number
   setRemainingTime: (value: number | ((prevValue: number) => number)) => void
-}
-
-const formatPhoneNumber = (phone: string) => {
-  // Önce tüm non-digit karakterleri kaldır
-  const cleaned = phone.replace(/\D/g, '')
-
-  // Eğer +90 ile başlıyorsa, onu kaldır
-  const withoutPrefix = cleaned.replace(/^90/, '')
-
-  // Baştaki 0'ı kaldır ve tekrar ekle
-  const withoutZero = withoutPrefix.replace(/^0/, '')
-  const withZero = '0' + withoutZero
-
-  // Formatı ayarla: 05XX XXX XX XX
-  const formatted = withZero.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4')
-  return formatted
 }
 
 // Format sacrifice time function
@@ -151,13 +136,6 @@ export default function ShareholderSummary({
 
       // Prepare shareholder data for the API
       const shareholderDataForApi = shareholders.map((shareholder) => {
-        // Clean and format phone number
-        const cleanedPhone = shareholder.phone.replace(/\D/g, '').replace(/^0/, '')
-          .replace(/^90/, '') // Remove leading 90
-        const formattedPhone = cleanedPhone.startsWith('90')
-          ? '+' + cleanedPhone
-          : '+90' + cleanedPhone
-
         // Calculate the delivery fee based on location
         const delivery_fee = shareholder.delivery_location !== "Kesimhane" ? 750 : 0
 
@@ -172,7 +150,7 @@ export default function ShareholderSummary({
         // Create the data object without the is_purchaser field
         const shareholderData = {
           shareholder_name: shareholder.name,
-          phone_number: formattedPhone,
+          phone_number: formatPhoneForDB(shareholder.phone),
           transaction_id: transaction_id,
           sacrifice_id: sacrifice?.sacrifice_id || "",
           share_price: share_price,
@@ -286,7 +264,7 @@ export default function ShareholderSummary({
                 {/* Sağ Sütun */}
                 <div>
                   <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Telefon</span>
-                  <span className="text-black font-medium text-[16px] md:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
+                  <span className="text-black font-medium text-[16px] md:text-lg">{formatPhoneForDisplayWithSpacing(shareholder.phone)}</span>
                 </div>
               </div>
 

@@ -3,10 +3,10 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
-import { columns } from "./components/columns";
+import { columns, type ReservationTransaction } from "./components/columns";
 
 export default function RezervasyonlarPage() {
-  const [data, setData] = useState<Record<string, unknown>[]>([]);
+  const [data, setData] = useState<ReservationTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,7 +16,8 @@ export default function RezervasyonlarPage() {
         const res = await fetch("/api/get-reservation-transactions");
         if (!res.ok) throw new Error("Failed to fetch");
         const json = await res.json();
-        setData(json.transactions ?? []);
+        const transactions = json.transactions ?? [];
+        setData(transactions.map((t: ReservationTransaction, i: number) => ({ ...t, _displayNo: i + 1 })));
       } catch {
         setData([]);
       } finally {

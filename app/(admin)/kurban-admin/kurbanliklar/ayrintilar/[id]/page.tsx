@@ -20,6 +20,7 @@ import { useUser } from "@/hooks/useUsers";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 import { formatDate } from "@/lib/date-utils";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { ArrowLeft, Check, Edit, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -307,7 +308,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-medium">{shareholder.shareholder_name}</h3>
-                    <p className="text-sm text-muted-foreground">{shareholder.phone_number}</p>
+                    <p className="text-sm text-muted-foreground">{formatPhoneForDisplayWithSpacing(shareholder.phone_number ?? "")}</p>
                   </div>
                   <Button asChild variant="ghost" size="sm">
                     <Link href={`/kurban-admin/hissedarlar/ayrintilar/${shareholder.shareholder_id}`}>

@@ -235,7 +235,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                         <div className="w-2 h-2 rounded-full bg-sac-red" />
                                         <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                                       </div>
-                                      <span className="text-sm font-medium text-[#000000]">
+                                      <span className="text-sm font-medium text-foreground">
                                         {new Intl.NumberFormat('tr-TR', {
                                           minimumFractionDigits: 0,
                                           maximumFractionDigits: 0
@@ -245,10 +245,10 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                     <Separator className="my-2 bg-gray-200" />
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-[#6B7280]" />
+                                        <div className="w-2 h-2 rounded-full bg-sac-muted" />
                                         <span className="text-sm text-muted-foreground">Toplam Tutar:</span>
                                       </div>
-                                      <span className="text-sm font-medium text-[#000000]">
+                                      <span className="text-sm font-medium text-foreground">
                                         {new Intl.NumberFormat('tr-TR', {
                                           minimumFractionDigits: 0,
                                           maximumFractionDigits: 0
@@ -261,7 +261,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        <div className="text-[#698c78] text-sm text-right">
+                        <div className="text-sac-muted text-sm text-right">
                           {shareholder.delivery_location}
                         </div>
                       </div>
@@ -557,15 +557,15 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
                           <div className="w-2 h-2 rounded-full bg-sac-red" />
                           <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                         </div>
-                        <span className="text-sm font-medium text-[#000000]">{formatCurrency(total - totalPaid)}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(total - totalPaid)}</span>
                       </div>
                       <Separator className="my-2 bg-gray-200" />
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#6B7280]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-muted" />
                           <span className="text-sm text-muted-foreground">Toplam Tutar:</span>
                         </div>
-                        <span className="text-sm font-medium text-[#000000]">{formatCurrency(total)}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(total)}</span>
                       </div>
                     </>
                   )}

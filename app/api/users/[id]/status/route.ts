@@ -1,5 +1,4 @@
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/utils/supabaseClient";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
@@ -49,7 +48,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { data, error: _error } = await supabase
+    const { data, error: _error } = await supabaseAdmin
       .from("users")
       .update({ status })
       .eq("id", id)
@@ -70,7 +69,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       // "Diğer siteye de ekle" seçildiyse: diğer tenant'a pre-approved ekle
       if (addToOtherTenant) {
         const otherTenantId = getOtherTenantId(tenantId);
-        await supabaseAdmin.from("user_tenants")        .upsert(
+        await supabaseAdmin.from("user_tenants").upsert(
           {
             user_id: id,
             tenant_id: otherTenantId,

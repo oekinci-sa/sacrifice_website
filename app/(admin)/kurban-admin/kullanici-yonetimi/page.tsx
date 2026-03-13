@@ -1,5 +1,6 @@
 "use client";
 
+import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
@@ -7,7 +8,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { columns } from "./components/columns";
-import { DataTable } from "./components/data-table";
 
 interface User {
   id: string;
@@ -30,36 +30,24 @@ export default function UserManagementPage() {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/users');
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-
+        const response = await fetch("/api/users");
+        if (!response.ok) throw new Error("Failed to fetch users");
         const data = await response.json();
         setUsers(data);
       } catch {
+        setUsers([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-
-    // Set up event listener for changes
-    const handleUserChange = () => {
-      fetchUsers();
-    };
-
-    window.addEventListener('user-updated', handleUserChange);
-
-    return () => {
-      window.removeEventListener('user-updated', handleUserChange);
-    };
+    const handleUserChange = () => fetchUsers();
+    window.addEventListener("user-updated", handleUserChange);
+    return () => window.removeEventListener("user-updated", handleUserChange);
   }, []);
 
-  // Don't show current user in the list
-  const filteredUsers = users.filter(user => user.email !== session?.user?.email);
+  const filteredUsers = users.filter((u) => u.email !== session?.user?.email);
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -70,11 +58,9 @@ export default function UserManagementPage() {
             Sistem kullanıcılarını yönetin ve erişim izinlerini düzenleyin
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => router.push("/kurban-admin/kullanici-yonetimi/yeni")}>
-            <Plus className="mr-2 h-4 w-4" /> Yeni Kullanıcı
-          </Button>
-        </div>
+        <Button onClick={() => router.push("/kurban-admin/kullanici-yonetimi/yeni")}>
+          <Plus className="mr-2 h-4 w-4" /> Yeni Kullanıcı
+        </Button>
       </div>
       {loading ? (
         <div className="space-y-4">
@@ -83,7 +69,12 @@ export default function UserManagementPage() {
           <Skeleton className="h-8 w-full" />
         </div>
       ) : (
-        <DataTable data={filteredUsers} columns={columns} />
+        <CustomDataTable
+          data={filteredUsers}
+          columns={columns}
+          pageSizeOptions={[10, 20, 50, 100]}
+          tableSize="medium"
+        />
       )}
     </div>
   );

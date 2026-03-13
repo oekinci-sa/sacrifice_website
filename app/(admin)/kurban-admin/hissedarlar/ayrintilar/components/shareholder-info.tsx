@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDateLong } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { formatDateLong } from "@/lib/date-utils";
 
 interface ShareholderInfoProps {
   shareholderInfo: shareholderSchema;
@@ -56,13 +56,13 @@ export function ShareholderInfo({
             <Input
               value={editFormData?.phone_number?.startsWith('+90')
                 ? formatPhoneForDisplayWithSpacing(editFormData.phone_number)
-                : editFormData?.phone_number}
+                : editFormData?.phone_number ?? ""}
               onChange={(e) => handleChange?.('phone_number', e.target.value)}
               placeholder="0555 555 55 55"
               className="h-9"
             />
           ) : (
-            <p className={valueClass}>{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number)}</p>
+            <p className={valueClass}>{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number ?? "")}</p>
           )}
         </div>
 
@@ -117,7 +117,7 @@ export function ShareholderInfo({
           {isEditing ? (
             <div className="flex items-center gap-2">
               <Switch
-                checked={editFormData?.sacrifice_consent}
+                checked={editFormData?.sacrifice_consent ?? false}
                 onCheckedChange={(checked) => handleChange?.('sacrifice_consent', checked)}
                 id="sacrifice-consent"
               />

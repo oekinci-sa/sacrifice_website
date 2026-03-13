@@ -14,22 +14,26 @@ export type ReservationTransaction = {
   expires_at: string | null;
   last_edited_time: string | null;
   status: string;
+  sacrifice_animals?: { sacrifice_no: number } | null;
+  _displayNo?: number;
 };
 
 export const columns: ColumnDef<ReservationTransaction>[] = [
   {
-    accessorKey: "transaction_id",
-    header: "İşlem ID",
-    cell: ({ row }) => (
-      <span className="font-mono text-sm">{row.getValue("transaction_id")}</span>
-    ),
+    accessorKey: "_displayNo",
+    header: "Rez. No",
+    cell: ({ row }) => {
+      const no = row.original._displayNo ?? row.index + 1;
+      return <span className="font-medium">Rez-{no}</span>;
+    },
   },
   {
-    accessorKey: "sacrifice_id",
-    header: "Kurbanlık ID",
+    accessorKey: "sacrifice_animals",
+    header: "Kurban No",
     cell: ({ row }) => {
-      const val = row.getValue("sacrifice_id") as string | null;
-      return val ? <span className="font-mono text-xs">{val.slice(0, 8)}…</span> : "-";
+      const sacrifice = row.original.sacrifice_animals;
+      const no = sacrifice?.sacrifice_no;
+      return no != null ? <span className="font-medium">{no}</span> : "-";
     },
   },
   {

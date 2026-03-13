@@ -6,6 +6,26 @@ Değişiklik yapıldıktan sonra bu özelliklerin hâlâ çalıştığından emi
 
 Tüm admin API'leri `getTenantId()` ile mevcut tenant'a göre filtreler. Veri her zaman sadece o tenant'a aittir. Yeni API eklerken `tenant_id` filtresi unutulmamalı.
 
+## Hisse Alma (/hisseal)
+
+| Özellik | Kontrol |
+|---------|---------|
+| Hisse Seçimi | Tablo, hisse al butonu, empty_share 0 ise pasif |
+| Hisse sayısı seçimi | Pop-up, seçilen değer kadar empty_share azalır |
+| Hisse Onayı sekmesi | Accordion'lar, hissedar bilgileri (ad, soyad vb.) |
+| Yeni Hissedar Ekle | empty_share kontrolü, accordion artar |
+| Onay butonu | shareholders INSERT, /hissesorgula'ya yönlendirme |
+| Timeout (10 dk) | 3 dk sonra 1 dk kala uyarı, süre bitince empty_share artar (Beacon API) |
+| Sayfa terk / sekme kapatma | empty_share accordion sayısı kadar artar (Beacon API) |
+
+## Hisse Sorgulama (/hissesorgula)
+
+| Özellik | Kontrol |
+|---------|---------|
+| Telefon + güvenlik kodu | 6 haneli kod ile sorgulama |
+| Hissedar bilgileri | Ödeme durumu, teslimat noktası |
+| PDF indirme | Makbuz çıktısı |
+
 ## Admin Paneli
 
 | Özellik | Sayfa/URL | Kontrol |

@@ -1,0 +1,23 @@
+---
+description: Admin tablolarda ID gösterimi - insan dostu numaralandırma
+globs: app/(admin)/**/*.tsx
+---
+# Tablo ID Gösterimi (ZORUNLU)
+
+Admin sayfalarındaki tablolarda **ham UUID veya teknik ID gösterme**. Kullanıcıların anlayacağı numaralandırma kullan.
+
+## Kurallar
+
+| Veri | Göster | Örnek |
+|------|-------|-------|
+| transaction_id (rezervasyon) | Rez. No (sıra numarası) | Rez-1, Rez-2 |
+| sacrifice_id | Kurban No (sacrifice_no) | 1, 2, 15 |
+| shareholder_id | Gizle veya sıra no | Tablo sütununda gösterme |
+| tenant_id | Kiracı adı (tenants.name) | Test, Gölbaşı |
+| event_id (change_logs) | #numara | #123 |
+
+## Uygulama
+
+- API'de gerekirse join yap: sacrifice_animals(sacrifice_no), tenants(name)
+- Sıra numarası için: API sıralı döndüğünde client'ta _displayNo ekle
+- UUID'nin ilk 8 karakteri gösterme; anlamlı etiket kullan

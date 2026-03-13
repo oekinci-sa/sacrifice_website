@@ -1,22 +1,19 @@
 "use client";
 
-import * as React from "react";
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { useEffect, useState } from "react";
 import { SummaryCards } from "./components/summary-cards";
 import { SummaryGraphs } from "./components/summary-graphs";
 
 export default function GenelBakisPage() {
   const {
-    sacrifices,
     isInitialized: sacrificesInitialized,
     refetchSacrifices,
   } = useSacrificeStore();
   const {
-    shareholders,
     isInitialized: shareholdersInitialized,
     fetchShareholders,
   } = useShareholderStore();
@@ -49,7 +46,7 @@ export default function GenelBakisPage() {
       </div>
 
       {/* Stats Grid */}
-        <SummaryCards />
+      <SummaryCards />
 
       {/* Sales Charts */}
       <SummaryGraphs />

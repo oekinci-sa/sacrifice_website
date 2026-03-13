@@ -1,0 +1,22 @@
+---
+description: Akış değişikliğinde user-flows.md güncellenmeli
+globs: 
+---
+# User Flows Güncelleme (ZORUNLU)
+
+**Kimlik doğrulama, hisse alma, admin işlemleri, API route'ları** gibi akışları değiştirdiğinizde `.project-architecture/user-flows.md` dosyasını güncelle.
+
+## Ne zaman güncelle?
+
+- Yeni API endpoint eklendiğinde
+- Auth/signIn callback mantığı değiştiğinde
+- Kullanıcı onay, rol veya tenant erişim akışı değiştiğinde
+- Hisse alma, rezervasyon, timeout akışı değiştiğinde
+- Yeni sayfa veya önemli kullanıcı yolculuğu eklendiğinde
+
+## Nasıl güncelle?
+
+1. `user-flows.md` dosyasını aç
+2. İlgili bölümü bul (Auth, Hisse Alma, Admin vb.)
+3. Adım tablosunu veya akış açıklamasını güncelle
+4. Yeni akış varsa yeni bölüm ekle

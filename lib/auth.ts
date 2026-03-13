@@ -83,7 +83,7 @@ export const authOptions: AuthOptions = {
 
         // If user doesn't exist, create them with pending status
         if (!existingUser) {
-          const { data: newUser, error } = await supabase
+          const { data: newUser, error } = await supabaseAdmin
             .from("users")
             .insert([
               {

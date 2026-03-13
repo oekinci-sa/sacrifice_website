@@ -10,7 +10,10 @@ export async function GET() {
     const tenantId = getTenantId();
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
-      .select("*")
+      .select(`
+        *,
+        sacrifice_animals(sacrifice_no)
+      `)
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 

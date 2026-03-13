@@ -6,9 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
 import { useUser } from "@/hooks/useUsers";
+import { formatDate } from "@/lib/date-utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
-import { formatDate } from "@/lib/date-utils";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -68,9 +68,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         // Initialize edit form data
         setEditFormData({
           shareholder_name: found.shareholder_name,
-          phone_number: found.phone_number,
-          delivery_location: found.delivery_location,
-          sacrifice_consent: found.sacrifice_consent,
+          phone_number: found.phone_number ?? "",
+          delivery_location: (found.delivery_location as "Kesimhane" | "Ulus") ?? "Kesimhane",
+          sacrifice_consent: found.sacrifice_consent ?? false,
           paid_amount: found.paid_amount,
           notes: found.notes || "",
           delivery_fee: found.delivery_fee || 0,
@@ -94,9 +94,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     if (shareholder) {
       setEditFormData({
         shareholder_name: shareholder.shareholder_name,
-        phone_number: shareholder.phone_number,
-        delivery_location: shareholder.delivery_location,
-        sacrifice_consent: shareholder.sacrifice_consent,
+        phone_number: shareholder.phone_number ?? "",
+        delivery_location: (shareholder.delivery_location as "Kesimhane" | "Ulus") ?? "Kesimhane",
+        sacrifice_consent: shareholder.sacrifice_consent ?? false,
         paid_amount: shareholder.paid_amount,
         notes: shareholder.notes || "",
         delivery_fee: shareholder.delivery_fee || 0,

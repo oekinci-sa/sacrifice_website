@@ -1,12 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 type ThemeVars = Record<string, string>;
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
   const applyTheme = useCallback((theme: ThemeVars) => {
     const root = document.documentElement;
     for (const [key, value] of Object.entries(theme)) {
@@ -17,7 +15,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
     let cancelled = false;
 
     async function fetchTheme() {

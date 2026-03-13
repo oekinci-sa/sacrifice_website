@@ -7,17 +7,21 @@ export type StageMetric = {
   stage: string;
   avg_progress_duration: number | null;
   current_sacrifice_number: number | null;
+  tenants?: { name: string; slug: string } | null;
 };
 
 export const columns: ColumnDef<StageMetric>[] = [
   {
-    accessorKey: "tenant_id",
-    header: "Kiracı ID",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">
-        {(row.getValue("tenant_id") as string)?.slice(0, 8)}…
-      </span>
-    ),
+    accessorKey: "tenants",
+    header: "Kiracı",
+    cell: ({ row }) => {
+      const tenant = row.original.tenants;
+      return (
+        <span className="font-medium">
+          {tenant?.name ?? tenant?.slug ?? "-"}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "stage",

@@ -26,7 +26,7 @@ export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>0 TL</span>
         <span>{totalAmount.toLocaleString('tr-TR')} TL</span>
       </div>

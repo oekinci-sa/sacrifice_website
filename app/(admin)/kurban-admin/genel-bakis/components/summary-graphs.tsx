@@ -22,19 +22,19 @@ import {
 const chartConfig = {
   today: {
     label: "Bugün",
-    color: "hsl(var(--chart-1))",
+    color: "var(--sac-primary)",
   },
   week: {
     label: "Son 2 Hafta",
-    color: "hsl(var(--chart-2))",
+    color: "var(--sac-primary)",
   },
   month: {
     label: "Son 1 Ay",
-    color: "hsl(var(--chart-3))",
+    color: "var(--sac-primary)",
   },
   all: {
     label: "Tüm Zamanlar",
-    color: "hsl(var(--chart-4))",
+    color: "var(--sac-primary)",
   },
 } satisfies ChartConfig;
 
@@ -201,7 +201,7 @@ export function SummaryGraphs() {
           >
             <ChartTooltip
               cursor={{
-                fill: 'rgba(0, 0, 0, 0.05)',
+                fill: 'hsl(var(--muted) / 0.5)',
                 stroke: 'none',
                 pointerEvents: 'none',
               }}
@@ -227,7 +227,7 @@ export function SummaryGraphs() {
             />
             <Bar
               dataKey="count"
-              fill="hsl(var(--chart-1))"
+              fill="var(--sac-primary)"
               radius={[4, 4, 0, 0]}
               isAnimationActive={false}
             />

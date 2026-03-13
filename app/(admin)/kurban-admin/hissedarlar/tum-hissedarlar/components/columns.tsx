@@ -61,7 +61,7 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
         variant="ghost"
         size="sm"
         onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`)}
-        className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-100"
+        className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-icon-primary hover:bg-sac-avatar-bg"
       >
         <span className="sr-only">Düzenle</span>
         <Pencil className="h-4 w-4" />
@@ -72,7 +72,7 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-100"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-red hover:bg-sac-red-light"
           >
             <span className="sr-only">Sil</span>
             <X className="h-4 w-4" />
@@ -262,15 +262,15 @@ export const columns: ColumnDef<shareholderSchema>[] = [
                           <div className="w-2 h-2 rounded-full bg-sac-red" />
                           <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
                         </div>
-                        <span className="text-sm font-medium text-[#000000]">{formatCurrency(remaining)}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(remaining)}</span>
                       </div>
                       <Separator className="my-2 bg-gray-200" />
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#6B7280]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-muted" />
                           <span className="text-sm text-muted-foreground">Toplam Tutar:</span>
                         </div>
-                        <span className="text-sm font-medium text-[#000000]">{formatCurrency(total)}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(total)}</span>
                       </div>
                     </>
                   )}

@@ -83,7 +83,7 @@ function StatCard({
           {Icon && (
             <div className={`rounded-lg p-2 ${type === "warning"
               ? "bg-sac-red-light text-sac-red"
-              : "bg-sac-green-lightest text-sac-green"
+              : "bg-sac-primary-lightest text-sac-primary"
               }`}>
               <Icon className="h-4 w-4" />
             </div>
@@ -120,8 +120,8 @@ function StatCard({
       };
     } else {
       return {
-        progressColor: "var(--sac-green)",
-        progressBgColor: "var(--sac-green-lightest)",
+        progressColor: "var(--sac-primary)",
+        progressBgColor: "var(--sac-primary-lightest)",
       };
     }
   };
@@ -180,23 +180,13 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
   const getChangeTypeIcon = (type: string) => {
     switch (type) {
       case "Ekleme":
-        return <Plus className="h-4 w-4 text-green-500" />;
+        return <Plus className="h-4 w-4 text-sac-primary" />;
       case "Güncelleme":
         return <Edit className="h-4 w-4 text-amber-500" />;
       case "Silme":
         return <Trash className="h-4 w-4 text-red-500" />;
       default:
         return <Edit className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    try {
-      return formatDate(new Date(dateString));
-    } catch {
-      // Return the original string if date parsing fails
-      return dateString;
     }
   };
 
@@ -244,7 +234,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
         <CardContent>
           <div className="flex justify-between">
             <div>
-              <div className="text-2xl font-bold text-green-600">{stats.consentStats.verildi}</div>
+              <div className="text-2xl font-bold text-sac-primary">{stats.consentStats.verildi}</div>
               <p className="text-xs text-muted-foreground">Vekalet Verildi</p>
             </div>
             <div>
@@ -256,7 +246,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
             value={(stats.consentStats.verildi / stats.totalShareholders) * 100}
             className="h-2 mt-2 bg-red-100"
             style={{
-              '--progress-foreground': 'var(--sac-green)',
+              '--progress-foreground': 'var(--sac-primary)',
             } as React.CSSProperties}
           />
         </CardContent>
@@ -282,7 +272,7 @@ function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
                   </p>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="mr-1 h-3 w-3" />
-                    {formatDate(activity.changed_at)}
+                    {formatDate(activity.changed_at as string)}
                   </div>
                 </div>
               </div>

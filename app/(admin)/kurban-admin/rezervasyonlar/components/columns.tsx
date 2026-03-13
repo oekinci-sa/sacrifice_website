@@ -46,7 +46,7 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
         <Badge
           variant="secondary"
           className={cn(
-            status === "active" && "bg-sac-green-lightest text-sac-green",
+            status === "active" && "bg-sac-primary-lightest text-sac-primary",
             status === "completed" && "bg-sac-blue-light text-sac-blue",
             (status === "canceled" || status === "expired" || status === "timed out") &&
               "bg-sac-red-light text-sac-red"

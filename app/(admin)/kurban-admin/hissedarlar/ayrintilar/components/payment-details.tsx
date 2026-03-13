@@ -37,7 +37,7 @@ export function PaymentDetails({
           <div className="flex items-center gap-2">
             <p className={`${valueClass} text-sm md:text-base`}>{lastDepositDate.toLocaleDateString("tr-TR")}</p>
             {shareholderInfo.paid_amount >= 5000 && (
-              <span className="text-sac-green text-xs md:text-sm">• Ödeme yapıldı</span>
+              <span className="text-sac-primary text-xs md:text-sm">• Ödeme yapıldı</span>
             )}
           </div>
         </div>
@@ -81,7 +81,7 @@ export function PaymentDetails({
                 {
                   "text-sac-red": shareholderInfo.paid_amount < 5000,
                   "text-sac-yellow": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
-                  "text-sac-green": shareholderInfo.remaining_payment <= 0,
+                  "text-sac-primary": shareholderInfo.remaining_payment <= 0,
                 }
               )}>
                 {shareholderInfo.paid_amount < 5000

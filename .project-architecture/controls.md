@@ -17,6 +17,7 @@ Tüm admin API'leri `getTenantId()` ile mevcut tenant'a göre filtreler. Veri he
 | Kullanıcı Yönetimi | `/kurban-admin/kullanici-yonetimi` | Kullanıcı listesi, rol/durum |
 | Rezervasyonlar | `/kurban-admin/rezervasyonlar` | reservation_transactions tablosu |
 | Aşama Metrikleri | `/kurban-admin/asama-metrikleri` | stage_metrics tablosu |
+| Bana Haber Ver | `/takip` | reminder_requests kayıt, tekrar kayıt uyarısı |
 
 ## Sidebar Menü
 

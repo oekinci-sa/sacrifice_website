@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f5f5f5',
     borderRadius: 3,
-    borderLeft: '3 solid #4CAF50',
+    borderLeft: '3 solid #39C645',
   },
   importantInfoTitle: {
     fontSize: 14,

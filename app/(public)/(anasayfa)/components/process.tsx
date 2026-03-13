@@ -72,7 +72,7 @@ const Process = () => {
             >
               {/* Numaralandırma */}
               <motion.div
-                className="flex items-center justify-center rounded-sm bg-sac-green-lightest text-primary w-14 h-14 md:w-20 md:h-20 text-2xl md:text-4xl font-semibold mb-2 md:mb-0"
+                className="flex items-center justify-center rounded-sm bg-sac-primary-lightest text-primary w-14 h-14 md:w-20 md:h-20 text-2xl md:text-4xl font-semibold mb-2 md:mb-0"
                 variants={numberVariant}
               >
                 {process.number}

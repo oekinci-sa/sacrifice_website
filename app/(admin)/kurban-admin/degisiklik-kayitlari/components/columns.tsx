@@ -40,7 +40,7 @@ export const columns: ColumnDef<ChangeLog>[] = [
           <span
             className={cn(
               "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center",
-              type === "Ekleme" && "bg-sac-green-lightest text-sac-green",
+              type === "Ekleme" && "bg-sac-primary-lightest text-sac-primary",
               type === "Güncelleme" && "bg-sac-yellow-light text-sac-yellow",
               type === "Silme" && "bg-sac-red-light text-sac-red"
             )}

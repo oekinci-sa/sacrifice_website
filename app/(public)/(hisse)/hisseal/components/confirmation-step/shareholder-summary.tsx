@@ -272,11 +272,11 @@ export default function ShareholderSummary({
                 {/* Sol Sütun */}
                 <div className="space-y-3 md:space-y-4">
                   <div>
-                    <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Ad Soyad</span>
+                    <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Ad Soyad</span>
                     <span className="text-black font-medium text-[16px] md:text-lg">{shareholder.name}</span>
                   </div>
                   <div>
-                    <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Teslimat Tercihi</span>
+                    <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Teslimat Tercihi</span>
                     <span className="text-black font-medium text-[16px] md:text-lg">
                       {shareholder.delivery_location}
                     </span>
@@ -285,7 +285,7 @@ export default function ShareholderSummary({
 
                 {/* Sağ Sütun */}
                 <div>
-                  <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Telefon</span>
+                  <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Telefon</span>
                   <span className="text-black font-medium text-[16px] md:text-lg">{formatPhoneNumber(shareholder.phone)}</span>
                 </div>
               </div>
@@ -297,18 +297,18 @@ export default function ShareholderSummary({
               <div className="grid grid-cols-2 gap-2 md:gap-8">
                 <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Kurbanlık No</span>
+                    <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Kurbanlık No</span>
                     <span className="text-black font-medium text-[16px] md:text-lg">{sacrifice?.sacrifice_no}</span>
                   </div>
                   <div>
-                    <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Hisse Bedeli</span>
+                    <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Hisse Bedeli</span>
                     <span className="text-black font-medium text-[16px] md:text-lg">{sacrifice?.share_price} TL</span>
                   </div>
                 </div>
 
                 <div className="space-y-2 md:space-y-4">
                   <div>
-                    <span className="text-sac-muted-green font-medium block text-[16px] md:text-lg">Kesim Saati</span>
+                    <span className="text-sac-muted font-medium block text-[16px] md:text-lg">Kesim Saati</span>
                     <span className="text-black font-medium text-[16px] md:text-lg">
                       {formatSacrificeTime(sacrifice?.sacrifice_time || null)}
                     </span>
@@ -321,7 +321,7 @@ export default function ShareholderSummary({
 
               {/* Toplam Ücret */}
               <div className="grid grid-cols-2 gap-2 md:gap-8">
-                <span className="col-span-1 text-sac-muted-green font-medium text-[16px] md:text-lg">Toplam Ücret</span>
+                <span className="col-span-1 text-sac-muted font-medium text-[16px] md:text-lg">Toplam Ücret</span>
                 <span className="col-span-1 text-black font-medium text-[16px] md:text-lg">
                   {new Intl.NumberFormat('tr-TR').format(
                     shareholder.delivery_location !== "Kesimhane"
@@ -348,7 +348,7 @@ export default function ShareholderSummary({
 
         <Button
           variant="ghost"
-          className="bg-sac-green-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
+          className="bg-sac-primary-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 px-3 md:px-4 flex-1 rounded-md"
           onClick={handleOpenSecurityCodeDialog}
           disabled={isProcessing}
         >

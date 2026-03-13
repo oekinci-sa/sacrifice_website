@@ -45,16 +45,13 @@ const RemindMe = () => {
     };
 
     const handleReminder = async (_e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent) => {
-        // e.preventDefault();
-
-        // Telefon numarası kontrolü
         if (!name) {
             toast({
                 variant: "destructive",
                 title: "Hata",
                 description: "Lütfen isim-soyisim giriniz.",
             });
-            // return;
+            return;
         }
         if (!phone) {
             toast({
@@ -65,7 +62,6 @@ const RemindMe = () => {
             return;
         }
 
-        // Telefon numarası doğrulama
         if (!_validatePhoneNumber(phone)) {
             setError("Lütfen geçerli bir telefon numarası giriniz (05XX XXX XX XX)");
             toast({
@@ -76,32 +72,57 @@ const RemindMe = () => {
             return;
         }
 
-        // try {
-        //     setError(null);
+        setError(null);
+        const phoneDigits = phone.replace(/\D/g, "");
 
-        //     // Use our mutation to lookup shareholders
-        //     const result = await reminder.mutateAsync({
-        //         fullName: name,
-        //         phone
-        //     });
+        try {
+            const checkRes = await fetch(`/api/reminder-requests/check?phone=${encodeURIComponent(phoneDigits)}`);
+            const checkData = await checkRes.json();
 
-        //     toast({
-        //         title: "Başarılı"
-        //     });
-        // } catch (err) {
-        //     // Show the error message from the API or a fallback
-        //     const errorMessage = err instanceof Error
-        //         ? err.message
-        //         : "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+            if (checkData.exists) {
+                toast({
+                    variant: "destructive",
+                    title: "Zaten Kayıtlı",
+                    description: "Bu telefon numarası daha önce kaydedilmiş. Bilgilendirme yapıldığında size ulaşacağız.",
+                });
+                return;
+            }
 
-        //     setError(errorMessage);
+            const res = await fetch("/api/reminder-requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name.trim(), phone: phoneDigits }),
+            });
 
-        //     toast({
-        //         variant: "destructive",
-        //         title: "Hata",
-        //         description: errorMessage,
-        //     });
-        // }
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.error === "already_exists") {
+                    toast({
+                        variant: "destructive",
+                        title: "Zaten Kayıtlı",
+                        description: "Bu telefon numarası daha önce kaydedilmiş.",
+                    });
+                    return;
+                }
+                throw new Error(data.error || "Kayıt başarısız");
+            }
+
+            toast({
+                title: "Kayıt Başarılı",
+                description: "Bilgilendirme listesine eklendiniz. Güncel duyurular için size ulaşacağız.",
+            });
+            setName("");
+            setPhone("");
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+            setError(errorMessage);
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: errorMessage,
+            });
+        }
     };
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {

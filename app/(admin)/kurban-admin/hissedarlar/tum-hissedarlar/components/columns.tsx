@@ -213,7 +213,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         statusColorClass = "bg-sac-yellow-light text-sac-yellow";
       } else {
         statusText = "Tamamlandı";
-        statusColorClass = "bg-sac-green-lightest text-sac-green";
+        statusColorClass = "bg-sac-primary-lightest text-sac-primary";
       }
 
       // Format currency 
@@ -243,7 +243,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
                   {paid >= total ? (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                        <div className="w-2 h-2 rounded-full bg-sac-primary" />
                         <span className="text-sm text-muted-foreground">Ödeme Tamamlandı:</span>
                       </div>
                       <span className="text-sm font-medium">{formatCurrency(paid)}</span>
@@ -252,7 +252,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
                     <>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-primary" />
                           <span className="text-sm text-muted-foreground">Ödenen Tutar:</span>
                         </div>
                         <span className="text-sm font-medium">{formatCurrency(paid)}</span>
@@ -293,7 +293,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         <span className={cn(
           "inline-block rounded-md px-2 py-1 min-w-[80px] text-center",
           sacrifice_consent
-            ? "bg-sac-green-lightest text-sac-green"
+            ? "bg-sac-primary-lightest text-sac-primary"
             : "bg-sac-red-light text-sac-red"
         )}>
           {sacrifice_consent ? "Alındı" : "Alınmadı"}

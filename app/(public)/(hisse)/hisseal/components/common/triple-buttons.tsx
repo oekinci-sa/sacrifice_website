@@ -81,7 +81,7 @@ export default function TripleButtons({
 
       <Button
         variant="ghost"
-        className="flex-1 md:flex-none rounded-md bg-sac-green-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
+        className="flex-1 md:flex-none rounded-md bg-sac-primary-lightest hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center h-10 md:h-12 md:px-6 "
         onClick={onContinue}
       >
         <span className="text-sm md:text-lg">Devam Et</span>

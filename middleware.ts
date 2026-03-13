@@ -29,7 +29,7 @@ export default withAuth(
 
     if (!tenantId) {
       return NextResponse.json(
-        { error: "Bilinmeyen tenant. localhost:3000 (golbasi), localhost:3001 (kahramankazan) veya localhost:3002 (test) kullanın." },
+        { error: "Bilinmeyen tenant. localhost:3000 (test), localhost:3001 (kahramankazan) veya localhost:3002 (golbasi) kullanın." },
         { status: 404 }
       );
     }

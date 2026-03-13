@@ -9,8 +9,8 @@ interface RouteParams {
   params: { id: string };
 }
 
-const GOLBASI_ID = "00000000-0000-0000-0000-000000000001";
 const KAHRAMANKAZAN_ID = "00000000-0000-0000-0000-000000000002";
+const GOLBASI_ID = "00000000-0000-0000-0000-000000000003";
 
 function getOtherTenantId(currentTenantId: string): string {
   return currentTenantId === GOLBASI_ID ? KAHRAMANKAZAN_ID : GOLBASI_ID;

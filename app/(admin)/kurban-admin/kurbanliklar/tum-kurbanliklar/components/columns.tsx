@@ -108,7 +108,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 hover:bg-sac-avatar-bg hover:text-sac-icon-green"
+          className="h-8 w-8 p-0 hover:bg-sac-avatar-bg hover:text-sac-icon-primary"
           onClick={() => setIsDialogOpen(true)}
         >
           <Eye className="h-4 w-4" />
@@ -142,7 +142,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
               <br />
               <Link
                 href="/kurban-admin/hissedarlar/tum-hissedarlar"
-                className="font-semibold hover:text-sac-icon-green transition-all duration-300"
+                className="font-semibold hover:text-sac-icon-primary transition-all duration-300"
               >
                 Tüm Hissedarlar
               </Link>{" "}
@@ -160,13 +160,13 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                   >
                     <div className="grid grid-cols-[auto_1fr_1fr] gap-6 items-center">
                       <div className="flex items-center justify-center bg-sac-avatar-bg rounded-full p-2 w-12 h-12">
-                        <i className="bi bi-person-circle text-sac-icon-green text-2xl"></i>
+                        <i className="bi bi-person-circle text-sac-icon-primary text-2xl"></i>
                       </div>
 
                       {/* Left */}
                       <div className="space-y-1">
                         <div className="text-black font-bold">{shareholder.shareholder_name}</div>
-                        <div className="text-[#698c78] text-sm">
+                        <div className="text-sac-muted text-sm">
                           {shareholder.phone_number ? shareholder.phone_number.replace("+90", "0") : "-"}
                         </div>
                       </div>
@@ -185,17 +185,17 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                       ? shareholder.paid_amount < 5000
                                         ? "var(--sac-red-muted)"
                                         : "var(--sac-yellow-muted)"
-                                      : "var(--sac-green-muted)",
+                                      : "var(--sac-primary-muted)",
                                     ["--progress-foreground" as string]: (shareholder.remaining_payment > 0)
                                       ? shareholder.paid_amount < 5000
                                         ? "var(--sac-red)"
                                         : "var(--sac-yellow)"
-                                      : "var(--sac-green)",
+                                      : "var(--sac-primary)",
                                   } as React.CSSProperties}
                                 />
                                 <span className={cn(
                                   "text-sm tabular-nums",
-                                  shareholder.paid_amount < 5000 ? "text-red-600" : "text-green-600"
+                                  shareholder.paid_amount < 5000 ? "text-red-600" : "text-sac-primary"
                                 )}>
                                   %{Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100).toString().padStart(3)}
                                 </span>
@@ -206,7 +206,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                 {shareholder.remaining_payment <= 0 ? (
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                                      <div className="w-2 h-2 rounded-full bg-sac-primary" />
                                       <span className="text-sm text-muted-foreground">Ödeme Tamamlandı:</span>
                                     </div>
                                     <span className="text-sm font-medium">
@@ -220,7 +220,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                                   <>
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                                        <div className="w-2 h-2 rounded-full bg-sac-primary" />
                                         <span className="text-sm text-muted-foreground">Ödenen Tutar:</span>
                                       </div>
                                       <span className="text-sm font-medium">
@@ -268,7 +268,7 @@ const ActionCellContent = ({ row }: { row: Row<sacrificeSchema> }) => {
                     </div>
                   </div>
                   {index < shareholders.length - 1 && (
-                    <div className="my-4 border-t border-dashed border-[#698c78] opacity-50" />
+                    <div className="my-4 border-t border-dashed border-sac-muted opacity-50" />
                   )}
                 </div>
               ))}
@@ -507,18 +507,18 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
                 ? "var(--sac-red-muted)"
                 : ratio < 100
                   ? "var(--sac-yellow-muted)"
-                  : "var(--sac-green-muted)",
+                  : "var(--sac-primary-muted)",
               ["--progress-foreground" as string]: ratio < 50
                 ? "var(--sac-red)"
                 : ratio < 100
                   ? "var(--sac-yellow)"
-                  : "var(--sac-green)",
+                  : "var(--sac-primary)",
             } as React.CSSProperties}
           />
           <div
             className={cn(
               "text-sm tabular-nums w-[50px] text-left",
-              ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-green-600",
+              ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-sac-primary",
             )}
           >
             %{ratio.toString().padStart(3)}
@@ -538,7 +538,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
                   {totalPaid >= total ? (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                        <div className="w-2 h-2 rounded-full bg-sac-primary" />
                         <span className="text-sm text-muted-foreground">Ödeme Tamamlandı:</span>
                       </div>
                       <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
@@ -547,7 +547,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
                     <>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#1DC355]" />
+                          <div className="w-2 h-2 rounded-full bg-sac-primary" />
                           <span className="text-sm text-muted-foreground">Ödenen Tutar:</span>
                         </div>
                         <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>

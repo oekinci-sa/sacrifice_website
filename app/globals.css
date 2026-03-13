@@ -21,23 +21,23 @@
     /* Popover metni (koyu gri) */
     --popover-foreground: 0 0% 3.9%;
 
-    /* Tema birincil rengi - Proje yeşili (#22c55e) */
-    --primary: 142 71% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-dark: 142 71% 38%;
-    --primary-muted: 160 25% 60%;
+    /* Tema birincil rengi - Nötr varsayılan, tenant API override eder */
+    --primary: 0 0% 25%;
+    --primary-foreground: 0 0% 98%;
+    --primary-dark: 0 0% 20%;
+    --primary-muted: 0 0% 55%;
 
-    /* Tema ikincil rengi - Açık yeşil ton */
-    --secondary: 140 39% 94%;
-    --secondary-foreground: 142 71% 45%;
+    /* Tema ikincil rengi */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 25%;
 
     /* Bastırılmış/metin altı rengi */
-    --muted: 140 20% 96%;
-    --muted-foreground: 140 15% 40%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
     /* Aksan rengi - Hover/aktif durumlar */
-    --accent: 140 39% 94%;
-    --accent-foreground: 142 71% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 25%;
 
     /* Yıkıcı/tehlikeli işlemler - sac-red ile uyumlu (#D22D2D) */
     --destructive: 0 72% 51%;
@@ -48,29 +48,38 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
 
-    /* Grafik renkleri */
-    --chart-1: 139 65% 20%;
-    --chart-2: 140 74% 44%;
-    --chart-3: 142 88% 28%;
-    --chart-4: 137 55% 15%;
-    --chart-5: 141 40% 9%;
+    /* Grafik renkleri - nötr varsayılan */
+    --chart-1: 0 0% 20%;
+    --chart-2: 0 0% 35%;
+    --chart-3: 0 0% 45%;
+    --chart-4: 0 0% 55%;
+    --chart-5: 0 0% 65%;
 
     /* Kenar yuvarlaklığı */
     --radius: 0.3rem;
 
-    /* Sidebar renkleri - Primary ile uyumlu */
+    /* Sidebar renkleri */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 142 71% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 140 39% 94%;
-    --sidebar-accent-foreground: 142 71% 45%;
+    --sidebar-primary: 0 0% 25%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 25%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 142 71% 45%;
+    --sidebar-ring: 0 0% 25%;
 
-    /* Domain-specific renkler (özel renkler) */
-    --sac-green: #39C645;
-    --sac-green-lightest: #F0FBF1;
+    /* Domain-specific renkler - nötr varsayılan, tenant API override eder */
+    --sac-primary: #6b7280;
+    --sac-primary-lightest: #f9fafb;
+    --sac-icon-primary: #6b7280;
+    --sac-avatar-bg: #f3f4f6;
+    --sac-icon-light: #e5e7eb;
+    --sac-icon-bg: #f9fafb;
+    --sac-muted: #6b7280;
+    --sac-border-light: #e5e7eb;
+    --sac-border-blue: #b8c7dd;
+    --sac-form-bg: #fcfcfa;
+    --sac-primary-muted: rgb(107 114 128 / 0.2);
 
     --sac-red: #D22D2D;
     --sac-red-light: #FCEFEF;
@@ -81,18 +90,9 @@
     --sac-blue: #367CFE;
     --sac-blue-light: #E6EAF2;
 
-    --sac-icon-green: #09B850;
-    --sac-avatar-bg: #E8F7EF;
-
-    --sac-border-light: #c7ddcd;
-    --sac-border-blue: #b8c7dd;
-    --sac-muted-green: #5b725e;
-    --sac-form-bg: #fcfcfa;
-
     /* Progress bar muted backgrounds (20% opacity) */
     --sac-red-muted: rgb(210 45 45 / 0.2);
     --sac-yellow-muted: rgb(249 188 6 / 0.2);
-    --sac-green-muted: rgb(57 198 69 / 0.2);
 
     /* For Graphs */
     --sac-graph-green-tone-light: #1DC355;

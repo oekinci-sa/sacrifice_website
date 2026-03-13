@@ -15,11 +15,13 @@ export default function FollowLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${instrumentSans.variable} flex flex-col justify-between`}>
+    <div className={`${instrumentSans.variable} flex flex-col min-h-screen`}>
       <HeaderMinimal />
-      <StageMetricsRealtimeProvider>
-        {children}
-      </StageMetricsRealtimeProvider>
+      <main className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-auto">
+        <StageMetricsRealtimeProvider>
+          {children}
+        </StageMetricsRealtimeProvider>
+      </main>
       <FooterMinimal />
     </div>
   );

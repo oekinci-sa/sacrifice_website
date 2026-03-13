@@ -1,6 +1,7 @@
 "use client";
 
 import { SacrificeDataProvider } from "@/components/providers/SacrificeDataProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
@@ -8,11 +9,13 @@ import { ReactNode } from "react";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <SacrificeDataProvider>
+      <ThemeProvider>
+        <SacrificeDataProvider>
           <TooltipProvider>
             {children}
           </TooltipProvider>
-      </SacrificeDataProvider>
+        </SacrificeDataProvider>
+      </ThemeProvider>
     </SessionProvider>
   );
 } 

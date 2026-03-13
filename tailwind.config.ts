@@ -26,12 +26,16 @@ const config: Config = {
         serif: ["var(--font-playfair-display)"],
       },
       colors: {
-        // Domain-specific renkler
-        "sac-green": "#39C645",
-        "sac-green-lightest": "#F0FBF1",
-
-        "sac-icon-light-green": "#c1edd3",
-        "sac-icon-bg-green": "#f0fcf6",
+        // Domain-specific renkler (theme-aware: tenant override edebilir)
+        "sac-primary": "var(--sac-primary)",
+        "sac-primary-lightest": "var(--sac-primary-lightest)",
+        "sac-icon-primary": "var(--sac-icon-primary)",
+        "sac-avatar-bg": "var(--sac-avatar-bg)",
+        "sac-border-light": "var(--sac-border-light)",
+        "sac-muted": "var(--sac-muted)",
+        "sac-icon-light": "var(--sac-icon-light)",
+        "sac-icon-bg": "var(--sac-icon-bg)",
+        "sac-primary-muted": "var(--sac-primary-muted)",
 
         "sac-red": "#D22D2D",
         "sac-red-light": "#FCEFEF",
@@ -42,12 +46,7 @@ const config: Config = {
         "sac-blue": "#367CFE",
         "sac-blue-light": "#E6EAF2",
 
-        "sac-icon-green": "#09B850",
-        "sac-avatar-bg": "#E8F7EF",
-
-        "sac-border-light": "#c7ddcd",
         "sac-border-blue": "#b8c7dd",
-        "sac-muted-green": "#5b725e",
         "sac-form-bg": "#fcfcfa",
 
         /* For Graphs */

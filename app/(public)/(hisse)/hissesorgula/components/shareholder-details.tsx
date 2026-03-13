@@ -128,7 +128,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
           <div className="flex flex-row justify-between items-start md:items-center gap-4 md:gap-0">
             <h3 className="text-base md:text-xl font-semibold">Ödeme Detayları</h3>
             {/* <Button
-              className="w-auto bg-muted text-black text-sm md:text-base hover:bg-muted/80 hover:text-black border-sac-green"
+              className="w-auto bg-muted text-black text-sm md:text-base hover:bg-muted/80 hover:text-black border-sac-primary"
               onClick={handleDownloadPDF}
             >
               <Download className="h-4 w-4 mr-0 md:mr-2" />
@@ -143,7 +143,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               <div className="flex items-center gap-2">
                 <p className="font-medium text-sm md:text-base">{lastDepositDate.toLocaleDateString("tr-TR")}</p>
                 {shareholderInfo.paid_amount >= 5000 && (
-                  <span className="text-sm md:text-base text-sac-green">• Ödeme yapıldı</span>
+                  <span className="text-sm md:text-base text-sac-primary">• Ödeme yapıldı</span>
                 )}
               </div>
             </div>
@@ -175,7 +175,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
                 {
                   "text-sac-red": shareholderInfo.paid_amount < 5000,
                   "text-sac-yellow": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
-                  "text-sac-green": shareholderInfo.remaining_payment <= 0,
+                  "text-sac-primary": shareholderInfo.remaining_payment <= 0,
                 }
               )}>
                 {shareholderInfo.paid_amount < 5000

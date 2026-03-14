@@ -1,0 +1,21 @@
+---
+description: Türkiye telefon numarası formatı kuralları
+globs: 
+---
+# PHONE FORMAT RULE (Türkiye)
+
+## Veritabanı Formatı
+Türkiye telefon numaraları veritabanında **her zaman** `+90` formatında saklanmalıdır.
+
+- **Doğru:** `+905555555555`
+- **Yanlış:** `05555555555`, `905555555555`, `555 555 55 55`
+
+## Uygulama
+- **Kaydetmeden önce:** `formatPhoneForDB()` (utils/formatters) kullan
+- **Gösterirken:** `formatPhoneForDisplayWithSpacing()` kullan (0555 555 55 55)
+- **API tarafı:** Gelen `phone_number` değerini DB'ye yazmadan önce formatla
+
+## Kapsam
+- Hissedar düzenleme (admin)
+- Hissedar oluşturma (hisse alım, kurbanlık detay)
+- reminder_requests, iletişim formu vb. tüm telefon alanları

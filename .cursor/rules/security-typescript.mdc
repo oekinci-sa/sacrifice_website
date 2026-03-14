@@ -1,0 +1,24 @@
+---
+description: Siber güvenlik ve TypeScript güvenliği kuralları
+globs: 
+---
+# SECURITY & TYPESCRIPT SAFETY RULE
+
+## Siber Güvenlik
+Yazılan tüm kodlar siber güvenlik zaafiyetlerine karşı sağlam olmalıdır:
+
+- **Input validation:** Tüm kullanıcı girdileri doğrulanmalı (Zod, yup vb.)
+- **SQL Injection:** Parametreli sorgular kullan; raw string concatenation yasak
+- **XSS:** `dangerouslySetInnerHTML` kullanımından kaçın; kullanılacaksa sanitize et (DOMPurify vb.)
+- **CSRF:** Form/API isteklerinde uygun token/header kontrolü
+- **Auth:** Hassas endpoint'lerde session/auth kontrolü zorunlu
+- **Secrets:** API key, şifre vb. asla koda hardcode etme; env variable kullan
+- **Rate limiting:** Public API'lerde brute-force koruması düşün
+
+## TypeScript Güvenliği
+- **strict mode:** `strict: true` kullan; `any` kullanımından kaçın
+- **Null safety:** `undefined`/`null` kontrolleri yap; optional chaining (`?.`) kullan
+- **Type assertions:** `as` kullanımını minimize et; gerekirse type guard tercih et
+- **Narrowing:** Union type'larda kontrol sonrası daraltma yap
+- **Return types:** Fonksiyonlara açık return type yaz
+- **Error handling:** `unknown` veya `Error` tipinde yakala; `catch (e: any)` kullanma

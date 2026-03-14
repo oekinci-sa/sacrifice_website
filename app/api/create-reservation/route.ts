@@ -1,3 +1,4 @@
+import { TIMEOUT_DURATION } from '@/lib/constants/reservation-timer';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -93,6 +94,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // expires_at: TIMEOUT_DURATION ile client ile senkron (lib/constants/reservation-timer.ts)
+    const expiresAt = new Date(Date.now() + TIMEOUT_DURATION * 1000).toISOString();
+
     // created_at: DB default (now() = UTC) kullanılır
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
@@ -103,6 +107,7 @@ export async function POST(request: NextRequest) {
           sacrifice_id,
           share_count,
           status: ReservationStatus.ACTIVE,
+          expires_at: expiresAt,
         }
       ])
       .select();

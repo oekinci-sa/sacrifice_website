@@ -1,6 +1,6 @@
 "use client";
 
-import websiteLogoWhite from "@/public/website-logo-white.svg";
+import websiteLogoWhite from "@/public/logos/ankara-kurban/ankara-kurban-white.svg";
 import Image from "next/image";
 
 import EmptySharesBadge from "@/components/common/empty-shares-badge";

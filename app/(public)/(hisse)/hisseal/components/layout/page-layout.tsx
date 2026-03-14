@@ -29,13 +29,13 @@ export interface PageLayoutProps {
     tabValue?: string;
     timeLeft?: number;
     showWarning?: boolean;
+    showInactivityWarning?: boolean;
+    inactivitySecondsLeft?: number;
     columns?: ColumnDef<sacrificeSchema>[];
     data?: sacrificeSchema[];
     selectedSacrifice?: sacrificeSchema | null;
     formData?: FormDataType[];
     isLoading?: boolean;
-    serverTimeRemaining?: number;
-
     // Form handlers
     onSacrificeSelect?: (sacrifice: sacrificeSchema) => void;
     updateShareCount?: (shareCount: number) => void;
@@ -43,7 +43,6 @@ export interface PageLayoutProps {
     goToStep?: (step: Step) => void;
     resetStore?: () => void;
     setLastInteractionTime?: (time: number) => void;
-    setTimeLeft?: (time: number) => void;
     handleApprove?: () => void;
     toast?: ToastFunction;
 
@@ -64,6 +63,7 @@ export interface PageLayoutProps {
     handleDismissWarning?: (warningType?: "three-minute" | "one-minute") => void;
     getRemainingMinutesText?: () => string;
     isReservationLoading?: boolean;
+    oneMinuteCountdown?: number;
 }
 
 export const PageLayout = ({
@@ -76,12 +76,13 @@ export const PageLayout = ({
     tabValue,
     timeLeft,
     showWarning,
+    showInactivityWarning,
+    inactivitySecondsLeft,
     columns,
     data,
     selectedSacrifice,
     formData,
     isLoading,
-    serverTimeRemaining,
 
     // Form handlers
     onSacrificeSelect,
@@ -90,7 +91,6 @@ export const PageLayout = ({
     goToStep,
     resetStore,
     setLastInteractionTime,
-    setTimeLeft,
     handleApprove,
     toast,
 
@@ -111,6 +111,7 @@ export const PageLayout = ({
     handleDismissWarning,
     getRemainingMinutesText,
     isReservationLoading,
+    oneMinuteCountdown,
 }: PageLayoutProps) => {
     return (
         <div className="container flex flex-col space-y-8">
@@ -121,7 +122,6 @@ export const PageLayout = ({
                     currentStep={currentStep as Step || "selection"}
                     tabValue={tabValue || "tab-1"}
                     timeLeft={timeLeft || 0}
-                    showWarning={showWarning || false}
                     columns={columns || []}
                     data={data || []}
                     selectedSacrifice={selectedSacrifice || null}
@@ -136,11 +136,9 @@ export const PageLayout = ({
                     goToStep={(step) => goToStep?.(step as Step)}
                     resetStore={resetStore || (() => { })}
                     setLastInteractionTime={(time) => setLastInteractionTime?.(time)}
-                    setTimeLeft={(value) => setTimeLeft?.(typeof value === 'function' ? value(timeLeft || 0) : value)}
                     handleApprove={handleApprove ? async () => await handleApprove() : async () => { }}
                     toast={(props) => toast?.(props) || (() => { })}
                     isLoading={isLoading || false}
-                    serverTimeRemaining={serverTimeRemaining}
                 />
             )}
 
@@ -167,6 +165,8 @@ export const PageLayout = ({
                 setShowThreeMinuteWarning={(show) => setShowThreeMinuteWarning?.(show) || undefined}
                 showOneMinuteWarning={!!showOneMinuteWarning}
                 setShowOneMinuteWarning={(show) => setShowOneMinuteWarning?.(show) || undefined}
+                showInactivityWarning={!!showInactivityWarning}
+                inactivitySecondsLeft={inactivitySecondsLeft ?? 0}
                 handleDismissWarning={(warningType) => {
                     if (handleDismissWarning) {
                         return handleDismissWarning(warningType);
@@ -174,6 +174,7 @@ export const PageLayout = ({
                     return undefined;
                 }}
                 getRemainingMinutesText={getRemainingMinutesText || (() => "")}
+                oneMinuteCountdown={oneMinuteCountdown}
             />
         </div>
     );

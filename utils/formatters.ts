@@ -1,14 +1,15 @@
-// Format phone number for database (ensure +9 prefix)
+// Format phone number for database (Türkiye: her zaman +90 formatı)
 export const formatPhoneForDB = (phone: string): string => {
-  if (!phone) return "";
-  const cleanPhone = phone.replace(/\D/g, ""); // Remove non-digits
-  if (cleanPhone.startsWith("9")) {
-    return `+${cleanPhone}`;
+  if (!phone || typeof phone !== "string") return "";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10) return "";
+  // 0 ile başlıyorsa kaldır (05555555555 -> 5555555555)
+  const normalized = digits.startsWith("0") ? digits.slice(1) : digits;
+  // 90 ile başlıyorsa + ekle, değilse +90 ekle
+  if (normalized.startsWith("90") && normalized.length >= 12) {
+    return `+${normalized}`;
   }
-  if (cleanPhone.startsWith("0")) {
-    return `+9${cleanPhone}`;
-  }
-  return `+90${cleanPhone}`;
+  return `+90${normalized}`;
 };
 
 // Format phone number for display with spacing (0555 555 55 55)

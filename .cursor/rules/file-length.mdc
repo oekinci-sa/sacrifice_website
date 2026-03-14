@@ -1,0 +1,17 @@
+---
+description: Dosya uzunluğu limitleri (soft/hard)
+globs: 
+---
+# FILE LENGTH RULE
+
+## Limitler
+- **Soft limit (200 satır):** Mümkünse dosyayı böl; yeni kod eklerken bu sınırı aşmamaya çalış
+- **Hard limit (300 satır):** Yeni kodda geçme; mevcut dosyalar için refactor hedefi
+
+## İstisnalar
+- `components/ui/` altındaki shadcn bileşenleri (sidebar, chart, field vb.) – güncelleme uyumluluğu için dokunulmaz
+
+## Bölme stratejisi
+- Hooks: Alt-hook'lara veya yardımcı modüllere ayır
+- Columns: Kolon tanımlarını ayrı dosyalara taşı (columns/ alt klasör)
+- Sayfa bileşenleri: Ortak parçaları components/ altına taşı

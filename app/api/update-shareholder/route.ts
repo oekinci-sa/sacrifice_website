@@ -1,5 +1,6 @@
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { formatPhoneForDB } from '@/utils/formatters';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Define the expected structure for shareholder updates
@@ -61,9 +62,12 @@ export async function POST(request: NextRequest) {
       last_edited_by: updateData.last_edited_by // Required field
     };
 
-    // Copy other fields if they exist
+    // Copy other fields if they exist (phone_number: her zaman +90 formatında sakla)
     if (updateData.shareholder_name !== undefined) updateFields.shareholder_name = updateData.shareholder_name;
-    if (updateData.phone_number !== undefined) updateFields.phone_number = updateData.phone_number;
+    if (updateData.phone_number !== undefined) {
+      const formatted = formatPhoneForDB(updateData.phone_number);
+      if (formatted) updateFields.phone_number = formatted;
+    }
     if (updateData.delivery_fee !== undefined) updateFields.delivery_fee = updateData.delivery_fee;
     if (updateData.delivery_location !== undefined) updateFields.delivery_location = updateData.delivery_location;
     if (updateData.sacrifice_consent !== undefined) updateFields.sacrifice_consent = updateData.sacrifice_consent;

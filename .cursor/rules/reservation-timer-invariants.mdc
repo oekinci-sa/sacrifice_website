@@ -1,0 +1,111 @@
+---
+description: Reservation timer ve transaction ID sıfırlama kuralları — hisseal sayfası
+globs:
+  - app/(public)/(hisse)/hisseal/**
+  - helpers/hisseal/**
+  - hooks/useReservations/**
+alwaysApply: false
+---
+
+# Reservation Timer & Transaction ID Invariants
+
+Bu kurallar hisseal sayfasındaki zamanlama ve rezervasyon mantığının bozulmaması için
+çok kritiktir. Bu dosyalarda değişiklik yaparken mutlaka uyulmalıdır.
+
+## 1. `resetStore()` + `generateNewTransactionId()` HER ZAMAN birlikte çağrılmalı
+
+Kullanıcı herhangi bir şekilde 2. adımdan (details/confirmation) geri döndüğünde:
+
+```
+resetStore();
+generateNewTransactionId();
+goToStep("selection");
+```
+
+Bu üçlü sıra **asla bozulmamalıdır**. `generateNewTransactionId()` çağrılmazsa:
+- Yeni rezervasyon eski `transaction_id` ile oluşturulur
+- `useReservationAndWarningManager` eski timer state'ini kullanır
+- 15 dakikalık süre sıfırdan değil, önceki oturumun kalan süresinden başlar
+
+Bu pattern şu dosyalarda kullanılır:
+- `useCheckoutForm.ts` → `confirmBack`, `handleLastShareAction`
+- `form-view.tsx` → `onBack` callback
+- `navigation-history.ts` → `handleRouteChange`
+- `timeout-handlers.ts` → `createHandleCustomTimeout`
+- `page.tsx` → `handleTimeoutRedirect`
+
+## 2. `useReservationStatus` polling TEKRARLANMAMALI
+
+`usePageInitialization` zaten `useReservationStatus` ile 10 saniyede bir polling yapıyor.
+**Başka hiçbir component kendi `useReservationStatus` instance'ını oluşturmamalı.**
+Aksi halde her instance ayrı bir polling loop başlatır ve sunucuya gereksiz istek yağar.
+
+`form-view.tsx` gibi alt componentler `timeLeft` prop'unu parent'tan almalı,
+kendi timer state'lerini tutmamalıdır.
+
+## 3. Timer state sıfırlama
+
+`useReservationAndWarningManager` içindeki `resetSessionTimerState` fonksiyonu
+`transactionId` veya `shouldCheckStatus` değiştiğinde otomatik çalışır.
+Bu fonksiyon şunları sıfırlar:
+- `startTimeRef`, `timerBaseSecondsRef`
+- `warningShownRef`, `permanentlyDismissedOneMinuteWarning`
+- `exactWarningTimeRef`
+- `timeLeft` → 900 (15 dk)
+- `showThreeMinuteWarning`, `showOneMinuteWarning` → false
+
+Bu fonksiyona müdahale edilmemeli, dependency array'i değiştirilmemelidir.
+
+## 4. DB timezone karşılaştırması
+
+`reservation_transactions.expires_at` alanı `TIMESTAMPTZ` (UTC) olarak saklanır.
+Supabase cron fonksiyonu (`check_expires_at_field`) içinde karşılaştırma:
+
+```sql
+expires_at < now()
+```
+
+şeklinde olmalıdır. **ASLA** `timezone('Europe/Istanbul', now())` kullanılmamalıdır.
+`now()` zaten `TIMESTAMPTZ` döner ve PostgreSQL otomatik olarak doğru karşılaştırma yapar.
+`timezone()` fonksiyonu `timestamp without time zone` döner ve bu `TIMESTAMPTZ` ile
+karşılaştırıldığında yanlış sonuç verir (rezervasyonlar erken expire olur).
+
+## 5. Session ve Inactivity Timer — Uyarı Kapatma ve Handler Defer
+
+Detaylı akış: `.project-architecture/reservation-timeout-flow.md`
+
+### 5.1 Her timeout yolunda tüm uyarılar kapatılmalı
+
+`handleTimeoutRedirect` veya `performRedirect` çağrılmadan önce **mutlaka** şunlar yapılmalıdır:
+
+- `setShowWarning(false)` — Inactivity banner (session timeout ile 1. adıma dönünce ekranda kalır)
+- `setShowThreeMinuteWarning(false)`
+- `setShowOneMinuteWarning(false)`
+- `setIsDialogOpen(false)`, `setShowReservationInfo(false)`
+
+Bu kural şu yollar için geçerlidir:
+- `handleTimeLeft` (session timer süresi dolduğunda)
+- `useHandleInteractionTimeout` (inactivity — openDialogs + createHandleCustomTimeout)
+- Bootstrap (expiryData.timeLeftSeconds <= 0)
+- Supabase realtime (status === 'expired')
+- reservationStatus useEffect (status === EXPIRED)
+
+### 5.2 Inactivity handler requestAnimationFrame ile defer edilmeli
+
+`helpers/hisseal/timeout.ts` — `useHandleInteractionTimeout` içinde, `timeLeft <= 0` olduğunda:
+
+```ts
+requestAnimationFrame(() => {
+  void handler();
+});
+```
+
+**Yasak:** `setTimeout(0, () => void handler())` veya doğrudan `void handler()` — inactivity sonrası sayfa yanıt vermeme (buton tıklanamama) sorununa yol açar.
+
+### 5.3 Inactivity ve Session aynı performRedirect kullanmalı
+
+`createHandleCustomTimeout` (timeout-handlers.ts) **mutlaka** `performRedirect` (= `handleTimeoutRedirect`) kullanmalı. Ayrı bir redirect fonksiyonu yazılmamalı — iki farklı akış sayfa kilitlenmesine yol açar.
+
+### 5.4 useTrackInteractions — setTimeLeft çağrılmamalı
+
+`useTrackInteractions` içinde `setTimeLeft` **asla** çağrılmamalı. Session timer display'dan gelir; her tıklamada timer sıçrar ve titreşim olur.

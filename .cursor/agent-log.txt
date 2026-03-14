@@ -158,4 +158,90 @@
 - .project-architecture/controls.md, features.md
 - components/COMPONENTS.md
 
+[Risk] Düşük – Genel Bakış loading mantığı değişti; boş tenant'ta artık UI düzgün yükleniyor.
+
+=== 2025-03-13 ===
+
+[İstek] Dosya uzunluğu rule ve plan uygulaması (file_length_rule_and_split)
+
+[Yapılan Değişiklikler]
+1. .cursor/rules/file-length.mdc: 200 soft / 300 hard limit, shadcn istisnası
+2. general-rules.mdc: Eski 300 satır kuralı kaldırıldı
+3. hisseal-helpers.ts → helpers/hisseal/ (types, page-unload, timeout, navigation, navigation-history, share-selection, index)
+4. usePageLifecycle: @/helpers/hisseal import güncellendi
+5. tum-kurbanliklar columns.tsx: ActionCellContent → columns/ActionCell.tsx
+6. checkout.tsx: useCheckoutForm, CheckoutDialogs → checkout/ altına taşındı
+7. hisseal/page.tsx: FilteredSacrificesContent, useHissealPageHandlers → process-state/, hooks/
+8. useReservations.ts → hooks/useReservations/ (types, useReservationStatus, useCreateReservation, useUpdateShareCount, useCancelReservation, useTimeoutReservation, useCompleteReservation, index)
+9. ShareFilters.tsx: FilterCountBadge, SelectedFiltersDisplay, DataTableFacetedFilter, ShareFiltersFallback → ShareFilters/ altına taşındı
+10. useReservationAndWarningManager: reservation-timer-utils (formatRemainingTime, fetchReservationExpiry) ayrıldı
+11. success-view.tsx: SuccessViewLoadingSkeletons, SuccessViewErrorMessage, SuccessViewPdfSection, SuccessViewNoData → success-view/ altına taşındı
+12. shareholder-summary.tsx: ShareholderSummaryCard, useShareholderSummaryApproval, formatSacrificeTime → shareholder-summary/ altına taşındı
+
+[Dosyalar]
+- .cursor/rules/file-length.mdc, general-rules.mdc
+- helpers/hisseal/* (types, page-unload, timeout, navigation, navigation-history, share-selection, index)
+- app/(public)/(hisse)/hisseal/hooks/usePageLifecycle.ts, useHissealPageHandlers.ts
+- app/(admin)/kurban-admin/kurbanliklar/tum-kurbanliklar/components/columns.tsx, columns/ActionCell.tsx
+- app/(public)/(hisse)/hisseal/components/shareholder-info-step/checkout.tsx, checkout/*
+- app/(public)/(hisse)/hisseal/page.tsx, components/process-state/FilteredSacrificesContent.tsx
+- hooks/useReservations/* (types, useReservationStatus, useCreateReservation, useUpdateShareCount, useCancelReservation, useTimeoutReservation, useCompleteReservation, index)
+- app/(public)/(hisse)/hisseal/components/table-step/ShareFilters.tsx, ShareFilters/*
+- app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts, reservation-timer-utils.ts
+- app/(public)/(hisse)/hisseal/components/success-state/success-view.tsx, success-view/*
+- app/(public)/(hisse)/hisseal/components/confirmation-step/shareholder-summary.tsx, shareholder-summary/*
+
+[Risk] Orta – Birçok dosya bölündü; import path'ler değişti. Build başarılı.
+
+=== 2025-03-13 ===
+
+[İstek] Siber güvenlik + TypeScript rule; elyahayvancilik rounded sıfır; telefon +90 formatı
+
+[Yapılan Değişiklikler]
+1. .cursor/rules/security-typescript.mdc, phone-format.mdc
+2. utils/formatters.ts: formatPhoneForDB iyileştirildi
+3. app/api/update-shareholder/route.ts: API phone formatlama
+4. components/theme/ThemeStyles.tsx: Elyahayvancilik --radius: 0
+
+[Dosyalar]
+- .cursor/rules/security-typescript.mdc, phone-format.mdc
+- utils/formatters.ts, app/api/update-shareholder/route.ts, components/theme/ThemeStyles.tsx
+
 [Risk] Düşük – Genel Bakış loading mantığı değişti; boş tenant’ta artık UI düzgün yükleniyor.
+
+=== 2026-03-13 ===
+
+[İstek] Hisse al sayfasında timer/expired akışını düzelt; eski sayaç yeni rezervasyona taşınmasın
+
+[Yapılan Değişiklikler]
+1. hooks/useReservations/useReservationStatus.ts: transaction değişince stale reservation state hemen temizlendi
+2. app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts: session timer reset mantığı eklendi, eski legacy countdown kaldırıldı, timer baz süresi ref ile sabitlendi
+3. app/(public)/(hisse)/hisseal/page.tsx: timeout redirect sırasında yeni transaction_id üretiliyor ve manager'a aktif transaction_id geçiriliyor
+4. app/(public)/(hisse)/hisseal/hooks/useHissealPageHandlers.ts, handlers/timeout-handlers.ts: timeout/expired dönüşünde yeni transaction_id üretimi eklendi
+5. Supabase cron ve reservation TTL kontrol edildi: cron job 30 saniyede bir çalışıyor, reservation TTL veritabanında 15 dakika
+
+[Dosyalar]
+- hooks/useReservations/useReservationStatus.ts
+- app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts
+- app/(public)/(hisse)/hisseal/page.tsx
+- app/(public)/(hisse)/hisseal/hooks/useHissealPageHandlers.ts
+- app/(public)/(hisse)/hisseal/handlers/timeout-handlers.ts
+
+[Risk] Orta – Timer akışı birden fazla effect ve realtime/polling birlikte çalıştığı için runtime davranış canlı veriyle tekrar doğrulanmalı; TypeScript ve lint temiz.
+
+=== 2026-03-13 ===
+
+[İstek] Supabase expire cron timezone hatasını düzelt; kritik notu db klasörüne yaz; expired sonrası dönüş gecikmesini azalt
+
+[Yapılan Değişiklikler]
+1. .project-architecture/db/tables/reservation_transactions/functions_and_triggers/check_expires_at_field.sql: timezone('Europe/Istanbul', now()) yerine now() kullanıldı ve UTC/timestamptz kritik notu eklendi
+2. .project-architecture/db/migrations/reservation_transactions_fix_expiry_timezone.sql: aynı düzeltme migration olarak eklendi
+3. Supabase migration uygulandı; canlı public.check_expires_at_field() fonksiyonu doğrulandı
+4. app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts: sabit 2sn bekleme kaldırıldı, kısa retry bootstrap eklendi; expired realtime event'inde erken return ile redirect gecikmesi azaltıldı
+
+[Dosyalar]
+- .project-architecture/db/tables/reservation_transactions/functions_and_triggers/check_expires_at_field.sql
+- .project-architecture/db/migrations/reservation_transactions_fix_expiry_timezone.sql
+- app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts
+
+[Risk] Düşük/Orta – DB tarafındaki timezone bug'ı çözüldü; expire cron hâlâ 30 saniyelik schedule ile çalıştığı için sadece cron kaynaklı server-side expire görünürlüğünde doğal bir periyot gecikmesi olabilir.

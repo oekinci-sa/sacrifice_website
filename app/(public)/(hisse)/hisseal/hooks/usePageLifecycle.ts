@@ -3,7 +3,7 @@ import {
     useHandleNavigationHistory,
     useHandlePageUnload,
     useTrackInteractions,
-} from "@/helpers/hisseal-helpers";
+} from "@/helpers/hisseal";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { SacrificeQueryResult, sacrificeSchema } from "@/types";
 import { UpdateShareCountMutation } from "@/types/reservation";
@@ -49,7 +49,7 @@ interface UsePageLifecycleProps {
     setLastInteractionTime: (time: number) => void;
     showWarning: boolean;
     setShowWarning: (show: boolean) => void;
-    setTimeLeft: (time: number) => void;
+    setInactivitySecondsLeft: (seconds: number) => void;
     showReservationInfo: boolean;
     setShowReservationInfo: (show: boolean) => void;
     showThreeMinuteWarning: boolean;
@@ -58,8 +58,8 @@ interface UsePageLifecycleProps {
     setShowOneMinuteWarning: (show: boolean) => void;
     cameFromTimeout: boolean;
     setCameFromTimeout: (timeout: boolean) => void;
-    TIMEOUT_DURATION: number;
-    WARNING_THRESHOLD: number;
+    INACTIVITY_TIMEOUT: number;
+    INACTIVITY_WARNING_THRESHOLD: number;
     handleCustomTimeout: () => Promise<void>;
     toast: ToastFunction;
 }
@@ -89,7 +89,7 @@ export function usePageLifecycle({
     setLastInteractionTime,
     showWarning,
     setShowWarning,
-    setTimeLeft,
+    setInactivitySecondsLeft,
     showReservationInfo,
     setShowReservationInfo,
     showThreeMinuteWarning,
@@ -98,8 +98,8 @@ export function usePageLifecycle({
     setShowOneMinuteWarning,
     cameFromTimeout,
     setCameFromTimeout,
-    TIMEOUT_DURATION,
-    WARNING_THRESHOLD,
+    INACTIVITY_TIMEOUT,
+    INACTIVITY_WARNING_THRESHOLD,
     handleCustomTimeout,
     toast
 }: UsePageLifecycleProps) {
@@ -162,11 +162,6 @@ export function usePageLifecycle({
         };
     }, [refetchSacrifices]);
 
-    // Memoize refetch function to ensure it returns a Promise - for useHandleInteractionTimeout
-    const refetchWithPromise = useMemo(() => {
-        return safeRefetchSacrifices; // Aynı fonksiyonu kullan
-    }, [safeRefetchSacrifices]);
-
     // Apply page-specific effects
     usePageEffects({
         pathname,
@@ -194,8 +189,6 @@ export function usePageLifecycle({
         isRefetching,
         sacrificesLength: sacrifices.length,
         setLastInteractionTime,
-        setTimeLeft,
-        TIMEOUT_DURATION,
         needsRerender
     });
 
@@ -219,17 +212,13 @@ export function usePageLifecycle({
         currentStep,
         selectedSacrifice,
         formData,
-        updateShareCount,
-        stepConverter,
-        resetStore,
         lastInteractionTime,
         showWarning,
         setShowWarning,
-        setTimeLeft,
-        TIMEOUT_DURATION,
-        WARNING_THRESHOLD,
+        setInactivitySecondsLeft,
+        INACTIVITY_TIMEOUT,
+        INACTIVITY_WARNING_THRESHOLD,
         dialogState,
-        refetchWithPromise,
         timeoutHandlerWithPromise
     );
 
@@ -237,9 +226,7 @@ export function usePageLifecycle({
     useTrackInteractions(
         currentStep,
         setLastInteractionTime,
-        setShowWarning,
-        setTimeLeft,
-        TIMEOUT_DURATION
+        setShowWarning
     );
 
     // Handle page unload/refresh DB updates

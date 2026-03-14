@@ -15,10 +15,14 @@
  * 3. Supabase'den tenant_settings.theme_json çekilir
  * 4. CSS değişkenleri :root'a inline style olarak eklenir
  * 5. globals.css'teki varsayılanlar override edilir
+ *
+ * ELYAHAYVANCIK (Gölbaşı): rounded sıfır - site farklı görünüm için
  */
 import { getTenantIdOptional } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { unstable_noStore } from "next/cache";
+
+const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
 
 export async function ThemeStyles() {
   unstable_noStore(); // Her istekte güncel tema; cache devre dışı
@@ -33,12 +37,19 @@ export async function ThemeStyles() {
     .single();
 
   const theme = (row?.theme_json ?? {}) as Record<string, string>;
-  if (Object.keys(theme).length === 0) return null;
+  const isGolbasi = tenantId === GOLBASI_TENANT_ID;
 
-  const cssVars = Object.entries(theme)
+  // Elyahayvancilik (3002): rounded sıfır - iki site farklı görünsün
+  const overrides: Record<string, string> = isGolbasi ? { radius: "0" } : {};
+
+  const mergedTheme = { ...theme, ...overrides };
+
+  const cssVars = Object.entries(mergedTheme)
     .filter(([, v]) => v != null && v !== "")
     .map(([k, v]) => `--${k}: ${v};`)
     .join("\n");
+
+  if (cssVars.length === 0) return null;
 
   return (
     <style

@@ -1,15 +1,14 @@
 import { TripleInfo } from "@/app/(public)/components/triple-info";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date-utils";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
-import { BlobProvider } from "@react-pdf/renderer";
-import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import ReceiptPDF from "./ReceiptPDF";
+import { SuccessViewErrorMessage } from "./success-view/SuccessViewErrorMessage";
+import { SuccessViewLoadingSkeletons } from "./success-view/SuccessViewLoadingSkeletons";
+import { SuccessViewNoData } from "./success-view/SuccessViewNoData";
+import { SuccessViewPdfSection } from "./success-view/SuccessViewPdfSection";
 
 interface SuccessViewProps {
   onPdfDownload?: () => void;
@@ -165,72 +164,6 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     };
   };
 
-  // Function to download PDF directly
-  const downloadPdf = (blob: Blob, shareholderName: string | undefined) => {
-    // shareholderName undefined kontrolü ekle
-    const safeName = shareholderName
-      ? shareholderName.replace(/\s+/g, "-")
-      : "hissedar";
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `kurban-hisse-bilgilendirme-${safeName}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Call the onPdfDownload callback if provided
-    if (onPdfDownload) {
-      onPdfDownload();
-    }
-  };
-
-  // Render loading skeletons
-  const renderLoadingSkeletons = () => (
-    <div className="mt-8 w-full max-w-xl mx-auto">
-      <div className="flex justify-between mb-4">
-        <Skeleton className="h-7 w-64" />
-      </div>
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="border rounded-lg p-3 flex justify-between items-center bg-gray-50 mb-3"
-        >
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-24" />
-          </div>
-          <Skeleton className="h-9 w-24" />
-        </div>
-      ))}
-    </div>
-  );
-
-  // Render error message
-  const renderErrorMessage = () => (
-    <Alert variant="destructive" className="mt-8 max-w-xl mx-auto">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Veri Alınamadı</AlertTitle>
-      <AlertDescription>
-        Hissedar bilgileri alınırken bir hata oluştu. Lütfen sayfayı
-        yenileyiniz.
-        {dbError && (
-          <p className="mt-2 text-xs">{(dbError as Error).message}</p>
-        )}
-        {debugInfo && (
-          <p className="mt-2 text-xs">Debug: {debugInfo}</p>
-        )}
-      </AlertDescription>
-    </Alert>
-  );
-
-  // Veritabanı durumuna göre içerik gösterimi
-  useEffect(() => {
-    if (dbData && dbData.shareholders && dbData.shareholders.length > 0) {
-    }
-  }, [dbData]);
-
   // Shareholder isim ve telefon bilgilerini göstermek için yardımcı fonksiyon
   const getShareholderDisplayName = (shareholder: ShareholderData) => {
     return (
@@ -275,90 +208,26 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       </div>
 
       {/* Veritabanı durumuna göre içerik gösterimi */}
-      {
-        <>
-          {isDbLoading && renderLoadingSkeletons()}
+      <>
+        {isDbLoading && <SuccessViewLoadingSkeletons />}
 
-          {isDbError && renderErrorMessage()}
+        {isDbError && (
+          <SuccessViewErrorMessage dbError={dbError} debugInfo={debugInfo} />
+        )}
 
-          {/* Veritabanından veriler başarıyla alındıysa PDF'leri göster */}
-          {dbData && dbData.shareholders && dbData.shareholders.length > 0 ? (
-            <div className="mt-8">
-              <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
-                Hissedar Bilgi Dökümanları
-              </h2>
-              <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-                {shareholdersToDisplay.map(
-                  (shareholder: ShareholderData, index: number) => {
-                    // Create receipt data using dbData
-                    const receiptData = createReceiptDataFromDb(shareholder);
-
-                    return (
-                      <div
-                        key={index}
-                        className="border p-3 flex justify-between gap-8 items-center bg-gray-50"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {getShareholderDisplayName(shareholder)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {getShareholderDisplayPhone(shareholder)}
-                          </p>
-                        </div>
-
-                        <BlobProvider
-                          document={
-                            <ReceiptPDF
-                              data={receiptData}
-                            />
-                          }
-                        >
-                          {({ blob, loading, error }) => (
-                            <Button
-                              className="flex items-center justify-center gap-1 md:gap-2 bg-primary hover:bg-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"
-                              onClick={() =>
-                                blob &&
-                                downloadPdf(
-                                  blob,
-                                  getShareholderDisplayName(shareholder)
-                                )
-                              }
-                              disabled={loading || !!error}
-                            >
-                              {loading ? (
-                                "Yükleniyor..."
-                              ) : error ? (
-                                "Hata!"
-                              ) : (
-                                <>
-                                  <i className="bi bi-cloud-download text-base md:text-xl"></i>
-                                  PDF İndir
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </BlobProvider>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-          ) : (
-            !isDbLoading && !isDbError && (
-              <div className="mt-8 text-center">
-                <div className="bg-amber-50 border border-amber-200 rounded-md p-4 max-w-md mx-auto">
-                  <h3 className="text-amber-800 font-medium mb-2">Veri Bulunamadı</h3>
-                  <p className="text-amber-700 text-sm">
-                    Hissedar bilgileri görüntülenemiyor. Lütfen Hisse Sorgula sayfasından işleminizi kontrol ediniz.
-                  </p>
-                </div>
-              </div>
-            )
-          )}
-        </>
-      }
+        {dbData?.shareholders && dbData.shareholders.length > 0 ? (
+          <SuccessViewPdfSection
+            shareholders={shareholdersToDisplay}
+            createReceiptData={(s) => createReceiptDataFromDb(s as ShareholderData)}
+            getDisplayName={(s) => getShareholderDisplayName(s as ShareholderData)}
+            getDisplayPhone={(s) => getShareholderDisplayPhone(s as ShareholderData)}
+            onPdfDownload={onPdfDownload}
+          />
+        ) : (
+          !isDbLoading &&
+          !isDbError && <SuccessViewNoData />
+        )}
+      </>
 
       <TripleInfo />
     </div>

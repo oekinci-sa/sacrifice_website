@@ -1,12 +1,11 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast as ToastType } from "@/components/ui/use-toast";
-import { useCancelReservation, useReservationStatus } from "@/hooks/useReservations";
+import { useCancelReservation } from "@/hooks/useReservations";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import CountdownTimer from '../common/countdown-timer';
 import ProgressBar from "../common/progress-bar";
 import ShareholderSummary from "../confirmation-step/shareholder-summary";
@@ -30,7 +29,6 @@ interface FormViewProps {
   currentStep: Step;
   tabValue: string;
   timeLeft: number;
-  showWarning: boolean;
   columns: ColumnDef<sacrificeSchema>[];
   data: sacrificeSchema[];
   selectedSacrifice: sacrificeSchema | null;
@@ -41,18 +39,15 @@ interface FormViewProps {
   goToStep: (step: Step) => void;
   resetStore: () => void;
   setLastInteractionTime: (time: number) => void;
-  setTimeLeft: (value: number | ((prevValue: number) => number)) => void;
   handleApprove: () => Promise<void>;
   toast: (props: Parameters<typeof ToastType>[0]) => void;
   isLoading?: boolean;
-  serverTimeRemaining?: number | null;
 }
 
 export const FormView = ({
   currentStep,
   tabValue,
   timeLeft,
-  showWarning,
   columns,
   data,
   selectedSacrifice,
@@ -61,52 +56,24 @@ export const FormView = ({
   goToStep,
   resetStore,
   setLastInteractionTime,
-  setTimeLeft,
   handleApprove,
-  serverTimeRemaining = null
 }: FormViewProps) => {
   const transaction_id = useReservationIDStore(state => state.transaction_id);
+  const generateNewTransactionId = useReservationIDStore(state => state.generateNewTransactionId);
   const cancelReservation = useCancelReservation();
-  const [localTimeRemaining, setLocalTimeRemaining] = useState(serverTimeRemaining ?? timeLeft);
 
-  // Check reservation status directly in component if needed
-  const shouldCheckStatus = currentStep === "details" || currentStep === "confirmation";
-  const { data: reservationStatus } = useReservationStatus(
-    shouldCheckStatus ? transaction_id : ''
-  );
-
-  // Update local time when server time changes
-  useEffect(() => {
-    if (reservationStatus?.timeRemaining !== undefined && reservationStatus?.timeRemaining !== null) {
-      setLocalTimeRemaining(reservationStatus.timeRemaining);
-    }
-  }, [reservationStatus?.timeRemaining]);
-
-  // Canlı geri sayım için timer
-  useEffect(() => {
-    if (!shouldCheckStatus) return;
-
-    const timer = setInterval(() => {
-      setLocalTimeRemaining(prevTime => {
-        if (prevTime <= 0) return 0;
-        return prevTime - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [shouldCheckStatus]);
-
-  // Format expiration time
-  const formatExpirationTime = () => {
-    if (!reservationStatus?.expires_at) return "";
-
-    const expiryDate = new Date(reservationStatus.expires_at);
+  // Derive expiration clock time from timeLeft — no separate polling needed.
+  // usePageInitialization already polls reservation status; duplicating it here
+  // caused excessive /api/check-reservation-status requests.
+  const expirationTime = useMemo(() => {
+    if (timeLeft <= 0) return "";
+    const expiryDate = new Date(Date.now() + timeLeft * 1000);
     return expiryDate.toLocaleTimeString('tr-TR', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
     });
-  };
+  }, [timeLeft]);
 
   return (
     <div className="flex flex-col gap-10 md:gap-12">
@@ -116,8 +83,8 @@ export const FormView = ({
       {/* Süre göstergesi - formun üst kısmında gösteriliyor */}
       {(currentStep === "details" || currentStep === "confirmation") && (
         <CountdownTimer
-          expirationTime={formatExpirationTime()}
-          remainingTime={localTimeRemaining}
+          expirationTime={expirationTime}
+          remainingTime={timeLeft}
         />
       )}
 
@@ -148,12 +115,16 @@ export const FormView = ({
           <Checkout
             onBack={(_shareCount) => {
               if (!selectedSacrifice) return;
-
+              // CRITICAL: resetStore + generateNewTransactionId must ALWAYS be called
+              // together before navigating back to selection. Without generateNewTransactionId
+              // the next reservation reuses the old transaction_id and the 15-min timer
+              // resumes from the previous session's remaining time.
               try {
                 cancelReservation.mutateAsync({
                   transaction_id
                 }).then(() => {
                   resetStore();
+                  generateNewTransactionId();
                   goToStep("selection");
                 }).catch(() => {
                 });
@@ -172,21 +143,10 @@ export const FormView = ({
             shareholders={formData}
             onApprove={handleApprove}
             setCurrentStep={goToStep}
-            remainingTime={localTimeRemaining}
-            setRemainingTime={setTimeLeft}
+            remainingTime={timeLeft}
           />
         </TabsContent>
       </Tabs>
-
-      <AlertDialog open={showWarning} onOpenChange={() => { }}>
-        <AlertDialogContent>
-          <AlertDialogTitle>Uyarı</AlertDialogTitle>
-          <AlertDialogDescription>
-            {timeLeft} saniye içerisinde işlem yapmazsanız hisse seçim sayfasına
-            yönlendirileceksiniz.
-          </AlertDialogDescription>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }; 

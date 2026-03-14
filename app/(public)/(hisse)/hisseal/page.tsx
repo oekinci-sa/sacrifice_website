@@ -1,65 +1,23 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
+import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
-import { SacrificeQueryResult, sacrificeSchema } from "@/types";
-import { usePathname, useSearchParams } from "next/navigation";
+import { sacrificeSchema } from "@/types";
+import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { FilteredSacrificesContent } from "./components/process-state/FilteredSacrificesContent";
 import { PageLayout } from "./components/layout/page-layout";
 import { ActiveReservationsInitializer, columns } from "./components/table-step/columns";
-import {
-  createHandleApprove,
-  createHandlePdfDownload,
-  createHandleReservationInfoClose,
-  createHandleSacrificeSelect,
-  createHandleShareCountSelect
-} from "./handlers/share-selection-handlers";
-import { createHandleCustomTimeout } from "./handlers/timeout-handlers";
+import { useHissealPageHandlers } from "./hooks/useHissealPageHandlers";
 import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import { useReservationAndWarningManager } from "./hooks/useReservationAndWarningManager";
 
-// Client component that uses useSearchParams
-function FilteredSacrificesContent({
-  sacrifices,
-  onFilteredSacrificesChange
-}: {
-  sacrifices: sacrificeSchema[],
-  onFilteredSacrificesChange: (data: sacrificeSchema[]) => void
-}) {
-  const searchParams = useSearchParams();
-  const priceParam = searchParams.get('price');
-  const activeReservations = useActiveReservationsStore(state => state.reservations);
-
-  // Apply filtering when sacrifices or priceParam changes
-  useEffect(() => {
-    if (sacrifices.length === 0) return;
-
-    // Yeni filtreleme mantığı:
-    // 1. empty_share > 0 VEYA bu hayvan üzerinde aktif işlem varsa (activeCount > 0) göster
-    const availableSacrifices = sacrifices.filter(sacrifice => {
-      // Hayvan üzerinde aktif işlem var mı?
-      const hasActiveReservations = Boolean(activeReservations[sacrifice.sacrifice_id]);
-
-      // Eğer boş hisse varsa VEYA aktif işlem yapılıyorsa göster
-      return sacrifice.empty_share > 0 || hasActiveReservations;
-    });
-
-    if (priceParam && !isNaN(Number(priceParam))) {
-      const price = Number(priceParam);
-      onFilteredSacrificesChange(availableSacrifices.filter(sacrifice => sacrifice.share_price === price));
-    } else {
-      onFilteredSacrificesChange(availableSacrifices);
-    }
-  }, [sacrifices, priceParam, onFilteredSacrificesChange, activeReservations]);
-
-  return null; // This component doesn't render anything, just handles the filtering
-}
-
 const Page = () => {
   const { toast } = useToast();
   const pathname = usePathname();
+  const router = useRouter();
 
   // Use ref to track if we need to force UI rerender
   const needsRerender = useRef(false);
@@ -138,28 +96,37 @@ const Page = () => {
     };
   }, []);
 
-  // Create key handlers directly in the component to avoid circular dependencies
   const handleTimeoutRedirect = useCallback(async () => {
+    const tid = useReservationIDStore.getState().transaction_id;
+    if (tid) {
+      try {
+        await fetch('/api/expire-reservation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transaction_id: tid, status: 'timed_out' }),
+        });
+      } catch {
+        // Best-effort — DB cron will catch it anyway
+      }
+    }
+
     resetStore();
+    generateNewTransactionId();
     goToStep("selection");
     needsRerender.current = true;
+    router.refresh();
     try {
       const sacrifices = await refetchSacrifices();
-      // Return a SacrificeQueryResult object instead of using the array directly
-      return {
-        data: sacrifices,
-        success: true
-      };
+      return { data: sacrifices, success: true };
     } catch (error) {
       return {
         data: undefined,
         success: false,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: error instanceof Error ? error : new Error(String(error)),
       };
     }
-  }, [resetStore, goToStep, refetchSacrifices]);
+  }, [resetStore, generateNewTransactionId, goToStep, refetchSacrifices, router]);
 
-  // Use our custom hook for reservation and warning management
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -169,6 +136,8 @@ const Page = () => {
     setLastInteractionTime,
     showWarning,
     setShowWarning,
+    inactivitySecondsLeft,
+    setInactivitySecondsLeft,
     isReservationLoading,
     showReservationInfo,
     setShowReservationInfo,
@@ -180,10 +149,10 @@ const Page = () => {
     setShowOneMinuteWarning,
     getRemainingMinutesText,
     handleDismissWarning,
-    fetchReservationExpiry,
-    TIMEOUT_DURATION,
-    WARNING_THRESHOLD
+    INACTIVITY_TIMEOUT,
+    INACTIVITY_WARNING_THRESHOLD
   } = useReservationAndWarningManager({
+    transactionId: transaction_id,
     reservationStatus,
     shouldCheckStatus,
     createReservation,
@@ -191,156 +160,48 @@ const Page = () => {
     toast
   });
 
-  // Callback for updating filtered sacrifices from the FilteredSacrificesContent
   const handleFilteredSacrificesChange = useCallback((data: sacrificeSchema[]) => {
-    // Bu noktada artık FilteredSacrificesContent bileşeni filtrelemeyi zaten yaptı
-    // Bu nedenle direkt olarak gelen datayı kullanabiliriz
     setFilteredSacrifices(data);
   }, []);
 
-  // Create action handlers
-  const handleSacrificeSelect = createHandleSacrificeSelect({
+  const {
+    handleSacrificeSelect,
+    handleShareCountSelect,
+    handleReservationInfoClose,
+    handleApprove,
+    handlePdfDownload,
+    handleCustomTimeout,
+    handleCustomTimeoutWithPromise,
+    refetchSacrificesWrapper,
+    handleUpdateShareCount,
+    handleDismissWarningWrapper,
+  } = useHissealPageHandlers({
     setCameFromTimeout,
     needsRerender,
+    generateNewTransactionId,
     setTempSelectedSacrifice,
-    setIsDialogOpen
-  });
-
-  const handleShareCountSelect = createHandleShareCountSelect({
+    setIsDialogOpen,
     tempSelectedSacrifice,
     updateShareCount,
     setSelectedSacrifice,
     setFormData,
     goToStep,
-    setIsDialogOpen,
     setLastInteractionTime,
-    toast,
     transaction_id,
     createReservation,
-    setShowReservationInfo
-  });
-
-  const handleReservationInfoClose = createHandleReservationInfoClose(
-    setShowReservationInfo
-  );
-
-  const handleApprove = createHandleApprove({
+    setShowReservationInfo,
     selectedSacrifice,
     formData,
     createShareholders,
     setSuccess,
-    goToStep,
-    toast,
-    transaction_id
-  });
-
-  const handlePdfDownload = createHandlePdfDownload();
-
-  // Create custom timeout handler
-  const handleCustomTimeout = createHandleCustomTimeout({
     resetStore,
-    goToStep,
-    toast,
-    refetchSacrifices: async (): Promise<SacrificeQueryResult> => {
-      try {
-        const sacrifices = await refetchSacrifices();
-        // Wrap the sacrifices array in a SacrificeQueryResult
-        return {
-          data: sacrifices,
-          success: true
-        };
-      } catch (error) {
-        // Return a failed result object instead of void
-        return {
-          data: undefined,
-          success: false,
-          error: error instanceof Error ? error : new Error(String(error))
-        };
-      }
-    },
-    transaction_id,
+    refetchSacrifices,
     setShowWarning,
-    setIsDialogOpen,
-    setShowReservationInfo,
     setShowThreeMinuteWarning,
     setShowOneMinuteWarning,
-    setCameFromTimeout,
-    needsRerender
+    handleDismissWarning,
+    performRedirect: handleTimeoutRedirect,
   });
-
-  // Create a promise-returning version for the lifecycle
-  const handleCustomTimeoutWithPromise = useCallback(async () => {
-    return await handleCustomTimeout();
-  }, [handleCustomTimeout]);
-
-  // Check for reservation status when transaction_id changes
-  useEffect(() => {
-    if (transaction_id && currentStep === "details") {
-      // Fetch the reservation expiry time from server
-      fetchReservationExpiry(transaction_id).then(expiryData => {
-        if (expiryData && expiryData.timeLeftSeconds <= 0) {
-          // If expired, redirect to selection
-          toast({
-            variant: "destructive",
-            title: "Rezervasyon Süresi Doldu",
-            description: "Rezervasyon süreniz dolmuş. Lütfen tekrar hisse seçiniz."
-          });
-
-          handleCustomTimeout();
-        }
-      });
-    }
-  }, [transaction_id, currentStep, fetchReservationExpiry, toast, handleCustomTimeout]);
-
-  // Safe server time remaining
-  const safeServerTimeRemaining = reservationStatus?.timeRemaining || undefined;
-
-  // Create a refetchSacrifices wrapper that returns SacrificeQueryResult
-  const refetchSacrificesWrapper = useCallback(async (): Promise<SacrificeQueryResult> => {
-    try {
-      const sacrifices = await refetchSacrifices();
-      return {
-        data: sacrifices,
-        success: true
-      };
-    } catch (error) {
-      return {
-        data: undefined,
-        success: false,
-        error: error instanceof Error ? error : new Error(String(error))
-      };
-    }
-  }, [refetchSacrifices]);
-
-  // Function to update share count in a type-safe way
-  const handleUpdateShareCount = async (count: number) => {
-    try {
-      if (updateShareCount && typeof updateShareCount.mutateAsync === 'function') {
-        await updateShareCount.mutateAsync({
-          transaction_id,
-          share_count: count,
-          operation: 'add'
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: "Sistem hatası: Hisse güncellemesi yapılamıyor."
-        });
-      }
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Hisse sayısı güncellenirken bir sorun oluştu."
-      });
-    }
-  };
-
-  // Wrapper for dismiss warning to match expected signature
-  const handleDismissWarningWrapper = (warningType: "three-minute" | "one-minute" = "three-minute") => {
-    handleDismissWarning(warningType);
-  };
 
   // Apply page lifecycle hooks but avoid circular dependencies
   usePageLifecycle({
@@ -368,7 +229,7 @@ const Page = () => {
     setLastInteractionTime,
     showWarning,
     setShowWarning,
-    setTimeLeft,
+    setInactivitySecondsLeft,
     showReservationInfo,
     setShowReservationInfo,
     showThreeMinuteWarning,
@@ -377,8 +238,8 @@ const Page = () => {
     setShowOneMinuteWarning,
     cameFromTimeout,
     setCameFromTimeout,
-    TIMEOUT_DURATION,
-    WARNING_THRESHOLD,
+    INACTIVITY_TIMEOUT,
+    INACTIVITY_WARNING_THRESHOLD,
     handleCustomTimeout: handleCustomTimeoutWithPromise,
     toast,
   });
@@ -434,6 +295,8 @@ const Page = () => {
         tabValue={tabValue}
         timeLeft={timeLeft}
         showWarning={showWarning}
+        showInactivityWarning={showWarning}
+        inactivitySecondsLeft={inactivitySecondsLeft}
         columns={columns}
         data={filteredSacrifices}
         selectedSacrifice={selectedSacrifice}
@@ -444,7 +307,6 @@ const Page = () => {
         goToStep={goToStep}
         resetStore={resetStore}
         setLastInteractionTime={setLastInteractionTime}
-        setTimeLeft={setTimeLeft}
         handleApprove={handleApprove}
         toast={toast}
         tempSelectedSacrifice={tempSelectedSacrifice}
@@ -462,7 +324,7 @@ const Page = () => {
         getRemainingMinutesText={getRemainingMinutesText}
         isReservationLoading={isReservationLoading}
         isLoading={isLoading}
-        serverTimeRemaining={safeServerTimeRemaining}
+        oneMinuteCountdown={showOneMinuteWarning ? timeLeft : undefined}
       />
     </>
   );

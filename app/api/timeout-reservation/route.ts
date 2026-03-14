@@ -1,10 +1,10 @@
-import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getTenantId } from '@/lib/tenant';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Rezervasyon zaman aşımı durumunu yöneten API endpoint
- * reservation_transactions tablosundaki status alanını 'timed out' olarak günceller
+ * reservation_transactions tablosundaki status alanını 'timed_out' olarak günceller
  * Bu işlem, empty_share alanını etkilemez - veritabanı trigger'ları ilgili güncellemeleri yapacaktır
  */
 export async function POST(request: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Eğer rezervasyon zaten işlenmişse (timed out, canceled, completed vb.)
+    // Eğer rezervasyon zaten işlenmişse (timed_out, canceled, completed vb.)
     if (existingReservation.status !== 'active') {
       return NextResponse.json({
         success: true,
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
-      .update({ status: 'timed out' })
+      .update({ status: 'timed_out' })
       .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
       .select();

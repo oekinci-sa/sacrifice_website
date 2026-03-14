@@ -53,7 +53,7 @@ setShowOneMinuteWarning(false);
   1. `cancelAnimationFrame`, `startTimeRef = null`
   2. Toast
   3. `setShowThreeMinuteWarning(false)`, `setShowOneMinuteWarning(false)`, **`setShowWarning(false)`**
-  4. `handleTimeoutRedirect()`
+  4. **`setTimeout(() => handleTimeoutRedirect(), 0)`** — defer zorunlu (Hisse Al butonu tıklanabilir kalmalı)
 
 ### 2. Inactivity timer (useHandleInteractionTimeout — setInterval)
 
@@ -63,7 +63,7 @@ setShowOneMinuteWarning(false);
   1. `firedRef.current = true`, `clearInterval`
   2. `setShowWarning(false)`
   3. `openDialogs`: `setIsDialogOpen(false)`, `setShowReservationInfo(false)`, `setShowThreeMinuteWarning(false)`, `setShowOneMinuteWarning(false)`
-  4. **`requestAnimationFrame(() => void handler())`** — handler'ı bir sonraki frame'de çalıştır (session ile aynı faz; sayfa yanıt vermeme sorununu önler)
+  4. **`setTimeout(() => void handler(), 0)`** — defer zorunlu (Hisse Al butonu tıklanabilir kalmalı)
 
 **Handler:** `createHandleCustomTimeout` (timeout-handlers.ts) → `performRedirect` (handleTimeoutRedirect)
 
@@ -77,19 +77,19 @@ setShowOneMinuteWarning(false);
 
 **Dosya:** `useReservationAndWarningManager.ts` — Supabase bootstrap
 
-- Tüm dialog/warning state'leri false → `handleTimeoutRedirect()`
+- Tüm dialog/warning state'leri false → `setTimeout(() => handleTimeoutRedirect(), 0)`
 
 ### 4. Supabase realtime (status === 'expired')
 
 **Dosya:** `useReservationAndWarningManager.ts` — postgres_changes subscription
 
-- Tüm dialog/warning state'leri false → Toast → `handleTimeoutRedirect()`
+- Tüm dialog/warning state'leri false → Toast → `setTimeout(() => handleTimeoutRedirect(), 0)`
 
 ### 5. reservationStatus (React Query — status === EXPIRED)
 
 **Dosya:** `useReservationAndWarningManager.ts` — useEffect
 
-- Tüm dialog/warning state'leri false → Toast → `handleTimeoutRedirect()`
+- Tüm dialog/warning state'leri false → Toast → `setTimeout(() => handleTimeoutRedirect(), 0)`
 
 ## handleTimeoutRedirect Akışı (page.tsx)
 
@@ -105,22 +105,21 @@ setShowOneMinuteWarning(false);
 
 **Kritik:** `resetStore()` + `generateNewTransactionId()` + `goToStep("selection")` sırası asla bozulmamalı.
 
-## Inactivity Handler — requestAnimationFrame Zorunluluğu
+## Tüm Timeout Yollarında Defer Zorunluluğu (Hisse Al butonu)
 
-`useHandleInteractionTimeout` içinde handler **mutlaka** `requestAnimationFrame` ile defer edilmelidir:
+**Session ve inactivity** dahil her timeout yolunda `handleTimeoutRedirect` **mutlaka** `setTimeout(0)` ile defer edilmelidir. Aksi halde 1. adıma dönünce **Hisse Al butonu tıklanamaz**.
 
+**Uygulanacak yerler:** handleTimeLeft, bootstrap, Supabase realtime, reservationStatus useEffect, useHandleInteractionTimeout
+
+**Örnek:**
 ```ts
-requestAnimationFrame(() => {
-  void handler();
-});
+setTimeout(() => handleTimeoutRedirect(), 0);
+// inactivity: setTimeout(() => void handler(), 0);
 ```
 
-**Sebep:** `setInterval` callback'i timer fazında çalışır. Session timeout `requestAnimationFrame` (animation fazı) içinde çalışır. Handler'ı `requestAnimationFrame` ile çalıştırmak:
-- React'ın setState batch'lerini işlemesine izin verir
-- Session timeout ile aynı event loop fazında çalıştırır
-- Inactivity sonrası sayfa yanıt vermeme (buton tıklanamama) sorununu önler
+**Sebep:** Timer/setInterval/useEffect callback'leri kendi fazlarında çalışır. Handler'ı sonraki macrotask'a atarak React'ın setState commit + paint tamamlamasına izin veririz.
 
-**Yasak:** `setTimeout(0)` veya doğrudan `void handler()` — sayfa kilitlenmesine yol açabilir.
+**Yasak:** Doğrudan `handleTimeoutRedirect()` veya `void handler()` — butonlar kilitlenir.
 
 ## Etkileşim Takibi (useTrackInteractions)
 

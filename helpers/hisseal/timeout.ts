@@ -66,11 +66,9 @@ export const useHandleInteractionTimeout = (
 
         const handler = handlerRef.current;
         if (handler) {
-          // Session timeout ile aynı "faz"da çalıştır — requestAnimationFrame kullan;
-          // inactivity sonrası sayfa yanıt vermeme sorununu azaltır
-          requestAnimationFrame(() => {
-            void handler();
-          });
+          // setTimeout(0): setInterval timer fazından çık, sonraki macrotask'ta çalıştır;
+          // React commit + paint tamamlansın — inactivity sonrası Hisse Al butonu tıklanamama
+          setTimeout(() => void handler(), 0);
         }
       }
     }, 1000);

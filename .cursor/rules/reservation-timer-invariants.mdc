@@ -90,17 +90,24 @@ Bu kural şu yollar için geçerlidir:
 - Supabase realtime (status === 'expired')
 - reservationStatus useEffect (status === EXPIRED)
 
-### 5.2 Inactivity handler requestAnimationFrame ile defer edilmeli
+### 5.2 Tüm timeout yollarında handleTimeoutRedirect defer edilmeli — Hisse Al butonu tıklanabilir kalmalı
 
-`helpers/hisseal/timeout.ts` — `useHandleInteractionTimeout` içinde, `timeLeft <= 0` olduğunda:
+**Session ve inactivity** dahil her timeout yolunda `handleTimeoutRedirect` **mutlaka** `setTimeout(0)` ile defer edilmelidir. Aksi halde 1. adıma dönünce **Hisse Al butonu tıklanamaz**.
 
+**Uygulanacak yerler:**
+- `useReservationAndWarningManager` — `handleTimeLeft` (session timer)
+- `useReservationAndWarningManager` — bootstrap (expiryData.timeLeftSeconds <= 0)
+- `useReservationAndWarningManager` — Supabase realtime (status === 'expired')
+- `useReservationAndWarningManager` — reservationStatus useEffect (EXPIRED)
+- `helpers/hisseal/timeout.ts` — `useHandleInteractionTimeout` (inactivity handler)
+
+**Önerilen:**
 ```ts
-requestAnimationFrame(() => {
-  void handler();
-});
+setTimeout(() => handleTimeoutRedirect(), 0);
+// veya inactivity için: setTimeout(() => void handler(), 0);
 ```
 
-**Yasak:** `setTimeout(0, () => void handler())` veya doğrudan `void handler()` — inactivity sonrası sayfa yanıt vermeme (buton tıklanamama) sorununa yol açar.
+**Yasak:** Doğrudan `handleTimeoutRedirect()` veya `void handler()` — React commit tamamlanmadan redirect olursa butonlar kilitlenir.
 
 ### 5.3 Inactivity ve Session aynı performRedirect kullanmalı
 
@@ -109,3 +116,11 @@ requestAnimationFrame(() => {
 ### 5.4 useTrackInteractions — setTimeLeft çağrılmamalı
 
 `useTrackInteractions` içinde `setTimeLeft` **asla** çağrılmamalı. Session timer display'dan gelir; her tıklamada timer sıçrar ve titreşim olur.
+
+### 5.5 KRİTİK: Her timeout sonrası Hisse Al butonu tıklanabilir olmalı
+
+**Session timeout** veya **inactivity timeout** ile 1. adıma (selection) dönüldüğünde kullanıcı **sayfa yenilemeden** Hisse Al butonuna basabilmeli. Bu bozulursa:
+
+1. **5.2** — Tüm timeout yollarında `handleTimeoutRedirect` defer ediliyor mu? (`setTimeout(0)`)
+2. **5.1** — Tüm dialog/warning state'leri redirect öncesi kapatılıyor mu?
+3. **5.3** — Inactivity `performRedirect` kullanıyor mu (session ile aynı akış)?

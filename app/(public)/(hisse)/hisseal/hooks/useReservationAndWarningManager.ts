@@ -120,7 +120,8 @@ export function useReservationAndWarningManager({
             setShowOneMinuteWarning(false);
             setShowWarning(false); // Inactivity uyarı banner'ını da kapat
 
-            handleTimeoutRedirect();
+            // Defer: React commit tamamlansın — session timeout sonrası Hisse Al butonu tıklanabilir kalmalı
+            setTimeout(() => handleTimeoutRedirect(), 0);
         }
     }, [formatRemainingTime, toast, handleTimeoutRedirect]);
 
@@ -224,7 +225,7 @@ export function useReservationAndWarningManager({
                 setShowReservationInfo(false);
                 setShowThreeMinuteWarning(false);
                 setShowOneMinuteWarning(false);
-                handleTimeoutRedirect();
+                setTimeout(() => handleTimeoutRedirect(), 0);
                 return;
             }
 
@@ -261,7 +262,7 @@ export function useReservationAndWarningManager({
                             description: "Rezervasyon süreniz doldu. Başa dönülüyor."
                         });
 
-                        handleTimeoutRedirect();
+                        setTimeout(() => handleTimeoutRedirect(), 0);
                         return;
                     }
 
@@ -308,7 +309,7 @@ export function useReservationAndWarningManager({
                 description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
             });
 
-            handleTimeoutRedirect();
+            setTimeout(() => handleTimeoutRedirect(), 0);
         }
     }, [reservationStatus, shouldCheckStatus, handleTimeoutRedirect, toast]);
 

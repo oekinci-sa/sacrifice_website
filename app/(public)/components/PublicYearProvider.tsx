@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export function PublicYearProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { fetchActiveYear, isInitialized } = usePublicYearStore();
+  const { fetchActiveYear } = usePublicYearStore();
 
   useEffect(() => {
     const yearParam = searchParams.get("year");

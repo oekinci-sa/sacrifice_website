@@ -22,7 +22,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "editor" | null;
+  role: "admin" | "editor" | "super_admin" | null;
   status: "pending" | "approved" | "blacklisted";
   image: string | null;
 }
@@ -37,7 +37,7 @@ export default function UserProfilePage() {
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = session?.user?.role === "admin" || session?.user?.role === "super_admin";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -238,13 +238,14 @@ export default function UserProfilePage() {
               <Select
                 value={user.role || ""}
                 onValueChange={(value) =>
-                  setUser({ ...user, role: value as "admin" | "editor" })
+                  setUser({ ...user, role: value as "admin" | "editor" | "super_admin" })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Rol seçin" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="super_admin">Super Yönetici</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="editor">Editör</SelectItem>
                 </SelectContent>

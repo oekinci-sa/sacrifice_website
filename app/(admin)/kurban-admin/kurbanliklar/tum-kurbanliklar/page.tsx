@@ -115,15 +115,16 @@ export default function TumKurbanliklarPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Tüm Kurbanlıklar</h2>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tüm Kurbanlıklar</h1>
+          <p className="text-muted-foreground mt-2">
+            Kurbanlık hayvanlarınızı ekleyebilir, hisse sayılarını ve fiyatlarını yönetebilirsiniz.
+          </p>
+        </div>
         <NewSacrificeAnimal />
       </div>
-
-      <p className="text-muted-foreground">
-        Sistemde kayıtlı tüm kurbanlıkların listesi
-      </p>
 
       {isLoading ? (
         <div className="space-y-4">

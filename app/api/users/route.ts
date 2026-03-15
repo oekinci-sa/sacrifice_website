@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         const session = await getServerSession(authOptions);
 
         // Check authorization (only admin can create users)
-        if (!session?.user || session.user.role !== "admin") {
+        if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
             return NextResponse.json({ error: "Unauthorized" }, {
                 status: 401,
                 headers: {
@@ -143,6 +143,7 @@ export async function POST(request: Request) {
             await supabaseAdmin.from("user_tenants").insert({
                 user_id: data.id,
                 tenant_id: tenantId,
+                approved_at: json.status === "approved" ? new Date().toISOString() : null,
             });
         }
 

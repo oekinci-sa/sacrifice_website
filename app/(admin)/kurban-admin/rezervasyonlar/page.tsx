@@ -28,11 +28,11 @@ export default function RezervasyonlarPage() {
   }, []);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Rezervasyonlar</h2>
-        <p className="text-muted-foreground">
-          reservation_transactions tablosu – tüm rezervasyon işlemleri
+        <h1 className="text-2xl font-semibold tracking-tight">Rezervasyonlar</h1>
+        <p className="text-muted-foreground mt-2">
+          Hisse rezervasyonlarını ve ödeme durumlarını buradan takip edebilirsiniz.
         </p>
       </div>
       {loading ? (

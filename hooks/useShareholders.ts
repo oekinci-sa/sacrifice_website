@@ -163,7 +163,7 @@ export const useDeleteShareholder = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { updateShareholder, fetchShareholders } = useShareholderStore();
+  const removeShareholder = useShareholderStore((s) => s.removeShareholder);
 
   const mutate = async (shareholderId: string) => {
     if (!shareholderId) {
@@ -187,8 +187,9 @@ export const useDeleteShareholder = () => {
         throw new Error(errorData.error || 'Hissedar silinirken bir hata oluştu');
       }
 
-      // Refresh shareholders after deletion
-      await fetchShareholders();
+      // Sadece ilgili hissedarı store'dan kaldır - tüm tabloyu yeniden çekme
+      removeShareholder(shareholderId);
+      window.dispatchEvent(new Event("shareholders-updated"));
 
       setIsLoading(false);
       return { deleted: true, shareholder_id: shareholderId };

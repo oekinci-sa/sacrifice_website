@@ -119,7 +119,7 @@ export async function PUT(
 
         const userId = params.id;
         const tenantId = getTenantId();
-        const isAdmin = session.user.role === "admin";
+        const isAdmin = session.user.role === "admin" || session.user.role === "super_admin";
         const isSameUser = session.user.id === userId;
 
         const belongsToTenant = await userBelongsToTenant(userId, tenantId);
@@ -196,7 +196,7 @@ export async function DELETE(
         const session = await getServerSession(authOptions);
 
         // Check authorization (admin only)
-        if (!session?.user || session.user.role !== "admin") {
+        if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
             return NextResponse.json({ error: "Unauthorized" }, {
                 status: 401,
                 headers: {

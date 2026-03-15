@@ -91,7 +91,11 @@ function DynamicBreadcrumb() {
       "degisiklik-kayitlari": "Değişiklik Kayıtları",
       "odeme-analizi": "Ödeme Analizi",
       "yazilar": "Yazılar",
-      "iletisim": "İletişim"
+      "iletisim": "İletişim",
+      "iletisim-mesajlari": "İletişim Mesajları",
+      "yeni": "Yeni Kullanıcı",
+      "reminder-talepleri": "Bana Haber Ver Talepleri",
+      "rezervasyonlar": "Rezervasyonlar"
     };
 
     // Eğer kelime düzeltme sözlüğünde varsa direkt olarak değiştirelim

@@ -1,4 +1,4 @@
-import { getTenantId } from "@/lib/tenant";
+import { getTenantIdOptional } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,7 +10,13 @@ export const revalidate = 0;
  */
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = getTenantId();
+    const tenantId = getTenantIdOptional();
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: "Tenant bulunamadı.", exists: false },
+        { status: 400 }
+      );
+    }
     const phone = request.nextUrl.searchParams.get("phone");
 
     if (!phone) {

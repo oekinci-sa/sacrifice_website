@@ -21,15 +21,79 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
+import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
-import { Loader2, Pencil, X } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Clock, Loader2, Pencil, Phone, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+function ContactedButton({
+  shareholderId,
+  isContacted,
+  shareholder,
+}: {
+  shareholderId: string;
+  isContacted: boolean;
+  shareholder: shareholderSchema;
+}) {
+  const [loading, setLoading] = useState(false);
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/shareholders/${shareholderId}/contacted`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contacted: !isContacted }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        updateShareholder({ ...data, sacrifice: shareholder.sacrifice });
+        window.dispatchEvent(new Event("shareholders-updated"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              isContacted
+                ? "bg-sac-blue-light text-sac-blue hover:bg-sac-blue-light/80"
+                : "bg-sac-yellow-light text-sac-yellow hover:bg-sac-yellow-light/80"
+            )}
+            onClick={handleClick}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isContacted ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Phone className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isContacted ? "Görüşülmedi olarak işaretle" : "Görüşüldü olarak işaretle"}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
@@ -178,6 +242,26 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     },
   },
   {
+    accessorKey: "contacted_at",
+    header: "Görüşüldü",
+    enableSorting: true,
+    sortingFn: (a, b) => {
+      const aVal = a.original.contacted_at ?? "";
+      const bVal = b.original.contacted_at ?? "";
+      return aVal.localeCompare(bVal);
+    },
+    cell: ({ row }) => {
+      const isContacted = !!row.original.contacted_at;
+      return (
+        <ContactedButton
+          shareholderId={row.original.shareholder_id}
+          isContacted={isContacted}
+          shareholder={row.original}
+        />
+      );
+    },
+  },
+  {
     accessorKey: "purchase_time",
     header: "Kayıt Tarihi",
     enableSorting: true,
@@ -186,7 +270,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     id: "payment_status",
-    header: "Ödeme Durumu",
+    header: "Ödeme",
     enableSorting: true,
     accessorFn: (row) => {
       const paid = parseFloat(row.paid_amount.toString());
@@ -198,82 +282,65 @@ export const columns: ColumnDef<shareholderSchema>[] = [
       const paid = parseFloat(row.original.paid_amount.toString());
       const total = parseFloat(row.original.total_amount.toString());
       const remaining = parseFloat(row.original.remaining_payment.toString());
-
-      const ratio = total > 0 ? (paid / total) * 100 : 0;
-      const ratioString = ratio.toFixed(0);
-
-      let statusText = "";
-      let statusColorClass = "";
+      let StatusIcon: React.ElementType;
+      let statusColorClass: string;
+      let tooltipLabel: string;
 
       if (paid < 5000) {
-        statusText = "Kapora Bekleniyor";
+        StatusIcon = AlertCircle;
         statusColorClass = "bg-sac-red-light text-sac-red";
+        tooltipLabel = "Kapora bekleniyor";
       } else if (paid < total) {
-        statusText = "Tüm Ödeme Bekleniyor";
+        StatusIcon = Clock;
         statusColorClass = "bg-sac-yellow-light text-sac-yellow";
+        tooltipLabel = "Kısmi ödeme";
       } else {
-        statusText = "Tamamlandı";
+        StatusIcon = CheckCircle2;
         statusColorClass = "bg-sac-primary-lightest text-sac-primary";
+        tooltipLabel = "Ödeme tamamlandı";
       }
 
-      // Format currency 
-      const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('tr-TR', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(amount) + ' TL';
-      };
+      const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + " TL";
 
       return (
         <div className="flex justify-center">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center space-x-2">
-                  <span className={`rounded-md px-1 py-1 w-[175px] text-center ${statusColorClass}`}>
-                    {statusText}
-                  </span>
-                  <span className={`rounded-md px-1 py-1 w-[50px] text-center ${statusColorClass}`}>
-                    %{ratioString}
-                  </span>
+                <div className={cn("flex items-center justify-center rounded-md p-1.5", statusColorClass)}>
+                  <StatusIcon className="h-4 w-4" />
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="p-4 w-[300px] bg-white">
-                <div className="space-y-2">
-                  {paid >= total ? (
-                    <div className="flex items-center justify-between">
+              <TooltipContent className="p-4 w-[260px] bg-white shadow-lg border">
+                <div className="space-y-3">
+                  <p className="font-semibold text-sm">{tooltipLabel}</p>
+                  <div className="grid gap-1.5 text-sm">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-sac-primary" />
-                        <span className="text-sm text-muted-foreground">Ödeme Tamamlandı:</span>
+                        <div className="w-2 h-2 rounded-full shrink-0 bg-sac-primary" />
+                        <span className="text-muted-foreground">Ödenen</span>
                       </div>
-                      <span className="text-sm font-medium">{formatCurrency(paid)}</span>
+                      <span className="font-medium tabular-nums">{formatCurrency(paid)}</span>
                     </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between">
+                    {paid < total && (
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-primary" />
-                          <span className="text-sm text-muted-foreground">Ödenen Tutar:</span>
+                          <div className="w-2 h-2 rounded-full shrink-0 bg-sac-red" />
+                          <span className="text-muted-foreground">Kalan</span>
                         </div>
-                        <span className="text-sm font-medium">{formatCurrency(paid)}</span>
+                        <span className="font-medium tabular-nums">{formatCurrency(remaining)}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-red" />
-                          <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{formatCurrency(remaining)}</span>
+                    )}
+                    <Separator />
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
+                        <span className="text-muted-foreground">Toplam</span>
                       </div>
-                      <Separator className="my-2 bg-gray-200" />
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-muted" />
-                          <span className="text-sm text-muted-foreground">Toplam Tutar:</span>
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{formatCurrency(total)}</span>
-                      </div>
-                    </>
-                  )}
+                      <span className="font-medium tabular-nums">{formatCurrency(total)}</span>
+                    </div>
+                  </div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -299,15 +366,6 @@ export const columns: ColumnDef<shareholderSchema>[] = [
           {sacrifice_consent ? "Alındı" : "Alınmadı"}
         </span>
       );
-    },
-  },
-  {
-    accessorKey: "security_code",
-    header: "Güvenlik Kodu",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const securityCode = row.getValue("security_code") as string;
-      return securityCode || "-";
     },
   },
   {

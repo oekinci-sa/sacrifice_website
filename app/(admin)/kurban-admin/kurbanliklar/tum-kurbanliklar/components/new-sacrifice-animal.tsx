@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useUser } from "@/hooks/useUsers";
 import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
@@ -95,7 +94,6 @@ export function NewSacrificeAnimal() {
   const [selectedPriceInfo, setSelectedPriceInfo] = useState(priceInfo[0] || { kg: '', price: '' });
   const { toast } = useToast();
   const { data: session } = useSession();
-  const { data: userData } = useUser(session?.user?.email);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,7 +110,8 @@ export function NewSacrificeAnimal() {
   const createSacrifice = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      if (!userData?.name) {
+      const userEmail = session?.user?.email;
+      if (!userEmail) {
         throw new Error("Kullanıcı bilgisi bulunamadı");
       }
 
@@ -124,7 +123,7 @@ export function NewSacrificeAnimal() {
         empty_share: values.empty_share,
         notes: values.notes || null,
         last_edited_time: new Date().toISOString(),
-        last_edited_by: userData.name
+        last_edited_by: userEmail // Admin: email saklanır
       };
 
       const response = await fetch('/api/create-sacrifice', {

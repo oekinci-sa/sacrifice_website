@@ -1,8 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateLong } from "@/lib/date-utils";
@@ -18,7 +24,13 @@ interface ShareholderInfoProps {
   sectionClass: string;
   labelClass: string;
   valueClass: string;
+  deliveryLocationOptions?: { label: string; value: string }[];
 }
+
+const DEFAULT_DELIVERY_OPTIONS: { label: string; value: string }[] = [
+  { label: "Kesimhane", value: "Kesimhane" },
+  { label: "Ulus (+750 TL)", value: "Ulus" },
+];
 
 export function ShareholderInfo({
   shareholderInfo,
@@ -27,7 +39,8 @@ export function ShareholderInfo({
   handleChange,
   sectionClass,
   labelClass,
-  valueClass
+  valueClass,
+  deliveryLocationOptions = DEFAULT_DELIVERY_OPTIONS,
 }: ShareholderInfoProps) {
   return (
     <div className={sectionClass}>
@@ -70,35 +83,48 @@ export function ShareholderInfo({
         <div className="space-y-1">
           <p className={labelClass}>Teslimat Tercihi</p>
           {isEditing ? (
-            <div className="flex gap-4 mt-1">
-              <Button
-                type="button"
-                onClick={() => handleChange?.('delivery_location', 'Kesimhane')}
-                className={cn(
-                  "flex-1 border border-gray-200 transition-all",
-                  editFormData?.delivery_location === "Kesimhane"
-                    ? "bg-primary text-white"
-                    : "bg-background hover:bg-muted text-foreground"
-                )}
+            <div className="space-y-2 mt-1">
+              <Select
+                value={
+                  deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? ""))
+                    ? (editFormData?.delivery_location ?? "Kesimhane")
+                    : "__OTHER__"
+                }
+                onValueChange={(v) => {
+                  handleChange?.("delivery_location", v === "__OTHER__" ? "" : v);
+                }}
               >
-                Kesimhane
-              </Button>
-              <Button
-                type="button"
-                onClick={() => handleChange?.('delivery_location', 'Ulus')}
-                className={cn(
-                  "flex-1 border border-gray-200 transition-all",
-                  editFormData?.delivery_location === "Ulus"
-                    ? "bg-primary text-white"
-                    : "bg-background hover:bg-muted text-foreground"
-                )}
-              >
-                Ulus (+750 TL)
-              </Button>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Teslimat noktası seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {deliveryLocationOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__OTHER__">Diğer (özel girin)</SelectItem>
+                </SelectContent>
+              </Select>
+              {(!deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? "")) ||
+                (editFormData?.delivery_location ?? "") === "__OTHER__") && (
+                <Input
+                  placeholder="Örn: Ankara Etimesgut"
+                  className="h-9 text-sm"
+                  value={
+                    deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? ""))
+                      ? ""
+                      : (editFormData?.delivery_location ?? "")
+                  }
+                  onChange={(e) => handleChange?.("delivery_location", e.target.value.trim() || "Kesimhane")}
+                />
+              )}
             </div>
           ) : (
             <p className={valueClass}>
-              {shareholderInfo.delivery_location === "Ulus" ? "Ulus (+750 TL)" : shareholderInfo.delivery_location}
+              {shareholderInfo.delivery_location === "Ulus"
+                ? "Ulus (+750 TL)"
+                : shareholderInfo.delivery_location ?? "Kesimhane"}
             </p>
           )}
         </div>

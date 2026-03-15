@@ -14,15 +14,15 @@ import { shareholderSchema } from "@/types";
 import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
 import { Download, SlidersHorizontal, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import { exportTableToExcel } from "@/lib/export-to-excel";
 import { columns } from "./components/columns";
 import { ShareholderFilters } from "./components/shareholder-filters";
 import { ShareholderSearch } from "./components/shareholder-search";
 
 export default function TumHissedarlarPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  // Default column visibility - hide security_code and notes by default
+  // Default column visibility - hide notes and others by default
   const [columnVisibility] = useState<VisibilityState>({
-    security_code: false,
     notes: false,
     last_edited_time: false,
     last_edited_by: false
@@ -59,6 +59,7 @@ export default function TumHissedarlarPage() {
   // Column header mapping for dropdown - more descriptive names
   const columnHeaderMap: { [key: string]: string } = {
     shareholder_name: "İsim Soyisim",
+    contacted_at: "Görüşüldü",
     phone_number: "Telefon",
     sacrifice_no: "Kurban No",
     share_count: "Hisse Sayısı",
@@ -67,7 +68,6 @@ export default function TumHissedarlarPage() {
     payment_status: "Ödeme Durumu",
     remaining_payment: "Kalan Ödeme",
     delivery_location: "Teslimat Noktası",
-    security_code: "Güvenlik Kodu",
     notes: "Notlar",
     purchase_time: "Kayıt Tarihi",
     sacrifice_consent: "Vekalet",
@@ -104,20 +104,12 @@ export default function TumHissedarlarPage() {
     });
   }, [allShareholders, searchTerm]);
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-  };
-
-  const exportToExcel = () => {
-    // Export functionality can be implemented here
-    // You'll need to convert the shareholders data to Excel format
-  };
-
-  // Memoized filters component to prevent re-renders when searchTerm changes
+  // Memoized filters component
   const MemoizedFiltersComponent = React.memo(
-    ({ table, columnFilters, onColumnFiltersChange, searchTerm, setSearchTerm }: {
+    ({ table, columnFilters, columnVisibility: _columnVisibility, onColumnFiltersChange, searchTerm, setSearchTerm }: {
       table: Table<shareholderSchema>,
       columnFilters: ColumnFiltersState,
+      columnVisibility: VisibilityState,
       onColumnFiltersChange: (filters: ColumnFiltersState) => void,
       searchTerm: string,
       setSearchTerm: (value: string) => void
@@ -159,7 +151,9 @@ export default function TumHissedarlarPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Columns dropdown - moved next to Excel button */}
+            {/* Search - left of Sütunlar */}
+            <ShareholderSearch onSearch={setSearchTerm} />
+            {/* Columns dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -171,31 +165,33 @@ export default function TumHissedarlarPage() {
                   Sütunlar
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
                 {table
                   .getAllColumns()
                   .filter(
                     (column) =>
-                      typeof column.accessorFn !== "undefined" && column.getCanHide()
+                      column.id !== "security_code" &&
+                      typeof column.accessorFn !== "undefined" &&
+                      column.getCanHide()
                   )
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                      >
-                        {columnHeaderMap[column.id] || column.id}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
+                  .map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => {
+                        column.toggleVisibility(!!value);
+                      }}
+                    >
+                      {columnHeaderMap[column.id] || column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
             {/* Export to Excel button - with matching style */}
             <Button
-              onClick={exportToExcel}
+              onClick={() => exportTableToExcel(table, "hissedarlar", columnHeaderMap)}
               variant="outline"
               size="sm"
               className="h-8 border-dashed flex items-center gap-2"
@@ -207,15 +203,11 @@ export default function TumHissedarlarPage() {
         </div>
       );
     },
-    // Custom comparison function to prevent re-renders
-    (prevProps, nextProps) => {
-      // Only re-render if table or columnFilters change
-      // Ignore changes to searchTerm
-      return (
-        prevProps.table === nextProps.table &&
-        prevProps.columnFilters === nextProps.columnFilters
-      );
-    }
+    // Re-render when columnVisibility changes so Sütunlar dropdown works correctly
+    (prevProps, nextProps) =>
+      prevProps.table === nextProps.table &&
+      prevProps.columnFilters === nextProps.columnFilters &&
+      JSON.stringify(prevProps.columnVisibility) === JSON.stringify(nextProps.columnVisibility)
   );
 
   // Display name for debugging
@@ -233,16 +225,12 @@ export default function TumHissedarlarPage() {
   }
 
   return (
-    <div className="space-y-4" suppressHydrationWarning>
+    <div className="space-y-8" suppressHydrationWarning>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight mt-0">Tüm Hissedarlar</h1>
-        <p className="text-muted-foreground">
-          Sistemde kayıtlı tüm hissedarların listesi
+        <h1 className="text-2xl font-semibold tracking-tight">Tüm Hissedarlar</h1>
+        <p className="text-muted-foreground mt-2">
+          Hisse alan kişilerin listesini görüntüleyebilir, görüşme durumlarını işaretleyebilirsiniz.
         </p>
-      </div>
-
-      <div className="flex justify-end items-center">
-        <ShareholderSearch onSearch={handleSearch} />
       </div>
 
       {isLoading ? (
@@ -264,6 +252,7 @@ export default function TumHissedarlarPage() {
             <MemoizedFiltersComponent
               table={table}
               columnFilters={columnFilters}
+              columnVisibility={table.getState().columnVisibility}
               onColumnFiltersChange={onColumnFiltersChange}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}

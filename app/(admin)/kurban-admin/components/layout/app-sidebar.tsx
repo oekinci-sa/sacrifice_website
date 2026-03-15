@@ -1,19 +1,24 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { usePendingUserCount } from "@/hooks/usePendingUserCount"
+import { useUncontactedShareholdersCount } from "@/hooks/useUncontactedShareholdersCount"
+import { useUnreadContactMessagesCount } from "@/hooks/useUnreadContactMessagesCount"
 import { cn } from "@/lib/utils"
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore"
 import { useSidebarStore } from "@/stores/only-admin-pages/sidebar-store"
 import { UserRole } from "@/types"
 import {
   BarChart3,
+  Bell,
   ChevronDown,
   ChevronRight,
   FileSpreadsheet,
   History,
   Home,
   Menu,
+  MessageSquare,
   Receipt,
-  Gauge,
   UserCog
 } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -30,61 +35,75 @@ type NavItem = {
   roles: Exclude<UserRole, null>[];
 };
 
+const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
+const KAHRAMANKAZAN_TENANT_ID = "00000000-0000-0000-0000-000000000002";
+
 const navItems: NavItem[] = [
   {
     id: "general",
     title: "Genel Bakış",
     url: "/kurban-admin/genel-bakis",
     icon: Home,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor", "super_admin"],
   },
   {
     id: "all-sacrifices",
     title: "Kurbanlıklar",
     url: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
     icon: FileSpreadsheet,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor", "super_admin"],
   },
   {
     id: "all-shareholders",
     title: "Hissedarlar",
     url: "/kurban-admin/hissedarlar/tum-hissedarlar",
     icon: FileSpreadsheet,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor", "super_admin"],
   },
   {
     id: "change-logs",
     title: "Değişiklik Kayıtları",
     url: "/kurban-admin/degisiklik-kayitlari",
     icon: History,
-    roles: ["admin", "editor"],
+    roles: ["admin", "editor", "super_admin"],
   },
   {
     id: "reservations",
     title: "Rezervasyonlar",
     url: "/kurban-admin/rezervasyonlar",
     icon: Receipt,
-    roles: ["admin", "editor"],
+    roles: ["super_admin"],
   },
   {
-    id: "stage-metrics",
-    title: "Aşama Metrikleri",
-    url: "/kurban-admin/asama-metrikleri",
-    icon: Gauge,
-    roles: ["admin", "editor"],
+    id: "contact-messages",
+    title: "İletişim Mesajları",
+    url: "/kurban-admin/iletisim-mesajlari",
+    icon: MessageSquare,
+    roles: ["admin", "editor", "super_admin"],
+  },
+  {
+    id: "reminder-requests",
+    title: "Bana Haber Ver Talepleri",
+    url: "/kurban-admin/reminder-talepleri",
+    icon: Bell,
+    roles: ["admin", "editor", "super_admin"],
   },
   {
     id: "user-management",
     title: "Kullanıcı Yönetimi",
     url: "/kurban-admin/kullanici-yonetimi",
     icon: UserCog,
-    roles: ["admin"],
+    roles: ["admin", "super_admin"],
   },
 ];
 
 export function AppSidebar() {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const selectedYear = useAdminYearStore((s) => s.selectedYear)
+  const { count: unreadContactCount } = useUnreadContactMessagesCount()
+  const { count: uncontactedShareholdersCount } = useUncontactedShareholdersCount(selectedYear)
+  const { count: pendingUserCount } = usePendingUserCount()
 
   const {
     isCollapsed,
@@ -92,6 +111,16 @@ export function AppSidebar() {
     isSubMenuOpen,
     toggleSubMenu
   } = useSidebarStore()
+
+  const tenantId = session?.tenant_id;
+  const isGolbasi = tenantId === GOLBASI_TENANT_ID;
+  const isKahramankazan = tenantId === KAHRAMANKAZAN_TENANT_ID;
+  const badgeColorClass =
+    isGolbasi
+      ? "bg-sac-blue text-white"
+      : isKahramankazan
+        ? "bg-sac-graph-green-tone-light text-white"
+        : "bg-sac-blue text-white";
 
   const filteredNavItems = navItems.filter(item =>
     !item.roles || session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>)
@@ -140,6 +169,12 @@ export function AppSidebar() {
             const isActive = pathname === item.url || pathname.startsWith(item.url + "/")
             const hasSubItems = item.items && item.items.length > 0
             const isOpen = isSubMenuOpen(item.id)
+            const showUnreadBadge = item.id === "contact-messages" && unreadContactCount > 0 && !isCollapsed
+            const showShareholdersBadge = item.id === "all-shareholders" && uncontactedShareholdersCount > 0 && !isCollapsed
+            const showPendingUserBadge = item.id === "user-management" && pendingUserCount > 0 && !isCollapsed
+
+            const badgeCount = showUnreadBadge ? unreadContactCount : showShareholdersBadge ? uncontactedShareholdersCount : showPendingUserBadge ? pendingUserCount : 0
+            const showBadge = showUnreadBadge || showShareholdersBadge || showPendingUserBadge
 
             return (
               <div key={item.id} className="space-y-1">
@@ -154,8 +189,13 @@ export function AppSidebar() {
                         : "hover:bg-accent/50 hover:text-accent-foreground"
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {!isCollapsed && <span>{item.title}</span>}
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    {!isCollapsed && <span className="min-w-0 truncate">{item.title}</span>}
+                    {showBadge && (
+                      <span className={cn("ml-auto shrink-0 min-w-[1.25rem] h-5 flex items-center justify-center rounded-full text-xs font-semibold px-1.5", badgeColorClass)}>
+                        {badgeCount > 99 ? "99+" : badgeCount}
+                      </span>
+                    )}
                   </Link>
 
                   {/* Dropdown toggle for submenus */}

@@ -79,6 +79,15 @@ const RemindMe = () => {
             const checkRes = await fetch(`/api/reminder-requests/check?phone=${encodeURIComponent(phoneDigits)}`);
             const checkData = await checkRes.json();
 
+            if (!checkRes.ok) {
+                toast({
+                    variant: "destructive",
+                    title: "Hata",
+                    description: checkData.error || "Kontrol sırasında bir hata oluştu.",
+                });
+                return;
+            }
+
             if (checkData.exists) {
                 toast({
                     variant: "destructive",
@@ -97,15 +106,12 @@ const RemindMe = () => {
             const data = await res.json();
 
             if (!res.ok) {
-                if (data.error === "already_exists") {
-                    toast({
-                        variant: "destructive",
-                        title: "Zaten Kayıtlı",
-                        description: "Bu telefon numarası daha önce kaydedilmiş.",
-                    });
-                    return;
-                }
-                throw new Error(data.error || "Kayıt başarısız");
+                toast({
+                    variant: "destructive",
+                    title: "Hata",
+                    description: data.error || data.message || "Kayıt sırasında bir hata oluştu.",
+                });
+                return;
             }
 
             toast({

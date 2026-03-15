@@ -12,6 +12,7 @@ interface ShareholderDetailsProps {
   handleChange?: (field: string, value: string | number | boolean) => void;
   onSave?: (updatedData: Partial<shareholderSchema>) => void;
   onCancel?: () => void;
+  deliveryLocationOptions?: { label: string; value: string }[];
 }
 
 export function ShareholderDetails({
@@ -20,6 +21,7 @@ export function ShareholderDetails({
   editFormData,
   handleChange,
   onSave,
+  deliveryLocationOptions = [],
 }: ShareholderDetailsProps) {
 
   const labelClass = "text-sm text-muted-foreground";
@@ -42,6 +44,7 @@ export function ShareholderDetails({
               sectionClass="p-6"
               labelClass={labelClass}
               valueClass={valueClass}
+              deliveryLocationOptions={deliveryLocationOptions}
             />
           ) : (
             <ShareholderInfo
@@ -50,6 +53,7 @@ export function ShareholderDetails({
               sectionClass="p-6"
               labelClass={labelClass}
               valueClass={valueClass}
+              deliveryLocationOptions={deliveryLocationOptions}
             />
           )}
 

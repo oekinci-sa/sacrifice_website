@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Beklenmeyen hata" },
       { status: 500 }

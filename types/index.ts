@@ -71,6 +71,9 @@ export interface shareholderSchema {
   last_edited_by: string | null;
   notes: string | null;
 
+  // Görüşüldü bilgisi (yeni kayıt takibi)
+  contacted_at: string | null;
+
   // İlişkili kurban bilgileri (opsiyonel)
   sacrifice?: {
     sacrifice_id: string;
@@ -122,7 +125,7 @@ export interface changeLogSchema {
   sacrifice_year: number | null;
 }
 
-export type UserRole = "admin" | "editor" | null;
+export type UserRole = "admin" | "editor" | "super_admin" | null;
 export type UserStatus = "pending" | "approved" | "blacklisted";
 
 export interface UserSchema {

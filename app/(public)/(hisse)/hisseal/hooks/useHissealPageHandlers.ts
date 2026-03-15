@@ -44,7 +44,7 @@ interface UseHissealPageHandlersProps {
 export function useHissealPageHandlers({
   setCameFromTimeout,
   needsRerender,
-  generateNewTransactionId,
+  generateNewTransactionId: _generateNewTransactionId,
   setTempSelectedSacrifice,
   setIsDialogOpen,
   tempSelectedSacrifice,
@@ -60,7 +60,7 @@ export function useHissealPageHandlers({
   formData,
   createShareholders,
   setSuccess,
-  resetStore,
+  resetStore: _resetStore,
   refetchSacrifices,
   setShowWarning,
   setShowThreeMinuteWarning,

@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS "public"."contact_messages" (
   "phone" VARCHAR(20) NOT NULL,
   "email" VARCHAR(255),
   "message" TEXT NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT now()
+  "message_year" SMALLINT,
+  "created_at" TIMESTAMPTZ DEFAULT now(),
+  "read_at" TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS idx_contact_messages_tenant ON contact_messages (tenant_id);

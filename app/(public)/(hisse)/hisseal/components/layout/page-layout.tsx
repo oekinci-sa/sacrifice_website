@@ -75,7 +75,7 @@ export const PageLayout = ({
     currentStep,
     tabValue,
     timeLeft,
-    showWarning,
+    showWarning: _showWarning,
     showInactivityWarning,
     inactivitySecondsLeft,
     columns,

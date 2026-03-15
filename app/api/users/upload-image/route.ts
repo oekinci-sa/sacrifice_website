@@ -18,7 +18,8 @@ export async function POST(request: Request) {
         const userId = formData.get("userId") as string;
 
         // Verify the user has permission to upload for this user ID
-        if (session.user.role !== "admin" && session.user.id !== userId) {
+        const canManage = session.user.role === "admin" || session.user.role === "super_admin";
+        if (!canManage && session.user.id !== userId) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

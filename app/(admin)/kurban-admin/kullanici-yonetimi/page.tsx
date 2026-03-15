@@ -13,7 +13,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "editor" | null;
+  role: "admin" | "editor" | "super_admin" | null;
   status: "pending" | "approved" | "blacklisted";
   created_at: string;
   image: string | null;
@@ -50,12 +50,12 @@ export default function UserManagementPage() {
   const filteredUsers = users.filter((u) => u.email !== session?.user?.email);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Kullanıcı Yönetimi</h2>
-          <p className="text-muted-foreground">
-            Sistem kullanıcılarını yönetin ve erişim izinlerini düzenleyin
+          <h1 className="text-2xl font-semibold tracking-tight">Kullanıcı Yönetimi</h1>
+          <p className="text-muted-foreground mt-2">
+            Panel erişimi olan kullanıcıları ekleyebilir, rollerini ve onay durumlarını düzenleyebilirsiniz.
           </p>
         </div>
         <Button onClick={() => router.push("/kurban-admin/kullanici-yonetimi/yeni")}>

@@ -194,9 +194,7 @@ export function ChangeLogFilters({ table }: ChangeLogFiltersProps) {
 
         table.getPreFilteredRowModel().rows.forEach((row) => {
             const owner = row.original.change_owner;
-            if (owner) {
-                owners.add(owner);
-            }
+            if (owner && owner.trim()) owners.add(owner);
         });
 
         return Array.from(owners)

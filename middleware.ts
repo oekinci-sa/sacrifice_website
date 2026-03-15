@@ -40,6 +40,7 @@ export default withAuth(
     const token = req.nextauth.token;
     const isAdminRoute = req.nextUrl.pathname.startsWith("/kurban-admin");
     const isUserManagementRoute = req.nextUrl.pathname.startsWith("/kurban-admin/kullanici-yonetimi");
+    const isReservationsRoute = req.nextUrl.pathname.startsWith("/kurban-admin/rezervasyonlar");
 
     if (publicRoutes.includes(req.nextUrl.pathname)) {
       return NextResponse.next({ request: { headers: requestHeaders } });
@@ -49,7 +50,11 @@ export default withAuth(
       return NextResponse.redirect(new URL("/giris", req.url));
     }
 
-    if (token?.role !== "admin" && isUserManagementRoute) {
+    if (token?.role !== "admin" && token?.role !== "super_admin" && isUserManagementRoute) {
+      return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
+    }
+
+    if (token?.role !== "super_admin" && isReservationsRoute) {
       return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
     }
 

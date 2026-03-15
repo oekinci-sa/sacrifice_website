@@ -20,7 +20,8 @@ CREATE TABLE "public"."shareholders" (
   "last_edited_by" TEXT DEFAULT 'Anonim Kullanıcı',
   "last_edited_time" TIMESTAMPTZ DEFAULT now(),
   "notes" TEXT,
-  "sacrifice_year" INT2 NOT NULL
+  "sacrifice_year" INT2 NOT NULL,
+  "contacted_at" TIMESTAMPTZ
 );
 
 CREATE INDEX idx_shareholders_tenant ON shareholders (tenant_id);

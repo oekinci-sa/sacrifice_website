@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
   TooltipContent,
@@ -179,8 +178,6 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => {
       const ratio = row.getValue("payment_status") as number;
       const shareholders = row.original.shareholders || [];
-      const totalPaid = shareholders.reduce((sum, s) => sum + (s.paid_amount || 0), 0);
-      const total = shareholders.reduce((sum, s) => sum + (s.total_amount || 0), 0);
 
       const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -189,32 +186,35 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         }).format(amount) + ' TL';
       };
 
-      const progressBar = (
-        <div className="flex items-center gap-4">
-          <Progress
-            value={ratio}
-            className="min-w-[100px]"
-            style={{
-              ["--progress-background" as string]: ratio < 50
-                ? "var(--sac-red-muted)"
-                : ratio < 100
-                  ? "var(--sac-yellow-muted)"
-                  : "var(--sac-primary-muted)",
-              ["--progress-foreground" as string]: ratio < 50
-                ? "var(--sac-red)"
-                : ratio < 100
-                  ? "var(--sac-yellow)"
-                  : "var(--sac-primary)",
-            } as React.CSSProperties}
-          />
-          <div
+      const getShareholderColor = (paid: number, totalAmt: number) => {
+        if (totalAmt <= 0) return "bg-muted";
+        if (paid >= totalAmt) return "bg-sac-primary";
+        if (paid >= 5000) return "bg-sac-yellow";
+        return "bg-sac-red";
+      };
+
+      const shareholderBars = (
+        <div className="flex items-center gap-1">
+          {shareholders.map((s, idx) => {
+            const paid = s.paid_amount ?? 0;
+            const totalAmt = s.total_amount ?? 0;
+            const colorClass = getShareholderColor(paid, totalAmt);
+            return (
+              <div
+                key={s.shareholder_id ?? idx}
+                className={cn("w-[15px] h-[3.75px] rounded-lg flex-shrink-0", colorClass)}
+                title={s.shareholder_name ?? ""}
+              />
+            );
+          })}
+          <span
             className={cn(
-              "text-sm tabular-nums w-[50px] text-left",
+              "text-sm tabular-nums ml-2 min-w-[42px]",
               ratio < 50 ? "text-red-600" : ratio < 100 ? "text-yellow-600" : "text-sac-primary",
             )}
           >
             %{ratio.toString().padStart(3)}
-          </div>
+          </span>
         </div>
       );
 
@@ -223,44 +223,40 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                {progressBar}
+                {shareholderBars}
               </TooltipTrigger>
-              <TooltipContent className="p-4 w-[280px] bg-white">
-                <div className="space-y-2">
-                  {totalPaid >= total ? (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-sac-primary" />
-                        <span className="text-sm text-muted-foreground">Ödeme Tamamlandı:</span>
-                      </div>
-                      <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between">
+              <TooltipContent className="p-4 w-[300px] max-h-[320px] overflow-y-auto bg-white shadow-lg border">
+                <div className="space-y-3">
+                  <p className="font-semibold text-sm">Hissedarlar</p>
+                  {shareholders.map((s, idx) => {
+                    const paid = s.paid_amount ?? 0;
+                    const totalAmt = s.total_amount ?? 0;
+                    return (
+                      <div key={s.shareholder_id ?? idx} className="space-y-1.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-primary" />
-                          <span className="text-sm text-muted-foreground">Ödenen Tutar:</span>
+                          <div className={cn("w-2 h-2 rounded-full shrink-0", getShareholderColor(s.paid_amount ?? 0, s.total_amount ?? 0))} />
+                          <span className="text-sm font-medium truncate">{s.shareholder_name ?? "-"}</span>
                         </div>
-                        <span className="text-sm font-medium">{formatCurrency(totalPaid)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-red" />
-                          <span className="text-sm text-muted-foreground">Kalan Tutar:</span>
+                        <div className="grid gap-1 text-xs pl-4">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Ödenen</span>
+                            <span className="tabular-nums">{formatCurrency(paid)}</span>
+                          </div>
+                          {paid < totalAmt && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Kalan</span>
+                              <span className="tabular-nums">{formatCurrency(totalAmt - paid)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Toplam</span>
+                            <span className="tabular-nums">{formatCurrency(totalAmt)}</span>
+                          </div>
                         </div>
-                        <span className="text-sm font-medium text-foreground">{formatCurrency(total - totalPaid)}</span>
+                        {idx < shareholders.length - 1 && <Separator className="my-2" />}
                       </div>
-                      <Separator className="my-2 bg-gray-200" />
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-sac-muted" />
-                          <span className="text-sm text-muted-foreground">Toplam Tutar:</span>
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{formatCurrency(total)}</span>
-                      </div>
-                    </>
-                  )}
+                    );
+                  })}
                 </div>
               </TooltipContent>
             </Tooltip>

@@ -1,5 +1,5 @@
 import { getDefaultSacrificeYear } from "@/lib/constants/sacrifice-year";
-import { getTenantId } from "@/lib/tenant";
+import { getTenantIdOptional } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,7 +11,13 @@ export const revalidate = 0;
  */
 export async function POST(request: NextRequest) {
   try {
-    const tenantId = getTenantId();
+    const tenantId = getTenantIdOptional();
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: "Tenant bulunamadı. Lütfen doğru adresle (localhost:3000, 3001 veya 3002) tekrar deneyin." },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
     const { name, phone } = body;
 
@@ -49,6 +55,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
+      console.error("reminder_requests insert error:", error);
       return NextResponse.json(
         { error: "Kayıt sırasında bir hata oluştu." },
         { status: 500 }
@@ -56,9 +63,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data });
-  } catch {
+  } catch (err) {
+    console.error("reminder-requests POST error:", err);
     return NextResponse.json(
-      { error: "Sunucu hatası." },
+      { error: "Kayıt sırasında bir hata oluştu." },
       { status: 500 }
     );
   }

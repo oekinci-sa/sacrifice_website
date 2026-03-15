@@ -15,7 +15,7 @@ export type ChangeLog = {
   description: string;
   change_type: "Ekleme" | "Güncelleme" | "Silme";
   changed_at: string;
-  change_owner: string;
+  change_owner: string | null;
 }
 
 export const columns: ColumnDef<ChangeLog>[] = [
@@ -50,8 +50,10 @@ export const columns: ColumnDef<ChangeLog>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value: string[]) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, id, value: unknown) => {
+      const arr = Array.isArray(value) ? value : [];
+      if (arr.length === 0) return true;
+      return arr.includes(row.getValue(id));
     },
   },
   {
@@ -67,8 +69,10 @@ export const columns: ColumnDef<ChangeLog>[] = [
 
       return <div className="text-center">{displayName}</div>;
     },
-    filterFn: (row, id, value: string[]) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, id, value: unknown) => {
+      const arr = Array.isArray(value) ? value : [];
+      if (arr.length === 0) return true;
+      return arr.includes(row.getValue(id));
     },
   },
   {
@@ -89,7 +93,13 @@ export const columns: ColumnDef<ChangeLog>[] = [
     accessorKey: "change_owner",
     header: "Son Düzenleyen",
     cell: ({ row }) => {
-      return <div className="text-center">{row.getValue("change_owner")}</div>;
+      const owner = row.getValue("change_owner") as string | null;
+      return <div className="text-center">{owner || "-"}</div>;
+    },
+    filterFn: (row, id, value: unknown) => {
+      const arr = Array.isArray(value) ? value : [];
+      if (arr.length === 0) return true;
+      return arr.includes(row.getValue(id));
     },
   },
 ];

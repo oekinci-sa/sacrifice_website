@@ -1,6 +1,3 @@
-import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
-import { SacrificeQueryResult } from "@/types";
-
 // Define toast function type
 type ToastFunction = {
     (options: { variant?: 'default' | 'destructive'; title?: string; description?: string }): void;

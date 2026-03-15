@@ -31,7 +31,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ logs: data }, {
+    // change_owner DB'de email olarak saklanır; users tablosu ile eşleştirip name göster
+    // Loglardaki email benzeri değerleri topla (@ içeren)
+    const emailsFromLogs = Array.from(new Set(
+      (data || [])
+        .map((log) => log.change_owner)
+        .filter((v): v is string => typeof v === "string" && v.includes("@"))
+    ));
+
+    const { data: usersData } = emailsFromLogs.length > 0
+      ? await supabaseAdmin.from("users").select("email, name").in("email", emailsFromLogs)
+      : { data: [] };
+
+    const emailToName = new Map(
+      (usersData || []).filter((u) => u.email).map((u) => [u.email, u.name || u.email])
+    );
+
+    const logsWithFilteredOwner = (data || []).map((log) => ({
+      ...log,
+      change_owner: emailToName.has(log.change_owner) ? emailToName.get(log.change_owner) : null,
+    }));
+
+    return NextResponse.json({ logs: logsWithFilteredOwner }, {
       headers: { 
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',

@@ -1,5 +1,7 @@
+import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +9,11 @@ export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "super_admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const tenantId = getTenantId();
     const { searchParams } = new URL(request.url);
     const yearParam = searchParams.get("year");

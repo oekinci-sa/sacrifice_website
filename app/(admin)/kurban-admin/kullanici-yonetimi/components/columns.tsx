@@ -12,7 +12,7 @@ interface UserType {
   name: string;
   email: string;
   image: string | null;
-  role: "admin" | "editor" | null;
+  role: "admin" | "editor" | "super_admin" | null;
   status: "pending" | "approved" | "blacklisted";
   tenant_approved_at?: string | null;
   created_at: string;
@@ -52,8 +52,8 @@ export const columns: ColumnDef<UserType>[] = [
     cell: ({ row }) => {
       const role = row.getValue("role");
       return (
-        <Badge variant={role === "admin" ? "default" : "secondary"}>
-          {role === "admin" ? "Admin" : role === "editor" ? "Editör" : "Belirlenmedi"}
+        <Badge variant={role === "super_admin" || role === "admin" ? "default" : "secondary"}>
+          {role === "super_admin" ? "Super Yönetici" : role === "admin" ? "Admin" : role === "editor" ? "Editör" : "Belirlenmedi"}
         </Badge>
       );
     },

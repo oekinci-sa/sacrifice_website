@@ -39,37 +39,22 @@ const setupRealtimeSubscription = (set: any, get: any) => {
       (payload) => {
         const state = get();
 
-        // Handle INSERT events
+        // Handle INSERT events - API üzerinden çek (RLS bypass, tenant filtresi)
         if (payload.eventType === 'INSERT') {
-          // For INSERT events, we need to fetch the complete record with relations
-          // since the payload might not include the sacrifice relation
-          supabase
-            .from("shareholders")
-            .select(`
-              *,
-              sacrifice:sacrifice_id (
-                sacrifice_id,
-                sacrifice_no,
-                sacrifice_time,
-                share_price
-              )
-            `)
-            .eq('shareholder_id', payload.new.shareholder_id)
-            .single()
-            .then(({ data, error }) => {
-              if (!error && data) {
-                // Check if not already in the store
-                const exists = state.shareholders.some(
-                  (s: shareholderSchema) => s.shareholder_id === data.shareholder_id
-                );
+          const newId = payload.new?.shareholder_id;
+          const newTenantId = payload.new?.tenant_id;
+          if (!newId) return;
 
-                if (!exists) {
-                  set({
-                    shareholders: [...state.shareholders, data as shareholderSchema],
-                  });
-                }
+          fetch(`/api/admin/shareholders/${newId}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data: shareholderSchema | null) => {
+              if (!data) return;
+              const exists = get().shareholders.some((s: shareholderSchema) => s.shareholder_id === data.shareholder_id);
+              if (!exists) {
+                set((state: ShareholderState) => ({ shareholders: [data, ...state.shareholders] }));
               }
-            });
+            })
+            .catch(() => {});
         }
 
         // Handle UPDATE events
@@ -87,7 +72,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
               .from("shareholders")
               .select(`
                 *,
-                sacrifice:sacrifice_id (
+                sacrifice:sacrifice_animals (
                   sacrifice_id,
                   sacrifice_no,
                   sacrifice_time,

@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
-import { useUser } from "@/hooks/useUsers";
 import { formatDate } from "@/lib/date-utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShareholderDetails } from "../components/shareholder-details";
 
 interface PageProps {
@@ -35,7 +34,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const [editFormData, setEditFormData] = useState<{
     shareholder_name: string;
     phone_number: string;
-    delivery_location: "Kesimhane" | "Ulus";
+    delivery_location: string;
     sacrifice_consent: boolean;
     paid_amount: number;
     notes: string;
@@ -55,8 +54,19 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   // Fetch all shareholders
   const { data: shareholders, isLoading } = useGetShareholders();
 
+  // Teslimat noktası seçenekleri: Kesimhane (varsayılan), Ulus + verideki benzersiz değerler
+  const deliveryLocationOptions = useMemo(() => {
+    const defaults = ["Kesimhane", "Ulus"];
+    const fromData = new Set<string>();
+    (shareholders ?? []).forEach((s) => {
+      const loc = s.delivery_location;
+      if (loc && typeof loc === "string" && loc.trim()) fromData.add(loc.trim());
+    });
+    const all = [...defaults, ...Array.from(fromData).filter((l) => !defaults.includes(l)).sort()];
+    return all.map((v) => ({ label: v === "Ulus" ? "Ulus (+750 TL)" : v, value: v }));
+  }, [shareholders]);
+
   const { data: session } = useSession();
-  const { data: userData } = useUser(session?.user?.email);
 
   // Find the current shareholder by ID
   useEffect(() => {
@@ -69,7 +79,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         setEditFormData({
           shareholder_name: found.shareholder_name,
           phone_number: found.phone_number ?? "",
-          delivery_location: (found.delivery_location as "Kesimhane" | "Ulus") ?? "Kesimhane",
+          delivery_location: found.delivery_location ?? "Kesimhane",
           sacrifice_consent: found.sacrifice_consent ?? false,
           paid_amount: found.paid_amount,
           notes: found.notes || "",
@@ -95,7 +105,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       setEditFormData({
         shareholder_name: shareholder.shareholder_name,
         phone_number: shareholder.phone_number ?? "",
-        delivery_location: (shareholder.delivery_location as "Kesimhane" | "Ulus") ?? "Kesimhane",
+        delivery_location: shareholder.delivery_location ?? "Kesimhane",
         sacrifice_consent: shareholder.sacrifice_consent ?? false,
         paid_amount: shareholder.paid_amount,
         notes: shareholder.notes || "",
@@ -108,10 +118,10 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
-    // If delivery_location is changing, update delivery_fee as well
+    // If delivery_location is changing, update delivery_fee as well (Ulus = +750 TL)
     if (field === 'delivery_location') {
-      const deliveryLocation = value as "Kesimhane" | "Ulus";
-      const deliveryFee = deliveryLocation !== 'Kesimhane' ? 750 : 0;
+      const deliveryLocation = value as string;
+      const deliveryFee = deliveryLocation === 'Ulus' ? 750 : 0;
       setEditFormData(prev => ({
         ...prev,
         delivery_location: deliveryLocation,
@@ -126,8 +136,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   };
 
   const handleSave = () => {
-    // Kullanıcı bilgisi yoksa işlemi engelle
-    if (!userData?.name) {
+    // Session'dan email al (useUser sadece name döndürüyor)
+    const userEmail = session?.user?.email;
+    if (!userEmail) {
       toast({
         title: "Hata",
         description: "Kullanıcı bilgisi bulunamadı.",
@@ -136,17 +147,17 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       return;
     }
 
-    // Create updated data object including last_edited_by and formatted phone
+    // Create updated data object including last_edited_by (email) and formatted phone
     const updatedData = {
       shareholder_name: editFormData.shareholder_name,
       phone_number: formatPhoneForDB(editFormData.phone_number), // Format phone number
-      delivery_location: editFormData.delivery_location,
+      delivery_location: editFormData.delivery_location || "Kesimhane",
       sacrifice_consent: editFormData.sacrifice_consent,
       paid_amount: editFormData.paid_amount,
       notes: editFormData.notes,
       delivery_fee: editFormData.delivery_fee,
       security_code: editFormData.security_code,
-      last_edited_by: userData.name // Kullanıcı adını ekle
+      last_edited_by: userEmail // Admin: email saklanır
     };
 
     try {
@@ -303,6 +314,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         handleChange={handleChange}
         onSave={handleSave}
         onCancel={handleCancel}
+        deliveryLocationOptions={deliveryLocationOptions}
       />
 
       {/* Delete Confirmation Dialog */}

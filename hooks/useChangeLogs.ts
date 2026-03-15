@@ -11,7 +11,7 @@ export interface changeLogSchema {
   new_value: string | null;
   change_type: string;
   description: string;
-  change_owner: string;
+  change_owner: string | null;
   changed_at: string;
 }
 
@@ -67,14 +67,6 @@ export const useChangeLogs = () => {
   useEffect(() => {
     if (selectedYear == null) return;
     fetchChangeLogs();
-
-    const handleFocus = () => {
-      setIsRefetching(true);
-      fetchChangeLogs();
-    };
-
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
   }, [selectedYear]);
 
   return {

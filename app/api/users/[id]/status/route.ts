@@ -21,7 +21,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const session = await getServerSession(authOptions);
 
     // Check authorization
-    if (!session || !session.user || session.user.role !== "admin") {
+    const canManage = session?.user?.role === "admin" || session?.user?.role === "super_admin";
+    if (!session || !session.user || !canManage) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

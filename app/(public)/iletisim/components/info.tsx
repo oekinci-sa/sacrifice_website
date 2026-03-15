@@ -38,7 +38,13 @@ const Info = () => {
           />
           <div className="flex flex-col gap-1">
             <p className="font-bold text-lg lg:text-xl">{item.header}</p>
-            <p className="font text-sm lg:text-base text-black/75">
+            <p
+              className={`font text-sm lg:text-base text-black/75 leading-relaxed ${
+                item.key === "address"
+                  ? "w-full md:max-w-[min(100%,26rem)] break-words"
+                  : ""
+              }`}
+            >
               {getInfo(item.key)}
             </p>
           </div>

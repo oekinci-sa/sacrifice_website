@@ -30,7 +30,7 @@ export function ShareholderSearch({ onSearch }: ShareholderSearchProps) {
   };
 
   return (
-    <div className="relative w-full md:w-1/2">
+    <div className="relative w-48 sm:w-56">
       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder="İsim veya telefon numarası ile ara..."

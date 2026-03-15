@@ -46,3 +46,11 @@
 ## Admin Tablo Sayfaları
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı)
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
+
+## last_edited_by / change_owner (Admin)
+- Admin bölümünden yapılan düzenlemelerde `last_edited_by` **email** olarak saklanır (sacrifice_animals, shareholders).
+- Değişiklik Kayıtları: `change_owner` DB'de email; API `users` tablosu ile eşleştirip **name** döndürür.
+- Sadece users tablosunda kayıtlı kullanıcılar "Son Düzenleyen" sütununda görünür.
+
+## Changelog
+- **2025-03 UI iyileştirmeleri**: [changelog-2025-03-ui-improvements.md](changelog-2025-03-ui-improvements.md)

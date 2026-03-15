@@ -27,11 +27,11 @@ export default function AsamaMetrikleriPage() {
   }, []);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Aşama Metrikleri</h2>
-        <p className="text-muted-foreground">
-          stage_metrics tablosu – aşama bazlı metrikler
+        <h1 className="text-2xl font-semibold tracking-tight">Aşama Metrikleri</h1>
+        <p className="text-muted-foreground mt-2">
+          Kesim, kasap ve teslimat aşamalarına ait metrikleri görüntüleyebilirsiniz.
         </p>
       </div>
       {loading ? (

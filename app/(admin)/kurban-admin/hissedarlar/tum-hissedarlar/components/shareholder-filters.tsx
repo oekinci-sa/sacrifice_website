@@ -148,11 +148,11 @@ function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     <span>{option.label}</span>
                     {type === "payment" ? (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-                        {paymentStatusCounts?.[option.label] || 0}
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center text-xs tabular-nums">
+                        {paymentStatusCounts?.[option.value] ?? 0}
                       </span>
                     ) : facets?.get(option.value) ? (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center text-xs tabular-nums">
                         {facets.get(option.value)}
                       </span>
                     ) : null}
@@ -228,11 +228,21 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     { label: "Kapora Bekleniyor", value: "deposit" }
   ], []);
 
-  // Delivery location options
-  const deliveryLocationOptions = {
-    "Kesimhane": "Kesimhane",
-    "Ulus": "Ulus",
-  };
+  // Delivery location options: Kesimhane (default), Ulus + unique values from data
+  const deliveryLocationOptions = useMemo(() => {
+    const defaults = ["Kesimhane", "Ulus"];
+    const fromData = new Set<string>();
+
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const loc = row.original.delivery_location;
+      if (loc && typeof loc === "string" && loc.trim()) {
+        fromData.add(loc.trim());
+      }
+    });
+
+    const all = [...defaults, ...Array.from(fromData).filter((l) => !defaults.includes(l)).sort()];
+    return all.map((label) => ({ label: label === "Ulus" ? "Ulus (+750 TL)" : label, value: label }));
+  }, [table]);
 
   // Vekalet options
   const vekaletOptions = useMemo(() => [
@@ -321,10 +331,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
         <DataTableFacetedFilter
           column={table.getColumn("delivery_location")}
           title="Teslimat Noktası"
-          options={Object.entries(deliveryLocationOptions).map(([label, value]) => ({
-            label,
-            value,
-          }))}
+          options={deliveryLocationOptions}
           type="delivery"
         />
       )}

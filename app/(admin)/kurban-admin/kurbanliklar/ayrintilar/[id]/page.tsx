@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrificeById } from "@/hooks/useSacrificeById";
 import { useGetShareholdersBySacrificeId } from "@/hooks/useShareholders";
-import { useUser } from "@/hooks/useUsers";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 import { formatDate } from "@/lib/date-utils";
@@ -35,7 +34,6 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
   const [selectedPriceInfo, setSelectedPriceInfo] = useState({ kg: '', price: '' });
   const { toast } = useToast();
   const { data: session } = useSession();
-  const { data: userData } = useUser(session?.user?.email);
   const router = useRouter();
   const { updateSacrifice } = useSacrificeStore();
 
@@ -81,7 +79,8 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
   };
 
   const handleSave = async () => {
-    if (!userData?.name) {
+    const userEmail = session?.user?.email;
+    if (!userEmail) {
       toast({
         title: "Hata",
         description: "Kullanıcı bilgisi bulunamadı.",
@@ -96,7 +95,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
         ...editData,
         share_weight: selectedPriceInfo.kg ? parseFloat(selectedPriceInfo.kg.replace(/[^\d.]/g, '')) : editData.share_weight,
         share_price: selectedPriceInfo.price ? parseInt(selectedPriceInfo.price.replace(/\./g, ''), 10) : editData.share_price,
-        last_edited_by: userData.name,
+        last_edited_by: userEmail, // Admin: email saklanır
         last_edited_time: new Date().toISOString()
       };
 

@@ -21,12 +21,14 @@ export async function POST(req: Request) {
       );
     }
 
+    const messageYear = new Date().getFullYear();
     const { error } = await supabaseAdmin.from("contact_messages").insert({
       tenant_id: tenantId,
       name: String(name).trim(),
       phone: String(phone).trim(),
       email: email ? String(email).trim() : null,
       message: String(message).trim(),
+      message_year: messageYear,
     });
 
     if (error) {

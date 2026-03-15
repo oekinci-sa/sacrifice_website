@@ -1,15 +1,31 @@
 "use client";
-import { priceInfo } from "@/app/(public)/(anasayfa)/constants";
+
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface PriceItem {
+  kg: number;
+  price: number;
+  soldOut: boolean;
+}
 
 const Prices = () => {
   const router = useRouter();
+  const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const priceItems = priceInfo.map((item) => ({
-    kg: parseInt(item.kg.split(" ")[0], 10),
-    price: parseInt(item.price.replace(".", ""), 10),
-  }));
+  useEffect(() => {
+    fetch("/api/price-info")
+      .then((res) => res.json())
+      .then((data: PriceItem[]) => {
+        if (Array.isArray(data)) {
+          setPriceItems(data);
+        }
+      })
+      .catch(() => setPriceItems([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Container animation for staggered children
   const container = {
@@ -20,7 +36,6 @@ const Prices = () => {
     },
   };
 
-  // Box animation (scale + fade)
   const boxVariant = {
     hidden: { scale: 0.5, opacity: 0 },
     show: {
@@ -30,7 +45,6 @@ const Prices = () => {
     },
   };
 
-  // **Y-axis slide removed**: now only fades in
   const itemVariant = {
     hidden: { opacity: 0 },
     show: {
@@ -39,7 +53,6 @@ const Prices = () => {
     },
   };
 
-  // Section wrapper animation (can keep or remove y if desired)
   const sectionVariant = {
     hidden: { opacity: 0, y: 50 },
     show: {
@@ -48,6 +61,10 @@ const Prices = () => {
       transition: { duration: 0.8, ease: "easeOut" },
     },
   };
+
+  if (loading || priceItems.length === 0) {
+    return null;
+  }
 
   return (
     <section className="container mx-auto">
@@ -62,19 +79,24 @@ const Prices = () => {
           Bu Seneki Hisse Bedellerimiz
         </h2>
 
-        {/* Price Items */}
         <motion.div
-          className="grid grid-cols-3 md:grid-cols-4 gap-8 md:gap-x-24 md:gap-y-12"
+          className="grid grid-cols-3 md:grid-cols-4 gap-8 md:gap-x-24 md:gap-y-12 items-start"
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
         >
-          {priceItems.map((item, index) => (
+          {priceItems.map((item) => (
             <motion.div
-              key={index}
-              className="flex flex-col items-center justify-between hover:scale-105 transition-all duration-300 cursor-pointer"
-              onClick={() => router.push(`/hisseal?price=${item.price}`)}
+              key={`${item.kg}-${item.price}`}
+              className={`flex flex-col items-center transition-all duration-300 ${
+                item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
+              }`}
+              onClick={() => {
+                if (!item.soldOut) {
+                  router.push(`/hisseal?price=${item.price}`);
+                }
+              }}
               variants={itemVariant}
             >
               <motion.div
@@ -84,16 +106,25 @@ const Prices = () => {
                 {item.kg} KG
               </motion.div>
               <motion.div
-                className="text-base md:text-2xl font-semibold bg-primary text-white px-2 py-1 rounded-md w-full text-center"
+                className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${
+                  item.soldOut ? "rounded-t-md" : "rounded-md"
+                }`}
                 variants={boxVariant}
               >
                 {item.price.toLocaleString("tr-TR")} TL
               </motion.div>
+              {item.soldOut && (
+                <motion.div
+                  className="inline-flex items-center justify-center bg-sac-red text-white text-xs md:text-base font-semibold px-2 py-0.5 rounded-b-md -mt-px mx-auto"
+                  variants={boxVariant}
+                >
+                  TÜKENDİ
+                </motion.div>
+              )}
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Price Notes */}
         <p className="text-sm md:text-base text-center max-w-2xl">
           <span>
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik gösterebilmektedir.

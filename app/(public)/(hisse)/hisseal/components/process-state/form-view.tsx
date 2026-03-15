@@ -18,6 +18,7 @@ export type Step = "selection" | "details" | "confirmation" | "success";
 interface ShareholderFormData {
   name: string;
   phone: string;
+  email?: string;
   delivery_location: string;
   delivery_fee: number;
   sacrifice_consent: boolean;

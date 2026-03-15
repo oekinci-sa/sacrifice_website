@@ -11,6 +11,7 @@ interface ShareholderFormProps {
     data: {
         name: string
         phone: string
+        email?: string
         delivery_location: string
         is_purchaser?: boolean
     }
@@ -18,12 +19,13 @@ interface ShareholderFormProps {
     errors: {
         name?: string[]
         phone?: string[]
+        email?: string[]
         delivery_location?: string[]
         is_purchaser?: string[]
     }
-    onInputChange: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
-    onInputBlur: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
-    onSelectChange: (index: number, field: "name" | "phone" | "delivery_location", value: string) => void
+    onInputChange: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
+    onInputBlur: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
+    onSelectChange: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
     onRemove: (index: number) => void
     onIsPurchaserChange: (index: number, checked: boolean) => void
     isOtherPurchaserSelected?: boolean
@@ -171,8 +173,33 @@ export default function ShareholderForm({
                     </div>
                 </div>
 
-                {/* Teslimat Tercihi */}
+                {/* E-posta (İsteğe bağlı) ve Teslimat Tercihi */}
                 <div className="flex gap-4 justify-between">
+                    {/* E-posta - İsteğe bağlı */}
+                    <div className="space-y-1.5 md:space-y-2 w-full">
+                        <Label
+                            htmlFor={`email-${index}`}
+                            className="text-slate-600 text-sm md:text-base"
+                        >
+                            E-posta (İsteğe bağlı)
+                        </Label>
+                        <Input
+                            id={`email-${index}`}
+                            type="email"
+                            placeholder="ornek@email.com"
+                            value={data.email ?? ""}
+                            onChange={(e) => onInputChange(index, "email", e.target.value)}
+                            onBlur={(e) => onInputBlur(index, "email", e.target.value)}
+                            className={cn(
+                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                                errors?.email ? "border-destructive/50 bg-destructive/10" : ""
+                            )}
+                        />
+                        {errors?.email && (
+                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.email.join(", ")}</p>
+                        )}
+                    </div>
+                    {/* Teslimat Tercihi */}
                     <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label
                             htmlFor={`delivery_location-${index}`}
@@ -180,8 +207,6 @@ export default function ShareholderForm({
                         >
                             Teslimat Tercihi
                         </Label>
-
-                        {/* Teslimat Tercihi Butonları */}
                         <div className="flex gap-1 md:gap-4">
                             <div className="flex gap-4 justify-between w-full">
                                 {deliveryOptions.map((option) => (
@@ -201,15 +226,11 @@ export default function ShareholderForm({
                                     </Button>
                                 ))}
                             </div>
-
                         </div>
-
-
                         {errors?.delivery_location && (
-                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(', ')}</p>
+                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(", ")}</p>
                         )}
                     </div>
-                    <div className="w-full"></div>
                 </div>
 
                 {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}

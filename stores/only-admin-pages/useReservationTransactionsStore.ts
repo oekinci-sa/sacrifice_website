@@ -19,7 +19,7 @@ interface ReservationTransactionsState {
   realtimeEnabled: boolean;
 
   // Actions
-  fetchTransactions: () => Promise<void>;
+  fetchTransactions: (year?: number | null) => Promise<void>;
   setTransactions: (data: ReservationTransaction[]) => void;
   updateTransaction: (transaction: ReservationTransaction) => void;
   addTransaction: (transaction: ReservationTransaction) => void;
@@ -126,16 +126,14 @@ export const useReservationTransactionsStore = create<ReservationTransactionsSta
     realtimeEnabled: false,
 
     // Fetch transactions from API
-    fetchTransactions: async () => {
-      // Skip if already initialized and has data
-      if (get().isInitialized && get().transactions.length > 0) {
-        return;
-      }
-
+    fetchTransactions: async (year?: number | null) => {
       try {
         set({ isLoading: true, error: null });
 
-        const response = await fetch('/api/get-reservation-transactions');
+        const url = year != null
+          ? `/api/get-reservation-transactions?year=${year}`
+          : '/api/get-reservation-transactions';
+        const response = await fetch(url);
 
         if (!response.ok) {
           const errorData = await response.json();

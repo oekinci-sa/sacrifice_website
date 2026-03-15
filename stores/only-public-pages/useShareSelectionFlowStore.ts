@@ -5,6 +5,7 @@ import { devtools } from "zustand/middleware";
 export interface FormData {
   name: string;
   phone: string;
+  email?: string;
   delivery_location: string;
 }
 

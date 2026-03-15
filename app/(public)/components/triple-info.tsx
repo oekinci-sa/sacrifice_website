@@ -1,24 +1,31 @@
-"use client"
+"use client";
 
 import { reminders } from "@/app/(public)/(hisse)/constants";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import Image from "next/image";
 
 export function TripleInfo() {
-  // Function to process HTML and convert links to open in new tab
-  const processHtml = (html: string) => {
-    // If there's no HTML or no link text, return as is
-    if (!html || !html.includes('ankarakurban.com.tr')) return html;
+  const branding = useTenantBranding();
 
-    // Replace ankarakurban.com.tr with a link that opens in a new tab
-    return html.replace(
-      /ankarakurban\.com\.tr/g,
-      '<a href="https://www.ankarakurban.com.tr/" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">ankarakurban.com.tr</a>'
-    );
+  const processHtml = (html: string) => {
+    if (!html) return html;
+    const website = branding.website_url;
+    if (website && html.includes(website)) {
+      return html.replace(
+        new RegExp(website.replace(/\./g, "\\."), "g"),
+        `<a href="https://www.${website}/" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${website}</a>`
+      );
+    }
+    return html;
   };
+
+  const remindersWithBranding = reminders.map((r, i) =>
+    i === 1 ? { ...r, description: branding.iban } : r
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-32 mt-8 md:mt-12">
-      {reminders.map((reminder, index) => (
+      {remindersWithBranding.map((reminder, index) => (
         <div key={index} className="flex flex-col items-center text-center space-y-2 md:space-y-3">
           <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
             <Image

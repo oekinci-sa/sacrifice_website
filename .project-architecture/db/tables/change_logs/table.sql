@@ -9,7 +9,9 @@ CREATE TABLE change_logs (
     change_type TEXT NOT NULL,
     description TEXT NOT NULL,
     change_owner TEXT NOT NULL,
-    changed_at TIMESTAMPTZ DEFAULT now()
+    changed_at TIMESTAMPTZ DEFAULT now(),
+    sacrifice_year INT2
 );
 
 CREATE INDEX idx_change_logs_tenant ON change_logs (tenant_id);
+CREATE INDEX idx_change_logs_tenant_year ON change_logs (tenant_id, sacrifice_year);

@@ -2,27 +2,28 @@
 -- Açıklama: sacrifice_animals tablosundaki tüm değişiklikleri (ekleme,
 --           güncelleme, silme) change_logs tablosuna kaydeder. Kurban
 --           numarası, hisse bedeli, kesim/parçalama/teslimat saatleri
---           gibi alan değişikliklerini izler.
+--           gibi alan değişikliklerini izler. sacrifice_year NEW/OLD'tan alınır.
 -- Trigger   : trigger_sacrifice_changes (AFTER INSERT OR UPDATE OR DELETE)
 -- ===============================================
 
 CREATE OR REPLACE FUNCTION "public"."log_sacrifice_changes" () RETURNS "pg_catalog"."trigger" AS $BODY$
 BEGIN
   IF (TG_OP = 'INSERT') THEN
-    INSERT INTO change_logs (TABLE_NAME, row_id, change_type, description, change_owner)
+    INSERT INTO change_logs (TABLE_NAME, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES
     (
       'Kurbanlıklar',
       CAST (NEW.sacrifice_no AS TEXT),
       'Ekleme',
       'Yeni kurban kaydı eklendi: Kurban Numarası: ' || NEW.sacrifice_no || ', Hisse Bedeli: ' || NEW.share_price || ', Kesim Zamanı: ' || NEW.sacrifice_time,
-      NEW.last_edited_by
+      NEW.last_edited_by,
+      NEW.tenant_id,
+      NEW.sacrifice_year
     );
     RETURN NEW;
   ELSIF (TG_OP = 'UPDATE') THEN
-    -- Kurban numarası değiştiyse
     IF NEW.sacrifice_no <> OLD.sacrifice_no THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -32,13 +33,14 @@ BEGIN
         CAST (NEW.sacrifice_no AS TEXT),
         'Güncelleme',
         'Kurban numarası ' || OLD.sacrifice_no || ' değerinden ' || NEW.sacrifice_no || ' değerine değişti.',
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
 
-    -- Hisse bedeli değiştiyse
     IF NEW.share_price <> OLD.share_price THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -48,12 +50,14 @@ BEGIN
         CAST (NEW.share_price AS TEXT),
         'Güncelleme',
         'Hisse bedeli ' || OLD.share_price || ' değerinden ' || NEW.share_price || ' değerine değişti.',
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
-    -- Kesim zamanı değiştiyse
+
     IF NEW.sacrifice_time IS DISTINCT FROM OLD.sacrifice_time THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -63,12 +67,14 @@ BEGIN
         CAST (NEW.sacrifice_time AS TEXT),
         'Güncelleme',
         'Kesim zamanı ' || COALESCE (CAST (OLD.sacrifice_time AS TEXT), '') || ' değerinden ' || COALESCE (CAST (NEW.sacrifice_time AS TEXT), '') || ' değerine değişti.',
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
-    -- slaughter_time değiştiyse
+
     IF NEW.slaughter_time IS DISTINCT FROM OLD.slaughter_time THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -87,12 +93,14 @@ BEGIN
           ELSE
             'Kesim saati bilgisi güncellendi.'
         END,
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
-    -- butcher_time değiştiyse
+
     IF NEW.butcher_time IS DISTINCT FROM OLD.butcher_time THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -111,12 +119,14 @@ BEGIN
           ELSE
             'Parçalama saati bilgisi güncellendi.'
         END,
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
-    -- delivery_time değiştiyse
+
     IF NEW.delivery_time IS DISTINCT FROM OLD.delivery_time THEN
-      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner)
+      INSERT INTO change_logs (TABLE_NAME, row_id, COLUMN_NAME, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES
       (
         'Kurbanlıklar',
@@ -135,19 +145,23 @@ BEGIN
           ELSE
             'Teslimat saati bilgisi güncellendi.'
         END,
-        NEW.last_edited_by
+        NEW.last_edited_by,
+        NEW.tenant_id,
+        NEW.sacrifice_year
       );
     END IF;
     RETURN NEW;
   ELSIF (TG_OP = 'DELETE') THEN
-    INSERT INTO change_logs (TABLE_NAME, row_id, change_type, description, change_owner)
+    INSERT INTO change_logs (TABLE_NAME, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES
     (
       'Kurbanlıklar',
       CAST (OLD.sacrifice_no AS TEXT),
       'Silme',
       'Kurban kaydı silindi: Kurban Numarası: ' || OLD.sacrifice_no || ', Hisse Bedeli: ' || OLD.share_price || ', Kesim Zamanı: ' || OLD.sacrifice_time,
-      OLD.last_edited_by
+      OLD.last_edited_by,
+      OLD.tenant_id,
+      OLD.sacrifice_year
     );
     RETURN OLD;
   END IF;

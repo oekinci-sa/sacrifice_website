@@ -21,7 +21,9 @@ import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { AppSidebar } from "./components/layout/app-sidebar";
+import { YearDropdown } from "./components/layout/year-dropdown";
 
 // Type for shareholder data from API
 interface ShareholderData {
@@ -69,6 +71,7 @@ function UserNav() {
 
 function DynamicBreadcrumb() {
   const pathname = usePathname();
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [sacrificeNo, setSacrificeNo] = useState<string>("");
   const [shareholderName, setShareholderName] = useState<string>("");
   const [isLoadingSacrifice, setIsLoadingSacrifice] = useState(false);
@@ -143,7 +146,10 @@ function DynamicBreadcrumb() {
       setShareholderName(""); // Reset previous value
 
       // Shareholder API çağrısı - tüm hissedarları al ve ID ile eşleştir
-      fetch('/api/get-shareholders')
+      const url = selectedYear != null
+        ? `/api/get-shareholders?year=${selectedYear}`
+        : '/api/get-shareholders';
+      fetch(url)
         .then(response => response.json())
         .then(data => {
           if (data.shareholders) {
@@ -168,7 +174,7 @@ function DynamicBreadcrumb() {
       setIsLoadingSacrifice(false);
       setIsLoadingShareholder(false);
     }
-  }, [pathname]);
+  }, [pathname, selectedYear]);
 
   const breadcrumbs = useMemo(() => {
     const paths = pathname.split('/').filter(Boolean);
@@ -252,12 +258,15 @@ export function ClientLayout({
     <div className="flex h-screen">
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
-          <div className="flex items-center gap-2">
-            <Separator orientation="vertical" className="mr-2 h-4" />
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-2 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Separator orientation="vertical" className="mr-2 hidden h-4 sm:block" />
             <DynamicBreadcrumb />
           </div>
-          <UserNav />
+          <div className="flex shrink-0 items-center gap-2">
+            <YearDropdown />
+            <UserNav />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
           {children}

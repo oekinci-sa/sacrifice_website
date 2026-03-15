@@ -1,0 +1,28 @@
+---
+description: sacrifice_year ve yıl bazlı veri kuralları
+globs: 
+---
+# SACRIFICE YEAR RULE
+
+## Public sayfalar (hisseal, hissesorgula, get-empty-share-count vb.)
+
+1. **Kaynak:** `resolveSacrificeYearForTenant()` ([lib/sacrifice-year-resolver.ts](lib/sacrifice-year-resolver.ts))
+2. **Çözümleme sırası:** `?year=` param → `tenant_settings.active_sacrifice_year` → `sacrifice_animals` MAX(sacrifice_year)
+3. **Fallback yok:** Yıl bulunamazsa hata fırlatır (`NO_SACRIFICE_YEAR_ERROR`), API 500 döner
+
+## Admin sayfalar
+
+- **Varsayılan:** MAX(sacrifice_year) tenant için; veri yoksa `tenant_settings.active_sacrifice_year`
+- **Fallback yok:** İkisi de yoksa 500 hata
+- Geçmiş yıl verisi için `year` query param eklenebilir
+
+## sacrifice_animals sorgulayan diğer API'lar (admin, create-sacrifice vb.)
+
+1. **Zorunlu:** `sacrifice_year` filtresi eklenmeli
+2. **Kaynak:** `getDefaultSacrificeYear()` ([lib/constants/sacrifice-year.ts](lib/constants/sacrifice-year.ts))
+3. **Override:** `SACRIFICE_YEAR` env ile yıl değiştirilebilir
+
+## Yeni sezon
+
+- Yeni kurbanlık eklenirken `sacrifice_year` otomatik atanır (create-sacrifice)
+- `tenant_settings.active_sacrifice_year` tenant bazlı yıl (örn. test/kahramankazan 2025, golbasi 2026)

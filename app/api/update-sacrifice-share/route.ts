@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -5,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const tenantId = getTenantId();
+    const sacrificeYear = getDefaultSacrificeYear();
     const { sacrificeId, emptyShare } = await request.json();
 
     // Validate input
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
       .update({ empty_share: emptyShare })
       .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrificeId)
+      .eq("sacrifice_year", sacrificeYear)
       .select();
 
     if (error) {

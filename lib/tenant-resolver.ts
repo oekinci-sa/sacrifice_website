@@ -37,8 +37,9 @@ export function resolveTenantIdFromHost(host: string): string | null {
     "kahramankazan.localhost": KAHRAMANKAZAN_TENANT_ID,
   };
 
-  // Production domain'ler (3001=ankarakurban, 3002=elyahayvancilik)
+  // Production domain'ler (3000=test/Vercel, 3001=ankarakurban, 3002=elyahayvancilik)
   const productionDomainMap: Record<string, string> = {
+    "sacrifice-website-e64spmeri-solutions-projects-803fd257.vercel.app": TEST_TENANT_ID,
     "ankarakurban.com.tr": KAHRAMANKAZAN_TENANT_ID,
     "www.ankarakurban.com.tr": KAHRAMANKAZAN_TENANT_ID,
     "ankarakurban.com": KAHRAMANKAZAN_TENANT_ID,

@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from "next/server";
@@ -50,12 +51,14 @@ export async function POST(request: Request) {
 
         // Eğer kurbanlık ID varsa, kurbanlığın boş hisse sayısını güncelle
         if (sacrificeId) {
+            const sacrificeYear = getDefaultSacrificeYear();
             // Önce mevcut kurbanlık bilgilerini al
             const { data: sacrifice, error: sacrificeError } = await supabaseAdmin
                 .from("sacrifice_animals")
                 .select("empty_share")
                 .eq("tenant_id", tenantId)
                 .eq("sacrifice_id", sacrificeId)
+                .eq("sacrifice_year", sacrificeYear)
                 .single();
 
             if (!sacrificeError && sacrifice) {
@@ -67,7 +70,8 @@ export async function POST(request: Request) {
                     .from("sacrifice_animals")
                     .update({ empty_share: newEmptyShare })
                     .eq("tenant_id", tenantId)
-                    .eq("sacrifice_id", sacrificeId);
+                    .eq("sacrifice_id", sacrificeId)
+                    .eq("sacrifice_year", sacrificeYear);
             }
         }
 

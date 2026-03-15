@@ -1,5 +1,9 @@
-import { TIMEOUT_DURATION } from '@/lib/constants/reservation-timer';
-import { getTenantId } from '@/lib/tenant';
+import { TIMEOUT_DURATION } from "@/lib/constants/reservation-timer";
+import {
+  resolveSacrificeYearForTenant,
+  NO_SACRIFICE_YEAR_ERROR,
+} from "@/lib/sacrifice-year-resolver";
+import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -20,8 +24,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const tenantId = getTenantId();
-    const { transaction_id, sacrifice_id, share_count, status = ReservationStatus.ACTIVE } = await request.json();
-
+    const body = await request.json();
+    const { transaction_id, sacrifice_id, share_count, status = ReservationStatus.ACTIVE, year: yearParam } = body;
 
     // Gerekli alanları kontrol et
     if (!transaction_id) {
@@ -69,11 +73,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sacrificeYear = await resolveSacrificeYearForTenant(
+      tenantId,
+      yearParam != null ? String(yearParam) : null
+    );
+
     const { data: currentSacrifice, error: checkError } = await supabaseAdmin
       .from("sacrifice_animals")
-      .select("empty_share")
+      .select("empty_share, sacrifice_year")
       .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrifice_id)
+      .eq("sacrifice_year", sacrificeYear)
       .single();
 
     if (checkError) {
@@ -106,6 +116,7 @@ export async function POST(request: NextRequest) {
           transaction_id,
           sacrifice_id,
           share_count,
+          sacrifice_year: currentSacrifice.sacrifice_year,
           status: ReservationStatus.ACTIVE,
           expires_at: expiresAt,
         }
@@ -136,10 +147,11 @@ export async function POST(request: NextRequest) {
       message: "Reservation created successfully",
       data
     });
-  } catch {
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
+  } catch (err) {
+    const message =
+      err instanceof Error && err.message === NO_SACRIFICE_YEAR_ERROR
+        ? err.message
+        : "An unexpected error occurred";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 } 

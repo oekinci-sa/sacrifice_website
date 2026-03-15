@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { BlobProvider } from "@react-pdf/renderer";
 import ReceiptPDF from "../ReceiptPDF";
 
@@ -58,6 +59,8 @@ export function SuccessViewPdfSection({
   getDisplayPhone,
   onPdfDownload,
 }: SuccessViewPdfSectionProps) {
+  const branding = useTenantBranding();
+
   return (
     <div className="mt-8">
       <h2 className="text-lg md:text-xl font-semibold text-center mb-4">
@@ -79,7 +82,7 @@ export function SuccessViewPdfSection({
                 <p className="text-sm text-gray-500">{displayPhone}</p>
               </div>
 
-              <BlobProvider document={<ReceiptPDF data={receiptData} />}>
+              <BlobProvider document={<ReceiptPDF data={receiptData} branding={branding} />}>
                 {({ blob, loading, error }) => (
                   <Button
                     className="flex items-center justify-center gap-1 md:gap-2 bg-primary hover:bg-primary/90 text-white px-2 md:px-4 py-2 md:py-3 h-auto text-xs md:text-sm"

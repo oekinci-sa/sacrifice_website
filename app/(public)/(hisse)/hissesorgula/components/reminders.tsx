@@ -1,11 +1,19 @@
-import React from 'react'
-import { reminders } from "../../constants"
-import Image from 'next/image';
+"use client";
+
+import React from "react";
+import { reminders } from "../../constants";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import Image from "next/image";
 
 const Reminders = () => {
+  const branding = useTenantBranding();
+  const remindersWithBranding = reminders.map((r, i) =>
+    i === 1 ? { ...r, description: branding.iban } : r
+  );
+
   return (
     <div className="container flex flex-wrap justify-between">
-      {reminders.map((item) => (
+      {remindersWithBranding.map((item) => (
         <div key={item.src} className="flex flex-col items-center w-80 gap-4">
           <Image
             src={`/icons/${item.src}`}

@@ -5,13 +5,14 @@ import {
 } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { SACRIFICE_UPDATED_EVENT, useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { setupRefreshListener } from "@/utils/data-refresh";
 import { useEffect } from "react";
 
 export function usePageInitialization() {
-    // Zustand data store for sacrifices
+    const { selectedYear } = usePublicYearStore();
     const {
         sacrifices,
         isLoadingSacrifices,
@@ -48,7 +49,7 @@ export function usePageInitialization() {
                 console.error("usePageInitialization: Veri yükleme hatası:", error);
                 // Hata durumunda da bir sonraki denemede çalışabilmesi için
                 setTimeout(() => {
-                    refetchSacrifices().catch(e =>
+                    refetchSacrifices(selectedYear ?? undefined).catch(e =>
                         console.error("usePageInitialization: Yeniden veri yükleme hatası:", e)
                     );
                 }, 3000);
@@ -59,8 +60,7 @@ export function usePageInitialization() {
 
         // Set up listener for sacrifice data updates triggered by admin operations
         const cleanupRefreshListener = setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => {
-            // Burada doğrudan store'u güncelliyoruz
-            refetchSacrifices().catch(error => {
+            refetchSacrifices(selectedYear ?? undefined).catch(error => {
                 console.error("usePageInitialization: Veri güncelleme hatası:", error);
             });
         });
@@ -71,8 +71,9 @@ export function usePageInitialization() {
             cleanupRefreshListener();
         };
     }, [
-        refetchSacrifices, 
-        subscribeToRealtime, 
+        refetchSacrifices,
+        selectedYear,
+        subscribeToRealtime,
         unsubscribeFromRealtime
     ]);
 

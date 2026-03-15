@@ -1,6 +1,10 @@
-import { getTenantId } from '@/lib/tenant';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { NextRequest, NextResponse } from 'next/server';
+import {
+  resolveSacrificeYearForTenant,
+  NO_SACRIFICE_YEAR_ERROR,
+} from "@/lib/sacrifice-year-resolver";
+import { getTenantId } from "@/lib/tenant";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,8 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const tenantId = getTenantId();
     const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
-
+    const id = searchParams.get("id");
     if (!id) {
       return NextResponse.json(
         { error: "Sacrifice ID is required" },
@@ -25,12 +28,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const yearParam = searchParams.get("year");
+    const sacrificeYear = await resolveSacrificeYearForTenant(tenantId, yearParam);
+
     // Use the supabaseAdmin client with service role to fetch data
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
       .select("empty_share")
       .eq("tenant_id", tenantId)
       .eq("sacrifice_id", id)
+      .eq("sacrifice_year", sacrificeYear)
       .single();
 
     if (error) {
@@ -55,9 +62,13 @@ export async function GET(request: NextRequest) {
         'Expires': '0'
       }
     });
-  } catch {
+  } catch (err) {
+    const message =
+      err instanceof Error && err.message === NO_SACRIFICE_YEAR_ERROR
+        ? err.message
+        : "An unexpected error occurred";
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: message },
       {
         status: 500,
         headers: {

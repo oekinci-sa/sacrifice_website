@@ -9,6 +9,7 @@ interface ShareholderSummaryCardProps {
   shareholder: {
     name: string;
     phone: string;
+    email?: string;
     delivery_location: string;
     is_purchaser?: boolean;
     paid_amount?: number;
@@ -58,6 +59,27 @@ export function ShareholderSummaryCard({
               {shareholder.name}
             </span>
           </div>
+          {shareholder.email && (
+            <div>
+              <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+                E-posta
+              </span>
+              <span className="text-black font-medium text-[16px] md:text-lg">
+                {shareholder.email}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3 md:space-y-4">
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Telefon
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {formatPhoneForDisplayWithSpacing(shareholder.phone)}
+            </span>
+          </div>
           <div>
             <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
               Teslimat Tercihi
@@ -66,15 +88,6 @@ export function ShareholderSummaryCard({
               {shareholder.delivery_location}
             </span>
           </div>
-        </div>
-
-        <div>
-          <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
-            Telefon
-          </span>
-          <span className="text-black font-medium text-[16px] md:text-lg">
-            {formatPhoneForDisplayWithSpacing(shareholder.phone)}
-          </span>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 interface ShareholderInput {
   shareholder_name: string;
   phone_number: string;
+  email?: string;
   transaction_id: string;
   sacrifice_id: string;
   share_price: number;
@@ -31,10 +32,28 @@ export async function POST(req: Request) {
       );
     }
 
-    const shareholdersWithTenant = shareholdersData.map((s) => ({
-      ...s,
-      tenant_id: tenantId,
-    }));
+    const sacrificeIds = Array.from(new Set(shareholdersData.map((s) => s.sacrifice_id)));
+    const { data: sacrifices } = await supabaseAdmin
+      .from("sacrifice_animals")
+      .select("sacrifice_id, sacrifice_year")
+      .in("sacrifice_id", sacrificeIds)
+      .eq("tenant_id", tenantId);
+
+    const sacrificeYearMap = new Map(
+      (sacrifices ?? []).map((s) => [s.sacrifice_id, s.sacrifice_year])
+    );
+
+    const shareholdersWithTenant = shareholdersData.map((s) => {
+      const sacrificeYear = sacrificeYearMap.get(s.sacrifice_id);
+      if (sacrificeYear == null) {
+        throw new Error(`Sacrifice ${s.sacrifice_id} not found`);
+      }
+      return {
+        ...s,
+        tenant_id: tenantId,
+        sacrifice_year: sacrificeYear,
+      };
+    });
 
     const { data, error } = await supabaseAdmin
       .from("shareholders")

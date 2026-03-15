@@ -4,12 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import Ayah from "./components/ayah";
-import Banner from "./components/banner";
-import Faq from "./components/faq";
-import Features from "./components/features";
-import Prices from "./components/prices";
-import Process from "./components/process";
+import Ayah from "../../(anasayfa)/components/ayah";
+import Banner from "../../(anasayfa)/components/banner";
+import Faq from "../../(anasayfa)/components/faq";
+import Features from "../../(anasayfa)/components/features";
+import Prices from "../../(anasayfa)/components/prices";
+import Process from "../../(anasayfa)/components/process";
 
 // Yukarı kaydırma butonu için ayrı bir bileşen - React.memo ile sarmaladık
 const ScrollToTopButton = React.memo(({ onClick }: { onClick: () => void }) => {

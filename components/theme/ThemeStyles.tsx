@@ -22,6 +22,7 @@ import { getTenantIdOptional } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { unstable_noStore } from "next/cache";
 
+const TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
 
 export async function ThemeStyles() {
@@ -29,6 +30,7 @@ export async function ThemeStyles() {
 
   const tenantId = getTenantIdOptional();
   if (!tenantId) return null; // Middleware çalışmamışsa varsayılan tema (globals.css) kullanılır
+  if (tenantId === TEST_TENANT_ID) return null; // Test/Vercel: shadcn varsayılan tema
 
   const { data: row } = await supabaseAdmin
     .from("tenant_settings")

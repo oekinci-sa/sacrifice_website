@@ -10,7 +10,7 @@ interface ShareholderState {
   realtimeEnabled: boolean;
 
   // Actions
-  fetchShareholders: () => Promise<void>;
+  fetchShareholders: (year?: number | null) => Promise<void>;
   fetchShareholdersByTransactionId: (transactionId: string) => Promise<shareholderSchema[]>;
   setShareholders: (data: shareholderSchema[]) => void;
   updateShareholder: (shareholder: shareholderSchema) => void;
@@ -153,16 +153,14 @@ export const useShareholderStore = create<ShareholderState>((set, get) => {
     realtimeEnabled: false,
 
     // Fetch shareholders from API
-    fetchShareholders: async () => {
-      // Skip if already initialized and has data
-      if (get().isInitialized && get().shareholders.length > 0) {
-        return;
-      }
-
+    fetchShareholders: async (year?: number | null) => {
       try {
         set({ isLoading: true, error: null });
 
-        const response = await fetch('/api/get-shareholders');
+        const url = year != null
+          ? `/api/get-shareholders?year=${year}`
+          : '/api/get-shareholders';
+        const response = await fetch(url);
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -171,13 +169,12 @@ export const useShareholderStore = create<ShareholderState>((set, get) => {
 
         const data = await response.json();
         set({
-          shareholders: data.shareholders || [], // Extract the shareholders array from the response
+          shareholders: data.shareholders || [],
           isLoading: false,
           error: null,
           isInitialized: true
         });
 
-        // Enable realtime subscriptions after initial load
         if (!get().realtimeEnabled) {
           get().enableRealtime();
         }

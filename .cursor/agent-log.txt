@@ -245,3 +245,57 @@
 - app/(public)/(hisse)/hisseal/hooks/useReservationAndWarningManager.ts
 
 [Risk] Düşük/Orta – DB tarafındaki timezone bug'ı çözüldü; expire cron hâlâ 30 saniyelik schedule ile çalıştığı için sadece cron kaynaklı server-side expire görünürlüğünde doğal bir periyot gecikmesi olabilir.
+
+=== 2026-03-14 ===
+
+[İstek] Homepage mode, sacrifice_year, onizleme, tenant-resolver Vercel URL, types güncelleme
+
+[Yapılan Değişiklikler]
+1. DB: tenant_settings → homepage_mode, homepage_layout kolonları
+2. DB: sacrifice_animals → sacrifice_year (mevcut veriler 2025), unique (tenant_id, sacrifice_year, sacrifice_no)
+3. lib/constants/sacrifice-year.ts, lib/homepage-settings.ts
+4. Root / → app/(public)/page.tsx (homepage_mode'a göre anasayfa/thanks/takip)
+5. (takip)/page.tsx kaldırıldı
+6. Onizleme: /onizleme, /onizleme/anasayfa, /onizleme/thanks, /onizleme/takip
+7. API routes: sacrifice_year filtresi (get-sacrifice-animals, create-sacrifice, create-reservation, get-empty-share-count, get-sacrifice-by-id, get-latest-sacrifice-share, update-sacrifice-share, reset-shares, check-sacrifice-timing, update-sacrifice-timing, update-sacrifice, delete-shareholder, sacrifices/[id])
+8. tenant-resolver: sacrifice-website-e64spmeri-solutions-projects-803fd257.vercel.app → TEST_TENANT_ID
+9. tenant-settings API: homepage_mode, homepage_layout response
+10. types/index.ts: TenantSettings, sacrificeSchema güncellendi
+11. .project-architecture: architecture.md, pages/public-pages.md, db/tables, homepage-and-sacrifice-year.md
+12. .cursor/rules: homepage-mode.mdc, sacrifice-year.mdc
+
+[Dosyalar]
+- lib/tenant-resolver.ts, lib/constants/sacrifice-year.ts, lib/homepage-settings.ts
+- app/(public)/page.tsx, app/(public)/onizleme/*, app/(takip)/page.tsx (silindi)
+- app/api/* (14 route)
+- types/index.ts
+- .project-architecture/db/tables/tenant_settings/table.sql, sacrifice_animals/table.sql
+- .project-architecture/architecture.md, pages/public-pages.md, project-details.md, homepage-and-sacrifice-year.md
+- .cursor/rules/homepage-mode.mdc, sacrifice-year.mdc
+
+[Risk] Orta – Root sayfa ve API filtreleri değişti; DB migration uygulandı.
+
+=== 2025-03-14 ===
+
+[İstek] Plan uygulaması; sacrifice_year tablolara, admin yıl seçici, tenant branding (Elya), tema, responsive rule; dokümantasyon
+
+[Yapılan Değişiklikler]
+1. lib/logoBase64.ts: logoBase64Ankara, logoBase64Elya, logoBase64BySlug, getLogoBase64ForSlug(), logoBase64 (deprecated alias)
+2. ReceiptPDF.tsx: branding prop; tenant'a göre logo, IBAN, website, contact
+3. SuccessViewPdfSection.tsx: useTenantBranding → ReceiptPDF'e branding geçirimi
+4. ThemeStyles.tsx: TEST_TENANT_ID için null (shadcn varsayılan tema)
+5. types/index.ts: shareholderSchema, changeLogSchema → sacrifice_year; columns.tsx ReservationTransaction → sacrifice_year
+6. .cursor/rules/responsive-design.mdc: Mobil-tablet-desktop uyumluluk kuralı
+7. features.md: Admin yıl seçici, tenant branding, tema, sacrifice_year, responsive bölümleri
+8. .project-architecture/plan-implementation-2025-03.md: Plan uygulama özeti
+
+[Dosyalar]
+- lib/logoBase64.ts
+- app/(public)/(hisse)/hisseal/components/success-state/ReceiptPDF.tsx, SuccessViewPdfSection.tsx
+- components/theme/ThemeStyles.tsx
+- types/index.ts
+- app/(admin)/kurban-admin/rezervasyonlar/components/columns.tsx
+- .cursor/rules/responsive-design.mdc
+- .project-architecture/features.md, plan-implementation-2025-03.md
+
+[Risk] Düşük – PDF ve tema davranışı değişti; types güncellemesi uyumluluk için.

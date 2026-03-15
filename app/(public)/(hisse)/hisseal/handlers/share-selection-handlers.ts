@@ -140,6 +140,7 @@ export const createHandleShareCountSelect = ({
             const newFormData = Array.from({ length: shareCount }, () => ({
                 name: "",
                 phone: "",
+                email: "",
                 delivery_location: "Kesimhane",
                 is_purchaser: false
             }));

@@ -16,7 +16,7 @@ export interface SacrificeState {
   totalEmptyShares: number;
 
   // Methods
-  refetchSacrifices: () => Promise<sacrificeSchema[]>;
+  refetchSacrifices: (year?: number | null) => Promise<sacrificeSchema[]>;
   updateSacrifice: (sacrifice: sacrificeSchema) => void;
   setEmptyShareCount: (count: number) => void;
   removeSacrifice: (sacrificeId: string) => void;
@@ -42,7 +42,7 @@ export const useSacrificeStore = create<SacrificeState>()(
       totalEmptyShares: 0,
 
       // Methods
-      refetchSacrifices: async () => {
+      refetchSacrifices: async (year?: number | null) => {
         const state = get();
 
         if (state.isRefetching || state.isLoadingSacrifices) {
@@ -52,7 +52,10 @@ export const useSacrificeStore = create<SacrificeState>()(
         try {
           set({ isLoadingSacrifices: true, isRefetching: true, error: null });
 
-          const response = await fetch("/api/get-sacrifice-animals");
+          const url = year != null
+            ? `/api/get-sacrifice-animals?year=${year}`
+            : "/api/get-sacrifice-animals";
+          const response = await fetch(url);
 
           if (!response.ok) {
             const errorData = await response.json();

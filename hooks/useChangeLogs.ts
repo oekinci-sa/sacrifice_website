@@ -1,4 +1,5 @@
 import type { ChangeLog } from "@/app/(admin)/kurban-admin/degisiklik-kayitlari/components/columns";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useEffect, useState } from "react";
 
 export interface changeLogSchema {
@@ -21,18 +22,21 @@ export interface changeLogSchema {
  * No realtime subscription is used
  */
 export const useChangeLogs = () => {
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [data, setData] = useState<ChangeLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isRefetching, setIsRefetching] = useState(false);
 
-  // Function to fetch change logs
   const fetchChangeLogs = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/get-change-logs");
+      const url = selectedYear != null
+        ? `/api/get-change-logs?year=${selectedYear}`
+        : "/api/get-change-logs";
+      const response = await fetch(url);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -60,23 +64,18 @@ export const useChangeLogs = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
+    if (selectedYear == null) return;
     fetchChangeLogs();
 
-    // Setup window focus event listener for refetching
     const handleFocus = () => {
       setIsRefetching(true);
       fetchChangeLogs();
     };
 
-    window.addEventListener('focus', handleFocus);
-
-    // Cleanup event listener on unmount
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [selectedYear]);
 
   return {
     data,

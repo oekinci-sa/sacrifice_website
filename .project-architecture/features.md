@@ -3,6 +3,31 @@
 
 ---
 
+## Responsive Tasarım
+- Tüm bileşenler mobil, tablet ve desktop uyumlu olmalıdır.
+- Detay: `.cursor/rules/responsive-design.mdc`
+
+## Yıl Bazlı Veri (Public vs Admin)
+- **Public sayfalar:** Tenant'a özgü yıl (`tenant_settings.active_sacrifice_year` veya `sacrifice_animals` MAX). URL `?year=` ile override. Fallback yok.
+- **Admin sayfalar:** DB'de tenant için en son `sacrifice_year`. Avatar solunda yıl dropdown. Veri yoksa `tenant_settings.active_sacrifice_year`; ikisi de yoksa 500.
+- **Resolver:** [lib/sacrifice-year-resolver.ts](lib/sacrifice-year-resolver.ts) — `resolveSacrificeYearForTenant()`
+
+## Tenant Branding (Elya / Ankara Kurban)
+- `tenant_settings`: logo_slug, iban, website_url, contact_phone, contact_email, contact_address.
+- Header/footer logo: `public/logos/{logo_slug}/`.
+- **Logo boyutları (header = footer):** Ankara `w-[225px] md:w-[250px]`, Elya `w-[112px] md:w-[125px]`.
+- **Test tenant:** Logo yerine "KURBAN SİTESİ" metni (Instrument Sans bold).
+- PDF makbuz: tenant'a göre logo, IBAN, iletişim bilgileri.
+
+## Tema Davranışı
+- 3001 (kahramankazan): yeşil tema.
+- 3002 (golbasi): mavi tema.
+- 3000 / Vercel test: özel tema yok (shadcn varsayılan).
+
+## sacrifice_year
+- shareholders, reservation_transactions, change_logs, reminder_requests tablolarında sacrifice_year alanı.
+- Admin panelde yıl bazlı filtreleme.
+
 ## Sidebar
 - Dar ve geniş görünüm.
 - Dar modda ikonlar görünür.

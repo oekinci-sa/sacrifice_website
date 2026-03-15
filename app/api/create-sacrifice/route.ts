@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from 'next/server';
@@ -5,6 +6,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
     try {
         const tenantId = getTenantId();
+        const sacrificeYear = getDefaultSacrificeYear();
         const sacrificeData = await request.json();
 
         if (!sacrificeData.sacrifice_no || !sacrificeData.share_price || !sacrificeData.share_weight) {
@@ -20,6 +22,7 @@ export async function POST(request: Request) {
             .insert([
                 {
                     tenant_id: tenantId,
+                    sacrifice_year: sacrificeYear,
                     sacrifice_no: sacrificeData.sacrifice_no,
                     sacrifice_time: sacrificeData.sacrifice_time,
                     share_weight: sacrificeData.share_weight,

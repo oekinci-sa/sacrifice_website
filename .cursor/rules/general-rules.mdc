@@ -61,5 +61,8 @@ Agent modda iş bitince **mutlaka** `.cursor/agent-log.txt` dosyasına şunu ekl
   - If you do not know the answer, say so, instead of guessing.
   - Correct linter errors and warnings.
 
+## Responsive Tasarım (ZORUNLU)
+Tüm bileşenler **mobil, tablet ve desktop** uyumlu olmalıdır. Detay: `responsive-design.mdc`.
+
 ## Renk paleti (ZORUNLU)
 Renk kullanırken **sadece** `app/globals.css` ve `tailwind.config.ts` içindeki tanımlı token'ları kullan. Hex, rgb, arbitrary (`bg-[#xxx]`) ekleme; kafana göre renk tanımlama.

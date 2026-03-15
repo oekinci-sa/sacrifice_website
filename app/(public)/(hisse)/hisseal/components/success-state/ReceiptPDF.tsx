@@ -2,7 +2,8 @@
 // This file uses react-pdf's Image component which doesn't support alt attributes
 
 import { reminders } from '@/app/(public)/(hisse)/constants';
-import { logoBase64 } from '@/lib/logoBase64';
+import type { TenantBranding } from '@/lib/tenant-branding';
+import { getLogoBase64ForSlug } from '@/lib/logoBase64';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
@@ -151,10 +152,12 @@ const formatPrice = (price: string): string => {
 
 // Create Document Component
 interface ReceiptPDFProps {
+  branding?: TenantBranding | null;
   data: {
     // Hisse Sahibi Bilgileri
     shareholder_name: string;
     phone_number: string;
+    email?: string;
     delivery_location: string;
     vekalet_durumu: string;
 
@@ -178,7 +181,19 @@ interface ReceiptPDFProps {
   };
 }
 
-export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
+function getRemindersWithBranding(branding: TenantBranding | null | undefined) {
+  return reminders.map((r, i) =>
+    i === 1 && branding?.iban ? { ...r, description: branding.iban } : r
+  );
+}
+
+export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
+  const logoBase64 = getLogoBase64ForSlug(branding?.logo_slug ?? "ankara-kurban");
+  const remindersList = getRemindersWithBranding(branding);
+  const websiteUrl = branding?.website_url ?? "ankarakurban.com.tr";
+  const contactPhone = branding?.contact_phone ?? "0552 652 90 00 / 0312 312 44 64";
+
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Logo */}
@@ -208,6 +223,12 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
             <Text style={styles.label}>Telefon:</Text>
             <Text style={styles.value}>{data.phone_number}</Text>
           </View>
+          {data.email && (
+            <View style={styles.row}>
+              <Text style={styles.label}>E-posta:</Text>
+              <Text style={styles.value}>{data.email}</Text>
+            </View>
+          )}
           <View style={styles.row}>
             <Text style={styles.label}>Teslimat Noktası:</Text>
             <Text style={styles.value}>{data.delivery_location}</Text>
@@ -284,7 +305,7 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
         <Text>{"\n"}</Text>
 
         {/* Render reminders with bullet points */}
-        {reminders.map((reminder, index) => (
+        {remindersList.map((reminder, index) => (
           <View key={index} style={{ marginBottom: 5 }}>
             <Text>
               • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\/>/g, ' ')}
@@ -300,17 +321,18 @@ export const ReceiptPDF = ({ data }: ReceiptPDFProps) => (
         </Text>
         <Text style={styles.footerText}>
           Detaylı bilgiler için {' '}
-          <Link src="https://www.ankarakurban.com.tr/" style={styles.websiteLink}>
-            www.ankarakurban.com.tr
+          <Link src={`https://www.${websiteUrl}/`} style={styles.websiteLink}>
+            www.{websiteUrl}
           </Link> {' '}
           adresine göz atınız.
         </Text>
         <Text style={styles.contact}>
-          Destek: 0552 652 90 00 / 0312 312 44 64
+          Destek: {contactPhone}
         </Text>
       </View>
     </Page>
   </Document>
-);
+  );
+};
 
 export default ReceiptPDF; 

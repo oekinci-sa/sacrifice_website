@@ -24,6 +24,7 @@ export const formSchema = z.object({
       return digitsOnly.length === 11;
     }, "Telefon numarası 11 haneli olmalıdır")
     .refine(val => val.startsWith("05"), "Telefon numarası 05XX ile başlamalıdır"),
+  email: z.string().email("Geçerli bir e-posta giriniz").optional().or(z.literal("")),
   delivery_location: z.string().min(1, "Teslimat noktası seçiniz"),
   is_purchaser: z.boolean().optional().default(false),
 });
@@ -31,6 +32,7 @@ export const formSchema = z.object({
 export type FormErrors = {
   name?: string[];
   phone?: string[];
+  email?: string[];
   delivery_location?: string[];
   is_purchaser?: string[];
 };
@@ -96,6 +98,19 @@ export function useCheckoutForm(
         case "delivery_location":
           newErrors[index].delivery_location = ["Teslimat noktası seçiniz"];
           break;
+        case "email":
+          delete newErrors[index].email;
+          break;
+      }
+      setErrors(newErrors);
+      return;
+    }
+
+    if (field === "email") {
+      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        newErrors[index].email = ["Geçerli bir e-posta giriniz"];
+      } else {
+        delete newErrors[index].email;
       }
       setErrors(newErrors);
       return;
@@ -173,6 +188,7 @@ export function useCheckoutForm(
       const newShareholderData: ExtendedFormData = {
         name: "",
         phone: "",
+        email: "",
         delivery_location: "",
         is_purchaser: false,
       };
@@ -284,8 +300,8 @@ export function useCheckoutForm(
 
     formData.forEach((data, index) => {
       try {
-        const { name, phone, delivery_location } = data;
-        formSchema.omit({ is_purchaser: true }).parse({ name, phone, delivery_location });
+        const { name, phone, email, delivery_location } = data;
+        formSchema.omit({ is_purchaser: true }).parse({ name, phone, email: email ?? "", delivery_location });
       } catch (error) {
         if (error instanceof z.ZodError) {
           error.errors.forEach((err) => {

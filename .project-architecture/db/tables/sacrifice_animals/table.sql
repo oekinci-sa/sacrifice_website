@@ -2,6 +2,7 @@
 CREATE TABLE "public"."sacrifice_animals" (
   "sacrifice_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL REFERENCES tenants(id),
+  "sacrifice_year" INT2 NOT NULL,
   "sacrifice_no" INT2 NOT NULL,
   "sacrifice_time" TIME(6) NOT NULL,
   "share_weight" INT2 NOT NULL,
@@ -15,8 +16,9 @@ CREATE TABLE "public"."sacrifice_animals" (
   "notes" TEXT
 );
 
--- Tenant bazlı unique: aynı tenant içinde sacrifice_no tekil
-ALTER TABLE sacrifice_animals ADD CONSTRAINT uq_sacrifice_no_per_tenant UNIQUE (tenant_id, sacrifice_no);
+-- Tenant + yıl bazlı unique: aynı tenant ve yıl içinde sacrifice_no tekil
+ALTER TABLE sacrifice_animals ADD CONSTRAINT uq_sacrifice_no_per_tenant_year UNIQUE (tenant_id, sacrifice_year, sacrifice_no);
 
--- Performans index'i
+-- Performans index'leri
 CREATE INDEX idx_sacrifice_animals_tenant ON sacrifice_animals (tenant_id);
+CREATE INDEX idx_sacrifice_animals_year_tenant ON sacrifice_animals (tenant_id, sacrifice_year);

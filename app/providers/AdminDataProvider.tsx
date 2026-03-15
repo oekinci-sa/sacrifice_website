@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useReservationTransactionsStore } from "@/stores/only-admin-pages/useReservationTransactionsStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 
@@ -16,71 +17,47 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
   const { toast } = useToast();
   const hasInitialized = useRef(false);
 
-  // Get store methods
-  const {
-    fetchShareholders,
-  } = useShareholderStore();
-
-  const {
-    fetchTransactions,
-  } = useReservationTransactionsStore();
-
-  // Get sacrifice store methods for realtime updates
-  const {
-    isInitialized: sacrificesInitialized,
-    refetchSacrifices
-  } = useSacrificeStore();
+  const { selectedYear, fetchActiveYear } = useAdminYearStore();
+  const { fetchShareholders } = useShareholderStore();
+  const { fetchTransactions } = useReservationTransactionsStore();
+  const { isInitialized: sacrificesInitialized, refetchSacrifices } = useSacrificeStore();
 
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
 
-      // Load all data in parallel
       const loadAllData = async () => {
         try {
-          // Create an array of promises for parallel execution
-          const dataPromises = [];
+          const year = await fetchActiveYear();
 
-          // Fetch shareholders data
-          dataPromises.push(
-            fetchShareholders().catch(error => {
+          await Promise.all([
+            fetchShareholders(year).catch((error) => {
               const message = error instanceof Error ? error.message : "An error occurred";
               toast({
                 title: "Error",
                 description: `Failed to load shareholders: ${message}`,
                 variant: "destructive",
               });
-            })
-          );
-
-          // Fetch transactions data
-          dataPromises.push(
-            fetchTransactions().catch(error => {
+            }),
+            fetchTransactions(year).catch((error) => {
               const message = error instanceof Error ? error.message : "An error occurred";
               toast({
                 title: "Error",
                 description: `Failed to load reservation transactions: ${message}`,
                 variant: "destructive",
               });
-            })
-          );
-
-          // Initialize sacrifice data if not already loaded
-          if (!sacrificesInitialized) {
-            dataPromises.push(
-              refetchSacrifices().catch(error => {
-                const message = error instanceof Error ? error.message : "An error occurred";
-                toast({
-                  title: "Error",
-                  description: `Failed to load sacrifices: ${message}`,
-                  variant: "destructive",
-                });
-              })
-            );
-          }
-
-          // Wait for all data to load
-          await Promise.all(dataPromises);
+            }),
+            sacrificesInitialized
+              ? Promise.resolve()
+              : refetchSacrifices(year).catch((error) => {
+                  const message = error instanceof Error ? error.message : "An error occurred";
+                  toast({
+                    title: "Error",
+                    description: `Failed to load sacrifices: ${message}`,
+                    variant: "destructive",
+                  });
+                }),
+          ]);
         } catch (error) {
           console.error("Error loading admin data:", error);
           toast({
@@ -94,12 +71,25 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
       loadAllData();
     }
   }, [
+    fetchActiveYear,
     fetchShareholders,
     fetchTransactions,
     refetchSacrifices,
     sacrificesInitialized,
-    toast
+    toast,
   ]);
+
+  const prevYearRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (selectedYear == null) return;
+    if (prevYearRef.current !== null && prevYearRef.current !== selectedYear) {
+      fetchShareholders(selectedYear).catch(console.error);
+      fetchTransactions(selectedYear).catch(console.error);
+      refetchSacrifices(selectedYear).catch(console.error);
+    }
+    prevYearRef.current = selectedYear;
+  }, [selectedYear, fetchShareholders, fetchTransactions, refetchSacrifices]);
 
   return <>{children}</>;
 } 

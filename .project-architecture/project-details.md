@@ -13,6 +13,7 @@ Proje hakkında bilgi almak için bu klasörün ilgili dosyalarına bakın. Tüm
 | **Public sayfalar** | [pages/public-pages.md](./pages/public-pages.md) |
 | **Admin sayfaları** | [pages/admin-pages.md](./pages/admin-pages.md) |
 | **Veritabanı** | [db/](./db/) |
+| **Homepage mode ve sacrifice year** | [homepage-and-sacrifice-year.md](./homepage-and-sacrifice-year.md) |
 | **Araçlar ve versiyonlar** | [tools-versions.md](./tools-versions.md) |
 
 ## Kısa Özet
@@ -26,3 +27,10 @@ Proje hakkında bilgi almak için bu klasörün ilgili dosyalarına bakın. Tüm
 - PDF çıktı, hisse sorgulama
 
 **Teknoloji:** Next.js 14, React 18, TypeScript, Supabase, NextAuth, Shadcn, TailwindCSS
+
+**Logo boyutları (header = footer):**
+- Ankara Kurban: `w-[225px] md:w-[250px]`
+- Elya Hayvancılık: `w-[112px] md:w-[125px]`
+- Test tenant: Logo yerine "KURBAN SİTESİ" (Instrument Sans bold)
+
+**Admin yıl varsayılanı:** Veri yoksa 2025 (geçen sezon)

@@ -20,6 +20,7 @@ interface ShareholderData {
   name?: string;
   phone_number?: string;
   phone?: string;
+  email?: string;
   delivery_location?: string;
   sacrifice_consent?: boolean;
   proxy_status?: string;
@@ -138,6 +139,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       shareholder_name:
         shareholder.shareholder_name || shareholder.name || "Müşteri",
       phone_number: formattedPhoneNumber,
+      email: shareholder.email || undefined,
       delivery_location: shareholder.delivery_location || "Belirtilmemiş",
       sacrifice_consent: !!shareholder.sacrifice_consent, // Convert to boolean with double negation
       vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",

@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from "@/lib/constants/sacrifice-year";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
@@ -29,12 +30,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sacrificeYear = getDefaultSacrificeYear();
     const { data, error } = await supabaseAdmin
       .from("reminder_requests")
       .insert({
         tenant_id: tenantId,
         name: name.trim(),
         phone: phoneDigits,
+        sacrifice_year: sacrificeYear,
       })
       .select()
       .single();

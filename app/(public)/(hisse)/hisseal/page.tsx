@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
+import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
@@ -16,6 +17,7 @@ import { useReservationAndWarningManager } from "./hooks/useReservationAndWarnin
 
 const Page = () => {
   const { toast } = useToast();
+  const { selectedYear } = usePublicYearStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -56,8 +58,8 @@ const Page = () => {
   const [filteredSacrifices, setFilteredSacrifices] = useState<sacrificeSchema[]>([]);
 
   // Veri ilk yüklendiğinde manuel olarak bir kez refetch yapalım
-  // Use a ref to track if we've already done the initial fetch
   const initialFetchPerformed = useRef(false);
+  const lastFetchedYearRef = useRef<number | null>(null);
 
   useEffect(() => {
 
@@ -66,7 +68,8 @@ const Page = () => {
       // Eğer veriler zaten yüklenmişse, bunları yeni filtrelenecek komponent işleyecek
       if (sacrifices.length === 0 && !isLoadingSacrifices && !isRefetching) {
         initialFetchPerformed.current = true;
-        refetchSacrifices().then(() => {
+        lastFetchedYearRef.current = selectedYear;
+        refetchSacrifices(selectedYear ?? undefined).then(() => {
         }).catch(err => {
           console.error("Page.tsx: Manuel refetch hatası:", err);
           // Reset the flag if there was an error so we can retry
@@ -77,7 +80,15 @@ const Page = () => {
         initialFetchPerformed.current = true;
       }
     }
-  }, [sacrifices.length, isLoadingSacrifices, isRefetching, refetchSacrifices]); // Include all dependencies
+  }, [sacrifices.length, isLoadingSacrifices, isRefetching, refetchSacrifices, selectedYear]);
+
+  // URL'deki ?year= değiştiğinde yeniden yükle (ilk yüklemeden sonra)
+  useEffect(() => {
+    if (selectedYear != null && initialFetchPerformed.current && lastFetchedYearRef.current !== selectedYear) {
+      lastFetchedYearRef.current = selectedYear;
+      refetchSacrifices(selectedYear).catch(console.error);
+    }
+  }, [selectedYear, refetchSacrifices]);
 
   // Realtime subscription ve veri yenileme için useEffect
   useEffect(() => {
@@ -116,7 +127,7 @@ const Page = () => {
     needsRerender.current = true;
     router.refresh();
     try {
-      const sacrifices = await refetchSacrifices();
+      const sacrifices = await refetchSacrifices(selectedYear ?? undefined);
       return { data: sacrifices, success: true };
     } catch (error) {
       return {
@@ -125,7 +136,7 @@ const Page = () => {
         error: error instanceof Error ? error : new Error(String(error)),
       };
     }
-  }, [resetStore, generateNewTransactionId, goToStep, refetchSacrifices, router]);
+  }, [resetStore, generateNewTransactionId, goToStep, refetchSacrifices, router, selectedYear]);
 
   const {
     isDialogOpen,

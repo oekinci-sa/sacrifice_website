@@ -16,7 +16,7 @@ const Header = () => {
 
   return (
     <header className="container flex items-center justify-between h-20 md:my-6 sticky top-0 z-50 bg-background">
-      <Logo className="w-[200px] md:w-[250px]" />
+      <Logo className="w-[225px] md:w-[250px]" />
 
       {/* Desktop Navigation */}
       <div className="hidden md:block">

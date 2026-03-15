@@ -1,3 +1,4 @@
+import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { shareholderSchema } from "@/types";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ interface ShareholderLookupResponse {
 }
 
 export const useShareholderLookupByPhone = () => {
+    const { selectedYear } = usePublicYearStore();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const [data, setData] = useState<ShareholderLookupResponse | null>(null);
@@ -27,9 +29,9 @@ export const useShareholderLookupByPhone = () => {
                 throw new Error("Telefon numarası gereklidir");
             }
 
-            // Make API request
+            const yearParam = selectedYear != null ? `&year=${selectedYear}` : "";
             const response = await fetch(
-                `/api/get-shareholders-by-phone?phone=${encodeURIComponent(formattedPhone)}`
+                `/api/get-shareholders-by-phone?phone=${encodeURIComponent(formattedPhone)}${yearParam}`
             );
 
             if (!response.ok) {

@@ -1,5 +1,6 @@
-import { getTenantId } from '@/lib/tenant';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { resolveSacrificeYearForTenant, NO_SACRIFICE_YEAR_ERROR } from "@/lib/sacrifice-year-resolver";
+import { getTenantId } from "@/lib/tenant";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ export async function GET(request: NextRequest) {
         const tenantId = getTenantId();
         const url = new URL(request.url);
         const phone = url.searchParams.get("phone");
+        const yearParam = url.searchParams.get("year");
+        const sacrificeYear = await resolveSacrificeYearForTenant(tenantId, yearParam);
 
         // Validate required parameters
         if (!phone) {
@@ -50,6 +53,7 @@ export async function GET(request: NextRequest) {
         )
       `)
             .eq("tenant_id", tenantId)
+            .eq("sacrifice_year", sacrificeYear)
             .eq("phone_number", formattedPhone)
             .order("purchase_time", { ascending: false });
 
@@ -89,9 +93,12 @@ export async function GET(request: NextRequest) {
                 'Expires': '0'
             }
         });
-    } catch {
+    } catch (err) {
+        const message = err instanceof Error && err.message === NO_SACRIFICE_YEAR_ERROR
+            ? err.message
+            : "Internal server error";
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: message },
             {
                 status: 500,
                 headers: {

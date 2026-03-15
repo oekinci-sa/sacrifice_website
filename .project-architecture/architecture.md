@@ -21,6 +21,29 @@
 - `http://localhost:3001/api/auth/callback/google`
 - `http://localhost:3002/api/auth/callback/google`
 
+## Anasayfa Modu (homepage_mode)
+
+- **Kaynak:** `tenant_settings.homepage_mode` (Supabase)
+- **Değerler:** `anasayfa` | `thanks` | `takip`
+- Root `/` sayfası DB'den bu değere göre ilgili bileşeni render eder
+- `homepage_layout`: Tenant bazlı layout (default | golbasi | kahramankazan)
+
+## Yıl Bazlı Veri (sacrifice_year)
+
+- **Kaynak:** `sacrifice_animals.sacrifice_year` (SMALLINT)
+- Bayramın ilk gününün düştüğü miladi yıl (örn. 2025, 2026)
+- Tüm sacrifice_animals sorguları `sacrifice_year` ile filtrelenir
+
+### Public sayfalar (tenant'a özgü)
+
+- **Kaynak:** `tenant_settings.active_sacrifice_year` veya `sacrifice_animals` MAX
+- **Resolver:** `resolveSacrificeYearForTenant()` ([lib/sacrifice-year-resolver.ts](lib/sacrifice-year-resolver.ts))
+- **Fallback yok:** Yıl bulunamazsa 500 hata
+
+### Admin / diğer API'lar
+
+- Varsayılan: `getDefaultSacrificeYear()` (env SACRIFICE_YEAR veya mevcut yıl)
+
 ## Tema (Tenant Renkleri)
 
 - **Kaynak:** `tenant_settings.theme_json` (Supabase)

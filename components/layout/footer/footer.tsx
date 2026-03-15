@@ -1,11 +1,13 @@
 "use client";
 
-import websiteLogoWhite from "@/public/logos/ankara-kurban/ankara-kurban-white.svg";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import Image from "next/image";
 
 import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import CustomLink from "@/components/custom-data-components/custom-link";
 import { mediaLinks } from "../../../app/(public)/constants";
+
+const TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 
 interface MediaLink {
   href: string;
@@ -13,17 +15,30 @@ interface MediaLink {
 }
 
 const Footer = () => {
+  const branding = useTenantBranding();
+  const isTest = branding.tenant_id === TEST_TENANT_ID;
+  const isElya = branding.logo_slug === "elya-hayvancilik";
+  const logoSizeClass = isElya ? "w-[112px] md:w-[125px]" : "w-[225px] md:w-[250px]";
+
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
-      <div className="container flex flex-col md:flex-row justify-between text-white mb-8 space-y-12 md:space-y-0">
+      <div className="container flex flex-col md:flex-row text-white mb-8 space-y-12 md:space-y-0">
         {/* Left Side */}
         <div className="flex flex-col space-y-8">
           <CustomLink href="/">
-            <Image
-              src={websiteLogoWhite}
-              alt="Website Logo"
-              className="w-[225px] md:w-[250px]"
-            />
+            {isTest ? (
+              <span className="font-sans font-bold text-xl md:text-2xl text-white">
+                KURBAN SİTESİ
+              </span>
+            ) : (
+              <Image
+                src={`/logos/${branding.logo_slug}/${branding.logo_slug}-white.svg`}
+                alt="Website Logo"
+                className={logoSizeClass}
+                width={250}
+                height={60}
+              />
+            )}
           </CustomLink>
 
           {/* Don't remove the below */}
@@ -40,7 +55,7 @@ const Footer = () => {
             {mediaLinks.map((item: MediaLink) => (
               <div
                 key={item.href}
-                className="flex items-center justify-center text rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
+                className="flex items-center justify-center rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
               >
                 <CustomLink
                   className="text-white/75"
@@ -55,24 +70,20 @@ const Footer = () => {
         </div>
 
         {/* Right Side */}
-        <div className="flex flex-col md:flex-row gap-4 md:gap-24">
+        <div className="flex flex-col md:flex-row md:ml-auto md:gap-12 lg:gap-16">
           {/* Hızlı Linkler */}
-          <div>
-            <p className="md:text-xl font-semibold mb-4">
-              Hızlı Linkler
-            </p>
+          <div className="text-left">
+            <p className="md:text-xl font-semibold mb-4">Hızlı Linkler</p>
             <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75">
               <div className="flex flex-col gap-3">
                 <CustomLink href="/">Anasayfa</CustomLink>
                 <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
                 <CustomLink href="/iletisim">İletişim</CustomLink>
               </div>
-
               <div className="flex flex-col gap-3 relative">
                 <div className="flex items-center flex-wrap">
                   <CustomLink href="/hisseal">
-                    Hisse Al{" "}
-                    <EmptySharesBadge size="md" />
+                    Hisse Al <EmptySharesBadge size="md" />
                   </CustomLink>
                 </div>
                 <CustomLink href="/hissesorgula">Hisse Sorgula</CustomLink>
@@ -81,38 +92,32 @@ const Footer = () => {
           </div>
 
           {/* İletişim */}
-          <div className="mt-8 md:mt-0">
-            <p className="md:text-xl font-semibold mb-4">
-              İletişim
-            </p>
+          <div className="mt-8 md:mt-0 text-left">
+            <p className="md:text-xl font-semibold mb-4">İletişim</p>
             <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
-              {/* Location */}
               <div className="flex gap-3">
-                <i className="bi bi-geo-alt text-primary"></i>
-                <p className="font-normal">
-                  Hacı Bayram, Ulus, Adliye Sk. No:1 &nbsp;
-                  <br className="hidden md:block" />
-                  Altındağ/Ankara (09.00 - 18.00)
+                <i className="bi bi-geo-alt text-primary shrink-0"></i>
+                <p className="font-normal max-w-[min(100%,22rem)] leading-relaxed">
+                  {branding.contact_address}
                 </p>
               </div>
-              {/* Phone */}
+
               <div className="flex gap-3">
-                <i className="bi bi-telephone text-primary"></i>
-                <p className="font-normal">
-                  0312 312 44 64 <span className="text-primary">/</span>{" "}
-                  0552 652 90 00
-                </p>
+                <i className="bi bi-telephone text-primary shrink-0"></i>
+                <p className="font-normal">{branding.contact_phone}</p>
               </div>
-              {/* Mail */}
+
               <div className="flex gap-3">
-                <i className="bi bi-envelope text-primary"></i>
-                <p className="font-normal">iletisim@ankarakurban.com.tr</p>
+                <i className="bi bi-envelope text-primary shrink-0"></i>
+                <p className="font-normal">{branding.contact_email}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <hr className="container border border-white/10 border-1 mb-6" />
+
       <p className="container text-xs md:text-sm text-white/75 text-center md:text-left">
         Tüm hakları saklıdır.
         {/* Don't remove the below */}

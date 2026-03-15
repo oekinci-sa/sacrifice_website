@@ -1,4 +1,5 @@
 import { authOptions } from '@/lib/auth';
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getServerSession } from 'next-auth';
@@ -30,6 +31,7 @@ export async function PUT(request: Request) {
         }
 
         const tenantId = getTenantId();
+        const sacrificeYear = getDefaultSacrificeYear();
         const { data: updatedSacrifice, error } = await supabaseAdmin
             .from('sacrifice_animals')
             .update({
@@ -44,6 +46,7 @@ export async function PUT(request: Request) {
             })
             .eq('tenant_id', tenantId)
             .eq('sacrifice_id', sacrifice_id)
+            .eq('sacrifice_year', sacrificeYear)
             .select()
             .single();
 

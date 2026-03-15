@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +9,7 @@ export const revalidate = 0;
 export async function POST(request: NextRequest) {
     try {
         const tenantId = getTenantId();
+        const sacrificeYear = getDefaultSacrificeYear();
         const body = await request.json();
         const { sacrifice_id, stage, is_completed } = body;
 
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
             .update({ [timeField]: completedTime })
             .eq("tenant_id", tenantId)
             .eq("sacrifice_id", sacrifice_id)
+            .eq("sacrifice_year", sacrificeYear)
             .select();
 
         if (error) {

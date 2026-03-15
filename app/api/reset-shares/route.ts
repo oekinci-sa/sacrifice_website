@@ -1,3 +1,4 @@
+import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
@@ -5,6 +6,7 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const tenantId = getTenantId();
+    const sacrificeYear = getDefaultSacrificeYear();
     const body = await req.json();
     const { sacrifice_id, share_count } = body;
 
@@ -17,6 +19,7 @@ export async function POST(req: Request) {
       .select("empty_share")
       .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrifice_id)
+      .eq("sacrifice_year", sacrificeYear)
       .single();
 
     if (fetchError || !sacrifice) {
@@ -27,7 +30,8 @@ export async function POST(req: Request) {
       .from("sacrifice_animals")
       .update({ empty_share: sacrifice.empty_share + share_count })
       .eq("tenant_id", tenantId)
-      .eq("sacrifice_id", sacrifice_id);
+      .eq("sacrifice_id", sacrifice_id)
+      .eq("sacrifice_year", sacrificeYear);
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });

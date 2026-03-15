@@ -15,11 +15,14 @@ CREATE TABLE "public"."shareholders" (
   "paid_amount" NUMERIC(12,2) DEFAULT 0 NOT NULL,
   "remaining_payment" NUMERIC(12,2) NOT NULL,
   "delivery_location" TEXT DEFAULT 'Kesimhane',
+  "email" VARCHAR(255),
   "sacrifice_consent" BOOL DEFAULT FALSE,
   "last_edited_by" TEXT DEFAULT 'Anonim Kullanıcı',
   "last_edited_time" TIMESTAMPTZ DEFAULT now(),
-  "notes" TEXT
+  "notes" TEXT,
+  "sacrifice_year" INT2 NOT NULL
 );
 
 CREATE INDEX idx_shareholders_tenant ON shareholders (tenant_id);
 CREATE INDEX idx_shareholders_tenant_sacrifice ON shareholders (tenant_id, sacrifice_id);
+CREATE INDEX idx_shareholders_tenant_year ON shareholders (tenant_id, sacrifice_year);

@@ -1,0 +1,16 @@
+---
+description: homepage_mode ve tenant_settings kuralları
+globs: 
+---
+# HOMEPAGE MODE RULE
+
+## Yeni homepage_mode değeri eklenirken
+
+1. `tenant_settings` tablosundaki CHECK constraint güncellenmeli
+2. [app/(public)/page.tsx](app/(public)/page.tsx) içindeki switch'e yeni case eklenmeli
+3. [lib/homepage-settings.ts](lib/homepage-settings.ts) HomepageMode tipine eklenmeli
+4. [.project-architecture/homepage-and-sacrifice-year.md](.project-architecture/homepage-and-sacrifice-year.md) dokümanı güncellenmeli
+
+## Root sayfa
+
+Root `/` her zaman `tenant_settings.homepage_mode` değerine göre içerik seçer. Bu mantık [app/(public)/page.tsx](app/(public)/page.tsx) içindedir.

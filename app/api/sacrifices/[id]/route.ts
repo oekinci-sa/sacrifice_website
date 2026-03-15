@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { getDefaultSacrificeYear } from "@/lib/constants/sacrifice-year";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
@@ -21,6 +22,7 @@ export async function DELETE(
     }
 
     const tenantId = getTenantId();
+    const sacrificeYear = getDefaultSacrificeYear();
     const { id: sacrificeId } = await params;
 
     if (!sacrificeId) {
@@ -36,6 +38,7 @@ export async function DELETE(
       .select("sacrifice_id")
       .eq("sacrifice_id", sacrificeId)
       .eq("tenant_id", tenantId)
+      .eq("sacrifice_year", sacrificeYear)
       .single();
 
     if (fetchError || !sacrifice) {
@@ -64,7 +67,8 @@ export async function DELETE(
       .from("sacrifice_animals")
       .delete()
       .eq("sacrifice_id", sacrificeId)
-      .eq("tenant_id", tenantId);
+      .eq("tenant_id", tenantId)
+      .eq("sacrifice_year", sacrificeYear);
 
     if (deleteError) {
       return NextResponse.json(

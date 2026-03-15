@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 interface ShareholderInput {
   name: string;
   phone: string;
+  email?: string;
   delivery_location: string;
   is_purchaser?: boolean;
   paid_amount?: number;
@@ -98,6 +99,7 @@ export function useShareholderSummaryApproval(
         return {
           shareholder_name: shareholder.name,
           phone_number: formatPhoneForDB(shareholder.phone),
+          email: shareholder.email?.trim() || undefined,
           transaction_id,
           sacrifice_id: sacrifice?.sacrifice_id || "",
           share_price,

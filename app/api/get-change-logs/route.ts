@@ -1,18 +1,28 @@
 import { getTenantId } from "@/lib/tenant";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const tenantId = getTenantId();
-    const { data, error } = await supabaseAdmin
+    const { searchParams } = new URL(request.url);
+    const yearParam = searchParams.get("year");
+    const year = yearParam ? parseInt(yearParam, 10) : null;
+
+    let query = supabaseAdmin
       .from("change_logs")
       .select("*")
       .eq("tenant_id", tenantId)
       .order("changed_at", { ascending: false });
+
+    if (year != null && !Number.isNaN(year)) {
+      query = query.eq("sacrifice_year", year);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return NextResponse.json(

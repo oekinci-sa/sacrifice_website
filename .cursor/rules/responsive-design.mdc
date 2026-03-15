@@ -1,0 +1,27 @@
+---
+description: Mobil, tablet ve desktop uyumlu responsive tasarım kuralları
+globs: components/**/*.{tsx,jsx} app/**/*.{tsx,jsx}
+---
+# Responsive Design (Mobil - Tablet - Desktop)
+
+## Zorunluluk
+Tüm bileşenler tasarlanırken **mobil, tablet ve desktop** ekran boyutlarına uyumlu olmalıdır.
+
+## Breakpoint'ler (Tailwind)
+- **sm**: 640px
+- **md**: 768px
+- **lg**: 1024px
+- **xl**: 1280px
+- **2xl**: 1536px
+
+## Uygulama Örnekleri
+- Grid/Flex: `flex flex-col md:flex-row`, `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- Padding/Spacing: `p-3 md:p-4 lg:p-6`, `gap-2 md:gap-4`
+- Font: `text-sm md:text-base`, `text-lg md:text-xl`
+- Gizle/Göster: `hidden md:block`, `block md:hidden`
+- Genişlik: `w-full md:w-auto`, `max-w-full md:max-w-md`
+
+## Kontrol Listesi
+- [ ] Mobil (320px–639px): İçerik okunabilir, butonlar dokunulabilir boyutta
+- [ ] Tablet (640px–1023px): Layout geçişleri düzgün
+- [ ] Desktop (1024px+): Geniş ekranda boşluklar mantıklı

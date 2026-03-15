@@ -29,9 +29,15 @@ export interface TenantSchema {
   created_at?: string;
 }
 
+export type HomepageMode = "anasayfa" | "thanks" | "takip";
+export type HomepageLayout = "default" | "golbasi" | "kahramankazan";
+
 export interface TenantSettings {
   tenant_id: string;
   theme_json: Record<string, unknown> | null;
+  homepage_mode?: HomepageMode | null;
+  homepage_layout?: HomepageLayout | null;
+  active_sacrifice_year?: number | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -40,6 +46,7 @@ export interface shareholderSchema {
   // Temel alanlar
   shareholder_id: string;
   tenant_id: string;
+  sacrifice_year: number;
   shareholder_name: string;
   phone_number: string | null;
   purchase_time: string;
@@ -80,6 +87,7 @@ export interface sacrificeSchema {
   tenant_id: string;
   sacrifice_no: number;
   sacrifice_time: string;
+  sacrifice_year: number;
 
   // Hisse bilgileri
   share_price: number;
@@ -111,6 +119,7 @@ export interface changeLogSchema {
   change_owner: string;
   changed_at: string | null;
   tenant_id: string | null;
+  sacrifice_year: number | null;
 }
 
 export type UserRole = "admin" | "editor" | null;

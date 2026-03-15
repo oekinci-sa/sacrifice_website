@@ -8,6 +8,7 @@ import { ColumnDef } from "@tanstack/react-table";
 export type ReservationTransaction = {
   transaction_id: string;
   tenant_id: string;
+  sacrifice_year: number;
   sacrifice_id: string | null;
   share_count: number;
   created_at: string;

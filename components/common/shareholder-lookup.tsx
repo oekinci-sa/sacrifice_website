@@ -243,7 +243,7 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
                                 variants={item}
                             >
                                 {shareholderInfoList.length > 1 && (
-                                    <h3 className="md:text-lg text-center font-medium mb-2 md:mb-4">
+                                    <h3 className="text-[16px] md:text-lg text-center font-medium mb-2 md:mb-4">
                                         {index + 1}. Kayıt - {formatDateShort(info.purchase_time)}
                                     </h3>
                                 )}

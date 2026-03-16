@@ -1,19 +1,41 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { Button } from "@/components/ui/button";
+import { ColumnSelectorPopover } from "../tum-hissedarlar/components/column-selector-popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+import { formatDateMedium } from "@/lib/date-utils";
+import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
+import { Download } from "lucide-react";
+import { exportTableToExcel } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
 import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
 
+const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
+  sacrifice_no: "Kur. Sır.",
+  shareholder_name: "İsim Soyisim",
+  phone_number: "Telefon",
+  sacrifice_info: "Hisse Bedeli",
+  delivery_fee: "Teslimat Ücreti",
+  delivery_location: "Teslimat Tercihi",
+  delivery_location_raw: "Teslimat Yeri",
+  paid_amount: "Ödeme Yapılan Tutar",
+  remaining_payment: "Kalan Tutar",
+  payment_status: "Ödeme Durumu",
+  purchase_time: "Kayıt Tarihi",
+};
+
 export default function OdemelerPage() {
   const { data: session } = useSession();
+  const branding = useTenantBranding();
   const [searchTerm, setSearchTerm] = useState("");
   const {
     shareholders: allShareholders,
@@ -40,7 +62,7 @@ export default function OdemelerPage() {
       {
         id: "sacrifice_no",
         accessorFn: (row) => row.sacrifice?.sacrifice_no ?? 0,
-        header: "Kurban No",
+        header: "Kur. Sır.",
         cell: ({ row }) => {
           const sacrifice = row.original.sacrifice;
           const sacrificeNo = sacrifice?.sacrifice_no ?? "-";
@@ -49,7 +71,7 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "shareholder_name",
-        header: "Hissedar Adı",
+        header: "İsim Soyisim",
         cell: ({ row }) => row.getValue("shareholder_name"),
       },
       {
@@ -59,10 +81,26 @@ export default function OdemelerPage() {
           formatPhoneForDisplayWithSpacing(row.original.phone_number || ""),
       },
       {
-        accessorKey: "total_amount",
-        header: "Toplam Tutar",
+        id: "sacrifice_info",
+        accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
+        header: "Hisse Bedeli",
         cell: ({ row }) => {
-          const val = parseFloat(row.original.total_amount.toString());
+          const s = row.original.sacrifice;
+          const w = s?.share_weight;
+          const p = s?.share_price;
+          if (w == null && p == null) return "-";
+          const weightStr = w != null ? `${w} kg.` : "";
+          const priceStr = p != null
+            ? new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(p) + " TL"
+            : "";
+          return <span className="tabular-nums">{[weightStr, priceStr].filter(Boolean).join(" - ")}</span>;
+        },
+      },
+      {
+        accessorKey: "delivery_fee",
+        header: "Teslimat Ücreti",
+        cell: ({ row }) => {
+          const val = parseFloat(row.original.delivery_fee?.toString() ?? "0");
           return (
             <span className="tabular-nums">
               {new Intl.NumberFormat("tr-TR", {
@@ -73,6 +111,24 @@ export default function OdemelerPage() {
             </span>
           );
         },
+      },
+      {
+        accessorKey: "delivery_location",
+        header: "Teslimat Tercihi",
+        cell: ({ row }) => {
+          const type = row.original.delivery_type ?? getDeliverySelectionFromLocation(branding.logo_slug, row.original.delivery_location || "");
+          return getDeliveryTypeDisplayLabel(branding.logo_slug, type, null, false);
+        },
+      },
+      {
+        id: "delivery_location_raw",
+        accessorFn: (row) => row.delivery_location ?? "",
+        header: "Teslimat Yeri",
+        cell: ({ row }) => (
+          <span className="truncate block max-w-[180px]" title={row.original.delivery_location || undefined}>
+            {row.original.delivery_location || "-"}
+          </span>
+        ),
       },
       {
         accessorKey: "paid_amount",
@@ -87,7 +143,7 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "remaining_payment",
-        header: "Ödenecek Tutar",
+        header: "Kalan Tutar",
         cell: ({ row }) => {
           const val = parseFloat(row.original.remaining_payment.toString());
           return (
@@ -102,6 +158,11 @@ export default function OdemelerPage() {
         },
       },
       {
+        accessorKey: "purchase_time",
+        header: "Kayıt Tarihi",
+        cell: ({ row }) => formatDateMedium(row.getValue("purchase_time")),
+      },
+      {
         id: "payment_status",
         header: "Ödeme Durumu",
         accessorFn: (row) => {
@@ -113,7 +174,7 @@ export default function OdemelerPage() {
         enableHiding: true,
       },
     ],
-    [session?.user?.name, updateShareholder]
+    [session?.user?.name, updateShareholder, branding.logo_slug]
   );
 
   const sortedData = useMemo(() => {
@@ -136,10 +197,10 @@ export default function OdemelerPage() {
   if (error) {
     return (
       <div className="space-y-8">
-        <div>
+        <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Ödemeler</h1>
-          <p className="text-muted-foreground mt-2">
-            Hissedar ödemelerini takip edin ve güncelleyin.
+          <p className="text-muted-foreground mt-2 max-w-[50%]">
+            Hissedar ödemelerini takip edebilir ve güncelleyebilirsiniz.
           </p>
         </div>
         <div className="bg-destructive/10 p-4 rounded-md text-destructive">
@@ -151,11 +212,10 @@ export default function OdemelerPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Ödemeler</h1>
-        <p className="text-muted-foreground mt-2">
-          Hissedar ödemelerini takip edin. Ödeme yapılan tutar hücresine tıklayarak
-          doğrudan güncelleyebilirsiniz.
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          Hissedar ödemelerini takip edebilir ve güncelleyebilirsiniz.
         </p>
       </div>
 
@@ -171,11 +231,30 @@ export default function OdemelerPage() {
           storageKey="odemeler"
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
-          initialState={{ columnVisibility: { payment_status: false } }}
-          filters={({ table }) => (
-            <div className="flex flex-wrap items-center gap-3">
-              <ShareholderSearch onSearch={setSearchTerm} className="w-64 sm:w-72" />
-              <PaymentFilters table={table} />
+          initialState={{ columnVisibility: { payment_status: false, delivery_location: false, delivery_location_raw: false } }}
+          filters={({ table, columnOrder, onColumnOrderChange }) => (
+            <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+              <div className="flex flex-wrap items-center gap-3">
+                <ShareholderSearch onSearch={setSearchTerm} className="w-64 sm:w-72" />
+                <PaymentFilters table={table} />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <ColumnSelectorPopover
+                  table={table}
+                  columnHeaderMap={ODEMELER_COLUMN_HEADER_MAP}
+                  columnOrder={columnOrder ?? []}
+                  onColumnOrderChange={onColumnOrderChange}
+                />
+                <Button
+                  onClick={() => exportTableToExcel(table, "odemeler", ODEMELER_COLUMN_HEADER_MAP)}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-dashed flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Excel&apos;e Aktar
+                </Button>
+              </div>
             </div>
           )}
         />

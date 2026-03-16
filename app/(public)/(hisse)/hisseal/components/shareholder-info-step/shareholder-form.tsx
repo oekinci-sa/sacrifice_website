@@ -1,7 +1,7 @@
 "use client"
 
 import { useTenantBranding } from "@/hooks/useTenantBranding"
-import { getDeliveryOptions } from "@/lib/delivery-options"
+import { getDeliveryOptions, getDeliveryLocationFromSelection, getDeliverySelectionFromLocation } from "@/lib/delivery-options"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -207,8 +207,11 @@ export default function ShareholderForm({
                             Teslimat Tercihi
                         </Label>
                         <Select
-                            value={data.delivery_location || "Kesimhane"}
-                            onValueChange={(value) => onSelectChange(index, "delivery_location", value)}
+                            value={getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "")}
+                            onValueChange={(selection) => {
+                                const loc = getDeliveryLocationFromSelection(branding.logo_slug, selection);
+                                onSelectChange(index, "delivery_location", loc);
+                            }}
                         >
                             <SelectTrigger
                                 id={`delivery_location-${index}`}
@@ -232,6 +235,34 @@ export default function ShareholderForm({
                         )}
                     </div>
                 </div>
+
+                {/* Elya: Adrese Teslim seçildiğinde adres input'u - iki kolonu kapsayan */}
+                {branding.logo_slug === "elya-hayvancilik" &&
+                 getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim" && (
+                    <div className="space-y-1.5 md:space-y-2 w-full col-span-full">
+                        <Label htmlFor={`delivery_address-${index}`} className="text-slate-600 text-sm md:text-base">
+                            Teslimat Adresi
+                        </Label>
+                        <Input
+                            id={`delivery_address-${index}`}
+                            placeholder="Lütfen adresinizi ayrıntılı bir şekilde yazınız. (en az 20 karakter)"
+                            value={
+                                data.delivery_location &&
+                                data.delivery_location !== "Gölbaşı" &&
+                                data.delivery_location !== "Adrese teslim" &&
+                                data.delivery_location !== "-"
+                                    ? data.delivery_location
+                                    : ""
+                            }
+                            onChange={(e) => onInputChange(index, "delivery_location", e.target.value)}
+                            onBlur={(e) => onInputBlur(index, "delivery_location", e.target.value)}
+                            className={cn(
+                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light",
+                                errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
+                            )}
+                        />
+                    </div>
+                )}
 
                 {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
                 {totalForms > 1 && (

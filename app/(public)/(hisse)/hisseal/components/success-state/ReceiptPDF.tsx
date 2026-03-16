@@ -3,6 +3,7 @@
 
 import { reminders } from '@/app/(public)/(hisse)/constants';
 import type { TenantBranding } from '@/lib/tenant-branding';
+import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
@@ -158,6 +159,7 @@ interface ReceiptPDFProps {
     shareholder_name: string;
     phone_number: string;
     email?: string;
+    delivery_type: string;
     delivery_location: string;
     vekalet_durumu: string;
 
@@ -230,8 +232,12 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
             </View>
           )}
           <View style={styles.row}>
-            <Text style={styles.label}>Teslimat Noktası:</Text>
-            <Text style={styles.value}>{data.delivery_location}</Text>
+            <Text style={styles.label}>Teslimat Tercihi:</Text>
+            <Text style={styles.value}>{getDeliveryTypeDisplayLabel(branding?.logo_slug ?? "ankara-kurban", data.delivery_type, null, false)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Teslimat Yeri:</Text>
+            <Text style={styles.value}>{data.delivery_location && data.delivery_location !== "-" ? data.delivery_location : "-"}</Text>
           </View>
         </View>
 

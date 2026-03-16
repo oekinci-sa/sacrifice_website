@@ -28,10 +28,10 @@ export default function ReminderTalepleriPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Bana Haber Ver Talepleri</h1>
-        <p className="text-muted-foreground mt-2">
-          Takip sayfasında &quot;Bana haber ver&quot; formunu dolduran kişilerin listesini görebilirsiniz.
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          &quot;Bana haber ver&quot; formunu dolduran kişilerin listesi.
         </p>
       </div>
       {loading ? (

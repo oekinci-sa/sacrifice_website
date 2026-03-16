@@ -23,6 +23,8 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       ...DEFAULT_METADATA,
       title: "Elya Hayvancılık Kurban Organizasyonu",
+      description:
+        "Elya Hayvancılık Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah'a sadece takvanız ulaşır…",
       icons: { icon: "/logos/elya-hayvancilik/elya-hayvancilik.svg" },
     };
   }

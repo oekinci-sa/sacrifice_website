@@ -37,10 +37,10 @@ export default function ChangeLogsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight mt-0">Değişiklik Kayıtları</h1>
-        <p className="text-muted-foreground mt-2">
-          Kurbanlık ve hissedar bilgilerinde yapılan değişikliklerin geçmişini inceleyebilirsiniz.
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          Kurbanlık ve hissedar değişiklik geçmişini inceleyebilirsiniz.
         </p>
       </div>
 

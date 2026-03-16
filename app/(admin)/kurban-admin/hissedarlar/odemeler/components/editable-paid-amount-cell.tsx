@@ -141,12 +141,12 @@ export function EditablePaidAmountCell({
   }
 
   return (
-    <div className="group flex items-center justify-center gap-1 w-full">
-      <span className="flex-1 text-center tabular-nums min-w-0 truncate">{formatCurrency(paidAmount)}</span>
+    <div className="group relative w-full min-h-[2rem] flex items-center">
+      <span className="absolute inset-0 flex items-center justify-center tabular-nums truncate px-8">{formatCurrency(paidAmount)}</span>
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleStartEdit}
       >
         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />

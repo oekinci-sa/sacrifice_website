@@ -1,7 +1,5 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { useEffect, useState } from "react";
@@ -38,10 +36,10 @@ export default function GenelBakisPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Genel Bakış</h1>
-        <p className="text-muted-foreground mt-2">
-          Kurban satış ve dağıtım sürecinin özet bilgilerini görebilirsiniz
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          Kurban satış ve dağıtım sürecinin özet bilgileri.
         </p>
       </div>
 
@@ -50,39 +48,6 @@ export default function GenelBakisPage() {
 
       {/* Sales Charts */}
       <SummaryGraphs />
-
-      {/* Recent Activities and Payments */}
-      <div className="grid gap-4 grid-cols-2">
-        {/* Recent Activities */}
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Son Hareketler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="relative space-y-6">
-                {/* Content removed as requested */}
-                <p className="text-sm text-muted-foreground">Henüz hareket bulunmuyor.</p>
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Recent Payments */}
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Son Ödemeler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="relative space-y-6">
-                {/* Content removed as requested */}
-                <p className="text-sm text-muted-foreground">Henüz ödeme bulunmuyor.</p>
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

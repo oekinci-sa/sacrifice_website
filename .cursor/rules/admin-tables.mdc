@@ -1,0 +1,30 @@
+---
+description: Admin tabloları - sütun adları tutarlılığı ve animasyon
+globs: app/(admin)/**/*columns*, app/(admin)/**/*table*, components/custom-data-components/*
+---
+# Admin Tabloları Kuralı
+
+## Sütun Adları Tutarlılığı
+Admin sayfalarındaki tablolarda aynı veri için aynı sütun adı kullanılmalıdır:
+
+| Veri | Sütun Adı |
+|------|-----------|
+| sacrifice_no | Kur. Sır. |
+| shareholder_name | İsim Soyisim |
+| phone_number | Telefon |
+| delivery_location (display) | Teslimat Tercihi |
+| delivery_location (raw) | Teslimat Yeri |
+| contacted_at | Görüşüldü |
+| purchase_time | Kayıt Tarihi |
+| payment_status | Ödeme Durumu |
+
+## Animasyon
+- Admin tabloları (`CustomDataTable` kullanan) satır yüklemesinde animasyonla gelmeli.
+- `CustomTableBody` satırları `motion.tr` ile `initial={{ opacity: 0, y: 8 }}` → `animate={{ opacity: 1, y: 0 }}` kullanır.
+- Stagger delay: `Math.min(index * 0.03, 0.3)` saniye.
+
+## Sütun Seçici (ColumnSelectorPopover)
+- Tüm Hissedarlar, Ödemeler, Tüm Kurbanlıklar ve diğer admin tablolarında Sütunlar popover'ı olmalı.
+- Sütun sırası değiştirme (drag-drop) ve sütun görünürlüğü özellikleri tüm tablolarda tutarlı olmalı.
+- Excel'e Aktar butonu (hissedar tablolarında) Sütunlar butonunun yanında yer almalı.
+- CustomDataTable storageKey ile kullanıcı bazlı sütun tercihleri saklanmalı.

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryDisplayLabel } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -17,12 +19,13 @@ import { cn } from "@/lib/utils";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { sacrificeSchema, shareholderSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
-import { Eye, Pencil, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
+  const branding = useTenantBranding();
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -100,14 +103,6 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
   return (
     <div className="flex items-center justify-center gap-2">
       <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 hover:bg-sac-avatar-bg hover:text-sac-icon-primary"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -255,7 +250,7 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
                           </Tooltip>
                         </TooltipProvider>
                         <div className="text-sac-muted text-sm text-right">
-                          {shareholder.delivery_location}
+                          {getDeliveryDisplayLabel(branding.logo_slug, shareholder.delivery_location ?? "")}
                         </div>
                       </div>
                     </div>

@@ -2,7 +2,7 @@ import { TripleInfo } from "@/app/(public)/components/triple-info";
 import { Button } from "@/components/ui/button";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { formatDate } from "@/lib/date-utils";
-import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
+import { getDeliveryFeeForLocation, getDeliverySelectionFromLocation } from "@/lib/delivery-options";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { useRouter } from "next/navigation";
@@ -145,13 +145,20 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       shareholder.phone_number || shareholder.phone || ""
     );
 
+    const deliveryType = (shareholder as { delivery_type?: string }).delivery_type
+      || getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || "");
+    const deliveryLocationDisplay = shareholder.delivery_location && shareholder.delivery_location !== "-"
+      ? shareholder.delivery_location
+      : "-";
+
     return {
       // Hisse Sahibi Bilgileri
       shareholder_name:
         shareholder.shareholder_name || shareholder.name || "Müşteri",
       phone_number: formattedPhoneNumber,
       email: shareholder.email || undefined,
-      delivery_location: shareholder.delivery_location || "Belirtilmemiş",
+      delivery_type: deliveryType,
+      delivery_location: deliveryLocationDisplay,
       sacrifice_consent: !!shareholder.sacrifice_consent, // Convert to boolean with double negation
       vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
 

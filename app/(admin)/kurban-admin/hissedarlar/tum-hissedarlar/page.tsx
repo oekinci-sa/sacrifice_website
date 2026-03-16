@@ -16,16 +16,12 @@ import { ShareholderSearch } from "./components/shareholder-search";
 
 export default function TumHissedarlarPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  // Default column visibility - hide notes, kayıt tarihi, ödeme, sacrifice_time, share_weight, share_price by default
+  // Default column visibility - Vekalet gizli, Kayıt Tarihi ve Ödeme görünür (sonda)
   const [columnVisibility] = useState<VisibilityState>({
     notes: false,
     last_edited_time: false,
     last_edited_by: false,
-    purchase_time: false,
-    payment_status: false,
-    sacrifice_time: false,
-    share_weight: false,
-    share_price: false,
+    sacrifice_consent: false,
   });
 
   // Use shareholder store instead of React Query
@@ -68,14 +64,13 @@ export default function TumHissedarlarPage() {
     payment_status: "Ödeme Durumu",
     remaining_payment: "Kalan Ödeme",
     delivery_location: "Teslimat Tercihi",
+    delivery_location_raw: "Teslimat Yeri",
     notes: "Notlar",
     purchase_time: "Kayıt Tarihi",
     sacrifice_consent: "Vekalet",
     last_edited_time: "Son Güncelleme Tarihi",
     last_edited_by: "Son Güncelleyen",
-    sacrifice_time: "Kurbanlık Saati",
-    share_weight: "Hisse Ağırlığı",
-    share_price: "Hisse Bedeli",
+    sacrifice_info: "Hisse Bedeli",
   };
 
   // Filter the data client-side based on search term
@@ -192,7 +187,7 @@ export default function TumHissedarlarPage() {
   if (error) {
     return (
       <div className="flex flex-col space-y-4">
-        <h1 className="text-2xl font-bold">Tüm Hissedarlar</h1>
+        <h1 className="text-2xl font-bold">Hissedarlar</h1>
         <div className="bg-red-50 p-4 rounded-md text-red-500">
           Hissedar verileri yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.
         </div>
@@ -202,10 +197,10 @@ export default function TumHissedarlarPage() {
 
   return (
     <div className="space-y-8" suppressHydrationWarning>
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tüm Hissedarlar</h1>
-        <p className="text-muted-foreground mt-2">
-          Hisse alan kişilerin listesini görüntüleyebilir, görüşme durumlarını işaretleyebilirsiniz.
+      <div className="w-full">
+        <h1 className="text-2xl font-semibold tracking-tight">Hissedarlar</h1>
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          Hisse alan kişileri görüntüleyebilir, görüşme ve ödeme durumunu takip edebilirsiniz.
         </p>
       </div>
 

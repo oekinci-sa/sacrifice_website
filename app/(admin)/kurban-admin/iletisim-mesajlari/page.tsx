@@ -39,10 +39,10 @@ export default function IletisimMesajlariPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">İletişim Mesajları</h1>
-        <p className="text-muted-foreground mt-2">
-          Web sitenizdeki iletişim formundan gelen mesajları buradan takip edebilirsiniz.
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          İletişim formundan gelen mesajları görüntüleyebilir ve yönetebilirsiniz.
         </p>
       </div>
 

@@ -1,22 +1,19 @@
 "use client";
 
+import { ColumnSelectorPopover } from "@/app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/components/column-selector-popover";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { exportTableToExcel } from "@/lib/export-to-excel";
 import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
-import { Download, SlidersHorizontal, X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SacrificeFilters } from "./components/sacrifice-filters";
 import { SacrificeSearch } from "./components/sacrifice-search";
 
 interface ToolbarAndFiltersProps {
   table: Table<sacrificeSchema>;
+  columnOrder?: string[];
+  onColumnOrderChange?: (order: string[]) => void;
 }
 
 // Column header mapping
@@ -31,6 +28,8 @@ const columnHeaderMap: { [key: string]: string } = {
 
 export function ToolbarAndFilters({
   table,
+  columnOrder = [],
+  onColumnOrderChange,
 }: ToolbarAndFiltersProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [isFiltered, setIsFiltered] = useState(false);
@@ -80,43 +79,12 @@ export function ToolbarAndFilters({
       <div className="flex items-center justify-between w-full gap-3">
         <SacrificeSearch onSearch={handleSearch} searchValue={globalFilter} placeholder="Notlara göre ara..." className="w-96 sm:w-[28rem] max-w-full min-w-0" />
         <div className="flex items-center gap-2 shrink-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 border-dashed flex items-center gap-2"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Sütunlar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    column.id !== "actions" &&
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide()
-                )
-                .sort((a, b) => {
-                  const aVisible = a.getIsVisible() ? 1 : 0;
-                  const bVisible = b.getIsVisible() ? 1 : 0;
-                  return bVisible - aVisible;
-                })
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {columnHeaderMap[column.id] || column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnSelectorPopover
+            table={table}
+            columnHeaderMap={columnHeaderMap}
+            columnOrder={columnOrder}
+            onColumnOrderChange={onColumnOrderChange}
+          />
           <Button
             onClick={exportToExcel}
             variant="outline"

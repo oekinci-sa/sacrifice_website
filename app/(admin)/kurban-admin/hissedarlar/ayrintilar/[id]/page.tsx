@@ -4,8 +4,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
 import { formatDate } from "@/lib/date-utils";
+import { getDeliveryDisplayLabel, getDeliveryFeeForLocation, getDeliveryLocationFromSelection, getDeliveryOptions } from "@/lib/delivery-options";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
@@ -51,20 +53,27 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     security_code: "",
   });
 
-  // Fetch all shareholders
+  const branding = useTenantBranding();
   const { data: shareholders, isLoading } = useGetShareholders();
 
-  // Teslimat noktası seçenekleri: Kesimhane (varsayılan), Ulus + verideki benzersiz değerler
+  // Teslimat seçenekleri: tenant bazlı + verideki benzersiz değerler
   const deliveryLocationOptions = useMemo(() => {
-    const defaults = ["Kesimhane", "Ulus"];
+    const baseOpts = getDeliveryOptions(branding.logo_slug).map((opt) => ({
+      label: opt.label,
+      value: getDeliveryLocationFromSelection(branding.logo_slug, opt.value),
+    }));
     const fromData = new Set<string>();
     (shareholders ?? []).forEach((s) => {
       const loc = s.delivery_location;
       if (loc && typeof loc === "string" && loc.trim()) fromData.add(loc.trim());
     });
-    const all = [...defaults, ...Array.from(fromData).filter((l) => !defaults.includes(l)).sort()];
-    return all.map((v) => ({ label: v === "Ulus" ? "Ulus (+750 TL)" : v, value: v }));
-  }, [shareholders]);
+    const baseValues = new Set(baseOpts.map((o) => o.value));
+    const extra = Array.from(fromData).filter((l) => !baseValues.has(l)).sort();
+    return [
+      ...baseOpts,
+      ...extra.map((v) => ({ label: getDeliveryDisplayLabel(branding.logo_slug, v), value: v })),
+    ];
+  }, [shareholders, branding.logo_slug]);
 
   const { data: session } = useSession();
 
@@ -79,7 +88,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         setEditFormData({
           shareholder_name: found.shareholder_name,
           phone_number: found.phone_number ?? "",
-          delivery_location: found.delivery_location ?? "Kesimhane",
+          delivery_location: found.delivery_location ?? (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
           sacrifice_consent: found.sacrifice_consent ?? false,
           paid_amount: found.paid_amount,
           notes: found.notes || "",
@@ -88,7 +97,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         });
       }
     }
-  }, [shareholders, params.id]);
+  }, [shareholders, params.id, branding.logo_slug]);
 
   // Update mutation
   const updateMutation = useUpdateShareholder();
@@ -105,7 +114,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       setEditFormData({
         shareholder_name: shareholder.shareholder_name,
         phone_number: shareholder.phone_number ?? "",
-        delivery_location: shareholder.delivery_location ?? "Kesimhane",
+        delivery_location: shareholder.delivery_location ?? (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
         sacrifice_consent: shareholder.sacrifice_consent ?? false,
         paid_amount: shareholder.paid_amount,
         notes: shareholder.notes || "",
@@ -118,10 +127,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
-    // If delivery_location is changing, update delivery_fee as well (Ulus = +750 TL)
     if (field === 'delivery_location') {
       const deliveryLocation = value as string;
-      const deliveryFee = deliveryLocation === 'Ulus' ? 750 : 0;
+      const deliveryFee = getDeliveryFeeForLocation(branding.logo_slug, deliveryLocation);
       setEditFormData(prev => ({
         ...prev,
         delivery_location: deliveryLocation,
@@ -151,7 +159,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     const updatedData = {
       shareholder_name: editFormData.shareholder_name,
       phone_number: formatPhoneForDB(editFormData.phone_number), // Format phone number
-      delivery_location: editFormData.delivery_location || "Kesimhane",
+      delivery_location: editFormData.delivery_location || (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
       sacrifice_consent: editFormData.sacrifice_consent,
       paid_amount: editFormData.paid_amount,
       notes: editFormData.notes,

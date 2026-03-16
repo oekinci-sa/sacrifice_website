@@ -1,5 +1,7 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryDisplayLabel, getDeliveryLocationFromSelection, getDeliveryOptions } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -172,7 +174,7 @@ interface ShareholderFiltersProps {
 }
 
 export function ShareholderFilters({ table }: ShareholderFiltersProps) {
-  // State to store payment status counts
+  const branding = useTenantBranding();
   const [paymentStatusCounts, setPaymentStatusCounts] = useState<Record<string, number>>({});
 
   // Effect for updating payment status counts
@@ -228,21 +230,28 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     { label: "Kapora Bekleniyor", value: "deposit" }
   ], []);
 
-  // Delivery location options: Kesimhane (default), Ulus + unique values from data
+  // Delivery location options: tenant bazlı + verideki benzersiz değerler
   const deliveryLocationOptions = useMemo(() => {
-    const defaults = ["Kesimhane", "Ulus"];
+    const baseOpts = getDeliveryOptions(branding.logo_slug).map((opt) => ({
+      label: opt.label,
+      value: getDeliveryLocationFromSelection(branding.logo_slug, opt.value),
+    }));
     const fromData = new Set<string>();
-
     table.getPreFilteredRowModel().rows.forEach((row) => {
       const loc = row.original.delivery_location;
       if (loc && typeof loc === "string" && loc.trim()) {
         fromData.add(loc.trim());
       }
     });
-
-    const all = [...defaults, ...Array.from(fromData).filter((l) => !defaults.includes(l)).sort()];
-    return all.map((label) => ({ label: label === "Ulus" ? "Ulus (+750 TL)" : label, value: label }));
-  }, [table]);
+    const baseValues = new Set(baseOpts.map((o) => o.value));
+    const extra = Array.from(fromData)
+      .filter((l) => !baseValues.has(l))
+      .sort();
+    return [
+      ...baseOpts,
+      ...extra.map((v) => ({ label: getDeliveryDisplayLabel(branding.logo_slug, v), value: v })),
+    ];
+  }, [table, branding.logo_slug]);
 
   // Vekalet options
   const vekaletOptions = useMemo(() => [

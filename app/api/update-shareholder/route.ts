@@ -1,4 +1,5 @@
 import { authOptions } from '@/lib/auth';
+import { getDeliveryFeeForLocation, getDeliveryFeeForType } from '@/lib/delivery-options';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { formatPhoneForDB } from '@/utils/formatters';
@@ -12,6 +13,7 @@ interface ShareholderUpdateInput {
   phone_number?: string;
   delivery_fee?: number;
   delivery_location?: string;
+  delivery_type?: string; // Kesimhane | Adrese teslim | Ulus
   sacrifice_consent?: boolean;
   notes?: string;
   remaining_payment?: number;
@@ -26,6 +28,8 @@ interface UpdateFields {
   phone_number?: string;
   delivery_fee?: number;
   delivery_location?: string;
+  delivery_type?: string;
+  total_amount?: number;
   sacrifice_consent?: boolean;
   notes?: string;
   remaining_payment?: number;
@@ -77,6 +81,48 @@ export async function POST(request: NextRequest) {
     }
     if (updateData.delivery_fee !== undefined) updateFields.delivery_fee = updateData.delivery_fee;
     if (updateData.delivery_location !== undefined) updateFields.delivery_location = updateData.delivery_location;
+    if (updateData.delivery_type !== undefined) updateFields.delivery_type = updateData.delivery_type;
+
+    // delivery_location veya delivery_type değiştiğinde delivery_fee, total_amount, remaining_payment otomatik güncelle
+    if (updateData.delivery_location !== undefined || updateData.delivery_type !== undefined) {
+      const { data: existing } = await supabaseAdmin
+        .from("shareholders")
+        .select("sacrifice_id, paid_amount, delivery_location, delivery_type")
+        .eq("tenant_id", tenantId)
+        .eq("shareholder_id", updateData.shareholder_id)
+        .single();
+
+      if (existing) {
+        const { data: ts } = await supabaseAdmin
+          .from("tenant_settings")
+          .select("logo_slug")
+          .eq("tenant_id", tenantId)
+          .single();
+        const logoSlug = ts?.logo_slug ?? "ankara-kurban";
+
+        const loc = updateData.delivery_location ?? existing.delivery_location ?? "";
+        const type = updateData.delivery_type ?? existing.delivery_type ?? "";
+        const deliveryFee =
+          type ? getDeliveryFeeForType(logoSlug, type)
+          : getDeliveryFeeForLocation(logoSlug, loc);
+
+        const { data: sacrifice } = await supabaseAdmin
+          .from("sacrifice_animals")
+          .select("share_price")
+          .eq("sacrifice_id", existing.sacrifice_id)
+          .single();
+
+        const sharePrice = Number(sacrifice?.share_price ?? 0);
+        const totalAmount = sharePrice + deliveryFee;
+        const paidAmount = Number(existing.paid_amount ?? 0);
+        const remainingPayment = totalAmount - paidAmount;
+
+        updateFields.delivery_fee = deliveryFee;
+        updateFields.total_amount = totalAmount;
+        updateFields.remaining_payment = remainingPayment;
+      }
+    }
+
     if (updateData.sacrifice_consent !== undefined) updateFields.sacrifice_consent = updateData.sacrifice_consent;
     if (updateData.notes !== undefined) updateFields.notes = updateData.notes;
     if (updateData.remaining_payment !== undefined) updateFields.remaining_payment = updateData.remaining_payment;

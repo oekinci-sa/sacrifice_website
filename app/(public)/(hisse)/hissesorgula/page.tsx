@@ -7,9 +7,9 @@ export default function HisseSorgula() {
     <div className="container">
       <div className="flex flex-col items-center min-h-[30vh] md:min-h-[40vh] py-8">
         <div className="w-full max-w-6xl">
-          <div className="text-center space-y-4 mb-8">
-            <h1 className="text-3xl font-semibold">Hisse Sorgula</h1>
-            <p className="text-muted-foreground">
+          <div className="text-center space-y-3 md:space-y-4 mb-6 md:mb-8">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold">Hisse Sorgula</h1>
+            <p className="text-[16px] md:text-lg text-muted-foreground">
               Telefon numaranız ve güvenlik kodunuz ile hisse bilgilerinizi sorgulayabilirsiniz.
             </p>
           </div>

@@ -14,6 +14,7 @@ CREATE TABLE "public"."shareholders" (
   "paid_amount" NUMERIC(12,2) DEFAULT 0 NOT NULL,
   "remaining_payment" NUMERIC(12,2) NOT NULL,
   "delivery_location" TEXT DEFAULT 'Kesimhane',
+  "delivery_type" TEXT DEFAULT 'Kesimhane',
   "email" VARCHAR(255),
   "sacrifice_consent" BOOL DEFAULT FALSE,
   "last_edited_by" TEXT DEFAULT 'Anonim Kullanıcı',

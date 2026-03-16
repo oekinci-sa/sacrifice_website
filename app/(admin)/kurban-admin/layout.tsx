@@ -1,6 +1,8 @@
 import "@/app/globals.css";
 import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
+import { TenantBrandingProvider } from "@/app/providers/TenantBrandingProvider";
 import { ClientLayout } from "@/app/(admin)/kurban-admin/client-layout";
+import { getTenantBranding } from "@/lib/tenant-branding";
 import { Instrument_Sans } from "next/font/google";
 
 const instrumentSans = Instrument_Sans({
@@ -13,18 +15,22 @@ export const metadata = {
   description: "Kurban yönetim sistemi yönetim paneli",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const branding = await getTenantBranding();
+
   return (
-    <div className={`${instrumentSans.variable} font-heading`}>
-      <AdminDataProvider>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
-      </AdminDataProvider>
-    </div>
+    <TenantBrandingProvider initialBranding={branding}>
+      <div className={`${instrumentSans.variable} font-heading`}>
+        <AdminDataProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </AdminDataProvider>
+      </div>
+    </TenantBrandingProvider>
   );
 } 

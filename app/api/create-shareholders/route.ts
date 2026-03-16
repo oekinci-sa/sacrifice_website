@@ -12,6 +12,7 @@ interface ShareholderInput {
   sacrifice_id: string;
   delivery_fee?: number; // Optional
   delivery_location: string;
+  delivery_type?: string; // Kesimhane | Adrese teslim | Ulus
   security_code: string;
   purchased_by: string;
   last_edited_by: string;

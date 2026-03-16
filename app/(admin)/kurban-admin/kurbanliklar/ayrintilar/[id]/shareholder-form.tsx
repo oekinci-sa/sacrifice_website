@@ -1,3 +1,7 @@
+"use client";
+
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryDisplayLabel, getDeliveryFeeForLocation, getDeliveryLocationFromSelection, getDeliveryOptions } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -54,6 +58,14 @@ export function ShareholderForm({
   shareholder,
   onSubmit,
 }: ShareholderFormProps) {
+  const branding = useTenantBranding();
+  const deliveryOptions = getDeliveryOptions(branding.logo_slug);
+
+  const defaultDeliveryLocation =
+    shareholder.delivery_location === "Kesimhane"
+      ? getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane")
+      : shareholder.delivery_location || getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane");
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,22 +73,23 @@ export function ShareholderForm({
       phone: shareholder.phone_number.startsWith("+90")
         ? "0" + shareholder.phone_number.slice(3)
         : shareholder.phone_number,
-      delivery_location: shareholder.delivery_location,
+      delivery_location: defaultDeliveryLocation,
       notes: shareholder.notes || "",
     },
   });
 
   const handleSubmit = form.handleSubmit((values) => {
+    const deliveryLocation = values.delivery_location;
+    const deliveryFee = getDeliveryFeeForLocation(branding.logo_slug, deliveryLocation);
     const formattedValues: ShareholderFormValues = {
       shareholder_name: values.name,
       phone_number: formatPhoneForDB(values.phone),
-      delivery_location: values.delivery_location as "Kesimhane" | "Ulus",
+      delivery_location: deliveryLocation,
       notes: values.notes || "",
-      // Preserve existing values from the shareholder
       total_amount: shareholder.total_amount,
       paid_amount: shareholder.paid_amount,
       remaining_payment: shareholder.total_amount - shareholder.paid_amount,
-      delivery_fee: values.delivery_location === "Kesimhane" ? 0 : 750,
+      delivery_fee: deliveryFee,
       sacrifice_consent: shareholder.sacrifice_consent
     };
     onSubmit(formattedValues, shareholder.shareholder_id);
@@ -155,42 +168,45 @@ export function ShareholderForm({
                   Teslimat Bilgileri
                 </h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Mevcut Teslimat Türü: {shareholder.delivery_location === "Kesimhane" ? "Kesimhane" : "Ulus (+750 TL)"}
+                  Mevcut: {getDeliveryDisplayLabel(branding.logo_slug, shareholder.delivery_location)}
                 </p>
               </div>
-              <div className="col-span-9">
+              <div className="col-span-9 space-y-4">
                 <FormField
                   control={form.control}
                   name="delivery_location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Teslimat Noktası</FormLabel>
-                      <div className="flex gap-4 mt-1">
-                        <Button
-                          type="button"
-                          onClick={() => field.onChange("Kesimhane")}
-                          className={cn(
-                            "flex-1 border border-gray-200 transition-all",
-                            field.value === "Kesimhane"
-                              ? "bg-primary text-white"
-                              : "bg-background hover:bg-muted text-foreground"
-                          )}
-                        >
-                          Kesimhane
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => field.onChange("Ulus")}
-                          className={cn(
-                            "flex-1 border border-gray-200 transition-all",
-                            field.value === "Ulus"
-                              ? "bg-primary text-white"
-                              : "bg-background hover:bg-muted text-foreground"
-                          )}
-                        >
-                          Ulus (+750 TL)
-                        </Button>
+                      <FormLabel>Teslimat Tercihi</FormLabel>
+                      <div className="flex flex-wrap gap-4 mt-1">
+                        {deliveryOptions.map((opt) => {
+                          const locValue = getDeliveryLocationFromSelection(branding.logo_slug, opt.value);
+                          return (
+                            <Button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => field.onChange(locValue)}
+                              className={cn(
+                                "flex-1 min-w-[140px] border border-gray-200 transition-all",
+                                field.value === locValue
+                                  ? "bg-primary text-white"
+                                  : "bg-background hover:bg-muted text-foreground"
+                              )}
+                            >
+                              {opt.label}
+                            </Button>
+                          );
+                        })}
                       </div>
+                      {branding.logo_slug === "elya-hayvancilik" &&
+                       (field.value === "Adrese teslim" || (field.value && field.value !== "Gölbaşı" && field.value !== "Kahramankazan" && field.value !== "Ulus")) && (
+                        <Input
+                          placeholder="Teslimat adresini giriniz"
+                          value={field.value === "Adrese teslim" ? "" : field.value}
+                          onChange={(e) => field.onChange(e.target.value.trim() || "Adrese teslim")}
+                          className="mt-2"
+                        />
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

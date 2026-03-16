@@ -1,5 +1,27 @@
 === 2025-03-16 ===
 
+[İstek] layout İMH→Elya, Hisse Al teslimat default/adres validasyonu, Tüm Hissedarlar sütunları, Ödemeler sütunlar, admin tablo animasyonu, rule
+
+[Yapılan Değişiklikler]
+1. **app/layout.tsx:** Elya için metadata description "Elya Hayvancılık Kurban organizasyonu" olarak güncellendi.
+2. **Hisse Al:** Teslimat Tercihi varsayılan Kesimhane (share-selection-handlers zaten "Kesimhane" kullanıyor). Adrese teslim adresi min 20 karakter; placeholder "Lütfen adresinizi ayrıntılı bir şekilde yazınız. (en az 20 karakter)".
+3. **Tüm Hissedarlar:** Teslimat Yeri sütunu eklendi (raw delivery_location). Sütun sırası: Görüşüldü → Ödeme → Kayıt Tarihi (sonda). Vekalet varsayılan gizli.
+4. **Admin tablolar:** CustomTableBody satırları motion.tr ile animasyonlu yükleme (opacity, y stagger).
+5. **Ödemeler:** Sütunlar popover, Excel'e Aktar, Teslimat Tercihi/Yeri, Kayıt Tarihi sütunları eklendi. Tutarlı sütun adları (Kur. Sır., İsim Soyisim).
+6. **Rule:** .cursor/rules/admin-tables.mdc – sütun adları tutarlılığı, animasyon, Sütunlar popover.
+
+[Dosyalar]
+- app/layout.tsx
+- app/(public)/(hisse)/hisseal/components/shareholder-info-step/shareholder-form.tsx, checkout/useCheckoutForm.ts
+- app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/components/columns.tsx, page.tsx
+- app/(admin)/kurban-admin/hissedarlar/odemeler/page.tsx
+- components/custom-data-components/custom-table-body.tsx
+- .cursor/rules/admin-tables.mdc
+
+[Risk] Düşük – UI ve validasyon değişiklikleri; mevcut akış korundu.
+
+=== 2025-03-16 ===
+
 [İstek] localStorage userId, eventsPerSecond kaldırma, provider konsolidasyonu
 
 [Yapılan Değişiklikler]

@@ -83,9 +83,9 @@ function DynamicBreadcrumb() {
       "kurban-admin": "Kurban Yönetimi",
       "genel-bakis": "Genel Bakış",
       "kurbanliklar": "Kurbanlıklar",
-      "tum-kurbanliklar": "Tüm Kurbanlıklar",
+      "tum-kurbanliklar": "Kurbanlıklar",
       "hissedarlar": "Hissedarlar",
-      "tum-hissedarlar": "Tüm Hissedarlar",
+      "tum-hissedarlar": "Hissedarlar",
       "ayrintilar": "Ayrıntılar",
       "kullanici-yonetimi": "Kullanıcı Yönetimi",
       "degisiklik-kayitlari": "Değişiklik Kayıtları",
@@ -95,7 +95,9 @@ function DynamicBreadcrumb() {
       "iletisim-mesajlari": "İletişim Mesajları",
       "yeni": "Yeni Kullanıcı",
       "reminder-talepleri": "Bana Haber Ver Talepleri",
-      "rezervasyonlar": "Rezervasyonlar"
+      "rezervasyonlar": "Rezervasyonlar",
+      "uyumsuz-hisseler": "Uyumsuzluklar",
+      "odemeler": "Ödemeler"
     };
 
     // Eğer kelime düzeltme sözlüğünde varsa direkt olarak değiştirelim

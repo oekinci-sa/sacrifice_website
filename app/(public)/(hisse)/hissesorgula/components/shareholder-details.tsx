@@ -1,6 +1,7 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -21,6 +22,7 @@ interface ShareholderDetailsProps {
 }
 
 export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps) {
+  const branding = useTenantBranding();
 
   // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
   const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
@@ -41,75 +43,74 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
     }
   };
 
+  const deliveryFee = Number(shareholderInfo.delivery_fee ?? 0);
+  const labelClass = "text-sac-muted font-medium block text-[16px] md:text-lg";
+  const valueClass = "text-black font-medium text-[16px] md:text-lg";
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n) + " TL";
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[minmax(220px,260px)_1fr] gap-8 lg:gap-12 border border-gray-200 rounded-lg p-6 md:p-8 mx-auto max-w-4xl mb-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(200px,240px)_1fr] gap-6 lg:gap-10 border border-sac-border-light rounded-lg p-4 md:p-6 lg:p-8 mx-auto max-w-4xl mb-4 bg-sac-form-bg">
       {/* Sol Bölüm - Kişisel Bilgiler */}
-      <div className="flex flex-col gap-6 lg:gap-8">
-        {/* Resim + İsim */}
+      <div className="flex flex-col gap-4 md:gap-6">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 md:w-20 h-16 md:h-20 flex items-center justify-center shrink-0">
-            <Image
-              src="/icons/user2.svg"
-              alt="User"
-              width={32}
-              height={32}
-              className="md:w-10 md:h-10"
-            />
+          <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0">
+            <Image src="/icons/user2.svg" alt="User" width={28} height={28} className="w-7 h-7 md:w-8 md:h-8" />
           </div>
-          <h2 className="text-xl md:text-2xl font-semibold mt-2 break-words">{shareholderInfo.shareholder_name}</h2>
+          <h2 className="text-lg md:text-xl font-semibold mt-2 break-words">{shareholderInfo.shareholder_name}</h2>
         </div>
 
-        {/* Telefon, Teslimat, Vekalet - her zaman dikey sıra */}
-        <div className="flex flex-col gap-4">
-          <div className="space-y-1">
-            <p className="text-xs md:text-sm text-slate-600">Telefon</p>
-            <p className="font-medium text-sm md:text-base">{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number ?? "")}</p>
+        <div className="space-y-3 md:space-y-4">
+          <div>
+            <p className={labelClass}>Telefon</p>
+            <p className={valueClass}>{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number ?? "")}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs md:text-sm text-slate-600">Teslimat Tercihi</p>
-            <p className="font-medium text-sm md:text-base">{shareholderInfo.delivery_location}</p>
+          <div>
+            <p className={labelClass}>Teslimat Tercihi</p>
+            <p className={valueClass}>
+              {getDeliveryTypeDisplayLabel(
+                branding.logo_slug,
+                getDeliverySelectionFromLocation(branding.logo_slug, shareholderInfo.delivery_location ?? ""),
+                null,
+                false
+              )}
+            </p>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs md:text-sm text-slate-600">Vekalet Durumu</p>
-            <p className="font-medium text-sm md:text-base">{shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}</p>
+          <div>
+            <p className={labelClass}>Teslimat Yeri</p>
+            <p className={valueClass}>
+              {shareholderInfo.delivery_location && shareholderInfo.delivery_location !== "-"
+                ? shareholderInfo.delivery_location
+                : "-"}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Sağ Bölüm - Kurbanlık ve Ödeme Bilgileri */}
-      <div className="flex flex-col gap-8 lg:gap-10 min-w-0">
-        {/* Kurbanlık Bilgileri */}
-        <div className="space-y-4">
-          <h3 className="text-base md:text-xl font-semibold">Kurbanlık Bilgileri</h3>
-          <Separator className="my-2" />
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 md:gap-6">
-            <div className="space-y-4">
+      {/* Sağ Bölüm - Kurbanlık ve Ödeme */}
+      <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+        <div>
+          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Kurbanlık Bilgileri</h3>
+          <div className="my-3 md:my-4 border-t border-dashed border-sac-border-light" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+            <div className="space-y-2 md:space-y-4">
               <div>
-                <p className="text-slate-600 font-medium mb-1">Kurbanlık No</p>
-                <p className="font-medium">{shareholderInfo.sacrifice?.sacrifice_no}</p>
+                <p className={labelClass}>Kurbanlık No</p>
+                <p className={valueClass}>{shareholderInfo.sacrifice?.sacrifice_no}</p>
               </div>
               <div>
-                <p className="text-slate-600 font-medium mb-1">Hisse Bedeli</p>
-                <p className="font-medium">
-                  {new Intl.NumberFormat("tr-TR", {
-                    style: "currency",
-                    currency: "TRY",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }).format(shareholderInfo.sacrifice?.share_price || 0)}
-                </p>
+                <p className={labelClass}>Hisse Bedeli</p>
+                <p className={valueClass}>{fmt(Number(shareholderInfo.sacrifice?.share_price ?? 0))}</p>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2 md:space-y-4">
               <div>
-                <p className="text-slate-600 font-medium mb-1">Kesim Saati</p>
-                <p className="font-medium">
-                  {formatSacrificeTime(shareholderInfo.sacrifice?.sacrifice_time)}
-                </p>
+                <p className={labelClass}>Kesim Saati</p>
+                <p className={valueClass}>{formatSacrificeTime(shareholderInfo.sacrifice?.sacrifice_time)}</p>
               </div>
               <div>
-                <p className="text-slate-600 font-medium mb-1">Kilogram</p>
-                <p className="font-medium">
+                <p className={labelClass}>Kilogram</p>
+                <p className={valueClass}>
                   {shareholderInfo.sacrifice?.share_weight
                     ? `${shareholderInfo.sacrifice.share_weight} ±3 kg`
                     : "-"}
@@ -119,52 +120,44 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
           </div>
         </div>
 
-        {/* Ödeme Detayları */}
-        <div className="space-y-4 mt-6">
-          <h3 className="text-base md:text-xl font-semibold">Ödeme Detayları</h3>
-          <Separator className="my-2" />
+        <div>
+          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Ödeme Detayları</h3>
+          <div className="my-3 md:my-4 border-t border-dashed border-sac-border-light" />
 
-          <div className="flex justify-between items-start gap-4">
-            <div className="space-y-1">
-              <p className="text-slate-600 font-medium mb-1">Son kapora ödeme tarihi</p>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-sm md:text-base">{lastDepositDate.toLocaleDateString("tr-TR")}</p>
+          <div className="space-y-3 md:space-y-4">
+            <div>
+              <p className={labelClass}>Son kapora ödeme tarihi</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className={valueClass}>{lastDepositDate.toLocaleDateString("tr-TR")}</p>
                 {shareholderInfo.paid_amount >= 5000 && (
-                  <span className="text-sm md:text-base text-sac-primary">• Ödeme yapıldı</span>
+                  <span className="text-[16px] md:text-lg text-sac-primary">• Ödeme yapıldı</span>
                 )}
               </div>
             </div>
-            <div className="text-right space-y-1 mb-4">
-              <p className="text-muted-foreground">Toplam Ücret</p>
-              <p className="font-medium text-sm md:text-base">
-                {new Intl.NumberFormat("tr-TR", {
-                  style: "currency",
-                  currency: "TRY",
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(shareholderInfo.total_amount)}
-              </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+              <div>
+                <p className={labelClass}>Teslimat Ücreti</p>
+                <p className={valueClass}>{fmt(deliveryFee)}</p>
+              </div>
+              <div>
+                <p className={labelClass}>Toplam Ücret</p>
+                <p className={valueClass}>{fmt(Number(shareholderInfo.total_amount))}</p>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-              <p className="font-medium text-sm md:text-base">
-                Ödeme Miktarı: {new Intl.NumberFormat("tr-TR", {
-                  style: "currency",
-                  currency: "TRY",
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(shareholderInfo.paid_amount)}
-              </p>
-              <p className={cn(
-                "font-medium",
-                {
+          <div className="mt-4 md:mt-6 pt-4 border-t border-dashed border-sac-border-light space-y-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <p className={valueClass}>Ödeme Miktarı: {fmt(shareholderInfo.paid_amount)}</p>
+              <p
+                className={cn("font-medium text-[16px] md:text-lg", {
                   "text-sac-red": shareholderInfo.paid_amount < 5000,
-                  "text-sac-yellow": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
+                  "text-sac-yellow":
+                    shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
                   "text-sac-primary": shareholderInfo.remaining_payment <= 0,
-                }
-              )}>
+                })}
+              >
                 {shareholderInfo.paid_amount < 5000
                   ? "Kapora Bekleniyor"
                   : shareholderInfo.remaining_payment > 0

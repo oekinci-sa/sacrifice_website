@@ -63,9 +63,38 @@ const AcknowledgeButton = ({
   </Button>
 );
 
+const RevokeButton = ({
+  sacrificeId,
+  onRevoke,
+  isRevoking,
+}: {
+  sacrificeId: string;
+  onRevoke: (id: string) => void;
+  isRevoking: boolean;
+}) => (
+  <Button
+    size="sm"
+    variant="outline"
+    className="text-amber-600 border-amber-200 hover:bg-amber-50"
+    onClick={() => onRevoke(sacrificeId)}
+    disabled={isRevoking}
+  >
+    {isRevoking ? (
+      <>
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        Geri alınıyor…
+      </>
+    ) : (
+      "Geri Al"
+    )}
+  </Button>
+);
+
 export function createColumns(
   onAcknowledge: (id: string) => void,
-  acknowledgingId: string | null
+  acknowledgingId: string | null,
+  onRevoke?: (id: string) => void,
+  revokingId?: string | null
 ): ColumnDef<MismatchedShareRow>[] {
   return [
     {
@@ -120,6 +149,12 @@ export function createColumns(
             sacrificeId={row.original.sacrifice_id}
             onAcknowledge={onAcknowledge}
             isAcknowledging={acknowledgingId === row.original.sacrifice_id}
+          />
+        ) : onRevoke ? (
+          <RevokeButton
+            sacrificeId={row.original.sacrifice_id}
+            onRevoke={onRevoke}
+            isRevoking={revokingId === row.original.sacrifice_id}
           />
         ) : null,
     },

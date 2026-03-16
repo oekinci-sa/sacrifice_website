@@ -1,14 +1,17 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
+import { Suspense, useEffect, useState } from "react";
+import { Mail, Lock } from "lucide-react";
+import Image from "next/image";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 
 export default function LoginPage() {
   return (
@@ -25,6 +28,7 @@ function LoginContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { logo_slug } = useTenantBranding();
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -71,18 +75,39 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pink-50 to-purple-50">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 space-y-6">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-black rounded-full"></div>
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/80 relative overflow-hidden">
+      {/* Radiant-style gradient - top right */}
+      <div
+        className="absolute top-0 right-0 w-[60%] h-[60%] -translate-y-1/4 translate-x-1/4 rounded-full opacity-60"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(251,207,232,0.5) 0%, rgba(254,215,170,0.4) 40%, rgba(254,249,195,0.3) 70%, transparent 100%)",
+        }}
+      />
+
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 sm:p-10">
+        {/* Tenant logosu */}
+        <div className="flex justify-center mb-6">
+          <div
+            className={
+              logo_slug === "elya-hayvancilik"
+                ? "w-[100px] h-auto"
+                : "w-[180px] h-auto"
+            }
+          >
+            <Image
+              src={`/logos/${logo_slug}/${logo_slug}.svg`}
+              alt="Logo"
+              width={logo_slug === "elya-hayvancilik" ? 100 : 180}
+              height={logo_slug === "elya-hayvancilik" ? 40 : 60}
+              className="w-full h-auto object-contain"
+              priority
+            />
           </div>
         </div>
 
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
+        <div className="space-y-1 text-center mb-8">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Tekrar hoş geldiniz!
           </h1>
           <p className="text-sm text-gray-500">
@@ -90,27 +115,40 @@ function LoginContent() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email
+            </Label>
+            <div className="relative">
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="ornek@email.com"
+                className="h-10 pl-3 pr-10 rounded-lg border-gray-200 bg-white focus-visible:ring-gray-900"
+              />
+              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Şifre</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Şifre
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-10 pl-3 pr-10 rounded-lg border-gray-200 bg-white focus-visible:ring-gray-900"
+              />
+              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -119,30 +157,38 @@ function LoginContent() {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:border-gray-900"
               />
               <label
                 htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none text-gray-700 cursor-pointer select-none"
               >
                 Beni hatırla
               </label>
             </div>
-            <Button variant="link" className="px-0 font-normal" type="button">
+            <Button
+              variant="link"
+              className="px-0 font-normal text-sm text-gray-600 hover:text-gray-900"
+              type="button"
+            >
               Şifremi unuttum?
             </Button>
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            className="w-full h-10 rounded-lg bg-gray-900 hover:bg-gray-800 text-white font-medium"
+          >
             Giriş Yap
           </Button>
         </form>
 
-        <div className="relative">
+        <div className="relative mt-6">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
+            <Separator className="w-full bg-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">
+            <span className="bg-white px-2 text-gray-500">
               Veya Google ile devam et
             </span>
           </div>
@@ -151,7 +197,7 @@ function LoginContent() {
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full h-10 mt-4 rounded-lg border-gray-200 hover:bg-gray-50 hover:border-gray-300"
           onClick={handleGoogleLogin}
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">

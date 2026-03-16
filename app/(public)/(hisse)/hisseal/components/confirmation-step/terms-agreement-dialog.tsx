@@ -103,9 +103,9 @@ export default function TermsAgreementDialog({
                 <div className="flex-1 overflow-hidden px-6">
 
                     {/* Security code */}
-                    <div className="flex items-center gap-2 p-3 rounded-md mb-4">
-                        <span className="text-[14px] md:text-lg font-medium">Güvenlik Kodunuz:</span>
-                        <span className="text-[14px] md:text-lg font-bold">{securityCode}</span>
+                    <div className="flex items-center gap-2 p-3 rounded-md mb-4 bg-muted/30 border border-border/50">
+                        <span className="text-[14px] md:text-lg font-medium">Belirlediğiniz kod:</span>
+                        <span className="text-[14px] md:text-lg font-bold tabular-nums">{securityCode}</span>
 
                         <Button
                             variant="ghost"
@@ -114,7 +114,7 @@ export default function TermsAgreementDialog({
                             className="ml-auto text-xs flex items-center text-[14px] md:text-lg gap-1 text-muted-foreground hover:text-primary"
                         >
                             <ArrowLeft className="h-3 w-3" />
-                            Kodu yeniden al
+                            Kodu değiştir
                         </Button>
                     </div>
 

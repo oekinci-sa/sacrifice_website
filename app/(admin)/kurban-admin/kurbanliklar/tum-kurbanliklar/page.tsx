@@ -101,10 +101,10 @@ export default function TumKurbanliklarPage() {
   if (useShareholderStore(state => state.error)) {
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tüm Kurbanlıklar</h1>
-          <p className="text-muted-foreground">
-            Sistemde kayıtlı tüm kurbanlıkların listesi
+        <div className="w-full">
+          <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
+          <p className="text-muted-foreground mt-2 max-w-[50%]">
+            Kurbanlık ekleyebilir, hisse ve fiyatları yönetebilirsiniz.
           </p>
         </div>
         <div className="bg-red-50 p-4 rounded-md text-red-500">
@@ -117,10 +117,10 @@ export default function TumKurbanliklarPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tüm Kurbanlıklar</h1>
-          <p className="text-muted-foreground mt-2">
-            Kurbanlık hayvanlarınızı ekleyebilir, hisse sayılarını ve fiyatlarını yönetebilirsiniz.
+        <div className="w-full">
+          <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
+          <p className="text-muted-foreground mt-2 max-w-[50%]">
+            Kurbanlık ekleyebilir, hisse ve fiyatları yönetebilirsiniz.
           </p>
         </div>
         <NewSacrificeAnimal />
@@ -139,9 +139,11 @@ export default function TumKurbanliklarPage() {
           data={filteredData}
           columns={columns}
           storageKey="kurbanliklar"
-          filters={({ table }) => (
+          filters={({ table, columnOrder, onColumnOrderChange }) => (
             <ToolbarAndFilters
               table={table}
+              columnOrder={columnOrder ?? []}
+              onColumnOrderChange={onColumnOrderChange}
             />
           )}
           tableSize="medium"

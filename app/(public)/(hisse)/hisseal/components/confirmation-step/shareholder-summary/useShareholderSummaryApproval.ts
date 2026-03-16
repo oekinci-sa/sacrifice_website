@@ -3,7 +3,11 @@ import { useCompleteReservation } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useValidateShareholders } from "@/hooks/useValidateShareholders";
-import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
+import {
+  getDeliveryFeeForLocation,
+  getDeliveryLocationFromSelection,
+  getDeliverySelectionFromLocation,
+} from "@/lib/delivery-options";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
@@ -91,9 +95,17 @@ export function useShareholderSummaryApproval(
       });
 
       const shareholderDataForApi = shareholders.map((shareholder) => {
+        const deliveryLocation =
+          shareholder.delivery_location === "Kesimhane"
+            ? getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane")
+            : shareholder.delivery_location;
+        const delivery_type = getDeliverySelectionFromLocation(
+          branding.logo_slug,
+          deliveryLocation
+        );
         const delivery_fee = getDeliveryFeeForLocation(
           branding.logo_slug,
-          shareholder.delivery_location
+          deliveryLocation
         );
         const share_price = sacrifice?.share_price || 0;
         const totalAmount = share_price + delivery_fee;
@@ -108,7 +120,8 @@ export function useShareholderSummaryApproval(
           transaction_id,
           sacrifice_id: sacrifice?.sacrifice_id || "",
           delivery_fee,
-          delivery_location: shareholder.delivery_location,
+          delivery_location: deliveryLocation,
+          delivery_type,
           security_code: securityCode,
           purchased_by: purchaserName,
           last_edited_by: purchaserName,

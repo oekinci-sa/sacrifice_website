@@ -1,6 +1,7 @@
 "use client";
 
-import { useToast } from "@/components/ui/use-toast";
+import { getDeliveryLocationFromSelection, getDeliverySelectionFromLocation } from "@/lib/delivery-options";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import {
   useCancelReservation,
   useUpdateShareCount,
@@ -9,6 +10,7 @@ import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { FormData as StoreFormData, useShareSelectionFlowStore } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
 
 interface ExtendedFormData extends StoreFormData {
@@ -48,6 +50,7 @@ export function useCheckoutForm(
   const [isAddingShare, setIsAddingShare] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
 
+  const branding = useTenantBranding();
   const {
     selectedSacrifice,
     formData,
@@ -102,6 +105,13 @@ export function useCheckoutForm(
           delete newErrors[index].email;
           break;
       }
+      setErrors(newErrors);
+      return;
+    }
+
+    // Elya: Adrese teslim adres validasyonu SADECE handleContinue'da yapılır, blur'da değil
+    if (field === "delivery_location") {
+      delete newErrors[index].delivery_location;
       setErrors(newErrors);
       return;
     }
@@ -185,11 +195,12 @@ export function useCheckoutForm(
         share_count: newShareCount,
         operation: "add",
       });
+      const defaultDeliveryLocation = getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane");
       const newShareholderData: ExtendedFormData = {
         name: "",
         phone: "",
         email: "",
-        delivery_location: "",
+        delivery_location: defaultDeliveryLocation,
         is_purchaser: false,
       };
       setFormData([...formData, newShareholderData] as StoreFormData[]);
@@ -302,6 +313,20 @@ export function useCheckoutForm(
       try {
         const { name, phone, email, delivery_location } = data;
         formSchema.omit({ is_purchaser: true }).parse({ name, phone, email: email ?? "", delivery_location });
+
+        // Elya: Adrese teslim seçildiyse adres zorunlu, en az 20 karakter (sadece Devam et'te kontrol)
+        if (branding.logo_slug === "elya-hayvancilik") {
+          const selection = getDeliverySelectionFromLocation(branding.logo_slug, delivery_location);
+          if (selection === "Adrese teslim") {
+            if (!delivery_location || delivery_location === "-" || delivery_location === "Adrese teslim") {
+              newErrors[index].delivery_location = ["Lütfen teslimat adresinizi giriniz"];
+              hasFormErrors = true;
+            } else if (delivery_location.trim().length < 20) {
+              newErrors[index].delivery_location = ["Adres en az 20 karakter olmalıdır"];
+              hasFormErrors = true;
+            }
+          }
+        }
       } catch (error) {
         if (error instanceof z.ZodError) {
           error.errors.forEach((err) => {

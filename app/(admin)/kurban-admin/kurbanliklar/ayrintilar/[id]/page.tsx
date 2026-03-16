@@ -1,6 +1,8 @@
 "use client";
 
 import { priceInfo } from '@/app/(public)/(anasayfa)/constants';
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryDisplayLabel } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading } from "@/components/ui/loading";
@@ -27,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function KurbanlikAyrintilariPage({ params }: { params: { id: string } }) {
+  const branding = useTenantBranding();
   const { data: sacrifice, isLoading } = useSacrificeById(params.id);
   const { data: shareholders, isLoading: shareholdersLoading } = useGetShareholdersBySacrificeId(params.id);
   const [isEditing, setIsEditing] = useState(false);
@@ -318,7 +321,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-2">
                   <div className="text-sm">
                     <span className="text-muted-foreground">Teslimat:</span>{" "}
-                    {shareholder.delivery_location}
+                    {getDeliveryDisplayLabel(branding.logo_slug, shareholder.delivery_location ?? "")}
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Toplam:</span>{" "}

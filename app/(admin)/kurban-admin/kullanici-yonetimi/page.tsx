@@ -52,10 +52,10 @@ export default function UserManagementPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Kullanıcı Yönetimi</h1>
-          <p className="text-muted-foreground mt-2">
-            Panel erişimi olan kullanıcıları ekleyebilir, rollerini ve onay durumlarını düzenleyebilirsiniz.
+          <p className="text-muted-foreground mt-2 max-w-[50%]">
+            Panel kullanıcılarını ekleyebilir, rol ve onay durumlarını düzenleyebilirsiniz.
           </p>
         </div>
         <Button onClick={() => router.push("/kurban-admin/kullanici-yonetimi/yeni")}>

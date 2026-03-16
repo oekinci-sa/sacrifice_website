@@ -1,3 +1,4 @@
+import { getDeliveryLocationFromSelection } from "@/lib/delivery-options";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import {
     CreateShareholdersMutation,
@@ -32,6 +33,7 @@ type ShareCountSelectHandlerParams = {
     transaction_id: string;
     createReservation: GenericReservationMutation;
     setShowReservationInfo: (show: boolean) => void;
+    logoSlug?: string;
     router?: { push: (path: string) => void };
     sacrifice_id?: string;
 };
@@ -79,6 +81,7 @@ export const createHandleShareCountSelect = ({
     transaction_id,
     createReservation,
     setShowReservationInfo,
+    logoSlug,
     router: _router,
     sacrifice_id: _sacrifice_id
 }: ShareCountSelectHandlerParams) => {
@@ -137,11 +140,15 @@ export const createHandleShareCountSelect = ({
             setSelectedSacrifice(tempSelectedSacrifice);
 
             // Set form data with empty placeholders for each shareholder
+            const defaultDeliveryLocation = getDeliveryLocationFromSelection(
+                logoSlug ?? "elya-hayvancilik",
+                "Kesimhane"
+            );
             const newFormData = Array.from({ length: shareCount }, () => ({
                 name: "",
                 phone: "",
                 email: "",
-                delivery_location: "Kesimhane",
+                delivery_location: defaultDeliveryLocation,
                 is_purchaser: false
             }));
 

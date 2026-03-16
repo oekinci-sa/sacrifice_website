@@ -1,5 +1,7 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryLocationFromSelection, getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,8 +30,9 @@ interface ShareholderInfoProps {
 }
 
 const DEFAULT_DELIVERY_OPTIONS: { label: string; value: string }[] = [
-  { label: "Kesimhane", value: "Kesimhane" },
-  { label: "Ulus (+750 TL)", value: "Ulus" },
+  { label: "Kesimhane", value: "Gölbaşı" },
+  { label: "Kesimhane", value: "Kahramankazan" },
+  { label: "Teslimat Noktası - Ulus (+1500 TL)", value: "Ulus" },
 ];
 
 export function ShareholderInfo({
@@ -42,6 +45,8 @@ export function ShareholderInfo({
   valueClass,
   deliveryLocationOptions = DEFAULT_DELIVERY_OPTIONS,
 }: ShareholderInfoProps) {
+  const branding = useTenantBranding();
+
   return (
     <div className={sectionClass}>
       <h3 className="text-lg md:text-xl font-semibold mb-4">Hissedar Bilgileri</h3>
@@ -116,15 +121,18 @@ export function ShareholderInfo({
                       ? ""
                       : (editFormData?.delivery_location ?? "")
                   }
-                  onChange={(e) => handleChange?.("delivery_location", e.target.value.trim() || "Kesimhane")}
+                  onChange={(e) => handleChange?.("delivery_location", e.target.value.trim() || getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane"))}
                 />
               )}
             </div>
           ) : (
             <p className={valueClass}>
-              {shareholderInfo.delivery_location === "Ulus"
-                ? "Ulus (+750 TL)"
-                : shareholderInfo.delivery_location ?? "Kesimhane"}
+              {getDeliveryTypeDisplayLabel(
+                branding.logo_slug,
+                getDeliverySelectionFromLocation(branding.logo_slug, shareholderInfo.delivery_location ?? ""),
+                null,
+                false
+              )}
             </p>
           )}
         </div>

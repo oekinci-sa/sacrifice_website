@@ -1,3 +1,5 @@
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryLocationFromSelection } from "@/lib/delivery-options";
 import { useToast } from "@/components/ui/use-toast";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { GenericReservationMutation } from "@/types/reservation";
@@ -24,6 +26,7 @@ interface UseHissealPageHandlersProps {
   setSelectedSacrifice: (sacrifice: sacrificeSchema | null) => void;
   setFormData: (data: FormDataType[]) => void;
   goToStep: (step: Step) => void;
+  logoSlug?: string;
   setLastInteractionTime: (time: number) => void;
   transaction_id: string;
   createReservation: GenericReservationMutation;
@@ -52,6 +55,7 @@ export function useHissealPageHandlers({
   setSelectedSacrifice,
   setFormData,
   goToStep,
+  logoSlug,
   setLastInteractionTime,
   transaction_id,
   createReservation,
@@ -77,6 +81,9 @@ export function useHissealPageHandlers({
     setIsDialogOpen,
   });
 
+  const branding = useTenantBranding();
+  const effectiveLogoSlug = logoSlug ?? branding.logo_slug;
+
   const handleShareCountSelect = createHandleShareCountSelect({
     tempSelectedSacrifice,
     updateShareCount,
@@ -89,6 +96,7 @@ export function useHissealPageHandlers({
     transaction_id,
     createReservation,
     setShowReservationInfo,
+    logoSlug: effectiveLogoSlug,
   });
 
   const handleReservationInfoClose = createHandleReservationInfoClose(setShowReservationInfo);

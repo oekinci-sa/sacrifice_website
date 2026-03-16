@@ -28,11 +28,14 @@ export function CustomTableBody<TData, TValue>({
   return (
     <TableBody>
       {table.getRowModel().rows?.length ? (
-        table.getRowModel().rows.map((row) => (
-          <TableRow
+        table.getRowModel().rows.map((row, index) => (
+          <motion.tr
             key={row.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
             data-state={row.getIsSelected() && "selected"}
-            className="hover:bg-muted/50"
+            className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
           >
             {row.getVisibleCells().map((cell) => (
               <motion.td
@@ -45,7 +48,7 @@ export function CustomTableBody<TData, TValue>({
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </motion.td>
             ))}
-          </TableRow>
+          </motion.tr>
         ))
       ) : (
         <TableRow>

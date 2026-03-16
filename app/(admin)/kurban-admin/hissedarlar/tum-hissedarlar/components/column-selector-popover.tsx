@@ -6,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { shareholderSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import { GripVertical, SlidersHorizontal } from "lucide-react";
@@ -109,19 +108,19 @@ function DroppableSection({
   );
 }
 
-interface ColumnSelectorPopoverProps {
-  table: Table<shareholderSchema>;
+interface ColumnSelectorPopoverProps<TData> {
+  table: Table<TData>;
   columnHeaderMap: Record<string, string>;
   columnOrder: string[];
   onColumnOrderChange?: (order: string[]) => void;
 }
 
-export function ColumnSelectorPopover({
+export function ColumnSelectorPopover<TData = unknown>({
   table,
   columnHeaderMap,
   columnOrder,
   onColumnOrderChange,
-}: ColumnSelectorPopoverProps) {
+}: ColumnSelectorPopoverProps<TData>) {
   const allColumns = table
     .getAllColumns()
     .filter(

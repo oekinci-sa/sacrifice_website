@@ -1,7 +1,11 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
+import {
+  getDeliveryFeeForLocation,
+  getDeliverySelectionFromLocation,
+  getDeliveryTypeDisplayLabel,
+} from "@/lib/delivery-options";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -90,7 +94,22 @@ export function ShareholderSummaryCard({
               Teslimat Tercihi
             </span>
             <span className="text-black font-medium text-[16px] md:text-lg">
-              {shareholder.delivery_location}
+              {getDeliveryTypeDisplayLabel(
+                branding.logo_slug,
+                getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || ""),
+                null,
+                false
+              )}
+            </span>
+          </div>
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Teslimat Yeri
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {shareholder.delivery_location && shareholder.delivery_location !== "-"
+                ? shareholder.delivery_location
+                : "-"}
             </span>
           </div>
         </div>
@@ -106,14 +125,6 @@ export function ShareholderSummaryCard({
             </span>
             <span className="text-black font-medium text-[16px] md:text-lg">
               {sacrifice?.sacrifice_no}
-            </span>
-          </div>
-          <div>
-            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
-              Hisse Bedeli
-            </span>
-            <span className="text-black font-medium text-[16px] md:text-lg">
-              {sacrifice?.share_price} TL
             </span>
           </div>
         </div>
@@ -133,15 +144,42 @@ export function ShareholderSummaryCard({
       <div className="my-3 md:my-6 border-t border-dashed border-sac-border-light" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-8">
-        <span className="col-span-1 text-sac-muted font-medium text-[16px] md:text-lg">
-          Toplam Ücret
-        </span>
-        <span className="col-span-1 text-black font-medium text-[16px] md:text-lg">
-          {new Intl.NumberFormat("tr-TR").format(
-            (sacrifice?.share_price || 0) + deliveryFee
-          )}{" "}
-          TL
-        </span>
+        <div className="space-y-2 md:space-y-4">
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Hisse Bedeli
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {new Intl.NumberFormat("tr-TR").format(sacrifice?.share_price ?? 0)} TL
+            </span>
+          </div>
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Toplam Ücret
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {new Intl.NumberFormat("tr-TR").format(
+                (sacrifice?.share_price || 0) + deliveryFee
+              )}{" "}
+              TL
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2 md:space-y-4">
+          {deliveryFee > 0 ? (
+            <div>
+              <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+                Teslimat Ücreti
+              </span>
+              <span className="text-black font-medium text-[16px] md:text-lg">
+                {new Intl.NumberFormat("tr-TR").format(deliveryFee)} TL
+              </span>
+            </div>
+          ) : (
+            <div aria-hidden />
+          )}
+        </div>
       </div>
     </div>
   );

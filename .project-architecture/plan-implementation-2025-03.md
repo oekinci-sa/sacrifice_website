@@ -62,3 +62,13 @@ Bu doküman 2025-03 planının uygulanan adımlarını özetler.
 
 - **features.md**: Admin yıl seçici, tenant branding, tema, sacrifice_year, responsive bölümleri eklendi.
 - **responsive-design.mdc**: Yeni rule dosyası.
+
+---
+
+## 8. Admin Tabloları (2025-03-16)
+
+- **Sütun tutarlılığı:** Kur. Sır., İsim Soyisim, Telefon, Teslimat Tercihi, Teslimat Yeri, Görüşüldü, Ödeme Durumu, Kayıt Tarihi – tüm hissedar tablolarında aynı adlar.
+- **Tüm Hissedarlar:** Teslimat Yeri sütunu eklendi; sütun sırası Görüşüldü → Ödeme → Kayıt Tarihi; Vekalet varsayılan gizli.
+- **Ödemeler:** Sütunlar popover, Excel'e Aktar, Teslimat Tercihi/Yeri, Kayıt Tarihi sütunları.
+- **Animasyon:** CustomTableBody satırları motion.tr ile fade-in + stagger.
+- **Rule:** `.cursor/rules/admin-tables.mdc`

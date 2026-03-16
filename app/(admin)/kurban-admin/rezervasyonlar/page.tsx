@@ -29,10 +29,10 @@ export default function RezervasyonlarPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Rezervasyonlar</h1>
-        <p className="text-muted-foreground mt-2">
-          Hisse rezervasyonlarını ve ödeme durumlarını buradan takip edebilirsiniz.
+        <p className="text-muted-foreground mt-2 max-w-[50%]">
+          Hisse rezervasyonlarını ve durumlarını takip edebilirsiniz.
         </p>
       </div>
       {loading ? (

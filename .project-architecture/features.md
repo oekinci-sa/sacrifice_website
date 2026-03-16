@@ -19,6 +19,24 @@
 - **Test tenant:** Logo yerine "KURBAN SİTESİ" metni (Instrument Sans bold).
 - PDF makbuz: tenant'a göre logo, IBAN, iletişim bilgileri.
 
+### Elya Tenant – Hisse Fiyat Skalası
+Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse fiyat skalası:
+
+| share_weight (kg) | share_price (TL) |
+|-------------------|------------------|
+| 23 | 25.000 |
+| 25 | 26.500 |
+| 28 | 29.500 |
+| 32 | 34.000 |
+| 35 | 37.000 |
+| 37 | 39.500 |
+| 39 | 41.500 |
+| 43 | 45.000 |
+| 46 | 48.500 |
+| 50 | 51.000 |
+
+- 2026 production reseed: [db/operational_scripts/elya_2026_production_reseed.sql](db/operational_scripts/elya_2026_production_reseed.sql)
+
 ## Tema Davranışı
 - 3001 (kahramankazan): yeşil tema.
 - 3002 (golbasi): mavi tema.

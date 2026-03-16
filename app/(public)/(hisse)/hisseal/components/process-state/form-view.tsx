@@ -93,20 +93,6 @@ export const FormView = ({
       <Tabs value={tabValue} className="space-y-4 md:space-y-6">
         {/* Tab 1 - Hisse Seçimi */}
         <TabsContent value="tab-1" className="space-y-4">
-          {(() => {
-            const totalEmptyShares = (data || []).reduce(
-              (acc, s) => acc + (s.empty_share ?? 0),
-              0
-            );
-            if (totalEmptyShares > 0 && totalEmptyShares < 100) {
-              return (
-                <div className="rounded-lg border border-amber-500/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-                  Son <strong>{totalEmptyShares}</strong> hisse kaldı.
-                </div>
-              );
-            }
-            return null;
-          })()}
           <CustomDataTable
             data={data || []}
             columns={columns}

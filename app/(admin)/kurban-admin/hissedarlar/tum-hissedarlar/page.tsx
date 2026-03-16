@@ -9,12 +9,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportTableToExcel } from "@/lib/export-to-excel";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
 import { Download, SlidersHorizontal, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { exportTableToExcel } from "@/lib/export-to-excel";
 import { columns } from "./components/columns";
 import { ShareholderFilters } from "./components/shareholder-filters";
 import { ShareholderSearch } from "./components/shareholder-search";
@@ -131,12 +131,60 @@ export default function TumHissedarlarPage() {
       };
 
       return (
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
-            {/* Filter components */}
-            <ShareholderFilters table={table} />
+        <div className="flex flex-col gap-3 w-full">
+          {/* Üst satır: Search (solda, 2x genişlik) + Sütunlar + Excel (sağda) */}
+          <div className="flex items-center justify-between w-full gap-3">
+            <ShareholderSearch onSearch={setSearchTerm} className="w-96 sm:w-[28rem] max-w-full min-w-0" />
+            <div className="flex items-center gap-2 shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-dashed flex items-center gap-2"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Sütunlar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                  {table
+                    .getAllColumns()
+                    .filter(
+                      (column) =>
+                        column.id !== "security_code" &&
+                        typeof column.accessorFn !== "undefined" &&
+                        column.getCanHide()
+                    )
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => {
+                          column.toggleVisibility(!!value);
+                        }}
+                      >
+                        {columnHeaderMap[column.id] || column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                onClick={() => exportTableToExcel(table, "hissedarlar", columnHeaderMap)}
+                variant="outline"
+                size="sm"
+                className="h-8 border-dashed flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Excel&apos;e Aktar
+              </Button>
+            </div>
+          </div>
 
-            {/* Reset filters button - always shown when any filter is active */}
+          {/* Alt satır: Filtreler + Tüm filtreleri temizle */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <ShareholderFilters table={table} />
             {isFiltered && (
               <Button
                 variant="ghost"
@@ -149,64 +197,14 @@ export default function TumHissedarlarPage() {
               </Button>
             )}
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search - left of Sütunlar */}
-            <ShareholderSearch onSearch={setSearchTerm} />
-            {/* Columns dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 border-dashed flex items-center gap-2"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  Sütunlar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                {table
-                  .getAllColumns()
-                  .filter(
-                    (column) =>
-                      column.id !== "security_code" &&
-                      typeof column.accessorFn !== "undefined" &&
-                      column.getCanHide()
-                  )
-                  .map((column) => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => {
-                        column.toggleVisibility(!!value);
-                      }}
-                    >
-                      {columnHeaderMap[column.id] || column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Export to Excel button - with matching style */}
-            <Button
-              onClick={() => exportTableToExcel(table, "hissedarlar", columnHeaderMap)}
-              variant="outline"
-              size="sm"
-              className="h-8 border-dashed flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Excel&apos;e Aktar
-            </Button>
-          </div>
         </div>
       );
     },
-    // Re-render when columnVisibility changes so Sütunlar dropdown works correctly
+    // Re-render when columnVisibility or searchTerm changes
     (prevProps, nextProps) =>
       prevProps.table === nextProps.table &&
       prevProps.columnFilters === nextProps.columnFilters &&
+      prevProps.searchTerm === nextProps.searchTerm &&
       JSON.stringify(prevProps.columnVisibility) === JSON.stringify(nextProps.columnVisibility)
   );
 

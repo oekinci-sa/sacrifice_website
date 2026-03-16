@@ -1,5 +1,6 @@
 import "@/app/globals.css";
 import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
+import { ClientLayout } from "@/app/(admin)/kurban-admin/client-layout";
 import { Instrument_Sans } from "next/font/google";
 
 const instrumentSans = Instrument_Sans({
@@ -20,7 +21,9 @@ export default function AdminLayout({
   return (
     <div className={`${instrumentSans.variable} font-heading`}>
       <AdminDataProvider>
-        {children}
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </AdminDataProvider>
     </div>
   );

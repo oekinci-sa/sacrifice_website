@@ -89,9 +89,8 @@ const Prices = () => {
           {priceItems.map((item) => (
             <motion.div
               key={`${item.kg}-${item.price}`}
-              className={`flex flex-col items-center transition-all duration-300 ${
-                item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
-              }`}
+              className={`flex flex-col items-center transition-all duration-300 ${item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
+                }`}
               onClick={() => {
                 if (!item.soldOut) {
                   router.push(`/hisseal?price=${item.price}`);
@@ -106,9 +105,8 @@ const Prices = () => {
                 {item.kg} KG
               </motion.div>
               <motion.div
-                className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${
-                  item.soldOut ? "rounded-t-md" : "rounded-md"
-                }`}
+                className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${item.soldOut ? "rounded-t-md" : "rounded-md"
+                  }`}
                 variants={boxVariant}
               >
                 {item.price.toLocaleString("tr-TR")} TL

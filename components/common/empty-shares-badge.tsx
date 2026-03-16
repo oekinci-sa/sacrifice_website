@@ -16,13 +16,19 @@ export default function EmptySharesBadge({
     size = "md"
 }: EmptySharesBadgeProps) {
     // Use the hook to get empty shares count (for real-time updates)
-    const { data: apiEmptyShares } = useEmptyShareCount();
+    const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
 
     // Get total empty shares from Zustand store
     const { totalEmptyShares } = useSacrificeStore();
 
+    // Veriler yüklenene kadar badge gösterme (0 iken "Tüm hisseler tükendi" yanıltıcı olur)
+    if (isLoading) return null;
+
     // Display empty shares count - use Zustand store first, fallback to API data
     const emptySharesCount = totalEmptyShares || apiEmptyShares || 0;
+
+    // Badge sadece 100 hisseden az kaldığında gösterilir
+    if (emptySharesCount >= 100) return null;
 
     // Determine display text based on remaining shares
     const displayText = emptySharesCount === 0 ? "Tüm hisseler tükendi" : `Son ${emptySharesCount} Hisse`;

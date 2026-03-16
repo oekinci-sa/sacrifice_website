@@ -1,0 +1,127 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export type MismatchedShareRow = {
+  sacrifice_id: string;
+  tenant_id: string;
+  sacrifice_year: number;
+  sacrifice_no: number;
+  shareholder_count: number;
+  empty_share: number;
+  acknowledged_by: string | null;
+  acknowledged_at: string | null;
+};
+
+const SacrificeNoCell = ({
+  sacrificeNo,
+  sacrificeId,
+}: {
+  sacrificeNo: number;
+  sacrificeId: string;
+}) => {
+  const router = useRouter();
+  return (
+    <Button
+      variant="link"
+      className="p-0 h-auto"
+      onClick={() =>
+        router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`)
+      }
+    >
+      {sacrificeNo}
+    </Button>
+  );
+};
+
+const AcknowledgeButton = ({
+  sacrificeId,
+  onAcknowledge,
+  isAcknowledging,
+}: {
+  sacrificeId: string;
+  onAcknowledge: (id: string) => void;
+  isAcknowledging: boolean;
+}) => (
+  <Button
+    size="sm"
+    variant="outline"
+    onClick={() => onAcknowledge(sacrificeId)}
+    disabled={isAcknowledging}
+  >
+    {isAcknowledging ? (
+      <>
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        Kaydediliyor…
+      </>
+    ) : (
+      "Tamam biliyorum"
+    )}
+  </Button>
+);
+
+export function createColumns(
+  onAcknowledge: (id: string) => void,
+  acknowledgingId: string | null
+): ColumnDef<MismatchedShareRow>[] {
+  return [
+    {
+      id: "sacrifice_no",
+      accessorKey: "sacrifice_no",
+      header: "Kurban No",
+      enableSorting: true,
+      cell: ({ row }) => (
+        <SacrificeNoCell
+          sacrificeNo={row.original.sacrifice_no}
+          sacrificeId={row.original.sacrifice_id}
+        />
+      ),
+    },
+    {
+      accessorKey: "shareholder_count",
+      header: "Hissedar",
+      enableSorting: true,
+      cell: ({ row }) => row.getValue("shareholder_count"),
+    },
+    {
+      accessorKey: "empty_share",
+      header: "Boş Hisse",
+      enableSorting: true,
+      cell: ({ row }) => row.getValue("empty_share"),
+    },
+    {
+      id: "acknowledgment",
+      accessorFn: (row) => row.acknowledged_at ?? "",
+      header: "Farkındalık",
+      enableSorting: true,
+      cell: ({ row }) => {
+        const { acknowledged_at, acknowledged_by } = row.original;
+        if (acknowledged_at) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              {acknowledged_by} •{" "}
+              {new Date(acknowledged_at).toLocaleDateString("tr-TR")}
+            </span>
+          );
+        }
+        return <span className="text-sm text-amber-600">Bekleniyor</span>;
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) =>
+        !row.original.acknowledged_at ? (
+          <AcknowledgeButton
+            sacrificeId={row.original.sacrifice_id}
+            onAcknowledge={onAcknowledge}
+            isAcknowledging={acknowledgingId === row.original.sacrifice_id}
+          />
+        ) : null,
+    },
+  ];
+}

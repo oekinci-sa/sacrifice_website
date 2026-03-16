@@ -1,0 +1,18 @@
+---
+description: Logo ilk yüklemede doğru tenant logosu ile gelmeli, flash olmamalı
+globs: 
+---
+# Logo ve Tenant Branding – İlk Paint Kuralı
+
+## Kural
+Sayfa yüklenirken header ve footer'da **ilk paint'te** doğru tenant logosu görünmeli. Ankara Kurban logosu bir an görünüp sonra Elya logosuna dönmemeli (logo flash).
+
+## Uygulama
+- **TenantBrandingProvider**: Layout'ta sunucudan `getTenantBranding()` ile `initialBranding` alınır ve provider'a geçilir.
+- **useTenantBranding**: Provider'dan gelen değeri kullanır; client-side fetch sadece provider yoksa (fallback) yapılır.
+- **Logo/Footer**: `useTenantBranding()` ile `logo_slug` alır; ilk render'da doğru logo path kullanılır.
+
+## Yeni Tenant Eklerken
+- `tenant_settings` tablosuna `logo_slug` ekleyin (örn. `elya-hayvancilik`).
+- `public/logos/{logo_slug}/` altında `{logo_slug}.svg` ve `{logo_slug}-white.svg` dosyaları bulunmalı.
+- Layout'lar (public, takip) `TenantBrandingProvider` ile sarılı olmalı ve `initialBranding` sunucudan geçirilmeli.

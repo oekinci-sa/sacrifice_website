@@ -1,5 +1,5 @@
-import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

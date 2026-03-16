@@ -1,8 +1,10 @@
 import { TripleInfo } from "@/app/(public)/components/triple-info";
 import { Button } from "@/components/ui/button";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { formatDate } from "@/lib/date-utils";
-import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SuccessViewErrorMessage } from "./success-view/SuccessViewErrorMessage";
@@ -54,12 +56,18 @@ interface ShareholderApiResponse {
 export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const router = useRouter();
   const { transaction_id } = useReservationIDStore();
+  const branding = useTenantBranding();
 
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const [dbData, setDbData] = useState<ShareholderApiResponse>({ shareholders: [], sacrifice: {}, reservation: {} });
   const [isDbLoading, setIsDbLoading] = useState(true);
   const [isDbError, setIsDbError] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
+
+  // Teşekkürler sayfasında en üste smooth scroll (PDF indir butonu görünsün)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   // Debug fonksiyonu
   useEffect(() => {
@@ -123,7 +131,10 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
 
     // Toplam tutarı hesapla
     const sharePrice = sacrifice.share_price || 0;
-    const deliveryFee = shareholder.delivery_location !== "Kesimhane" ? 750 : 0;
+    const deliveryFee = getDeliveryFeeForLocation(
+      branding.logo_slug,
+      shareholder.delivery_location || "Kesimhane"
+    );
     const totalAmount = sharePrice + deliveryFee;
 
     // Remaining payment calculation

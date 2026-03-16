@@ -1,3 +1,4 @@
+import { MISMATCHES_UPDATED_EVENT } from "@/hooks/useUnacknowledgedMismatchesCount";
 import { useToast } from "@/components/ui/use-toast";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
@@ -5,12 +6,12 @@ import { useEffect, useState } from "react";
 
 
 // Define the structure for a single shareholder as expected by the API
+// share_price artık shareholders tablosunda yok, sacrifice_animals ile JOIN'den alınır
 interface ShareholderInput {
   shareholder_name: string;
   phone_number: string;
   transaction_id: string;
   sacrifice_id: string;
-  share_price: number;
   delivery_fee?: number; // Optional
   delivery_location: string;
   security_code: string;
@@ -18,7 +19,7 @@ interface ShareholderInput {
   last_edited_by: string;
   is_purchaser?: boolean; // Made optional as it's only used locally
   sacrifice_consent?: boolean; // Made optional since it's not required when creating shareholders
-  total_amount: number; // Total amount = share_price + delivery_fee
+  total_amount: number; // Total amount = share_price (from sacrifice) + delivery_fee
   remaining_payment: number; // Remaining payment = total_amount - paid_amount
 }
 
@@ -59,6 +60,7 @@ export const useCreateShareholders = () => {
         });
       }
 
+      window.dispatchEvent(new Event(MISMATCHES_UPDATED_EVENT));
       setIsLoading(false);
       return result.data;
     } catch (err) {
@@ -190,6 +192,7 @@ export const useDeleteShareholder = () => {
       // Sadece ilgili hissedarı store'dan kaldır - tüm tabloyu yeniden çekme
       removeShareholder(shareholderId);
       window.dispatchEvent(new Event("shareholders-updated"));
+      window.dispatchEvent(new Event(MISMATCHES_UPDATED_EVENT));
 
       setIsLoading(false);
       return { deleted: true, shareholder_id: shareholderId };

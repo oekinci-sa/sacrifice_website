@@ -118,6 +118,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Rezervasyonlar | GET /api/get-reservation-transactions |
 | Aşama metrikleri | GET /api/get-stage-metrics |
 | Değişiklik kayıtları | GET /api/get-change-logs |
+| Uyumsuz hisseler | GET /api/admin/mismatched-shares, POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
 
 ---
 

@@ -1,8 +1,10 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
 import { cn } from "@/lib/utils";
-import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { sacrificeSchema } from "@/types";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { formatSacrificeTime } from "./formatSacrificeTime";
 
 interface ShareholderSummaryCardProps {
@@ -27,6 +29,9 @@ export function ShareholderSummaryCard({
   isPurchaser,
   totalShareholders,
 }: ShareholderSummaryCardProps) {
+  const branding = useTenantBranding();
+  const deliveryFee = getDeliveryFeeForLocation(branding.logo_slug, shareholder.delivery_location);
+
   return (
     <div
       className={cn(
@@ -49,7 +54,7 @@ export function ShareholderSummaryCard({
         {index + 1}. Hissedar Bilgileri
       </h3>
 
-      <div className="grid grid-cols-2 gap-4 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         <div className="space-y-3 md:space-y-4">
           <div>
             <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
@@ -93,7 +98,7 @@ export function ShareholderSummaryCard({
 
       <div className="my-4 md:my-6 border-t border-dashed border-sac-border-light" />
 
-      <div className="grid grid-cols-2 gap-2 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-8">
         <div className="space-y-2 md:space-y-4">
           <div>
             <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
@@ -127,15 +132,13 @@ export function ShareholderSummaryCard({
 
       <div className="my-3 md:my-6 border-t border-dashed border-sac-border-light" />
 
-      <div className="grid grid-cols-2 gap-2 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-8">
         <span className="col-span-1 text-sac-muted font-medium text-[16px] md:text-lg">
           Toplam Ücret
         </span>
         <span className="col-span-1 text-black font-medium text-[16px] md:text-lg">
           {new Intl.NumberFormat("tr-TR").format(
-            shareholder.delivery_location !== "Kesimhane"
-              ? (sacrifice?.share_price || 0) + 750
-              : sacrifice?.share_price || 0
+            (sacrifice?.share_price || 0) + deliveryFee
           )}{" "}
           TL
         </span>

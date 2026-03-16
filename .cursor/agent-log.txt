@@ -299,3 +299,61 @@
 - .project-architecture/features.md, plan-implementation-2025-03.md
 
 [Risk] Düşük – PDF ve tema davranışı değişti; types güncellemesi uyumluluk için.
+
+=== 2025-03-15 ===
+
+[İstek] Responsive rule kırmızı çizgi; tüm sayfalar responsive/UI kontrolü
+
+[Yapılan Değişiklikler]
+1. .cursor/rules/responsive-design.mdc: KIRMIZI ÇİZGİ vurgusu, zorunlu mobil responsive
+2. .cursor/rules/general-rules.mdc: Responsive tasarım kırmızı çizgi olarak güncellendi
+3. Hisse al shareholder-form: Ad/Telefon ve E-posta/Teslimat flex-col md:flex-row; Teslimat butonları flex-col sm:flex-row
+4. ShareholderSummaryCard: grid-cols-1 md:grid-cols-2 (3 grid)
+5. ShareFilters, ShareFiltersFallback: flex-col md:flex-row
+6. sacrifice-info: grid-cols-1 sm:grid-cols-2, whitespace-nowrap sadece md+
+7. hissesorgula shareholder-details: flex-col md:flex-row, grid-cols-1 md:grid-cols-2
+8. prices.tsx: grid-cols-2 sm:grid-cols-3 md:grid-cols-4
+9. countdown-timer: flex-col md:flex-row
+10. Admin hissedarlar ayrıntılar: Skeleton w-full md:w-1/2
+11. Admin kurbanlıklar ayrıntılar: Notlar w-full md:w-1/2, hissedar kartları grid-cols-1 sm:grid-cols-2
+
+[Dosyalar]
+- .cursor/rules/responsive-design.mdc, general-rules.mdc
+- app/(public)/(hisse)/hisseal/components/shareholder-info-step/shareholder-form.tsx
+- app/(public)/(hisse)/hisseal/components/confirmation-step/shareholder-summary/ShareholderSummaryCard.tsx
+- app/(public)/(hisse)/hisseal/components/table-step/ShareFilters.tsx, ShareFilters/ShareFiltersFallback.tsx
+- app/(public)/(hisse)/hisseal/components/shareholder-info-step/sacrifice-info.tsx
+- app/(public)/(hisse)/hissesorgula/components/shareholder-details.tsx
+- app/(public)/(anasayfa)/components/prices.tsx
+- app/(public)/(hisse)/hisseal/components/common/countdown-timer.tsx
+- app/(admin)/kurban-admin/hissedarlar/ayrintilar/[id]/page.tsx
+- app/(admin)/kurban-admin/kurbanliklar/ayrintilar/[id]/page.tsx
+
+[Risk] Düşük – Sadece layout/CSS değişiklikleri, iş mantığı aynı.
+
+=== 2025-03-14 ===
+
+[İstek] Tablo yapısı rule; Uyumsuzluklar (tabs, badge, sacrifice_no); Son 100 hisse uyarısı; Elya notu; Supabase folder kaldır
+
+[Yapılan Değişiklikler]
+1. .cursor/rules/table-structure.mdc: Tüm tablolar Tüm Hissedarlar ile aynı yapıda olmalı kuralı
+2. Uyumsuz Hisseler → Uyumsuzluklar menü adı; sidebar badge (Tamam biliyorum işaretlenmemiş sayısı)
+3. Uyumsuzluklar sayfası: CustomDataTable, Bilinmeyenler/Bilinenler tabları, Kurban No (sacrifice_no), Açıklama ve Toplam sütunları kaldırıldı
+4. mismatched_shares view: sacrifice_no, sacrifice_year eklendi; explanation, total_shares kaldırıldı (Supabase MCP ile uygulandı)
+5. clear_mismatched_ack_on_shareholder_delete trigger: Hissedar silinince acknowledgment silinir
+6. useUnacknowledgedMismatchesCount: Badge için; MISMATCHES_UPDATED_EVENT ile güncelleme
+7. Hissedar ekle/sil: create/delete sonrası MISMATCHES_UPDATED_EVENT dispatch
+8. Son 100 hisse uyarısı: FormView tab-1'de totalEmptyShares < 100 iken "Son X hisse kaldı" gösterimi
+9. Elya notu: terms-agreement-dialog'da logo_slug === "elya-hayvancilik" için farklı metin
+10. supabase/ klasörü kaldırıldı (migrations .project-architecture/db'de)
+
+[Dosyalar]
+- .cursor/rules/table-structure.mdc
+- app/(admin)/kurban-admin/components/layout/app-sidebar.tsx
+- app/(admin)/kurban-admin/uyumsuz-hisseler/page.tsx, components/columns.tsx
+- hooks/useUnacknowledgedMismatchesCount.ts, useShareholders.ts
+- app/(public)/(hisse)/hisseal/components/process-state/form-view.tsx
+- app/(public)/(hisse)/hisseal/components/confirmation-step/terms-agreement-dialog.tsx
+- supabase/ (silindi)
+
+[Risk] Orta – DB view ve trigger değişti; API tenant-aware zaten.

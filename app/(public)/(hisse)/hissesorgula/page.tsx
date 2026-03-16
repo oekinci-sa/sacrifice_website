@@ -10,7 +10,7 @@ export default function HisseSorgula() {
           <div className="text-center space-y-4 mb-8">
             <h1 className="text-3xl font-semibold">Hisse Sorgula</h1>
             <p className="text-muted-foreground">
-              Telefon numaranızı girerek hisse bilgilerinizi sorgulayabilirsiniz.
+              Telefon numaranız ve güvenlik kodunuz ile hisse bilgilerinizi sorgulayabilirsiniz.
             </p>
           </div>
 

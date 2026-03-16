@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Validate required parameters
     if (!phone) {
       return NextResponse.json(
-        { error: "Phone number is required" },
+        { error: "Telefon numarası gereklidir" },
         {
           status: 400,
           headers: {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     if (!securityCode) {
       return NextResponse.json(
-        { error: "Security code is required" },
+        { error: "Güvenlik kodu gereklidir" },
         {
           status: 400,
           headers: {
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to fetch shareholder information" },
+        { error: "Hissedar bilgileri alınamadı" },
         {
           status: 500,
           headers: {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     if (!shareholders || shareholders.length === 0) {
       return NextResponse.json(
-        { error: "No shareholders found with the provided phone number" },
+        { error: "Bu telefon numarasına ait kayıt bulunamadı" },
         {
           status: 404,
           headers: {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const latestShareholder = shareholders[0];
     if (latestShareholder.security_code !== securityCode) {
       return NextResponse.json(
-        { error: "Invalid security code" },
+        { error: "Geçersiz güvenlik kodu" },
         {
           status: 401,
           headers: {
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     });
   } catch {
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Sunucu hatası" },
       {
         status: 500,
         headers: {

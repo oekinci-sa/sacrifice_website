@@ -280,7 +280,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
         </div>
 
         {/* Notlar - resized to half width and half height */}
-        <div className="mt-4 space-y-1 w-1/2">
+        <div className="mt-4 space-y-1 w-full md:w-1/2">
           <p className="text-sm font-medium text-muted-foreground">Notlar</p>
           {isEditing ? (
             <Textarea
@@ -315,7 +315,7 @@ export default function KurbanlikAyrintilariPage({ params }: { params: { id: str
                     </Link>
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-2">
                   <div className="text-sm">
                     <span className="text-muted-foreground">Teslimat:</span>{" "}
                     {shareholder.delivery_location}

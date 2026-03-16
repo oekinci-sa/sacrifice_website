@@ -2,6 +2,7 @@
 
 import { agreementTerms } from "@/app/(public)/(hisse)/constants"
 import { Button } from "@/components/ui/button"
+import { useTenantBranding } from "@/hooks/useTenantBranding"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
     Dialog,
@@ -33,6 +34,7 @@ export default function TermsAgreementDialog({
     const [isAgreed, setIsAgreed] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
+    const branding = useTenantBranding()
 
     const handleConfirm = async () => {
         if (isLoading) return // Prevent double submission
@@ -150,11 +152,21 @@ export default function TermsAgreementDialog({
                                 ))}
                             </div>
 
-                            {/* Not */}
+                            {/* Not - Elya için farklı metin */}
                             <p className="leading-relaxed">
-                                <b>Not:</b> Bu hizmet <b>ticari bir faaliyet değildir.</b> Gönüllülük esasıyla yürütülmekte olup, ibadetin paylaşılması ve kolaylaştırılması amacı taşımaktadır.
-                                <br />
-                                Siz değerli hissedarlarımızın da bu anlayışla sürece katkı sağlaması bizler için kıymetlidir.
+                                {branding.logo_slug === "elya-hayvancilik" ? (
+                                    <>
+                                        <b>Not:</b> Bu hizmet Elya Hayvancılık tarafından kurban hissesi almak isteyenlere kolaylık sağlamak amacıyla sunulmaktadır. İbadetin paylaşılması ve kolaylaştırılması hedeflenmektedir.
+                                        <br />
+                                        Siz değerli hissedarlarımızın bu sürece katkı sağlaması bizler için kıymetlidir.
+                                    </>
+                                ) : (
+                                    <>
+                                        <b>Not:</b> Bu hizmet <b>ticari bir faaliyet değildir.</b> Gönüllülük esasıyla yürütülmekte olup, ibadetin paylaşılması ve kolaylaştırılması amacı taşımaktadır.
+                                        <br />
+                                        Siz değerli hissedarlarımızın da bu anlayışla sürece katkı sağlaması bizler için kıymetlidir.
+                                    </>
+                                )}
                             </p>
 
                             {/* Add extra padding at the bottom for better scrolling experience */}

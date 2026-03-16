@@ -3,20 +3,20 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
 // Define the expected structure for a single shareholder
+// share_price artık shareholders tablosunda yok, sacrifice_animals ile JOIN'den alınır
 interface ShareholderInput {
   shareholder_name: string;
   phone_number: string;
   email?: string;
   transaction_id: string;
   sacrifice_id: string;
-  share_price: number;
   delivery_fee?: number; // Optional
   delivery_location: string;
   security_code: string;
   purchased_by: string;
   last_edited_by: string;
   sacrifice_consent?: boolean; // Optional
-  total_amount: number; // Total amount to be paid
+  total_amount: number; // Total amount to be paid (share_price + delivery_fee)
   remaining_payment: number; // Remaining payment amount
 }
 
@@ -48,8 +48,9 @@ export async function POST(req: Request) {
       if (sacrificeYear == null) {
         throw new Error(`Sacrifice ${s.sacrifice_id} not found`);
       }
+      const { share_price: _omit, ...rest } = s as ShareholderInput & { share_price?: number };
       return {
-        ...s,
+        ...rest,
         tenant_id: tenantId,
         sacrifice_year: sacrificeYear,
       };

@@ -50,7 +50,7 @@ export default function SacrificeInfo({
   if (!displaySacrifice) return null;
 
   return (
-    <div className="grid grid-cols-2 justify-items-center items-center md:flex md:items-center md:justify-center px-4 min-w-full whitespace-nowrap gap-4 md:gap-0">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center md:justify-center px-4 w-full gap-4 md:gap-0 md:whitespace-nowrap">
       {/* Kurbanlık Sırası */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-base md:text-xl">

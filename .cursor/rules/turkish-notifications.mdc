@@ -1,0 +1,23 @@
+---
+description: Toast, notification ve API hata mesajları Türkçe olmalı
+globs: 
+---
+# Bildirim ve Hata Mesajları – Türkçe Kuralı
+
+## Kural
+Kullanıcıya gösterilen tüm mesajlar **Türkçe** olmalıdır:
+- Toast / notification mesajları (`toast({ title, description })`)
+- API `error` yanıtları (kullanıcıya gösterilen hata metinleri)
+- Form validasyon hataları
+- Başarı / uyarı bildirimleri
+
+## Örnekler
+- ❌ "Invalid security code" → ✅ "Geçersiz güvenlik kodu"
+- ❌ "Phone number is required" → ✅ "Telefon numarası gereklidir"
+- ❌ "Failed to fetch" → ✅ "Veriler alınamadı"
+- ❌ "Internal server error" → ✅ "Sunucu hatası"
+
+## Uygulama
+- API route'larda `{ error: "..." }` dönerken Türkçe kullanın
+- `useToast()` ile gösterilen title/description Türkçe olmalı
+- Yeni özellik eklerken bildirim metinlerini Türkçe yazın

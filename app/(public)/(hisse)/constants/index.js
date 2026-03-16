@@ -7,7 +7,7 @@ export const reminders = [
   },
   {
     src: "wallet-fill.svg",
-    header: "Kapora IBAN Bilgisi (5000 TL)",
+    header: "Kapora IBAN Bilgisi (10.000 TL)",
     description: "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
     // description: "TR12 3456 7890 1234 5678 9012 34 - Ahmet oğlu Mehmet (Açıklama: Kurban 2025)",
   },
@@ -15,14 +15,14 @@ export const reminders = [
     src: "exclamation.svg",
     header: "Tüm Ödemeler",
     description:
-      "Tüm ödemeler 30 Mayıs Cuma<br/>gününe kadar tamamlanmalıdır.",
+      "Tüm ödemeler 20 Mayıs Cuma<br/>gününe kadar tamamlanmalıdır.",
   },
 ];
 
 export const agreementTerms = [
   {
     "title": "Ödeme ve Kapora",
-    "description": "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 30 Mayıs Cuma gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
+    "description": "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 20 Mayıs Cuma gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
   },
   {
     "title": "Vekalet ve Dini Usuller",

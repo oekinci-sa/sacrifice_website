@@ -80,7 +80,7 @@ const Prices = () => {
         </h2>
 
         <motion.div
-          className="grid grid-cols-3 md:grid-cols-4 gap-8 md:gap-x-24 md:gap-y-12 items-start"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 md:gap-x-24 md:gap-y-12 items-start"
           variants={container}
           initial="hidden"
           whileInView="show"
@@ -130,7 +130,7 @@ const Prices = () => {
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik gösterebilmektedir.
           </span>
           <span className="block mt-2">
-            * Kapora ücreti <b>5000 TL</b>&apos;dir.
+            * Kapora ücreti <b>10.000 TL</b>&apos;dir.
           </span>
         </p>
       </motion.div>

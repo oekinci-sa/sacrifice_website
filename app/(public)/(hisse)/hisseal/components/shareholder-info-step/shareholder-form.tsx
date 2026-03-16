@@ -1,9 +1,18 @@
 "use client"
 
+import { useTenantBranding } from "@/hooks/useTenantBranding"
+import { getDeliveryOptions } from "@/lib/delivery-options"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
 
@@ -73,18 +82,8 @@ export default function ShareholderForm({
         const formattedValue = formatPhoneNumber(e.target.value);
         onInputChange(index, "phone", formattedValue);
     };
-    const deliveryOptions = ["Kesimhane", "Ulus (+750 TL)"];
-
-    // Function to clean delivery location text
-    const cleanDeliveryLocation = (location: string) => {
-        return location.replace(/\s\([^)]*\)\s*/g, "");
-    };
-
-    // Check if the current option is selected by comparing cleaned values
-    const isOptionSelected = (option: string) => {
-        const cleanedOption = cleanDeliveryLocation(option);
-        return data.delivery_location === cleanedOption;
-    };
+    const branding = useTenantBranding();
+    const deliveryOptionsData = getDeliveryOptions(branding.logo_slug);
 
     const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -130,7 +129,7 @@ export default function ShareholderForm({
             {/* Inputlar */}
             <div className="flex flex-col gap-3 md:gap-4">
                 {/* Ad Soyad ve Telefon */}
-                <div className="flex gap-4 justify-between">
+                <div className="flex flex-col md:flex-row gap-4">
                     {/* Ad Soyad */}
                     <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm md:text-base">
@@ -174,7 +173,7 @@ export default function ShareholderForm({
                 </div>
 
                 {/* E-posta (İsteğe bağlı) ve Teslimat Tercihi */}
-                <div className="flex gap-4 justify-between">
+                <div className="flex flex-col md:flex-row gap-4">
                     {/* E-posta - İsteğe bağlı */}
                     <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label
@@ -207,26 +206,27 @@ export default function ShareholderForm({
                         >
                             Teslimat Tercihi
                         </Label>
-                        <div className="flex gap-1 md:gap-4">
-                            <div className="flex gap-4 justify-between w-full">
-                                {deliveryOptions.map((option) => (
-                                    <Button
-                                        key={option}
-                                        type="button"
-                                        onClick={() => onSelectChange(index, "delivery_location", cleanDeliveryLocation(option))}
-                                        className={cn(
-                                            "w-1/2 border border-dashed border-sac-border-light hover:text-white transition-all text-base md:text-[18px] h-10 pt-2 md:h-12",
-                                            isOptionSelected(option)
-                                                ? "bg-primary border-none text-white hover:bg-primary"
-                                                : "bg-background text-foreground hover:bg-primary",
-                                            errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
-                                        )}
-                                    >
-                                        {option}
-                                    </Button>
+                        <Select
+                            value={data.delivery_location || "Kesimhane"}
+                            onValueChange={(value) => onSelectChange(index, "delivery_location", value)}
+                        >
+                            <SelectTrigger
+                                id={`delivery_location-${index}`}
+                                className={cn(
+                                    "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light",
+                                    errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
+                                )}
+                            >
+                                <SelectValue placeholder="Teslimat tercihini seçin" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {deliveryOptionsData.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </SelectItem>
                                 ))}
-                            </div>
-                        </div>
+                            </SelectContent>
+                        </Select>
                         {errors?.delivery_location && (
                             <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(", ")}</p>
                         )}

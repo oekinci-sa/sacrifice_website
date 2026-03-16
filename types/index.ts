@@ -13,7 +13,7 @@ export const shareholderFormSchema = z.object({
   paid_amount: z.number(),
   remaining_payment: z.number(),
   delivery_fee: z.number(),
-  delivery_location: z.enum(["Kesimhane", "Ulus"]),
+  delivery_location: z.enum(["Kesimhane", "Ulus", "Adrese teslim"]),
   sacrifice_consent: z.boolean(),
   notes: z.string(),
 });
@@ -54,9 +54,8 @@ export interface shareholderSchema {
   security_code: string | null; // Veritabanındaki security_code alanı (varchar(6))
   purchased_by: string | null;
 
-  // Ödeme ile ilgili alanlar
+  // Ödeme ile ilgili alanlar (share_price sacrifice_animals ile JOIN'den alınır)
   delivery_fee: number | null;
-  share_price: number | null;
   total_amount: number;
   paid_amount: number;
   remaining_payment: number;

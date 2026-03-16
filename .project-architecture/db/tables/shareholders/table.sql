@@ -10,7 +10,6 @@ CREATE TABLE "public"."shareholders" (
   "security_code" VARCHAR(6) CHECK (security_code::text ~ '^\d{6}$'),
   "sacrifice_id" UUID NOT NULL REFERENCES sacrifice_animals(sacrifice_id) ON DELETE CASCADE ON UPDATE CASCADE,
   "delivery_fee" NUMERIC(12,2) DEFAULT 0,
-  "share_price" NUMERIC(12,2),
   "total_amount" NUMERIC(12,2) NOT NULL,
   "paid_amount" NUMERIC(12,2) DEFAULT 0 NOT NULL,
   "remaining_payment" NUMERIC(12,2) NOT NULL,

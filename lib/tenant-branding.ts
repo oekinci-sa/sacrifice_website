@@ -1,5 +1,5 @@
-import { getTenantIdOptional } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantIdOptional } from "@/lib/tenant";
 
 export interface TenantBranding {
   tenant_id?: string | null;

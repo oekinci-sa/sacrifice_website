@@ -46,6 +46,7 @@
 ## Admin Tablo Sayfaları
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı)
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
+- **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır
 
 ## last_edited_by / change_owner (Admin)
 - Admin bölümünden yapılan düzenlemelerde `last_edited_by` **email** olarak saklanır (sacrifice_animals, shareholders).

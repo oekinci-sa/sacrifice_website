@@ -1,12 +1,21 @@
 "use client";
 
 import EmptySharesBadge from "@/components/common/empty-shares-badge";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+const MAPS_LINKS: Record<string, string> = {
+  "elya-hayvancilik": "https://maps.app.goo.gl/6Uosc3XLkES5tw6x7",
+  "ankara-kurban": "https://maps.app.goo.gl/yfA3h5mdS1uxAXTU9",
+};
+
 const Banner = () => {
+  const branding = useTenantBranding();
+  const mapsHref = MAPS_LINKS[branding.logo_slug] ?? MAPS_LINKS["ankara-kurban"];
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -113,7 +122,7 @@ const Banner = () => {
               <Link
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://maps.app.goo.gl/yfA3h5mdS1uxAXTU9"
+                href={mapsHref}
                 className="text-primary hover:underline hover:text-primary-dark ml-2 md:ml-0"
               >
                 Konum için tıklayınız.

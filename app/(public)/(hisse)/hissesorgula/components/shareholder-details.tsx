@@ -42,12 +42,12 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[192px_1fr] gap-12 border border-gray-200 rounded-lg p-4 md:p-8 mx-auto md:w-2/3 mb-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(220px,260px)_1fr] gap-8 lg:gap-12 border border-gray-200 rounded-lg p-6 md:p-8 mx-auto max-w-4xl mb-4">
       {/* Sol Bölüm - Kişisel Bilgiler */}
-      <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-6 lg:gap-8">
         {/* Resim + İsim */}
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 md:w-20 h-16 md:h-20 flex items-center justify-center">
+          <div className="w-16 md:w-20 h-16 md:h-20 flex items-center justify-center shrink-0">
             <Image
               src="/icons/user2.svg"
               alt="User"
@@ -56,37 +56,33 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               className="md:w-10 md:h-10"
             />
           </div>
-          <h2 className="text-xl md:text-2xl font-semibold">{shareholderInfo.shareholder_name}</h2>
+          <h2 className="text-xl md:text-2xl font-semibold mt-2 break-words">{shareholderInfo.shareholder_name}</h2>
         </div>
 
-        {/* Telefon + Teslimat Tercihi */}
-        <div className="flex flex-row md:flex-col justify-between gap-4 md:gap-12">
-          <div className="space-y-1 text-center">
-            <p className="text-xs md:text-lg text-slate-600">Telefon</p>
-            <p className="font-medium text-sm md:text-lg">{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number ?? "")}</p>
+        {/* Telefon, Teslimat, Vekalet - her zaman dikey sıra */}
+        <div className="flex flex-col gap-4">
+          <div className="space-y-1">
+            <p className="text-xs md:text-sm text-slate-600">Telefon</p>
+            <p className="font-medium text-sm md:text-base">{formatPhoneForDisplayWithSpacing(shareholderInfo.phone_number ?? "")}</p>
           </div>
-
-          <div className="space-y-1 text-center">
-            <p className="text-xs md:text-lg text-slate-600">Teslimat Tercihi</p>
-            <p className="font-medium text-sm md:text-lg">
-              {shareholderInfo.delivery_location}
-            </p>
+          <div className="space-y-1">
+            <p className="text-xs md:text-sm text-slate-600">Teslimat Tercihi</p>
+            <p className="font-medium text-sm md:text-base">{shareholderInfo.delivery_location}</p>
           </div>
-
-          <div className="space-y-1 text-center">
-            <p className="text-xs md:text-lg text-slate-600">Vekalet Durumu</p>
-            <p className="font-medium text-sm md:text-lg">{shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}</p>
+          <div className="space-y-1">
+            <p className="text-xs md:text-sm text-slate-600">Vekalet Durumu</p>
+            <p className="font-medium text-sm md:text-base">{shareholderInfo.sacrifice_consent ? "Vekalet Alındı" : "Vekalet Alınmadı"}</p>
           </div>
         </div>
       </div>
 
       {/* Sağ Bölüm - Kurbanlık ve Ödeme Bilgileri */}
-      <div className="space-y-12 md:space-y-12">
+      <div className="flex flex-col gap-8 lg:gap-10 min-w-0">
         {/* Kurbanlık Bilgileri */}
         <div className="space-y-4">
           <h3 className="text-base md:text-xl font-semibold">Kurbanlık Bilgileri</h3>
           <Separator className="my-2" />
-          <div className="grid grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 md:gap-6">
             <div className="space-y-4">
               <div>
                 <p className="text-slate-600 font-medium mb-1">Kurbanlık No</p>
@@ -124,17 +120,8 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
         </div>
 
         {/* Ödeme Detayları */}
-        <div className="space-y-4">
-          <div className="flex flex-row justify-between items-start md:items-center gap-4 md:gap-0">
-            <h3 className="text-base md:text-xl font-semibold">Ödeme Detayları</h3>
-            {/* <Button
-              className="w-auto bg-muted text-black text-sm md:text-base hover:bg-muted/80 hover:text-black border-sac-primary"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="h-4 w-4 mr-0 md:mr-2" />
-              PDF İndir
-            </Button> */}
-          </div>
+        <div className="space-y-4 mt-6">
+          <h3 className="text-base md:text-xl font-semibold">Ödeme Detayları</h3>
           <Separator className="my-2" />
 
           <div className="flex justify-between items-start gap-4">

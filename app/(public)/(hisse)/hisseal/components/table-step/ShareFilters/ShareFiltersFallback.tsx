@@ -1,7 +1,7 @@
 export function ShareFiltersFallback() {
   return (
     <div className="flex flex-col justify-center gap-2 md:gap-4">
-      <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
+      <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
         <div className="w-[150px] h-8 md:h-10 bg-gray-200 animate-pulse rounded-md"></div>
       </div>

@@ -1,0 +1,26 @@
+---
+description: Tablo yapısı tutarlılığı - Tüm hissedarlar ile aynı yapı
+globs: **/*table*, **/*columns*, **/uyumsuz*
+---
+# Tablo Yapısı Kuralı
+
+## Genel İlke
+Admin panelindeki tüm tablolar **Tüm Hissedarlar** sayfasındaki tablo yapısı ile tutarlı olmalıdır.
+
+## Referans
+- **Bileşen:** `CustomDataTable` (`components/custom-data-components/custom-data-table.tsx`)
+- **Örnek sayfa:** `app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/`
+- **Örnek columns:** `app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/components/columns.tsx`
+
+## Zorunluluklar
+1. **CustomDataTable kullan:** Ham `<Table>` yerine `CustomDataTable` kullan.
+2. **Sütun yapısı:** Sıralama, filtreleme ve sayfalama desteklenmeli.
+3. **Kurban No:** Kurban ID yerine `sacrifice_no` gösterilmeli; tıklanınca kurban detay sayfasına gidilmeli.
+4. **Tenant-aware:** Tüm admin tabloları tenant_id ile filtrelenmiş veri göstermeli.
+5. **tableSize:** `medium` veya `large` kullan (sayfaya göre).
+6. **pageSizeOptions:** Tutarlı değerler (örn. [20, 50, 100, 200]).
+
+## Uyumsuzluklar Sayfası
+- Tablar: Bilinmeyenler / Bilinenler (acknowledged_at null / dolu)
+- Sütunlar: Kurban No, Hissedar, Boş Hisse, Farkındalık, Tamam biliyorum
+- Açıklama ve Toplam sütunları kullanılmaz.

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { usePendingUserCount } from "@/hooks/usePendingUserCount"
+import { useUnacknowledgedMismatchesCount } from "@/hooks/useUnacknowledgedMismatchesCount"
 import { useUncontactedShareholdersCount } from "@/hooks/useUncontactedShareholdersCount"
 import { useUnreadContactMessagesCount } from "@/hooks/useUnreadContactMessagesCount"
 import { cn } from "@/lib/utils"
@@ -9,6 +10,7 @@ import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore"
 import { useSidebarStore } from "@/stores/only-admin-pages/sidebar-store"
 import { UserRole } from "@/types"
 import {
+  AlertTriangle,
   BarChart3,
   Bell,
   ChevronDown,
@@ -68,6 +70,13 @@ const navItems: NavItem[] = [
     roles: ["admin", "editor", "super_admin"],
   },
   {
+    id: "mismatched-shares",
+    title: "Uyumsuzluklar",
+    url: "/kurban-admin/uyumsuz-hisseler",
+    icon: AlertTriangle,
+    roles: ["admin", "editor", "super_admin"],
+  },
+  {
     id: "reservations",
     title: "Rezervasyonlar",
     url: "/kurban-admin/rezervasyonlar",
@@ -104,6 +113,7 @@ export function AppSidebar() {
   const { count: unreadContactCount } = useUnreadContactMessagesCount()
   const { count: uncontactedShareholdersCount } = useUncontactedShareholdersCount(selectedYear)
   const { count: pendingUserCount } = usePendingUserCount()
+  const { count: unacknowledgedMismatchesCount } = useUnacknowledgedMismatchesCount()
 
   const {
     isCollapsed,
@@ -172,9 +182,10 @@ export function AppSidebar() {
             const showUnreadBadge = item.id === "contact-messages" && unreadContactCount > 0 && !isCollapsed
             const showShareholdersBadge = item.id === "all-shareholders" && uncontactedShareholdersCount > 0 && !isCollapsed
             const showPendingUserBadge = item.id === "user-management" && pendingUserCount > 0 && !isCollapsed
+            const showMismatchesBadge = item.id === "mismatched-shares" && unacknowledgedMismatchesCount > 0 && !isCollapsed
 
-            const badgeCount = showUnreadBadge ? unreadContactCount : showShareholdersBadge ? uncontactedShareholdersCount : showPendingUserBadge ? pendingUserCount : 0
-            const showBadge = showUnreadBadge || showShareholdersBadge || showPendingUserBadge
+            const badgeCount = showUnreadBadge ? unreadContactCount : showShareholdersBadge ? uncontactedShareholdersCount : showPendingUserBadge ? pendingUserCount : showMismatchesBadge ? unacknowledgedMismatchesCount : 0
+            const showBadge = showUnreadBadge || showShareholdersBadge || showPendingUserBadge || showMismatchesBadge
 
             return (
               <div key={item.id} className="space-y-1">

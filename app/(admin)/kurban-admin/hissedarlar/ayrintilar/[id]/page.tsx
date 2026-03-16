@@ -217,7 +217,7 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-1/2" />
+        <Skeleton className="h-12 w-full md:w-1/2" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />

@@ -1,10 +1,12 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useCompleteReservation } from "@/hooks/useReservations";
 import { useCreateShareholders } from "@/hooks/useShareholders";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useValidateShareholders } from "@/hooks/useValidateShareholders";
-import { formatPhoneForDB } from "@/utils/formatters";
+import { getDeliveryFeeForLocation } from "@/lib/delivery-options";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
+import { formatPhoneForDB } from "@/utils/formatters";
 import { useCallback, useState } from "react";
 
 interface ShareholderInput {
@@ -31,6 +33,7 @@ export function useShareholderSummaryApproval(
   const validateShareholdersMutation = useValidateShareholders();
   const { transaction_id } = useReservationIDStore();
   const { toast } = useToast();
+  const branding = useTenantBranding();
 
   const purchaserIndex = shareholders.findIndex(
     (s) => s.is_purchaser === true
@@ -88,8 +91,10 @@ export function useShareholderSummaryApproval(
       });
 
       const shareholderDataForApi = shareholders.map((shareholder) => {
-        const delivery_fee =
-          shareholder.delivery_location !== "Kesimhane" ? 750 : 0;
+        const delivery_fee = getDeliveryFeeForLocation(
+          branding.logo_slug,
+          shareholder.delivery_location
+        );
         const share_price = sacrifice?.share_price || 0;
         const totalAmount = share_price + delivery_fee;
         const paidAmount =
@@ -102,7 +107,6 @@ export function useShareholderSummaryApproval(
           email: shareholder.email?.trim() || undefined,
           transaction_id,
           sacrifice_id: sacrifice?.sacrifice_id || "",
-          share_price,
           delivery_fee,
           delivery_location: shareholder.delivery_location,
           security_code: securityCode,
@@ -158,6 +162,7 @@ export function useShareholderSummaryApproval(
     shareholders,
     effectivePurchaserIndex,
     securityCode,
+    branding.logo_slug,
     onApprove,
     toast,
     validateShareholdersMutation,

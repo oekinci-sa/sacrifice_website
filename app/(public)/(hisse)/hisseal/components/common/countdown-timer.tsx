@@ -14,7 +14,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ expirationTime, remaini
   };
 
   return (
-    <div className="bg-white rounded-lg md:my-8 flex flex-row justify-center items-center gap-8">
+    <div className="bg-white rounded-lg md:my-8 flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8">
       <div className="flex flex-col items-center">
         <p className="text-base md:text-lg text-gray-500">İşlem Bitiş Zamanı</p>
         <p className="font-bold text-xl md:text-2xl lg:text-3xl">{expirationTime}</p>

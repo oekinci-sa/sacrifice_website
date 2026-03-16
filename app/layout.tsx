@@ -1,5 +1,6 @@
 import { ThemeStyles } from "@/components/theme/ThemeStyles";
 import { Toaster } from "@/components/ui/toaster";
+import { getTenantBranding } from "@/lib/tenant-branding";
 import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
@@ -10,11 +11,23 @@ const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
 });
 
-export const metadata: Metadata = {
+const DEFAULT_METADATA: Metadata = {
   title: "Ankara Kurban Hisse Organizasyonu",
   description:
     "İMH Ankara Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah’a sadece takvanız ulaşır…",
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getTenantBranding();
+  if (branding.logo_slug === "elya-hayvancilik") {
+    return {
+      ...DEFAULT_METADATA,
+      title: "Elya Hayvancılık Kurban Organizasyonu",
+      icons: { icon: "/logos/elya-hayvancilik/elya-hayvancilik.svg" },
+    };
+  }
+  return DEFAULT_METADATA;
+}
 
 export default function RootLayout({
   children,

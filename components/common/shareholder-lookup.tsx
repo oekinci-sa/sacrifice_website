@@ -51,11 +51,12 @@ const validatePhoneNumber = (phone: string) => {
 
 export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
     const [phone, setPhone] = useState("");
+    const [securityCode, setSecurityCode] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [shareholderInfoList, setShareholderInfoList] = useState<shareholderSchema[]>([]);
     const { toast } = useToast();
 
-    // Use the shareholder lookup mutation
+    // Use the shareholder lookup mutation (phone + security code)
     const shareholderLookup = useShareholderLookupByPhone();
 
     // Animation variants for results
@@ -117,6 +118,18 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
             return;
         }
 
+        // Güvenlik kodu kontrolü
+        const codeDigits = securityCode.replace(/\D/g, "");
+        if (codeDigits.length !== 6) {
+            setError("Lütfen 6 haneli güvenlik kodunuzu giriniz.");
+            toast({
+                variant: "destructive",
+                title: "Hata",
+                description: "Lütfen 6 haneli güvenlik kodunuzu giriniz.",
+            });
+            return;
+        }
+
         // Telefon numarası doğrulama
         if (!validatePhoneNumber(phone)) {
             setError("Lütfen geçerli bir telefon numarası giriniz (05XX XXX XX XX)");
@@ -132,9 +145,10 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
             setError(null);
             setShareholderInfoList([]);
 
-            // Use our mutation to lookup shareholders
+            // Use our mutation to lookup shareholders (phone + security code)
             const result = await shareholderLookup.mutateAsync({
-                phone
+                phone,
+                securityCode: codeDigits,
             });
 
             // If we get here, the lookup was successful
@@ -171,7 +185,7 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
     return (
         <div>
             {/* Search Form */}
-            <div className="flex gap-4 max-w-md mx-auto rounded-md mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto rounded-md mb-8">
                 <Input
                     id="phone"
                     type="tel"
@@ -180,7 +194,25 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
                     onChange={handlePhoneChange}
                     onKeyPress={handleKeyPress}
                     className={cn(
-                        " text-sm md:text-base focus-visible:ring-0 focus-visible:ring-offset-0 text-center",
+                        "text-sm md:text-base focus-visible:ring-0 focus-visible:ring-offset-0 text-center",
+                        error ? "border-destructive focus-visible:ring-destructive" : ""
+                    )}
+                />
+                <Input
+                    id="security_code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="6 haneli güvenlik kodu"
+                    value={securityCode}
+                    onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        setSecurityCode(v);
+                        setError(null);
+                    }}
+                    onKeyPress={handleKeyPress}
+                    className={cn(
+                        "text-sm md:text-base focus-visible:ring-0 focus-visible:ring-offset-0 text-center",
                         error ? "border-destructive focus-visible:ring-destructive" : ""
                     )}
                 />

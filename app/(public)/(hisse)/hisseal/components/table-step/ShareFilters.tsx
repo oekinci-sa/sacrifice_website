@@ -121,7 +121,7 @@ function ClientShareFilters({
 
   return (
     <div className="flex flex-col justify-center gap-2 md:gap-4">
-      <div className="flex flex-row items-center justify-center gap-2 md:my-4 md:gap-4">
+      <div className="flex flex-row flex-wrap items-center justify-center gap-2 md:my-4 md:gap-4">
         {[
           {
             column: "share_price",

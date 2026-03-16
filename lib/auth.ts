@@ -4,7 +4,17 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { headers } from "next/headers";
 import { supabase } from "@/utils/supabaseClient";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 import { UserRole } from "@/types";
+
+/** Auth callback'larda tenant_id: önce x-tenant-id, yoksa host'tan çözümle */
+async function getTenantIdForAuth(): Promise<string | null> {
+  const h = await headers();
+  const fromHeader = h.get("x-tenant-id");
+  if (fromHeader) return fromHeader;
+  const host = h.get("host") ?? h.get("x-forwarded-host") ?? "";
+  return host ? resolveTenantIdFromHost(host) : null;
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -70,12 +80,48 @@ export const authOptions: AuthOptions = {
       }
     },
     async signIn({ user, account }) {
-      // For credentials login, we've already checked everything in authorize
-      if (account?.type === "credentials") return true;
+      // For credentials login: authorize zaten users kontrolü yaptı.
+      // user_tenants kaydı yoksa ekle (admin panelinde görünsün, OAuth ile aynı davranış)
+      if (account?.type === "credentials") {
+        const tenantId = await getTenantIdForAuth();
+        if (tenantId && user?.id) {
+          const { data: utRow } = await supabaseAdmin
+            .from("user_tenants")
+            .select("approved_at")
+            .eq("user_id", user.id)
+            .eq("tenant_id", tenantId)
+            .single();
+
+          if (utRow) {
+            if (utRow.approved_at == null) {
+              // super_admin tüm tenantlara erişebilir
+              if (user.role === "super_admin") return true;
+              return "/giris?error=TenantPendingApproval";
+            }
+            return true;
+          }
+
+          // super_admin için yeni tenant'a otomatik onaylı ekle
+          const isSuperAdmin = user.role === "super_admin";
+          const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
+            {
+              user_id: user.id,
+              tenant_id: tenantId,
+              approved_at: isSuperAdmin ? new Date().toISOString() : null,
+            },
+            { onConflict: "user_id,tenant_id" }
+          );
+          if (utError && process.env.NODE_ENV === "development") {
+            console.error("[auth] user_tenants insert hatası (credentials):", utError);
+          }
+        }
+        return true;
+      }
 
       // For OAuth (Google) login
       if (account?.type === "oauth") {
-        const { data: existingUser } = await supabase
+        // supabaseAdmin: RLS anon client ile users okuma engellenebilir
+        const { data: existingUser } = await supabaseAdmin
           .from("users")
           .select("*")
           .eq("email", user.email)
@@ -97,13 +143,16 @@ export const authOptions: AuthOptions = {
             .select("id")
             .single();
           if (error || !newUser) return false;
-          const tenantId = (await headers()).get("x-tenant-id");
+          const tenantId = await getTenantIdForAuth();
           if (tenantId) {
-            await supabaseAdmin.from("user_tenants").insert({
+            const { error: utError } = await supabaseAdmin.from("user_tenants").insert({
               user_id: newUser.id,
               tenant_id: tenantId,
               approved_at: null,
             });
+            if (utError && process.env.NODE_ENV === "development") {
+              console.error("[auth] user_tenants insert hatası (OAuth yeni kullanıcı):", utError);
+            }
           }
           return "/";
         }
@@ -119,7 +168,7 @@ export const authOptions: AuthOptions = {
         if (existingUser.status === "blacklisted") return false;
 
         // user_tenants: Per-tenant erişim ve onay
-        const tenantId = (await headers()).get("x-tenant-id");
+        const tenantId = await getTenantIdForAuth();
         if (tenantId) {
           const { data: utRow } = await supabaseAdmin
             .from("user_tenants")
@@ -131,12 +180,14 @@ export const authOptions: AuthOptions = {
           if (utRow) {
             // Kayıt var: approved_at null ise bu tenant için onay bekliyor
             if (utRow.approved_at == null) {
+              // super_admin tüm tenantlara erişebilir
+              if (existingUser.role === "super_admin") return true;
               return "/giris?error=TenantPendingApproval";
             }
             return true;
           }
 
-          // Kayıt yok: user_tenants'a ekle (admin panelinde görünsün)
+          // Kayıt yok: user_tenants'a ekle (super_admin için otomatik onaylı)
           const { data: otherTenants } = await supabaseAdmin
             .from("user_tenants")
             .select("tenant_id, approved_at")
@@ -144,14 +195,18 @@ export const authOptions: AuthOptions = {
           const hasApprovedElsewhere =
             (otherTenants ?? []).some((ut) => ut.approved_at != null);
 
-          await supabaseAdmin.from("user_tenants").upsert(
+          const isSuperAdmin = existingUser.role === "super_admin";
+          const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
             {
               user_id: existingUser.id,
               tenant_id: tenantId,
-              approved_at: null,
+              approved_at: isSuperAdmin ? new Date().toISOString() : null,
             },
             { onConflict: "user_id,tenant_id" }
           );
+          if (utError && process.env.NODE_ENV === "development") {
+            console.error("[auth] user_tenants upsert hatası (OAuth mevcut kullanıcı):", utError);
+          }
 
           if (
             existingUser.status === "approved" &&

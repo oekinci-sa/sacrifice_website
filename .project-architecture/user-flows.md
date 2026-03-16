@@ -24,7 +24,8 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 |------|---------|
 | 1 | Email + şifre ile authorize (users tablosu) |
 | 2 | blacklisted ise red |
-| 3 | Başarılı ise JWT, session |
+| 3 | signIn callback: Bu tenant için user_tenants yoksa INSERT (approved_at: null) |
+| 4 | Başarılı ise JWT, session |
 
 ---
 

@@ -38,6 +38,7 @@ export default function UserProfilePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const isAdmin = session?.user?.role === "admin" || session?.user?.role === "super_admin";
+  const isSuperAdmin = session?.user?.role === "super_admin";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -245,7 +246,9 @@ export default function UserProfilePage() {
                   <SelectValue placeholder="Rol seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="super_admin">Super Yönetici</SelectItem>
+                  {isSuperAdmin && (
+                    <SelectItem value="super_admin">Super Yönetici</SelectItem>
+                  )}
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="editor">Editör</SelectItem>
                 </SelectContent>

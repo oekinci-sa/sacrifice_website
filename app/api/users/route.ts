@@ -120,6 +120,14 @@ export async function POST(request: Request) {
         const json = await request.json();
         const tenantId = getTenantId();
 
+        // Sadece super_admin yeni kullanıcıya super_admin rolü verebilir
+        if (json.role === "super_admin" && session.user.role !== "super_admin") {
+            return NextResponse.json(
+                { error: "Sadece Super Yönetici bu rolü atayabilir" },
+                { status: 403 }
+            );
+        }
+
         const { data, error } = await supabaseAdmin
             .from("users")
             .insert(json)

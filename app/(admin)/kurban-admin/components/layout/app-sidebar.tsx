@@ -63,6 +63,13 @@ const navItems: NavItem[] = [
     roles: ["admin", "editor", "super_admin"],
   },
   {
+    id: "payments",
+    title: "Ödemeler",
+    url: "/kurban-admin/hissedarlar/odemeler",
+    icon: Receipt,
+    roles: ["admin", "editor", "super_admin"],
+  },
+  {
     id: "change-logs",
     title: "Değişiklik Kayıtları",
     url: "/kurban-admin/degisiklik-kayitlari",
@@ -110,10 +117,10 @@ export function AppSidebar() {
   const { data: session } = useSession()
   const pathname = usePathname()
   const selectedYear = useAdminYearStore((s) => s.selectedYear)
-  const { count: unreadContactCount } = useUnreadContactMessagesCount()
-  const { count: uncontactedShareholdersCount } = useUncontactedShareholdersCount(selectedYear)
-  const { count: pendingUserCount } = usePendingUserCount()
-  const { count: unacknowledgedMismatchesCount } = useUnacknowledgedMismatchesCount()
+  const { count: unreadContactCount, isLoading: unreadContactLoading } = useUnreadContactMessagesCount()
+  const { count: uncontactedShareholdersCount, isLoading: uncontactedLoading } = useUncontactedShareholdersCount(selectedYear)
+  const { count: pendingUserCount, isLoading: pendingUserLoading } = usePendingUserCount()
+  const { count: unacknowledgedMismatchesCount, isLoading: mismatchesLoading } = useUnacknowledgedMismatchesCount()
 
   const {
     isCollapsed,
@@ -179,10 +186,10 @@ export function AppSidebar() {
             const isActive = pathname === item.url || pathname.startsWith(item.url + "/")
             const hasSubItems = item.items && item.items.length > 0
             const isOpen = isSubMenuOpen(item.id)
-            const showUnreadBadge = item.id === "contact-messages" && unreadContactCount > 0 && !isCollapsed
-            const showShareholdersBadge = item.id === "all-shareholders" && uncontactedShareholdersCount > 0 && !isCollapsed
-            const showPendingUserBadge = item.id === "user-management" && pendingUserCount > 0 && !isCollapsed
-            const showMismatchesBadge = item.id === "mismatched-shares" && unacknowledgedMismatchesCount > 0 && !isCollapsed
+            const showUnreadBadge = item.id === "contact-messages" && !unreadContactLoading && unreadContactCount > 0 && !isCollapsed
+            const showShareholdersBadge = item.id === "all-shareholders" && !uncontactedLoading && uncontactedShareholdersCount > 0 && !isCollapsed
+            const showPendingUserBadge = item.id === "user-management" && !pendingUserLoading && pendingUserCount > 0 && !isCollapsed
+            const showMismatchesBadge = item.id === "mismatched-shares" && !mismatchesLoading && unacknowledgedMismatchesCount > 0 && !isCollapsed
 
             const badgeCount = showUnreadBadge ? unreadContactCount : showShareholdersBadge ? uncontactedShareholdersCount : showPendingUserBadge ? pendingUserCount : showMismatchesBadge ? unacknowledgedMismatchesCount : 0
             const showBadge = showUnreadBadge || showShareholdersBadge || showPendingUserBadge || showMismatchesBadge

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { Row } from "@tanstack/react-table";
-import { Ban, Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -43,41 +43,6 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const { toast } = useToast();
   const user = row.original as User;
-
-  const handleStatusChange = async (
-    userId: string,
-    newStatus: string,
-    addToOtherTenant = false
-  ) => {
-    try {
-      const response = await fetch(`/api/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus, addToOtherTenant }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update user status');
-      }
-
-      window.dispatchEvent(new CustomEvent('user-updated'));
-
-      toast({
-        title: addToOtherTenant ? "Onaylandı ve diğer siteye eklendi" : "Durum güncellendi",
-        description: addToOtherTenant
-          ? "Kullanıcı onaylandı ve diğer organizasyona da erişim verildi."
-          : "Kullanıcı durumu başarıyla güncellendi.",
-      });
-    } catch {
-      toast({
-        title: "Hata",
-        description: "Kullanıcı durumu güncellenirken bir hata oluştu.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDelete = async () => {
     try {
@@ -123,33 +88,6 @@ export function DataTableRowActions<TData>({
           <Pencil className="mr-2 h-4 w-4" />
           Düzenle
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {(user.status === "pending" || user.tenant_approved_at == null) && (
-          <>
-            <DropdownMenuItem onClick={() => handleStatusChange(user.id, "approved")}>
-              <Check className="mr-2 h-4 w-4" />
-              Onayla
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleStatusChange(user.id, "approved", true)}
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Onayla ve diğer siteye de ekle
-            </DropdownMenuItem>
-          </>
-        )}
-        {user.status !== "blacklisted" && (
-          <DropdownMenuItem onClick={() => handleStatusChange(user.id, "blacklisted")}>
-            <Ban className="mr-2 h-4 w-4" />
-            Engelle
-          </DropdownMenuItem>
-        )}
-        {user.status === "blacklisted" && (
-          <DropdownMenuItem onClick={() => handleStatusChange(user.id, "approved")}>
-            <Check className="mr-2 h-4 w-4" />
-            Engeli Kaldır
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <AlertDialog>
           <AlertDialogTrigger asChild>

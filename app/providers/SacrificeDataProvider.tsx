@@ -38,4 +38,4 @@ export function SacrificeDataProvider({ children }: { children: React.ReactNode 
     }, [refetchSacrifices, subscribeToRealtime, unsubscribeFromRealtime, isInitialized]);
 
     return <>{children}</>;
-} 
+}

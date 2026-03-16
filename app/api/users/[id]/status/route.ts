@@ -29,13 +29,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { id } = params;
     const tenantId = getTenantId();
     const body = await request.json();
-    const { status, addToOtherTenant } = body;
+    const { status, addToOtherTenant, revokeApproval } = body;
 
-    if (!status || !["pending", "approved", "blacklisted"].includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status value" },
-        { status: 400 }
-      );
+    // "Onayla ve diğer siteye de ekle" sadece super_admin için
+    if (addToOtherTenant && session.user.role !== "super_admin") {
+      return NextResponse.json({ error: "Bu işlem sadece super admin tarafından yapılabilir." }, { status: 403 });
     }
 
     const { data: ut } = await supabaseAdmin
@@ -47,6 +45,24 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (!ut) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Onayı kaldır: user_tenants.approved_at = null
+    if (revokeApproval) {
+      await supabaseAdmin
+        .from("user_tenants")
+        .update({ approved_at: null })
+        .eq("user_id", id)
+        .eq("tenant_id", tenantId);
+      const { data: u } = await supabaseAdmin.from("users").select("*").eq("id", id).single();
+      return NextResponse.json(u);
+    }
+
+    if (!status || !["pending", "approved", "blacklisted"].includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
     }
 
     const { data, error: _error } = await supabaseAdmin
@@ -67,7 +83,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         .eq("user_id", id)
         .eq("tenant_id", tenantId);
 
-      // "Diğer siteye de ekle" seçildiyse: diğer tenant'a pre-approved ekle
+      // "Diğer siteye de ekle" seçildiyse: diğer tenant'a pre-approved ekle (sadece super_admin)
       if (addToOtherTenant) {
         const otherTenantId = getOtherTenantId(tenantId);
         await supabaseAdmin.from("user_tenants").upsert(

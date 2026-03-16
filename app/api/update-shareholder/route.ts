@@ -1,6 +1,8 @@
+import { authOptions } from '@/lib/auth';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { formatPhoneForDB } from '@/utils/formatters';
+import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Define the expected structure for shareholder updates
@@ -39,6 +41,11 @@ interface UpdateFields {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin" && session.user.role !== "editor")) {
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+    }
+
     const tenantId = getTenantId();
     const updateData: ShareholderUpdateInput = await request.json();
 
@@ -89,14 +96,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to update shareholder" },
+        { error: "Hissedar güncellenemedi" },
         { status: 500 }
       );
     }
 
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { error: "Shareholder not found" },
+        { error: "Hissedar bulunamadı" },
         { status: 404 }
       );
     }
@@ -109,7 +116,7 @@ export async function POST(request: NextRequest) {
 
   } catch {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Sunucu hatası" },
       { status: 500 }
     );
   }

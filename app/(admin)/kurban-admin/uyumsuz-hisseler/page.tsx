@@ -28,7 +28,10 @@ export default function UyumsuzHisselerPage() {
       const res = await fetch("/api/admin/mismatched-shares");
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Veri alınamadı");
+        const msg = data.details
+          ? `${data.error || "Veri alınamadı"}\n\n${data.details}`
+          : (data.error || "Veri alınamadı");
+        throw new Error(msg);
       }
       const { items: data } = await res.json();
       setItems(data ?? []);
@@ -99,7 +102,7 @@ export default function UyumsuzHisselerPage() {
             listeler.
           </p>
         </div>
-        <div className="bg-destructive/10 p-4 rounded-md text-destructive">
+        <div className="bg-destructive/10 p-4 rounded-md text-destructive whitespace-pre-line">
           {error}
         </div>
       </div>

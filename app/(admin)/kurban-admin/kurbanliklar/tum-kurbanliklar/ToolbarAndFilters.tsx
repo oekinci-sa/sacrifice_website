@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { exportTableToExcel } from "@/lib/export-to-excel";
 import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
 import { Download, SlidersHorizontal, X } from "lucide-react";
@@ -61,82 +62,50 @@ export function ToolbarAndFilters({
 
   // Handle reset all filters
   const handleResetFilters = () => {
-    // Reset all column filters
     table.resetColumnFilters();
-
-    // Reset global filter
     setGlobalFilter("");
-
-    // Reset notes column filter specifically
     table.getColumn("notes")?.setFilterValue("");
-
-    // Call the reset function if it exists (for component-specific state)
     if (resetFilterStateRef.current) {
       resetFilterStateRef.current();
     }
   };
 
   const exportToExcel = () => {
-    // Export functionality can be implemented here
-    // You'll need to convert the sacrifices data to Excel format
-    ("Export to Excel clicked");
+    exportTableToExcel(table, "kurbanliklar", columnHeaderMap);
   };
 
   return (
-    <div className="flex flex-col gap-4 py-4">
-      {/* Top row with filters on left and search on right */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-        {/* Filter components and reset button */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <SacrificeFilters
-            table={table}
-            registerResetFunction={registerResetFunction}
-          />
-
-          {/* Reset filters button - visible only when filters are active */}
-          {isFiltered && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleResetFilters}
-              className="h-8 px-2 flex items-center gap-1"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Tüm filtreleri temizle
-            </Button>
-          )}
-        </div>
-
-        {/* Search bar on right */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          {/* Search bar */}
-          <SacrificeSearch onSearch={handleSearch} searchValue={globalFilter} placeholder="Notlara göre ara..." />
-        </div>
-      </div>
-
-      {/* Bottom row with column visibility and excel export */}
-      <div className="flex justify-end items-center gap-3">
-        {/* Columns dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 border-dashed flex items-center gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Sütunlar
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(
-                (column) =>
-                  typeof column.accessorFn !== "undefined" && column.getCanHide()
-              )
-              .map((column) => {
-                return (
+    <div className="flex flex-col gap-3 w-full">
+      {/* Üst satır: Search (solda) + Sütunlar + Excel (sağda) - Tüm Hissedarlar ile aynı */}
+      <div className="flex items-center justify-between w-full gap-3">
+        <SacrificeSearch onSearch={handleSearch} searchValue={globalFilter} placeholder="Notlara göre ara..." className="w-96 sm:w-[28rem] max-w-full min-w-0" />
+        <div className="flex items-center gap-2 shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 border-dashed flex items-center gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Sütunlar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+              {table
+                .getAllColumns()
+                .filter(
+                  (column) =>
+                    column.id !== "actions" &&
+                    typeof column.accessorFn !== "undefined" &&
+                    column.getCanHide()
+                )
+                .sort((a, b) => {
+                  const aVisible = a.getIsVisible() ? 1 : 0;
+                  const bVisible = b.getIsVisible() ? 1 : 0;
+                  return bVisible - aVisible;
+                })
+                .map((column) => (
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
@@ -145,21 +114,38 @@ export function ToolbarAndFilters({
                   >
                     {columnHeaderMap[column.id] || column.id}
                   </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            onClick={exportToExcel}
+            variant="outline"
+            size="sm"
+            className="h-8 border-dashed flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Excel&apos;e Aktar
+          </Button>
+        </div>
+      </div>
 
-        {/* Export to Excel button */}
-        <Button
-          onClick={exportToExcel}
-          variant="outline"
-          size="sm"
-          className="h-8 border-dashed flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Excel&apos;e Aktar
-        </Button>
+      {/* Alt satır: Kurban No, Hisse Bedeli, Boş Hisse filtreleri */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <SacrificeFilters
+          table={table}
+          registerResetFunction={registerResetFunction}
+        />
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            className="h-8 px-2 flex items-center gap-1"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Tüm filtreleri temizle
+          </Button>
+        )}
       </div>
     </div>
   );

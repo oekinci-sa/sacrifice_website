@@ -19,10 +19,10 @@ export default function EmptySharesBadge({
     const { data: apiEmptyShares, isLoading } = useEmptyShareCount();
 
     // Get total empty shares from Zustand store
-    const { totalEmptyShares } = useSacrificeStore();
+    const { totalEmptyShares, isInitialized } = useSacrificeStore();
 
-    // Veriler yüklenene kadar badge gösterme (0 iken "Tüm hisseler tükendi" yanıltıcı olur)
-    if (isLoading) return null;
+    // Veriler yüklenene kadar badge gösterme (flash önleme: header/footer ilk render'da yanlış gösterebilir)
+    if (isLoading || !isInitialized) return null;
 
     // Display empty shares count - use Zustand store first, fallback to API data
     const emptySharesCount = totalEmptyShares || apiEmptyShares || 0;

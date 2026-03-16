@@ -138,6 +138,7 @@ export default function TumKurbanliklarPage() {
         <CustomDataTable
           data={filteredData}
           columns={columns}
+          storageKey="kurbanliklar"
           filters={({ table }) => (
             <ToolbarAndFilters
               table={table}

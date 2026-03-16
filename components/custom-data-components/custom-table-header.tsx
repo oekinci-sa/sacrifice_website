@@ -1,7 +1,8 @@
 "use client"
 
-import { TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TableHeader, TableRow } from "@/components/ui/table"
 import { Table as TableInstance, flexRender } from "@tanstack/react-table"
+import { motion } from "framer-motion"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 interface CustomTableHeaderProps<TData> {
@@ -36,9 +37,12 @@ export function CustomTableHeader<TData>({
       {table.getHeaderGroups().map((headerGroup) => (
         <TableRow key={headerGroup.id}>
           {headerGroup.headers.map((header) => (
-            <TableHead
+            <motion.th
               key={header.id}
-              className={headerClass}
+              layout
+              layoutId={`th-${header.column.id}`}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass}`}
             >
               {header.isPlaceholder ? null : (
                 <div className="flex items-center justify-center gap-2">
@@ -68,7 +72,7 @@ export function CustomTableHeader<TData>({
                   )}
                 </div>
               )}
-            </TableHead>
+            </motion.th>
           ))}
         </TableRow>
       ))}

@@ -24,9 +24,9 @@ const Footer = () => {
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
       {/* Main content */}
       <div className="mx-auto w-full max-w-7xl px-4 md:pl-6 md:pr-0">
-        <div className="flex flex-col md:flex-row items-start text-white mb-8 space-y-12 md:space-y-0">
-          {/* Left Side */}
-          <div className="flex flex-col space-y-8 shrink-0">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start text-white mb-8 space-y-12 md:space-y-0 gap-12">
+          {/* Sol grup: Logo + Sosyal medya */}
+          <div className="flex flex-col space-y-8 shrink-0 md:items-start">
             <CustomLink href="/">
               {isTest ? (
                 <span className="font-sans font-bold text-xl md:text-2xl text-white">
@@ -42,15 +42,6 @@ const Footer = () => {
                 />
               )}
             </CustomLink>
-
-            {/* Don't remove the below */}
-            {/* <div className="text-base text-white/75">
-              <p>
-                İnsan ve Medeniyet Hareketi Ankara&apos;nın
-                <br />
-                katkılarıyla düzenlenmektedir.
-              </p>
-            </div> */}
 
             {/* Social Media */}
             <div className="flex gap-6">
@@ -71,20 +62,19 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Right Side */}
-          <div className="flex flex-col md:flex-row md:ml-auto md:gap-12 lg:gap-16 shrink-0">
+          {/* Sağ grup: Hızlı Linkler + İletişim - yukarı yaslı, kendi içlerinde sola yaslı */}
+          <div className="flex flex-col md:flex-row md:gap-12 lg:gap-16 shrink-0 md:items-start">
             {/* Hızlı Linkler */}
             <div className="text-left">
               <p className="md:text-xl font-semibold mb-4">Hızlı Linkler</p>
 
-              <div className="grid grid-cols-2 gap-4 md:flex md:gap-8 font-normal text-white/75">
-                <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-4 font-normal text-white/75">
+                <div className="flex flex-col gap-3 items-start">
                   <CustomLink href="/">Anasayfa</CustomLink>
                   <CustomLink href="/hakkimizda">Hakkımızda</CustomLink>
                   <CustomLink href="/iletisim">İletişim</CustomLink>
                 </div>
-
-                <div className="flex flex-col gap-3 relative">
+                <div className="flex flex-col gap-3 items-start">
                   <div className="flex items-center flex-wrap">
                     <CustomLink href="/hisseal">
                       Hisse Al <EmptySharesBadge size="md" />
@@ -99,10 +89,10 @@ const Footer = () => {
             <div className="mt-8 md:mt-0 text-left">
               <p className="md:text-xl font-semibold mb-4">İletişim</p>
 
-              <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base">
-                <div className="flex gap-3">
+              <div className="flex flex-col gap-3 text-white/75 text-sm md:text-base items-start">
+                <div className="flex gap-3 max-w-[28rem]">
                   <i className="bi bi-geo-alt text-primary shrink-0"></i>
-                  <p className="font-normal max-w-[min(100%,22rem)] leading-relaxed">
+                  <p className="font-normal leading-relaxed">
                     {branding.contact_address}
                   </p>
                 </div>

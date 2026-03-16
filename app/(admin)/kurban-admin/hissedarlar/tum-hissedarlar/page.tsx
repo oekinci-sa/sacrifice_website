@@ -2,18 +2,13 @@
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ColumnSelectorPopover } from "./components/column-selector-popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportTableToExcel } from "@/lib/export-to-excel";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
-import { Download, SlidersHorizontal, X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { columns } from "./components/columns";
 import { ShareholderFilters } from "./components/shareholder-filters";
@@ -21,11 +16,16 @@ import { ShareholderSearch } from "./components/shareholder-search";
 
 export default function TumHissedarlarPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  // Default column visibility - hide notes and others by default
+  // Default column visibility - hide notes, kayıt tarihi, ödeme, sacrifice_time, share_weight, share_price by default
   const [columnVisibility] = useState<VisibilityState>({
     notes: false,
     last_edited_time: false,
-    last_edited_by: false
+    last_edited_by: false,
+    purchase_time: false,
+    payment_status: false,
+    sacrifice_time: false,
+    share_weight: false,
+    share_price: false,
   });
 
   // Use shareholder store instead of React Query
@@ -67,12 +67,15 @@ export default function TumHissedarlarPage() {
     paid_amount: "Ödenen Tutar",
     payment_status: "Ödeme Durumu",
     remaining_payment: "Kalan Ödeme",
-    delivery_location: "Teslimat Noktası",
+    delivery_location: "Teslimat Tercihi",
     notes: "Notlar",
     purchase_time: "Kayıt Tarihi",
     sacrifice_consent: "Vekalet",
     last_edited_time: "Son Güncelleme Tarihi",
-    last_edited_by: "Son Güncelleyen"
+    last_edited_by: "Son Güncelleyen",
+    sacrifice_time: "Kurbanlık Saati",
+    share_weight: "Hisse Ağırlığı",
+    share_price: "Hisse Bedeli",
   };
 
   // Filter the data client-side based on search term
@@ -106,11 +109,13 @@ export default function TumHissedarlarPage() {
 
   // Memoized filters component
   const MemoizedFiltersComponent = React.memo(
-    ({ table, columnFilters, columnVisibility: _columnVisibility, onColumnFiltersChange, searchTerm, setSearchTerm }: {
+    ({ table, columnFilters, columnVisibility: _columnVisibility, onColumnFiltersChange, onColumnOrderChange, columnOrder, searchTerm, setSearchTerm }: {
       table: Table<shareholderSchema>,
       columnFilters: ColumnFiltersState,
       columnVisibility: VisibilityState,
       onColumnFiltersChange: (filters: ColumnFiltersState) => void,
+      onColumnOrderChange?: (order: string[]) => void,
+      columnOrder: string[],
       searchTerm: string,
       setSearchTerm: (value: string) => void
     }) => {
@@ -136,40 +141,12 @@ export default function TumHissedarlarPage() {
           <div className="flex items-center justify-between w-full gap-3">
             <ShareholderSearch onSearch={setSearchTerm} className="w-96 sm:w-[28rem] max-w-full min-w-0" />
             <div className="flex items-center gap-2 shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 border-dashed flex items-center gap-2"
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                    Sütunlar
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                  {table
-                    .getAllColumns()
-                    .filter(
-                      (column) =>
-                        column.id !== "security_code" &&
-                        typeof column.accessorFn !== "undefined" &&
-                        column.getCanHide()
-                    )
-                    .map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => {
-                          column.toggleVisibility(!!value);
-                        }}
-                      >
-                        {columnHeaderMap[column.id] || column.id}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ColumnSelectorPopover
+                table={table}
+                columnHeaderMap={columnHeaderMap}
+                columnOrder={columnOrder ?? []}
+                onColumnOrderChange={onColumnOrderChange}
+              />
               <Button
                 onClick={() => exportTableToExcel(table, "hissedarlar", columnHeaderMap)}
                 variant="outline"
@@ -200,12 +177,13 @@ export default function TumHissedarlarPage() {
         </div>
       );
     },
-    // Re-render when columnVisibility or searchTerm changes
+    // Re-render when columnVisibility, searchTerm or columnOrder changes
     (prevProps, nextProps) =>
       prevProps.table === nextProps.table &&
       prevProps.columnFilters === nextProps.columnFilters &&
       prevProps.searchTerm === nextProps.searchTerm &&
-      JSON.stringify(prevProps.columnVisibility) === JSON.stringify(nextProps.columnVisibility)
+      JSON.stringify(prevProps.columnVisibility) === JSON.stringify(nextProps.columnVisibility) &&
+      JSON.stringify(prevProps.columnOrder) === JSON.stringify(nextProps.columnOrder)
   );
 
   // Display name for debugging
@@ -243,15 +221,18 @@ export default function TumHissedarlarPage() {
         <CustomDataTable
           columns={columns}
           data={filteredShareholders}
+          storageKey="hissedarlar"
           initialState={{
             columnVisibility: columnVisibility
           }}
-          filters={({ table, columnFilters, onColumnFiltersChange }) => (
+          filters={({ table, columnFilters, onColumnFiltersChange, onColumnOrderChange, columnOrder }) => (
             <MemoizedFiltersComponent
               table={table}
               columnFilters={columnFilters}
               columnVisibility={table.getState().columnVisibility}
               onColumnFiltersChange={onColumnFiltersChange}
+              onColumnOrderChange={onColumnOrderChange}
+              columnOrder={columnOrder}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
             />

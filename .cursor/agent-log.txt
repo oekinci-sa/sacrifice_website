@@ -1,3 +1,23 @@
+=== 2025-03-16 ===
+
+[İstek] localStorage userId, eventsPerSecond kaldırma, provider konsolidasyonu
+
+[Yapılan Değişiklikler]
+1. **localStorage kullanıcı bazlı:** CustomDataTable sütun görünürlüğü ve sırası artık `storageKey-{userId}` ile saklanıyor. Her kullanıcı kendi tercihlerini görür. useSession ile userId alınır.
+2. **eventsPerSecond kaldırıldı:** Supabase Realtime'ta deprecated; utils/supabaseClient.ts'ten çıkarıldı.
+3. **Provider konsolidasyonu:** components/providers/ → app/providers/ taşındı. ThemeProvider, SacrificeDataProvider, ShareholderDataProvider, StoreRealtimeProvider artık app/providers/ altında. providers.tsx import'ları güncellendi.
+4. **Güvenlik:** AdminDataProvider zaten sadece admin layout'ta; ShareholderDataProvider ve StoreRealtimeProvider kullanılmıyor (AdminDataProvider bu işi yapıyor). SacrificeDataProvider root'ta – kurban verisi tenant-scoped, public hisseal formu için gerekebilir.
+
+[Dosyalar]
+- components/custom-data-components/custom-data-table.tsx (useSession, getStorageKey, fullStorageKey)
+- utils/supabaseClient.ts (eventsPerSecond kaldırıldı)
+- app/providers/ThemeProvider.tsx, SacrificeDataProvider.tsx, ShareholderDataProvider.tsx, StoreRealtimeProvider.tsx (yeni)
+- app/providers/providers.tsx (import güncellemesi)
+- components/providers/* (silindi)
+- .project-architecture/components.md (provider konumları güncellendi)
+
+[Risk] Düşük – Realtime aynı kaldı; localStorage key formatı değişti (mevcut kullanıcılar sütun tercihlerini yeniden ayarlayacak).
+
 === 2025-03-04 ===
 
 [İstek] Renk token refaktörü ve rules güncellemesi

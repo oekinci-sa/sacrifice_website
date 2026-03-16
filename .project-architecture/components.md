@@ -72,24 +72,32 @@ Bu dosya projede oluşturulan özel bileşenleri ve özelliklerini listeler. `co
 
 ---
 
-## providers/
+## app/providers/
 
-### StoreRealtimeProvider
-- **Amaç:** Tüm store'ları başlatır ve realtime aboneliklerini kurar
-- **İçerik:** fetchShareholders, fetchTransactions, refetchSacrifices
-- Layout seviyesinde kullanılır
-
-### ShareholderDataProvider
-- Hissedarlar store'unu başlatır, realtime abone eder
-- `enableRealtime` / `disableRealtime` cleanup ile
-
-### SacrificeDataProvider
-- Kurbanlıklar store'unu başlatır, realtime abone eder
-- `subscribeToRealtime` / `unsubscribeFromRealtime` cleanup ile
+Tüm provider bileşenleri `app/providers/` altında toplanmıştır (Next.js App Router yapısına uygun).
 
 ### ThemeProvider
 - **Amaç:** Tema sağlayıcı (passthrough). Geçmişte client-side tema fetch yapıyordu; FOUC önlemek için tema artık sunucuda enjekte ediliyor.
 - **Kullanım:** `Providers` zincirinde; ileride client-side tema değiştirme gerekirse buraya logic eklenebilir.
+
+### SacrificeDataProvider
+- Kurbanlıklar store'unu başlatır, realtime abone eder
+- `subscribeToRealtime` / `unsubscribeFromRealtime` cleanup ile
+- Root layout'ta kullanılır (public + admin sayfalarında kurban verisi gerekebilir)
+
+### AdminDataProvider
+- **Sadece admin layout'ta** – Hissedarlar, rezervasyonlar, kurbanlıklar, değişiklik kayıtlarını çeker
+- Admin-only veri; public sayfalardan erişilmez
+
+### TenantBrandingProvider
+- Public ve takip layout'larında – tenant logo, iletişim bilgileri
+- `initialBranding` sunucudan geçirilir (FOUC önleme)
+
+### StoreRealtimeProvider (kullanılmıyor)
+- Tüm store'ları başlatır; şu an AdminDataProvider bu işi yapıyor
+
+### ShareholderDataProvider (kullanılmıyor)
+- Hissedarlar store'unu başlatır; şu an AdminDataProvider bu işi yapıyor
 
 ---
 

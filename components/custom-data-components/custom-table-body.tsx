@@ -2,6 +2,7 @@
 
 import { TableBody, TableCell, TableRow } from "@/components/ui/table"
 import { ColumnDef, Table as TableInstance, flexRender } from "@tanstack/react-table"
+import { motion } from "framer-motion"
 
 interface CustomTableBodyProps<TData, TValue> {
   table: TableInstance<TData>
@@ -34,12 +35,15 @@ export function CustomTableBody<TData, TValue>({
             className="hover:bg-muted/50"
           >
             {row.getVisibleCells().map((cell) => (
-              <TableCell
+              <motion.td
                 key={cell.id}
-                className={`text-center whitespace-nowrap ${rowClass}`}
+                layout
+                layoutId={`td-${cell.column.id}-${row.id}`}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center whitespace-nowrap ${rowClass}`}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
+              </motion.td>
             ))}
           </TableRow>
         ))

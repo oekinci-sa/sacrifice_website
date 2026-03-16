@@ -145,6 +145,14 @@ export async function PUT(
             delete json.role;
         }
 
+        // Sadece super_admin başka kullanıcıya super_admin rolü verebilir
+        if (json.role === "super_admin" && session.user.role !== "super_admin") {
+            return NextResponse.json(
+                { error: "Sadece Super Yönetici bu rolü atayabilir" },
+                { status: 403 }
+            );
+        }
+
         const { data, error } = await supabaseAdmin
             .from("users")
             .update(json)

@@ -38,4 +38,4 @@ export function ShareholderDataProvider({ children }: { children: React.ReactNod
     }, [fetchShareholders, enableRealtime, disableRealtime, isInitialized]);
 
     return <>{children}</>;
-} 
+}

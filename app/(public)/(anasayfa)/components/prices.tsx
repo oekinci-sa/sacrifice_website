@@ -80,16 +80,23 @@ const Prices = () => {
         </h2>
 
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 md:gap-x-24 md:gap-y-12 items-start"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 md:gap-x-24 md:gap-y-12 items-start justify-items-center"
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
         >
-          {priceItems.map((item) => (
+          {priceItems.map((item, index) => {
+            const isLastRowPartial = priceItems.length % 4 === 2 && index >= priceItems.length - 2;
+            const gridColClass = isLastRowPartial
+              ? index === priceItems.length - 2
+                ? "md:col-start-2"
+                : "md:col-start-3"
+              : "";
+            return (
             <motion.div
               key={`${item.kg}-${item.price}`}
-              className={`flex flex-col items-center transition-all duration-300 ${item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
+              className={`flex flex-col items-center transition-all duration-300 ${gridColClass} ${item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
                 }`}
               onClick={() => {
                 if (!item.soldOut) {
@@ -120,7 +127,8 @@ const Prices = () => {
                 </motion.div>
               )}
             </motion.div>
-          ))}
+          );
+          })}
         </motion.div>
 
         <p className="text-sm md:text-base text-center max-w-2xl">

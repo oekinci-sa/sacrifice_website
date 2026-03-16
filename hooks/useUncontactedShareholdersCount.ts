@@ -27,5 +27,5 @@ export function useUncontactedShareholdersCount(year?: number | null) {
     return () => window.removeEventListener("shareholders-updated", handler);
   }, []);
 
-  return { count: count ?? 0, refetch: fetchCount };
+  return { count: count ?? 0, isLoading: count === null, refetch: fetchCount };
 }

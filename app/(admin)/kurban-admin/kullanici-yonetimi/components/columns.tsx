@@ -1,10 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
+import { RoleCell } from "./role-cell";
+import { StatusCell } from "./status-cell";
 import { formatDateShort } from "@/lib/date-utils";
 
 interface UserType {
@@ -27,16 +28,16 @@ export const columns: ColumnDef<UserType>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-4">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-4 text-left">
+          <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage src={row.original.image || ""} />
             <AvatarFallback>
               {(row.getValue("name") as string)?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <span className="font-medium">{row.getValue("name")}</span>
-            <span className="text-xs text-muted-foreground">
+          <div className="flex flex-col items-start min-w-0">
+            <span className="font-medium truncate max-w-full">{row.getValue("name") || "—"}</span>
+            <span className="text-xs text-muted-foreground truncate max-w-full">
               {row.original.email}
             </span>
           </div>
@@ -45,51 +46,25 @@ export const columns: ColumnDef<UserType>[] = [
     },
   },
   {
-    accessorKey: "role",
+    accessorKey: "status",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Rol" />
+      <DataTableColumnHeader column={column} title="Durum" />
     ),
-    cell: ({ row }) => {
-      const role = row.getValue("role");
-      return (
-        <Badge variant={role === "super_admin" || role === "admin" ? "default" : "secondary"}>
-          {role === "super_admin" ? "Super Yönetici" : role === "admin" ? "Admin" : role === "editor" ? "Editör" : "Belirlenmedi"}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => <StatusCell row={row} />,
     filterFn: (row, id, value: string[]) => {
       return value.includes(row.getValue(id));
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "role",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Durum" />
+      <DataTableColumnHeader column={column} title="Rol" />
     ),
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      const tenantApprovedAt = row.original.tenant_approved_at;
-      const isPendingForTenant = tenantApprovedAt == null;
-      const isBlacklisted = status === "blacklisted";
-      const displayPending = isBlacklisted ? false : isPendingForTenant || status === "pending";
-      return (
-        <Badge
-          variant={
-            isBlacklisted
-              ? "destructive"
-              : displayPending
-              ? "secondary"
-              : "default"
-          }
-        >
-          {isBlacklisted
-            ? "Engellendi"
-            : displayPending
-            ? "Onay Bekliyor"
-            : "Onaylı"}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <RoleCell row={row} />
+      </div>
+    ),
     filterFn: (row, id, value: string[]) => {
       return value.includes(row.getValue(id));
     },

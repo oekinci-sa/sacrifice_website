@@ -291,7 +291,7 @@ export const faq_categories = [
         id: "18",
         title: "Toplama noktalarında hisselerin dağıtım saatleri nedir?",
         content:
-          "Teslim noktalarındaki et dağıtımı bayramın ilk günü size bildirilen saatte yapılmaktadır. Size özel belirlenen saatte teslim noktasına gelmeniz önemlidir.",
+          "Teslim noktalarındaki hisse dağıtımı bayramın ilk günü size bildirilen saatte yapılmaktadır. Size özel belirlenen saatte teslim noktasına gelmeniz önemlidir.",
       },
     ],
   },

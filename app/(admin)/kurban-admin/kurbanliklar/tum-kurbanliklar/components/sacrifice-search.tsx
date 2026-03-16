@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -8,12 +9,14 @@ interface SacrificeSearchProps {
   onSearch: (value: string) => void;
   searchValue?: string;
   placeholder?: string;
+  className?: string;
 }
 
 export function SacrificeSearch({
   onSearch,
   searchValue: externalSearchValue,
-  placeholder = "Notlarda ara..."
+  placeholder = "Notlarda ara...",
+  className,
 }: SacrificeSearchProps) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -31,7 +34,7 @@ export function SacrificeSearch({
   };
 
   return (
-    <div className="relative md:w-1/2">
+    <div className={cn("relative", className)}>
       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder={placeholder}

@@ -12,6 +12,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -29,8 +43,9 @@ import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
 import { AlertCircle, Check, CheckCircle2, Clock, Loader2, Pencil, Phone, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 function ContactedButton({
   shareholderId,
@@ -72,16 +87,14 @@ function ContactedButton({
             className={cn(
               "h-8 w-8",
               isContacted
-                ? "bg-sac-blue-light text-sac-blue hover:bg-sac-blue-light/80"
-                : "bg-sac-yellow-light text-sac-yellow hover:bg-sac-yellow-light/80"
+                ? "text-green-600 hover:text-green-700 hover:bg-green-50"
+                : "text-red-600 hover:text-red-700 hover:bg-red-50"
             )}
             onClick={handleClick}
             disabled={loading}
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isContacted ? (
-              <Check className="h-4 w-4" />
             ) : (
               <Phone className="h-4 w-4" />
             )}
@@ -95,9 +108,375 @@ function ContactedButton({
   );
 }
 
+const DELIVERY_OPTIONS = [
+  { label: "Kesimhane", value: "Kesimhane" },
+  { label: "Ulus", value: "Ulus" },
+  { label: "Adrese teslim", value: "Adrese teslim" },
+];
+
+async function updateShareholderField(
+  shareholderId: string,
+  field: string,
+  value: string | boolean | null,
+  lastEditedBy: string
+) {
+  const body: Record<string, unknown> = {
+    shareholder_id: shareholderId,
+    last_edited_by: lastEditedBy,
+    [field]: value,
+  };
+  const res = await fetch("/api/update-shareholder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Güncelleme başarısız");
+  }
+  return res.json();
+}
+
+const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const { data: session } = useSession();
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(row.original.shareholder_name || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      toast({ title: "İsim boş olamaz", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "shareholder_name",
+        trimmed,
+        session?.user?.name ?? "Sistem"
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+      setIsEditing(false);
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+
+  const handleCancel = useCallback(() => { setIsEditing(false); setValue(row.original.shareholder_name || ""); }, [row.original.shareholder_name]);
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+          className="h-8 text-sm flex-1 min-w-0"
+          autoFocus
+          disabled={saving}
+        />
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleSave} disabled={saving}>
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="group flex items-center justify-center gap-1 w-full">
+      <span className="flex-1 text-center min-w-0 truncate">{row.original.shareholder_name || "-"}</span>
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+};
+
+const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const { data: session } = useSession();
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(
+    row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || ""
+  );
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length < 10) {
+      toast({ title: "Geçerli bir telefon girin", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "phone_number",
+        value,
+        session?.user?.name ?? "Sistem"
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+      setIsEditing(false);
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setValue(row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "");
+  }, [row.original.phone_number]);
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+          className="h-8 text-sm flex-1 min-w-0 tabular-nums"
+          placeholder="0555 555 55 55"
+          autoFocus
+          disabled={saving}
+        />
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleSave} disabled={saving}>
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="group flex items-center justify-center gap-1 w-full">
+      <span className="flex-1 text-center tabular-nums min-w-0 truncate">{formatPhoneForDisplayWithSpacing(row.original.phone_number || "")}</span>
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+};
+
+const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const { data: session } = useSession();
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const current = row.original.delivery_location || "Kesimhane";
+
+  const handleConfirm = useCallback(async () => {
+    if (!pendingValue) return;
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "delivery_location",
+        pendingValue,
+        session?.user?.name ?? "Sistem"
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+      setIsEditing(false);
+      setPendingValue(null);
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [pendingValue, row.original, session?.user?.name, updateShareholder, toast]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setPendingValue(null);
+  }, []);
+
+  if (isEditing && pendingValue !== null) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center">
+        <span className="flex-1 text-center text-sm min-w-0 truncate">{pendingValue}</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex items-center justify-center gap-1 w-full">
+      <span className="flex-1 text-center text-sm min-w-0 truncate py-1">{current}</span>
+      <DropdownMenu open={dropdownOpen} onOpenChange={(open) => { setDropdownOpen(open); if (!open && isEditing && !pendingValue) setIsEditing(false); }}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {DELIVERY_OPTIONS.map((opt) => (
+            <DropdownMenuItem
+              key={opt.value}
+              onClick={() => { setPendingValue(opt.value); setIsEditing(true); }}
+            >
+              {opt.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
+const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const { data: session } = useSession();
+  const [saving, setSaving] = useState(false);
+  const consent = row.original.sacrifice_consent ?? false;
+
+  const handleToggle = useCallback(async () => {
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "sacrifice_consent",
+        !consent,
+        session?.user?.name ?? "Sistem"
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [row.original, consent, session?.user?.name, updateShareholder, toast]);
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              consent ? "text-sac-primary hover:bg-sac-primary-lightest" : "text-sac-red hover:bg-sac-red-light"
+            )}
+            onClick={handleToggle}
+            disabled={saving}
+          >
+            {consent ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {consent ? "Vekalet alınmadı olarak işaretle" : "Vekalet alındı olarak işaretle"}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(row.original.notes || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "notes",
+        value || null,
+        session?.user?.name ?? "Sistem"
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+      setOpen(false);
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+
+  return (
+    <>
+      <div className="group flex items-center justify-center gap-1 w-full">
+        <span className="flex-1 text-center min-w-0 truncate block text-sm">
+          {row.original.notes ? (
+            <span className="truncate block">{row.original.notes}</span>
+          ) : (
+            <span className="text-muted-foreground">Not ekle</span>
+          )}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => { setValue(row.original.notes || ""); setOpen(true); }}
+        >
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Notlar</DialogTitle>
+          </DialogHeader>
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="min-h-[120px] w-full rounded-md border px-3 py-2 text-sm"
+            placeholder="Not girin..."
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="destructive" size="icon" className="h-9 w-9" onClick={() => setOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+            <Button size="icon" className="h-9 w-9 bg-white border border-sac-primary text-sac-primary hover:bg-sac-primary-lightest" onClick={handleSave} disabled={saving}>
+              <Check className="h-4 w-4 text-sac-primary" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 // Create a separate component for the cell content
 const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const deleteMutation = useDeleteShareholder();
   const { toast } = useToast();
@@ -120,28 +499,25 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
   };
 
   return (
-    <div className="flex items-center justify-center space-x-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${row.original.shareholder_id}`)}
-        className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-icon-primary hover:bg-sac-avatar-bg"
-      >
-        <span className="sr-only">Düzenle</span>
-        <Pencil className="h-4 w-4" />
-      </Button>
-
+    <div className="flex items-center justify-end w-full">
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-red hover:bg-sac-red-light"
-          >
-            <span className="sr-only">Sil</span>
-            <X className="h-4 w-4" />
-          </Button>
-        </AlertDialogTrigger>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-red hover:bg-sac-red-light"
+                >
+                  <span className="sr-only">Sil</span>
+                  <X className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Hissedarı sil</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
@@ -178,8 +554,8 @@ const SacrificeNumberCell = ({ sacrificeNo, sacrificeId }: { sacrificeNo: string
 
   return (
     <Button
-      variant="link"
-      className="p-0 h-auto"
+      variant="ghost"
+      className="p-0 h-auto font-normal text-foreground hover:bg-muted/50"
       onClick={() => {
         if (sacrificeId) {
           router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
@@ -193,20 +569,6 @@ const SacrificeNumberCell = ({ sacrificeNo, sacrificeId }: { sacrificeNo: string
 
 export const columns: ColumnDef<shareholderSchema>[] = [
   {
-    accessorKey: "shareholder_name",
-    header: "İsim Soyisim",
-    enableSorting: true,
-    sortingFn: sortingFunctions.text,
-    cell: ({ row }) => row.getValue("shareholder_name"),
-    filterFn: (row, id, value: string) => {
-      const rowValue = row.getValue(id);
-      // Ensure the value is a string before calling toLowerCase
-      return typeof rowValue === 'string'
-        ? rowValue.toLowerCase().includes((value as string).toLowerCase())
-        : false;
-    },
-  },
-  {
     id: "sacrifice_no",
     accessorFn: (row) => row.sacrifice?.sacrifice_no || "-",
     header: "Kur. Sır.",
@@ -219,27 +581,29 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     },
   },
   {
-    accessorKey: "phone_number",
-    header: "Telefon",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const phoneRaw = row.getValue("phone_number") as string | null;
-      return formatPhoneForDisplayWithSpacing(phoneRaw || "");
+    accessorKey: "shareholder_name",
+    header: "İsim Soyisim",
+    enableSorting: true,
+    sortingFn: sortingFunctions.text,
+    cell: ({ row }) => <EditableNameCell row={row} />,
+    filterFn: (row, id, value: string) => {
+      const rowValue = row.getValue(id);
+      return typeof rowValue === 'string'
+        ? rowValue.toLowerCase().includes((value as string).toLowerCase())
+        : false;
     },
   },
   {
-    accessorKey: "delivery_location",
-    header: "Teslimat Noktası",
+    accessorKey: "phone_number",
+    header: "Telefon",
     enableSorting: false,
-    cell: ({ row }) => {
-      const location = row.getValue("delivery_location") as string;
-
-      return (
-        <div className="text-center">
-          {location}
-        </div>
-      );
-    },
+    cell: ({ row }) => <EditablePhoneCell row={row} />,
+  },
+  {
+    accessorKey: "delivery_location",
+    header: "Teslimat Tercihi",
+    enableSorting: false,
+    cell: ({ row }) => <EditableDeliveryCell row={row} />,
   },
   {
     accessorKey: "contacted_at",
@@ -288,15 +652,15 @@ export const columns: ColumnDef<shareholderSchema>[] = [
 
       if (paid < 5000) {
         StatusIcon = AlertCircle;
-        statusColorClass = "bg-sac-red-light text-sac-red";
+        statusColorClass = "text-sac-red";
         tooltipLabel = "Kapora bekleniyor";
       } else if (paid < total) {
         StatusIcon = Clock;
-        statusColorClass = "bg-sac-yellow-light text-sac-yellow";
+        statusColorClass = "text-sac-yellow";
         tooltipLabel = "Kısmi ödeme";
       } else {
         StatusIcon = CheckCircle2;
-        statusColorClass = "bg-sac-primary-lightest text-sac-primary";
+        statusColorClass = "text-sac-primary";
         tooltipLabel = "Ödeme tamamlandı";
       }
 
@@ -308,8 +672,8 @@ export const columns: ColumnDef<shareholderSchema>[] = [
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={cn("flex items-center justify-center rounded-md p-1.5", statusColorClass)}>
-                  <StatusIcon className="h-4 w-4" />
+                <div className="flex items-center justify-center p-1 cursor-default">
+                  <StatusIcon className={cn("h-4 w-4", statusColorClass)} />
                 </div>
               </TooltipTrigger>
               <TooltipContent className="p-4 w-[260px] bg-white shadow-lg border">
@@ -353,32 +717,44 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     accessorKey: "sacrifice_consent",
     header: "Vekalet",
     enableSorting: false,
-    cell: ({ row }) => {
-      const sacrifice_consent = row.getValue("sacrifice_consent");
-
-      return (
-        <span className={cn(
-          "inline-block rounded-md px-2 py-1 min-w-[80px] text-center",
-          sacrifice_consent
-            ? "bg-sac-primary-lightest text-sac-primary"
-            : "bg-sac-red-light text-sac-red"
-        )}>
-          {sacrifice_consent ? "Alındı" : "Alınmadı"}
-        </span>
-      );
-    },
+    cell: ({ row }) => <EditableConsentCell row={row} />,
   },
   {
     accessorKey: "notes",
     header: "Notlar",
     enableSorting: false,
+    cell: ({ row }) => <EditableNotesCell row={row} />,
+  },
+  {
+    id: "sacrifice_time",
+    accessorFn: (row) => row.sacrifice?.sacrifice_time ?? "-",
+    header: "Kurbanlık Saati",
+    enableSorting: false,
     cell: ({ row }) => {
-      const notes = row.getValue("notes") as string;
-      return notes ? (
-        <div className="max-w-[200px] truncate" title={notes}>
-          {notes}
-        </div>
-      ) : "-";
+      const time = row.original.sacrifice?.sacrifice_time;
+      return time ?? "-";
+    },
+  },
+  {
+    id: "share_weight",
+    accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
+    header: "Hisse Ağırlığı",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const w = row.original.sacrifice?.share_weight;
+      return w != null ? `${w} kg` : "-";
+    },
+  },
+  {
+    id: "share_price",
+    accessorFn: (row) => row.sacrifice?.share_price ?? 0,
+    header: "Hisse Bedeli",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const p = row.original.sacrifice?.share_price;
+      return p != null
+        ? new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(p) + " TL"
+        : "-";
     },
   },
   {

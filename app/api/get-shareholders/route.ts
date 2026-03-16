@@ -17,9 +17,11 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         sacrifice:sacrifice_animals (
+          sacrifice_id,
           sacrifice_no,
           sacrifice_time,
-          share_price
+          share_price,
+          share_weight
         )
       `)
       .eq("tenant_id", tenantId)

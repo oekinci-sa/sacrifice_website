@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 export const MISMATCHES_UPDATED_EVENT = "mismatches-updated";
 
 export function useUnacknowledgedMismatchesCount() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | null>(null);
 
   const fetchCount = useCallback(async () => {
     try {
@@ -29,5 +29,5 @@ export function useUnacknowledgedMismatchesCount() {
     return () => window.removeEventListener(MISMATCHES_UPDATED_EVENT, handler);
   }, [fetchCount]);
 
-  return { count };
+  return { count: count ?? 0, isLoading: count === null };
 }

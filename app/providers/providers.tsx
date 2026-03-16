@@ -1,7 +1,7 @@
 "use client";
 
-import { SacrificeDataProvider } from "@/components/providers/SacrificeDataProvider";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { SacrificeDataProvider } from "@/app/providers/SacrificeDataProvider";
+import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";

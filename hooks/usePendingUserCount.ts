@@ -24,5 +24,5 @@ export function usePendingUserCount() {
     return () => window.removeEventListener("user-updated", handler);
   }, []);
 
-  return { count: count ?? 0, refetch: fetchCount };
+  return { count: count ?? 0, isLoading: count === null, refetch: fetchCount };
 }

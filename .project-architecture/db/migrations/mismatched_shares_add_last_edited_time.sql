@@ -1,5 +1,5 @@
--- empty_share + dolu hisse sayısının 7'ye eşit olup olmadığını kontrol eder.
--- Hissedar sayısı + boş hisse ≠ 7 olan kurbanlıkları listeler.
+-- mismatched_shares view'a last_edited_time ekle (sıralama için)
+-- En son değişen uyumsuzluk en üstte görünsün
 
 CREATE OR REPLACE VIEW mismatched_shares AS
 SELECT 

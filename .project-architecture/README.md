@@ -8,6 +8,7 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 |-----|----------|
 | `project-details.md` | Ana giriş noktası. Proje özeti, sayfa/db/tools referansları |
 | `architecture.md` | Mimari: tenant, auth, uygulama yapısı |
+| `role-permissions.md` | Rol yetkileri: editor, admin, super_admin – kim ne yapabilir |
 | `pages/` | Sayfa açıklamaları (public, admin) |
 | `db/` | Veritabanı şeması: tablolar, view'lar, trigger'lar, operational script'ler |
 | `tools-versions.md` | Kullanılan paketler ve versiyonları |

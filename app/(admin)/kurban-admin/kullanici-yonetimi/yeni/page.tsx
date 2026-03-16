@@ -12,12 +12,15 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function YeniKullaniciPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { toast } = useToast();
+  const isSuperAdmin = session?.user?.role === "super_admin";
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -109,7 +112,9 @@ export default function YeniKullaniciPage() {
               <SelectValue placeholder="Rol seçin" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="super_admin">Super Yönetici</SelectItem>
+              {isSuperAdmin && (
+                <SelectItem value="super_admin">Super Yönetici</SelectItem>
+              )}
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="editor">Editör</SelectItem>
             </SelectContent>

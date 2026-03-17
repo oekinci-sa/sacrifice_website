@@ -1,7 +1,9 @@
 "use client";
 
-import { priceInfo } from '@/app/(public)/(anasayfa)/constants';
 import { Button } from "@/components/ui/button";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +34,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -91,9 +93,39 @@ const formSchema = z.object({
 export function NewSacrificeAnimal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPriceInfo, setSelectedPriceInfo] = useState(priceInfo[0] || { kg: '', price: '' });
+  const [priceOptions, setPriceOptions] = useState<{ kg: string; price: string }[]>([]);
+  const [selectedPriceInfo, setSelectedPriceInfo] = useState<{ kg: string; price: string }>({ kg: "", price: "" });
   const { toast } = useToast();
   const { data: session } = useSession();
+  const branding = useTenantBranding();
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const url = selectedYear != null ? `/api/price-info?year=${selectedYear}` : "/api/price-info";
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            return data.map((d: { kg: number; price: number }) => ({
+              kg: `${d.kg} kg`,
+              price: String(d.price).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+            }));
+          }
+        }
+      } catch {}
+      return getDefaultPriceInfoByTenant(branding.logo_slug);
+    };
+    load().then((opts) => {
+      if (!cancelled && opts.length > 0) {
+        setPriceOptions(opts);
+        setSelectedPriceInfo(opts[0]);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [branding.logo_slug, selectedYear]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,6 +137,13 @@ export function NewSacrificeAnimal() {
       notes: "",
     },
   });
+
+  useEffect(() => {
+    if (priceOptions.length > 0 && !form.getValues("weight_price")) {
+      form.setValue("weight_price", priceOptions[0].kg);
+      setSelectedPriceInfo(priceOptions[0]);
+    }
+  }, [priceOptions, form]);
 
   // Function to create a new sacrifice
   const createSacrifice = async (values: z.infer<typeof formSchema>) => {
@@ -226,7 +265,7 @@ export function NewSacrificeAnimal() {
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
-                      const selected = priceInfo.find(item => item.kg === value);
+                      const selected = priceOptions.find(item => item.kg === value);
                       if (selected) setSelectedPriceInfo(selected);
                     }}
                     defaultValue={field.value}
@@ -237,7 +276,7 @@ export function NewSacrificeAnimal() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {priceInfo.map((item) => (
+                      {priceOptions.map((item) => (
                         <SelectItem key={item.kg} value={item.kg}>
                           {item.kg} - {item.price} TL
                         </SelectItem>
@@ -255,21 +294,23 @@ export function NewSacrificeAnimal() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Boş Hisse Sayısı</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={7}
-                      {...field}
-                      onChange={(e) => {
-                        // Ensure the value is between 0 and 7
-                        const value = parseInt(e.target.value);
-                        if (value >= 0 && value <= 7) {
-                          field.onChange(value);
-                        }
-                      }}
-                    />
-                  </FormControl>
+                  <Select
+                    value={field.value != null ? String(field.value) : "7"}
+                    onValueChange={(v) => field.onChange(parseInt(v, 10))}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Boş hisse sayısı seçin" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[0, 1, 2, 3, 4, 5, 6, 7].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

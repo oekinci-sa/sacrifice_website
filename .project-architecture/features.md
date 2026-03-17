@@ -71,5 +71,10 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Değişiklik Kayıtları: `change_owner` DB'de email; API `users` tablosu ile eşleştirip **name** döndürür.
 - Sadece users tablosunda kayıtlı kullanıcılar "Son Düzenleyen" sütununda görünür.
 
+## Admin Sayfa Başlıkları ve Açıklamalar
+- Menü adı = sayfa başlığı (örn. "Kurbanlıklar", "Hissedarlar" — "Tüm X" kaldırıldı).
+- Açıklamalar sade, `max-w-[50%]` ile sayfa genişliğinin yarısını kaplar.
+- Breadcrumb: tum-kurbanliklar→Kurbanlıklar, tum-hissedarlar→Hissedarlar, uyumsuz-hisseler→Uyumsuzluklar.
+
 ## Changelog
 - **2025-03 UI iyileştirmeleri**: [changelog-2025-03-ui-improvements.md](changelog-2025-03-ui-improvements.md)

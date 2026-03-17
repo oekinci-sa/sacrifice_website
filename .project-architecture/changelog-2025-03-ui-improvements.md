@@ -79,3 +79,35 @@ Bu doküman son dönemde yapılan değişiklikleri özetler.
 | `hissedarlar/ayrintilar/[id]/page.tsx` | last_edited_by: email |
 | `kurbanliklar/ayrintilar/[id]/page.tsx` | last_edited_by: email |
 | `new-sacrifice-animal.tsx` | last_edited_by: email |
+
+---
+
+## 8. Admin Sayfa Başlıkları, Breadcrumb ve Açıklamalar (2025-03-16)
+
+### Menü adı = sayfa başlığı
+- **Kurbanlıklar**: "Tüm Kurbanlıklar" → "Kurbanlıklar"
+- **Hissedarlar**: "Tüm Hissedarlar" → "Hissedarlar"
+- Menüdeki ad ile sayfa başlığı artık aynı.
+
+### Breadcrumb düzeltmeleri (client-layout turkishCorrections)
+- `tum-kurbanliklar` → "Kurbanlıklar"
+- `tum-hissedarlar` → "Hissedarlar"
+- `uyumsuz-hisseler` → "Uyumsuzluklar"
+- `odemeler` → "Ödemeler"
+
+### Açıklamalar sadeleştirildi
+- Tüm admin sayfa açıklamaları kısaltıldı, öz bilgi korundu.
+- Örnek: Genel Bakış → "Kurban satış ve dağıtım sürecinin özet bilgileri."
+
+### Açıklama genişliği
+- Başlık/açıklama wrapper: `w-full`
+- Açıklama paragrafı: `max-w-[50%]` — sayfa genişliğinin en fazla yarısını kaplar.
+
+### Etkilenen sayfalar
+- genel-bakis, kurbanliklar/tum-kurbanliklar, hissedarlar/tum-hissedarlar, hissedarlar/odemeler
+- degisiklik-kayitlari, uyumsuz-hisseler, rezervasyonlar, iletisim-mesajlari
+- reminder-talepleri, kullanici-yonetimi
+
+### Dosyalar
+- `app/(admin)/kurban-admin/client-layout.tsx`
+- `app/(admin)/kurban-admin/**/page.tsx` (yukarıdaki sayfalar)

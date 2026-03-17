@@ -20,6 +20,12 @@ Tabloda düzenlenebilir (editable) hücreler için aşağıdaki davranış zorun
 - Düzenleme alanı (Input, textarea, select vb.) + Tik + X ikonları yan yana olmalıdır.
 - Escape tuşu ile de iptal edilebilir.
 
-### 3. Uygulama
+### 3. Dropdown/Select ile düzenleme
+- **ÖNEMLİ:** Dropdown veya Select'ten seçim yapıldığında **hemen API çağrısı yapılmamalıdır**.
+- Seçim yapıldığında: Pending (bekleyen) değer gösterilmeli, Check ve X butonları görünmeli.
+- Güncelleme **sadece** Check (✓) butonuna basıldığında yapılır. X ile iptal edilir.
+- Örnek: Hisse bedeli, boş hisse, teslimat tercihi gibi dropdown ile düzenlenen hücrelerde bu akış zorunludur.
+
+### 4. Uygulama
 - İsim, telefon, teslimat tercihi, notlar, ödeme yapılan tutar gibi tüm inline düzenlenebilir alanlarda bu pattern kullanılır.
 - Öğe: `group` + `flex` + `Pencil` ikonu (hover'da görünür) + `Check`/`X` (düzenleme modunda).

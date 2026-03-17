@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { sacrificeSchema, shareholderSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
-import { Pencil, X } from "lucide-react";
+import { CircleX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -103,24 +103,22 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
   return (
     <div className="flex items-center justify-center gap-2">
       <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 hover:bg-sac-blue-light hover:text-sac-blue"
-          onClick={() => {
-            router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
-          }}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 hover:bg-sac-red-light hover:text-sac-red"
-          onClick={() => setIsDeleteConfirmOpen(true)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-sac-red hover:bg-sac-red-light"
+                onClick={() => setIsDeleteConfirmOpen(true)}
+              >
+                <span className="sr-only">Kurbanlığı sil</span>
+                <CircleX className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Kurbanlığı sil</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

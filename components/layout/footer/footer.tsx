@@ -43,23 +43,25 @@ const Footer = () => {
               )}
             </CustomLink>
 
-            {/* Social Media */}
-            <div className="flex gap-6">
-              {mediaLinks.map((item: MediaLink) => (
-                <div
-                  key={item.href}
-                  className="flex items-center justify-center rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
-                >
-                  <CustomLink
-                    className="text-white/75"
-                    href={item.href}
-                    target="_blank"
+            {/* Social Media - Elya Hayvancılık hariç */}
+            {!isElya && (
+              <div className="flex gap-6">
+                {mediaLinks.map((item: MediaLink) => (
+                  <div
+                    key={item.href}
+                    className="flex items-center justify-center rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
                   >
-                    <i className={item.iconName}></i>
-                  </CustomLink>
-                </div>
-              ))}
-            </div>
+                    <CustomLink
+                      className="text-white/75"
+                      href={item.href}
+                      target="_blank"
+                    >
+                      <i className={item.iconName}></i>
+                    </CustomLink>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sağ grup: Hızlı Linkler + İletişim - yukarı yaslı, kendi içlerinde sola yaslı */}

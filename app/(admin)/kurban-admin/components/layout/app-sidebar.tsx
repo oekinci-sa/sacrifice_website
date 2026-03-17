@@ -21,6 +21,7 @@ import {
   Menu,
   MessageSquare,
   Receipt,
+  Truck,
   UserCog
 } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -67,6 +68,13 @@ const navItems: NavItem[] = [
     title: "Ödemeler",
     url: "/kurban-admin/hissedarlar/odemeler",
     icon: Receipt,
+    roles: ["admin", "editor", "super_admin"],
+  },
+  {
+    id: "teslimatlar",
+    title: "Teslimatlar",
+    url: "/kurban-admin/teslimatlar",
+    icon: Truck,
     roles: ["admin", "editor", "super_admin"],
   },
   {

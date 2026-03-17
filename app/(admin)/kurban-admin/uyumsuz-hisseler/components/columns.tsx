@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export type MismatchedShareRow = {
   sacrifice_id: string;
@@ -16,26 +15,9 @@ export type MismatchedShareRow = {
   acknowledged_at: string | null;
 };
 
-const SacrificeNoCell = ({
-  sacrificeNo,
-  sacrificeId,
-}: {
-  sacrificeNo: number;
-  sacrificeId: string;
-}) => {
-  const router = useRouter();
-  return (
-    <Button
-      variant="link"
-      className="p-0 h-auto"
-      onClick={() =>
-        router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`)
-      }
-    >
-      {sacrificeNo}
-    </Button>
-  );
-};
+const SacrificeNoCell = ({ sacrificeNo }: { sacrificeNo: number; sacrificeId?: string }) => (
+  <span>{sacrificeNo}</span>
+);
 
 const AcknowledgeButton = ({
   sacrificeId,

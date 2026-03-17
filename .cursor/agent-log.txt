@@ -1,5 +1,33 @@
 === 2025-03-16 ===
 
+[İstek] Admin menü adı = sayfa başlığı; açıklamalar sadeleştirildi; genişlik max-w-[50%]
+
+[Yapılan Değişiklikler]
+1. **Menü adı = sayfa başlığı:** Kurbanlıklar (Tüm Kurbanlıklar→Kurbanlıklar), Hissedarlar (Tüm Hissedarlar→Hissedarlar).
+2. **Breadcrumb (turkishCorrections):** tum-kurbanliklar→Kurbanlıklar, tum-hissedarlar→Hissedarlar, uyumsuz-hisseler→Uyumsuzluklar, odemeler→Ödemeler.
+3. **Açıklamalar sadeleştirildi:** Tüm admin sayfa açıklamaları kısaltıldı (örn. Genel Bakış: "Kurban satış ve dağıtım sürecinin özet bilgileri.").
+4. **Açıklama genişliği:** Başlık wrapper w-full, açıklama paragrafı max-w-[50%] — sayfa genişliğinin yarısını kaplar.
+
+[Dosyalar]
+- app/(admin)/kurban-admin/client-layout.tsx
+- app/(admin)/kurban-admin/genel-bakis/page.tsx
+- app/(admin)/kurban-admin/kurbanliklar/tum-kurbanliklar/page.tsx
+- app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/page.tsx
+- app/(admin)/kurban-admin/hissedarlar/odemeler/page.tsx
+- app/(admin)/kurban-admin/degisiklik-kayitlari/page.tsx
+- app/(admin)/kurban-admin/uyumsuz-hisseler/page.tsx
+- app/(admin)/kurban-admin/rezervasyonlar/page.tsx
+- app/(admin)/kurban-admin/iletisim-mesajlari/page.tsx
+- app/(admin)/kurban-admin/reminder-talepleri/page.tsx
+- app/(admin)/kurban-admin/kullanici-yonetimi/page.tsx
+- .project-architecture/changelog-2025-03-ui-improvements.md
+- .project-architecture/pages/admin-pages.md
+- .project-architecture/features.md
+
+[Risk] Düşük – Sadece başlık, breadcrumb ve açıklama metinleri; iş mantığı değişmedi.
+
+=== 2025-03-16 ===
+
 [İstek] layout İMH→Elya, Hisse Al teslimat default/adres validasyonu, Tüm Hissedarlar sütunları, Ödemeler sütunlar, admin tablo animasyonu, rule
 
 [Yapılan Değişiklikler]

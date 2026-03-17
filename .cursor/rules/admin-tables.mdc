@@ -23,6 +23,11 @@ Admin sayfalarındaki tablolarda aynı veri için aynı sütun adı kullanılmal
 - `CustomTableBody` satırları `motion.tr` ile `initial={{ opacity: 0, y: 8 }}` → `animate={{ opacity: 1, y: 0 }}` kullanır.
 - Stagger delay: `Math.min(index * 0.03, 0.3)` saniye.
 
+## Inline Düzenlenebilir Hücreler
+- Tablo hücrelerinde dropdown/select ile düzenleme yapıldığında **onay butonuna basılmadan** API çağrısı yapılmamalıdır.
+- Seçim → Pending değer gösterimi → Check (✓) ile onay veya X ile iptal.
+- Detay: `.cursor/rules/inline-editable-table-cells.mdc`
+
 ## Sütun Seçici (ColumnSelectorPopover)
 - Tüm Hissedarlar, Ödemeler, Tüm Kurbanlıklar ve diğer admin tablolarında Sütunlar popover'ı olmalı.
 - Sütun sırası değiştirme (drag-drop) ve sütun görünürlüğü özellikleri tüm tablolarda tutarlı olmalı.

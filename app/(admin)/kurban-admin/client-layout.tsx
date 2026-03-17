@@ -72,9 +72,7 @@ function UserNav() {
 function DynamicBreadcrumb() {
   const pathname = usePathname();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
-  const [sacrificeNo, setSacrificeNo] = useState<string>("");
   const [shareholderName, setShareholderName] = useState<string>("");
-  const [isLoadingSacrifice, setIsLoadingSacrifice] = useState(false);
   const [isLoadingShareholder, setIsLoadingShareholder] = useState(false);
 
   // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
@@ -97,7 +95,8 @@ function DynamicBreadcrumb() {
       "reminder-talepleri": "Bana Haber Ver Talepleri",
       "rezervasyonlar": "Rezervasyonlar",
       "uyumsuz-hisseler": "Uyumsuzluklar",
-      "odemeler": "Ödemeler"
+      "odemeler": "Ödemeler",
+      "teslimatlar": "Teslimatlar"
     };
 
     // Eğer kelime düzeltme sözlüğünde varsa direkt olarak değiştirelim
@@ -114,32 +113,6 @@ function DynamicBreadcrumb() {
   // API çağrıları ile sacrifice_no ve shareholder_name'i al
   useEffect(() => {
     const paths = pathname.split('/').filter(Boolean);
-
-    // Kurban detay sayfası kontrolü: /kurban-admin/kurbanliklar/ayrintilar/[id]
-    if (paths.length === 4 &&
-      paths[0] === 'kurban-admin' &&
-      paths[1] === 'kurbanliklar' &&
-      paths[2] === 'ayrintilar') {
-      const sacrificeId = paths[3];
-
-      setIsLoadingSacrifice(true);
-      setSacrificeNo(""); // Reset previous value
-
-      // Sacrifice API çağrısı
-      fetch(`/api/get-sacrifice-by-id?id=${sacrificeId}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.sacrifice_no) {
-            setSacrificeNo(data.sacrifice_no);
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching sacrifice data:', error);
-        })
-        .finally(() => {
-          setIsLoadingSacrifice(false);
-        });
-    }
 
     // Hissedar detay sayfası kontrolü: /kurban-admin/hissedarlar/ayrintilar/[id]
     if (paths.length === 4 &&
@@ -174,10 +147,8 @@ function DynamicBreadcrumb() {
     }
 
     // Diğer sayfalarda state'i temizle
-    if (!(paths.length === 4 && paths[0] === 'kurban-admin' && paths[2] === 'ayrintilar')) {
-      setSacrificeNo("");
+    if (!(paths.length === 4 && paths[0] === 'kurban-admin' && paths[1] === 'hissedarlar' && paths[2] === 'ayrintilar')) {
       setShareholderName("");
-      setIsLoadingSacrifice(false);
       setIsLoadingShareholder(false);
     }
   }, [pathname, selectedYear]);
@@ -191,21 +162,8 @@ function DynamicBreadcrumb() {
 
       // Son path elementi ise (detay sayfası), özel isim kullan
       if (index === paths.length - 1) {
-        // Kurban detay sayfası için sacrifice_no kullan
-        if (paths.length === 4 &&
-          paths[0] === 'kurban-admin' &&
-          paths[1] === 'kurbanliklar' &&
-          paths[2] === 'ayrintilar') {
-          if (isLoadingSacrifice) {
-            shouldShowItem = false; // Loading sırasında gösterme
-          } else if (sacrificeNo) {
-            formattedPath = sacrificeNo;
-          } else {
-            shouldShowItem = false; // Veri yoksa gösterme
-          }
-        }
         // Hissedar detay sayfası için shareholder_name kullan
-        else if (paths.length === 4 &&
+        if (paths.length === 4 &&
           paths[0] === 'kurban-admin' &&
           paths[1] === 'hissedarlar' &&
           paths[2] === 'ayrintilar') {
@@ -231,7 +189,7 @@ function DynamicBreadcrumb() {
     });
 
     return pathItems;
-  }, [pathname, sacrificeNo, shareholderName, isLoadingSacrifice, isLoadingShareholder]);
+  }, [pathname, shareholderName, isLoadingShareholder]);
 
   return (
     <Breadcrumb>

@@ -9,14 +9,14 @@ Genel bilgiler: hayvan sayısı, toplanan para vb. Grafik ve tablo görselleşti
 
 ### /kurban-admin/kurbanliklar
 - Grafikler
-- Kurbanlıklar tablosu ve detay sayfalarına erişim
+- **Kurbanlıklar** tablosu (menü adı = sayfa başlığı) ve detay sayfalarına erişim
 
 ### /kurban-admin/kurbanliklar/ayrintilar/[id]
 Belirli kurbanlığın hissedarlar tablosu ve hissedar detay sayfalarına erişim.
 
 ### /kurban-admin/hissedarlar
 - Grafikler
-- Hissedarlar tablosu ve detay sayfalarına erişim
+- **Hissedarlar** tablosu (menü adı = sayfa başlığı) ve detay sayfalarına erişim
 
 ### /kurban-admin/kullanici-yonetimi
 Kullanıcı yönetimi (admin, editor vb.).

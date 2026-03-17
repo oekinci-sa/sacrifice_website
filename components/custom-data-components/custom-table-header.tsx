@@ -42,7 +42,10 @@ export function CustomTableHeader<TData>({
               layout
               layoutId={`th-${header.column.id}`}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass}`}
+              style={(header.column.columnDef as { minSize?: number }).minSize != null
+                ? { minWidth: `${(header.column.columnDef as { minSize?: number }).minSize}px` }
+                : undefined}
+              className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground font-sans [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass}`}
             >
               {header.isPlaceholder ? null : (
                 <div className="flex items-center justify-center gap-2">

@@ -22,6 +22,7 @@ export default function TumHissedarlarPage() {
     last_edited_time: false,
     last_edited_by: false,
     sacrifice_consent: false,
+    delivery_location_raw: false, // Teslimat Yeri - default gizli
   });
 
   // Use shareholder store instead of React Query

@@ -23,7 +23,8 @@ export async function PUT(request: Request) {
             empty_share,
             notes,
             last_edited_by,
-            last_edited_time
+            last_edited_time,
+            sacrifice_year: bodyYear
         } = body;
 
         if (!sacrifice_id) {
@@ -31,7 +32,7 @@ export async function PUT(request: Request) {
         }
 
         const tenantId = getTenantId();
-        const sacrificeYear = getDefaultSacrificeYear();
+        const sacrificeYear = bodyYear != null ? Number(bodyYear) : getDefaultSacrificeYear();
         const { data: updatedSacrifice, error } = await supabaseAdmin
             .from('sacrifice_animals')
             .update({

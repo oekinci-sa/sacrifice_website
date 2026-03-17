@@ -1,8 +1,13 @@
-import React from "react";
-import { mediaLinks } from "../../(anasayfa)/constants";
+"use client";
+
 import Link from "next/link";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { mediaLinks } from "../../(anasayfa)/constants";
 
 const FollowUs = () => {
+  const branding = useTenantBranding();
+  if (branding.logo_slug === "elya-hayvancilik") return null;
+
   return (
     <div className="flex items-center gap-4 lg:gap-8">
       <p className="font-bold text-lg lg:text-xl whitespace-nowrap">Bizi takip edin!</p>

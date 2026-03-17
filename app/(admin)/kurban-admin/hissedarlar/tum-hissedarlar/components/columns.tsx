@@ -269,7 +269,7 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
   }
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center tabular-nums truncate px-8">{formatPhoneForDisplayWithSpacing(row.original.phone_number || "")}</span>
+      <span className="absolute inset-0 flex items-center justify-center tabular-nums px-8 whitespace-nowrap">{formatPhoneForDisplayWithSpacing(row.original.phone_number || "")}</span>
       <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
       </Button>
@@ -657,19 +657,7 @@ const SacrificeNumberCell = ({ sacrificeNo, sacrificeId }: { sacrificeNo: string
 
   if (sacrificeNo === "-") return <div>{sacrificeNo}</div>;
 
-  return (
-    <Button
-      variant="ghost"
-      className="p-0 h-auto font-normal text-foreground hover:bg-muted/50"
-      onClick={() => {
-        if (sacrificeId) {
-          router.push(`/kurban-admin/kurbanliklar/ayrintilar/${sacrificeId}`);
-        }
-      }}
-    >
-      {sacrificeNo}
-    </Button>
-  );
+  return <div>{sacrificeNo}</div>;
 };
 
 export const columns: ColumnDef<shareholderSchema>[] = [
@@ -677,6 +665,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     id: "sacrifice_no",
     accessorFn: (row) => row.sacrifice?.sacrifice_no || "-",
     header: "Kur. Sır.",
+    minSize: 70,
     enableSorting: true,
     sortingFn: sortingFunctions.number,
     cell: ({ row }) => {
@@ -688,6 +677,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "shareholder_name",
     header: "İsim Soyisim",
+    minSize: 120,
     enableSorting: true,
     sortingFn: sortingFunctions.text,
     cell: ({ row }) => <EditableNameCell row={row} />,
@@ -701,12 +691,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "phone_number",
     header: "Telefon",
+    minSize: 130,
     enableSorting: false,
     cell: ({ row }) => <EditablePhoneCell row={row} />,
   },
   {
     accessorKey: "contacted_at",
     header: "Görüşüldü",
+    minSize: 90,
     enableSorting: true,
     sortingFn: (a, b) => {
       const aVal = a.original.contacted_at ?? "";
@@ -728,6 +720,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     id: "sacrifice_info",
     accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
     header: "Hisse Bedeli",
+    minSize: 110,
     enableSorting: false,
     cell: ({ row }) => {
       const s = row.original.sacrifice;
@@ -744,6 +737,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "delivery_location",
     header: "Teslimat Tercihi",
+    minSize: 120,
     enableSorting: false,
     cell: ({ row }) => <EditableDeliveryCell row={row} />,
   },
@@ -751,12 +745,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     id: "delivery_location_raw",
     accessorFn: (row) => row.delivery_location ?? "",
     header: "Teslimat Yeri",
+    minSize: 100,
     enableSorting: false,
     cell: ({ row }) => <EditableDeliveryLocationCell row={row} />,
   },
   {
     id: "payment_status",
     header: "Ödeme",
+    minSize: 90,
     enableSorting: true,
     accessorFn: (row) => {
       const paid = parseFloat(row.paid_amount.toString());
@@ -838,6 +834,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "purchase_time",
     header: "Kayıt Tarihi",
+    minSize: 100,
     enableSorting: true,
     sortingFn: sortingFunctions.date,
     cell: ({ row }) => formatDateMedium(row.getValue("purchase_time")),
@@ -845,18 +842,21 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "sacrifice_consent",
     header: "Vekalet",
+    minSize: 90,
     enableSorting: false,
     cell: ({ row }) => <EditableConsentCell row={row} />,
   },
   {
     accessorKey: "notes",
     header: "Notlar",
+    minSize: 100,
     enableSorting: false,
     cell: ({ row }) => <EditableNotesCell row={row} />,
   },
   {
     accessorKey: "last_edited_time",
     header: "Son Güncelleme",
+    minSize: 110,
     enableSorting: true,
     sortingFn: sortingFunctions.date,
     cell: ({ row }) => formatDateMedium(row.getValue("last_edited_time")),
@@ -864,6 +864,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     accessorKey: "last_edited_by",
     header: "Son Güncelleyen",
+    minSize: 110,
     enableSorting: true,
     cell: ({ row }) => {
       const editor = row.getValue("last_edited_by") as string;
@@ -873,6 +874,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     id: "actions",
     header: "",
+    minSize: 60,
     enableSorting: false,
     cell: ({ row }) => <ActionCellContent row={row} />,
   },

@@ -43,7 +43,10 @@ export function CustomTableBody<TData, TValue>({
                 layout
                 layoutId={`td-${cell.column.id}-${row.id}`}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center whitespace-nowrap ${rowClass}`}
+                style={(cell.column.columnDef as { minSize?: number }).minSize != null
+                  ? { minWidth: `${(cell.column.columnDef as { minSize?: number }).minSize}px` }
+                  : undefined}
+                className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${(cell.column.columnDef.meta as { align?: string })?.align === "left" ? "text-left" : "text-center"} whitespace-nowrap font-sans ${rowClass}`}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </motion.td>
@@ -52,7 +55,7 @@ export function CustomTableBody<TData, TValue>({
         ))
       ) : (
         <TableRow>
-          <TableCell colSpan={columns.length} className={`h-24 text-center ${rowClass}`}>
+          <TableCell colSpan={columns.length} className={`h-24 text-center font-sans ${rowClass}`}>
             Kayıt bulunamadı.
           </TableCell>
         </TableRow>

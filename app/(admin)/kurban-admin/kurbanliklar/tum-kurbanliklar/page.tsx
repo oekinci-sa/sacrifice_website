@@ -6,6 +6,8 @@ import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { useEffect, useMemo, useState } from "react";
+import { setupRefreshListener } from "@/utils/data-refresh";
+import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { columns } from "./components/columns";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
@@ -49,6 +51,11 @@ export default function TumKurbanliklarPage() {
     shareholders.length,
     fetchShareholders
   ]);
+
+  // Refetch shareholders when sacrifice is updated (e.g. hisse bedeli) so tooltip shows correct values
+  useEffect(() => {
+    return setupRefreshListener(SACRIFICE_UPDATED_EVENT, fetchShareholders);
+  }, [fetchShareholders]);
 
   // Combine sacrifices with their shareholders
   const sacrificesWithShareholders = useMemo(() => {
@@ -139,6 +146,7 @@ export default function TumKurbanliklarPage() {
           data={filteredData}
           columns={columns}
           storageKey="kurbanliklar"
+          initialState={{ columnVisibility: { notes: true } }}
           filters={({ table, columnOrder, onColumnOrderChange }) => (
             <ToolbarAndFilters
               table={table}

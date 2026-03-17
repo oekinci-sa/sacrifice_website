@@ -13,10 +13,12 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ActionCellContent } from "./columns/ActionCell";
+import { EditableSharePriceCell, EditableEmptyShareCell, EditableNotesCell } from "./columns/EditableSacrificeCells";
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "sacrifice_no",
+    minSize: 85,
     header: ({ column }) => {
       return (
         <div className="flex items-center">
@@ -69,7 +71,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         return <div className="text-center">-</div>;
       }
     },
-    size: 200,
+    minSize: 90,
   },
   {
     accessorKey: "share_price",
@@ -91,18 +93,8 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const price = row.getValue("share_price") as number;
-      const shareWeight = row.original.share_weight;
-      return (
-        <div>
-          {shareWeight} kg. - {new Intl.NumberFormat("tr-TR", {
-            style: "decimal",
-            maximumFractionDigits: 0,
-          }).format(price)} TL
-        </div>
-      );
-    },
+    cell: ({ row }) => <EditableSharePriceCell row={row} />,
+    minSize: 165,
     enableSorting: true,
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
@@ -117,6 +109,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "empty_share",
+    minSize: 85,
     header: ({ column }) => {
       return (
         <Button
@@ -135,10 +128,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const empty = row.getValue("empty_share") as number;
-      return <div>{empty}</div>;
-    },
+    cell: ({ row }) => <EditableEmptyShareCell row={row} />,
     enableSorting: true,
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
@@ -187,11 +177,16 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       };
 
       const getShareholderColor = (paid: number, totalAmt: number) => {
-        if (totalAmt <= 0) return "bg-muted";
-        if (paid >= totalAmt) return "bg-sac-primary";
-        if (paid >= 5000) return "bg-sac-yellow";
-        return "bg-sac-red";
+        if (totalAmt <= 0) return "bg-muted-foreground/30";
+        if (paid >= totalAmt) return "bg-green-500/70"; // Tam ödeme: yeşil (açık)
+        if (paid >= 5000) return "bg-amber-500/70"; // Kapora üstü: sarı (açık)
+        return "bg-red-500/70"; // Hisse alındı, kapora yok: kırmızı (açık)
       };
+
+      const totalSlots = 7;
+      const filledCount = shareholders.length;
+      const emptyCount = totalSlots - filledCount;
+      const barHeight = 4; // 2/3 of 6px
 
       const shareholderBars = (
         <div className="flex items-center gap-1">
@@ -202,11 +197,20 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
             return (
               <div
                 key={s.shareholder_id ?? idx}
-                className={cn("w-[15px] h-[3.75px] rounded-lg flex-shrink-0", colorClass)}
+                className={cn("w-[22px] flex-shrink-0 rounded-full", colorClass)}
+                style={{ height: barHeight }}
                 title={s.shareholder_name ?? ""}
               />
             );
           })}
+          {Array.from({ length: emptyCount }).map((_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="w-[22px] flex-shrink-0 rounded-full bg-muted-foreground/30"
+              style={{ height: barHeight }}
+              title="Boş hisse"
+            />
+          ))}
           <span
             className={cn(
               "text-sm tabular-nums ml-2 min-w-[42px]",
@@ -264,20 +268,14 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         </div>
       );
     },
-    size: 200,
+    minSize: 180,
   },
   {
     accessorKey: "notes",
     header: "Notlar",
-    cell: ({ row }) => {
-      const notes = row.original.notes || "";
-      return (
-        <div className="max-w-[200px] truncate" title={notes}>
-          {notes || "-"}
-        </div>
-      );
-    },
-    size: 200,
+    minSize: 280,
+    meta: { align: "left" },
+    cell: ({ row }) => <EditableNotesCell row={row} />,
     enableSorting: false,
     enableHiding: true,
     filterFn: (row, id, value: string | number) => {

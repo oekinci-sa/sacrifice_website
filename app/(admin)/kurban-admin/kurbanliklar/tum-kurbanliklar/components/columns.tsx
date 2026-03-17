@@ -1,19 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import { ActionCellContent } from "./columns/ActionCell";
-import { EditableSharePriceCell, EditableEmptyShareCell, EditableNotesCell } from "./columns/EditableSacrificeCells";
+import { EditableEmptyShareCell, EditableNotesCell, EditableSharePriceCell } from "./columns/EditableSacrificeCells";
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {

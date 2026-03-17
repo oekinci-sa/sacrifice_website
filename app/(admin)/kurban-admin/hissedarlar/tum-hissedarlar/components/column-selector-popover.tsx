@@ -20,7 +20,7 @@ function cn(...classes: (string | boolean | undefined)[]) {
 function ColumnItem({
   columnId,
   label,
-  isVisible,
+  isVisible: _isVisible,
   onDragStart,
   onDrop,
 }: {
@@ -66,7 +66,7 @@ function ColumnItem({
 }
 
 function DroppableSection({
-  id,
+  id: _id,
   title,
   children,
   onDragOver,

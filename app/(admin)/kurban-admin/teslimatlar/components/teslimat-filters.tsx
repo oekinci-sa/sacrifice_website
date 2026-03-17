@@ -303,13 +303,14 @@ export function TeslimatFilters({ table }: TeslimatFiltersProps) {
 
   const sacrificeNoOptions = useMemo(() => {
     const rows = table.getPreFilteredRowModel().rows;
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     const opts: { label: string; value: string }[] = [];
     rows.forEach((row) => {
       const no = row.original.sacrifice?.sacrifice_no;
-      if (no != null && !seen.has(no)) {
-        seen.add(no);
-        opts.push({ label: String(no), value: String(no) });
+      const key = no != null ? String(no) : null;
+      if (key != null && !seen.has(key)) {
+        seen.add(key);
+        opts.push({ label: key, value: key });
       }
     });
     opts.sort((a, b) => Number(a.value) - Number(b.value));

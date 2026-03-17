@@ -52,7 +52,6 @@ import {
   getDeliveryTypeDisplayLabel,
 } from "@/lib/delivery-options";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 function ContactedButton({
@@ -652,9 +651,7 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
 };
 
 // Create a separate component for the sacrifice number cell
-const SacrificeNumberCell = ({ sacrificeNo, sacrificeId }: { sacrificeNo: string | number, sacrificeId?: string }) => {
-  const router = useRouter();
-
+const SacrificeNumberCell = ({ sacrificeNo }: { sacrificeNo: string | number; sacrificeId?: string }) => {
   if (sacrificeNo === "-") return <div>{sacrificeNo}</div>;
 
   return <div>{sacrificeNo}</div>;

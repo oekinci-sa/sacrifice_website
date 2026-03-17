@@ -1,5 +1,4 @@
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryLocationFromSelection } from "@/lib/delivery-options";
 import { useToast } from "@/components/ui/use-toast";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
 import { GenericReservationMutation } from "@/types/reservation";

@@ -49,7 +49,8 @@ export async function POST(req: Request) {
       if (sacrificeYear == null) {
         throw new Error(`Sacrifice ${s.sacrifice_id} not found`);
       }
-      const { share_price: _omit, ...rest } = s as ShareholderInput & { share_price?: number };
+      const { share_price: _sharePrice, ...rest } = s as ShareholderInput & { share_price?: number };
+      void _sharePrice;
       return {
         ...rest,
         tenant_id: tenantId,

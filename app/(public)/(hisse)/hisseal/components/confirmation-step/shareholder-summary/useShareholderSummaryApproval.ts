@@ -10,7 +10,7 @@ import {
 } from "@/lib/delivery-options";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
-import { formatPhoneForDB } from "@/utils/formatters";
+import { formatPhoneForDB, toTitleCase } from "@/utils/formatters";
 import { useCallback, useState } from "react";
 
 interface ShareholderInput {
@@ -72,10 +72,11 @@ export function useShareholderSummaryApproval(
     }
     setIsProcessing(true);
 
-    const purchaserName =
+    const purchaserName = toTitleCase(
       effectivePurchaserIndex !== -1
         ? shareholders[effectivePurchaserIndex].name
-        : shareholders[0]?.name ?? "";
+        : shareholders[0]?.name ?? ""
+    );
 
     try {
       if (!sacrifice?.sacrifice_id) {
@@ -114,7 +115,7 @@ export function useShareholderSummaryApproval(
         const remainingPayment = totalAmount - paidAmount;
 
         return {
-          shareholder_name: shareholder.name,
+          shareholder_name: toTitleCase(shareholder.name),
           phone_number: formatPhoneForDB(shareholder.phone),
           email: shareholder.email?.trim() || undefined,
           transaction_id,

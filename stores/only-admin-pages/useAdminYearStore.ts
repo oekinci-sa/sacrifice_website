@@ -12,6 +12,8 @@ interface AdminYearState {
   reset: () => void;
 }
 
+const ADMIN_YEAR_KEY = "admin:selectedYear";
+
 const initialState = {
   selectedYear: null as number | null,
   availableYears: [] as number[],
@@ -22,7 +24,16 @@ const initialState = {
 export const useAdminYearStore = create<AdminYearState>((set, get) => ({
   ...initialState,
 
-  setSelectedYear: (year) => set({ selectedYear: year }),
+  setSelectedYear: (year) => {
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(ADMIN_YEAR_KEY, String(year));
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+    set({ selectedYear: year });
+  },
 
   fetchActiveYear: async () => {
     set({ isLoading: true });
@@ -30,13 +41,30 @@ export const useAdminYearStore = create<AdminYearState>((set, get) => ({
       const res = await fetch("/api/admin/active-year");
       if (!res.ok) throw new Error("Failed to fetch active year");
       const { activeYear, availableYears } = await res.json();
+      const years = availableYears ?? [activeYear];
+
+      let finalYear = activeYear;
+      try {
+        if (typeof window !== "undefined") {
+          const stored = sessionStorage.getItem(ADMIN_YEAR_KEY);
+          if (stored != null) {
+            const parsed = parseInt(stored, 10);
+            if (!Number.isNaN(parsed) && years.includes(parsed)) {
+              finalYear = parsed;
+            }
+          }
+        }
+      } catch {
+        // sessionStorage unavailable
+      }
+
       set({
-        selectedYear: activeYear,
-        availableYears: availableYears ?? [activeYear],
+        selectedYear: finalYear,
+        availableYears: years,
         isLoading: false,
         isInitialized: true,
       });
-      return activeYear;
+      return finalYear;
     } catch {
       const fallback = new Date().getFullYear();
       set({

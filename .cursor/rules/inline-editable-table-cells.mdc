@@ -1,31 +1,19 @@
 ---
-description: Tablo hücrelerinde inline düzenleme davranışı
-globs: **/*columns*.tsx,**/*editable*.tsx
+description: Tablo hücrelerinde inline düzenleme pattern'i
+globs: 
+alwaysApply: false
 ---
-# Inline Editable Tablo Hücreleri
+# Inline Editable Table Cells
 
 ## Kural
-Tabloda düzenlenebilir (editable) hücreler için aşağıdaki davranış zorunludur:
+Admin tablolarındaki düzenlenebilir hücrelerde şu pattern kullanılmalıdır:
 
-### 1. Görüntüleme modu
-- Hücreye tıklama veya hover ile **otomatik** düzenleme moduna geçilmez.
-- Sadece hücrenin **sağında** bir düzenleme ikonu (Pencil) görünür.
-- Bu ikon **hover** ile görünür olur (`opacity-0 group-hover:opacity-100`).
-- Düzenleme moduna **sadece** bu ikona tıklanarak geçilir.
+1. **Direkt müdahale yok** — Kullanıcı değere tıklayarak düzenleyemez.
+2. **Kalem ikonu** — Hover'da veya her zaman görünen düzenleme (Pencil) butonu.
+3. **Edit modu** — Kaleme tıklanınca input/dropdown açılır.
+4. **Onay/İptal** — Düzenleme sonrası mutlaka **tick (✓)** veya **X** butonu olmalı. Kullanıcı netleşmeyen bir değer girdiyse hemen uygulanmamalı; tick ile onay veya X ile iptal yapılmalı.
 
-### 2. Düzenleme modu
-- Hücre düzenlenirken **mutlaka** onay/iptal butonları gösterilir:
-  - **Tik (✓)** ikonu: Değişikliği kabul et ve kaydet
-  - **Çarpı (X)** ikonu: Değişikliği reddet ve iptal et
-- Düzenleme alanı (Input, textarea, select vb.) + Tik + X ikonları yan yana olmalıdır.
-- Escape tuşu ile de iptal edilebilir.
-
-### 3. Dropdown/Select ile düzenleme
-- **ÖNEMLİ:** Dropdown veya Select'ten seçim yapıldığında **hemen API çağrısı yapılmamalıdır**.
-- Seçim yapıldığında: Pending (bekleyen) değer gösterilmeli, Check ve X butonları görünmeli.
-- Güncelleme **sadece** Check (✓) butonuna basıldığında yapılır. X ile iptal edilir.
-- Örnek: Hisse bedeli, boş hisse, teslimat tercihi gibi dropdown ile düzenlenen hücrelerde bu akış zorunludur.
-
-### 4. Uygulama
-- İsim, telefon, teslimat tercihi, notlar, ödeme yapılan tutar gibi tüm inline düzenlenebilir alanlarda bu pattern kullanılır.
-- Öğe: `group` + `flex` + `Pencil` ikonu (hover'da görünür) + `Check`/`X` (düzenleme modunda).
+## Uygulama
+- `onBlur` ile otomatik kaydetme yapılmamalı (yanlışlıkla kayıt riski).
+- Input + Check butonu + X butonu birlikte gösterilmeli.
+- Örnek: Ödemeler tablosu (ödeme yapılan tutar), Hissedarlar (telefon), Organizasyon Ayarları (tüm alanlar).

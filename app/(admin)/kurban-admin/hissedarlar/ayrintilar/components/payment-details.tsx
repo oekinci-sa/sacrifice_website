@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
@@ -24,8 +25,9 @@ export function PaymentDetails({
   labelClass,
   valueClass
 }: PaymentDetailsProps) {
-  // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
-  const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
+  const branding = useTenantBranding();
+  const depositAmount = branding.deposit_amount;
+  const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), branding.deposit_deadline_days);
 
   return (
     <div className="md:w-1/2 p-6">
@@ -79,8 +81,8 @@ export function PaymentDetails({
               <p className={cn(
                 "text-xs md:text-sm font-medium",
                 {
-                  "text-sac-red": shareholderInfo.paid_amount < 5000,
-                  "text-sac-yellow": shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
+                  "text-sac-red": shareholderInfo.paid_amount < depositAmount,
+                  "text-sac-yellow": shareholderInfo.paid_amount >= depositAmount && shareholderInfo.remaining_payment > 0,
                   "text-sac-primary": shareholderInfo.remaining_payment <= 0,
                 }
               )}>
@@ -94,6 +96,7 @@ export function PaymentDetails({
             <ProgressBar
               paidAmount={shareholderInfo.paid_amount}
               totalAmount={shareholderInfo.total_amount}
+              depositAmount={depositAmount}
             />
           </div>
         </div>

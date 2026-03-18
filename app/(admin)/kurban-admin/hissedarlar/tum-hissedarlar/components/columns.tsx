@@ -38,7 +38,7 @@ import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
-import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/formatters";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
@@ -53,6 +53,78 @@ import {
 } from "@/lib/delivery-options";
 import { useSession } from "next-auth/react";
 import { useCallback, useMemo, useState } from "react";
+
+function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
+  const branding = useTenantBranding();
+  const paid = parseFloat(row.original.paid_amount.toString());
+  const total = parseFloat(row.original.total_amount.toString());
+  const remaining = parseFloat(row.original.remaining_payment.toString());
+  let StatusIcon: React.ElementType;
+  let statusColorClass: string;
+  let tooltipLabel: string;
+
+  if (paid < branding.deposit_amount) {
+    StatusIcon = AlertCircle;
+    statusColorClass = "text-sac-red";
+    tooltipLabel = "Kapora bekleniyor";
+  } else if (paid < total) {
+    StatusIcon = Clock;
+    statusColorClass = "text-sac-yellow";
+    tooltipLabel = "Kısmi ödeme";
+  } else {
+    StatusIcon = CheckCircle2;
+    statusColorClass = "text-sac-primary";
+    tooltipLabel = "Ödeme tamamlandı";
+  }
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + " TL";
+
+  return (
+    <div className="flex justify-center">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center p-1 cursor-default">
+              <StatusIcon className={cn("h-4 w-4", statusColorClass)} />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="p-4 w-[260px] bg-white shadow-lg border">
+            <div className="space-y-3">
+              <p className="font-semibold text-sm">{tooltipLabel}</p>
+              <div className="grid gap-1.5 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shrink-0 bg-sac-primary" />
+                    <span className="text-muted-foreground">Ödenen</span>
+                  </div>
+                  <span className="font-medium tabular-nums">{formatCurrency(paid)}</span>
+                </div>
+                {paid < total && (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full shrink-0 bg-sac-red" />
+                      <span className="text-muted-foreground">Kalan</span>
+                    </div>
+                    <span className="font-medium tabular-nums">{formatCurrency(remaining)}</span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
+                    <span className="text-muted-foreground">Toplam</span>
+                  </div>
+                  <span className="font-medium tabular-nums">{formatCurrency(total)}</span>
+                </div>
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
 
 function ContactedButton({
   shareholderId,
@@ -197,7 +269,7 @@ const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
   }
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center truncate px-8">{row.original.shareholder_name || "-"}</span>
+      <span className="flex-1 text-center px-8 pr-9">{row.original.shareholder_name || "-"}</span>
       <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
       </Button>
@@ -210,9 +282,8 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(
-    row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || ""
-  );
+  const rawPhone = row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "";
+  const [value, setValue] = useState(() => formatPhoneForInput(rawPhone));
   const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
@@ -242,7 +313,12 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
-    setValue(row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "");
+    setValue(formatPhoneForInput(row.original.phone_number?.replace(/^\+90/, "0") || ""));
+  }, [row.original.phone_number]);
+
+  const handleStartEdit = useCallback(() => {
+    setValue(formatPhoneForInput(row.original.phone_number?.replace(/^\+90/, "0") || ""));
+    setIsEditing(true);
   }, [row.original.phone_number]);
 
   if (isEditing) {
@@ -250,7 +326,7 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
       <div className="flex items-center gap-1 w-full justify-center">
         <Input
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => setValue(formatPhoneForInput(e.target.value))}
           onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
           className="h-8 text-sm flex-1 min-w-0 tabular-nums"
           placeholder="0555 555 55 55"
@@ -269,7 +345,7 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
       <span className="absolute inset-0 flex items-center justify-center tabular-nums px-8 whitespace-nowrap">{formatPhoneForDisplayWithSpacing(row.original.phone_number || "")}</span>
-      <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
+      <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={handleStartEdit}>
         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
       </Button>
     </div>
@@ -354,7 +430,7 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
 
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center text-sm truncate px-8 py-1">{current}</span>
+      <span className="flex-1 text-center text-sm px-8 pr-9 py-1">{current}</span>
       <DropdownMenu open={dropdownOpen} onOpenChange={(open) => { setDropdownOpen(open); if (!open && isEditing && !pendingValue) setIsEditing(false); }}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -378,12 +454,6 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
       </DropdownMenu>
     </div>
   );
-};
-
-const truncateLocation = (loc: string | null, maxLen = 12): string => {
-  if (!loc) return "-";
-  if (loc.length <= maxLen) return loc;
-  return `${loc.slice(0, maxLen)}...`;
 };
 
 const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) => {
@@ -419,8 +489,8 @@ const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) 
   return (
     <>
       <div className="group relative w-full min-h-[2rem] flex items-center">
-        <span className="absolute inset-0 flex items-center justify-center truncate px-8 block text-sm" title={loc || undefined}>
-          {truncateLocation(loc)}
+        <span className="flex-1 text-center px-8 pr-9 text-sm" title={loc || undefined}>
+          {loc || "-"}
         </span>
         <Button
           variant="ghost"
@@ -538,9 +608,9 @@ const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
   return (
     <>
       <div className="group relative w-full min-h-[2rem] flex items-center">
-        <span className="absolute inset-0 flex items-center justify-center truncate px-8 block text-sm">
+        <span className="flex-1 text-center px-8 pr-9 text-sm">
           {row.original.notes ? (
-            <span className="truncate block">{row.original.notes}</span>
+            <span>{row.original.notes}</span>
           ) : (
             <span className="text-muted-foreground">Not ekle</span>
           )}
@@ -757,76 +827,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
       return total > 0 ? (paid / total) * 100 : 0;
     },
     sortingFn: sortingFunctions.paymentPercentage,
-    cell: ({ row }) => {
-      const paid = parseFloat(row.original.paid_amount.toString());
-      const total = parseFloat(row.original.total_amount.toString());
-      const remaining = parseFloat(row.original.remaining_payment.toString());
-      let StatusIcon: React.ElementType;
-      let statusColorClass: string;
-      let tooltipLabel: string;
-
-      if (paid < 5000) {
-        StatusIcon = AlertCircle;
-        statusColorClass = "text-sac-red";
-        tooltipLabel = "Kapora bekleniyor";
-      } else if (paid < total) {
-        StatusIcon = Clock;
-        statusColorClass = "text-sac-yellow";
-        tooltipLabel = "Kısmi ödeme";
-      } else {
-        StatusIcon = CheckCircle2;
-        statusColorClass = "text-sac-primary";
-        tooltipLabel = "Ödeme tamamlandı";
-      }
-
-      const formatCurrency = (amount: number) =>
-        new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + " TL";
-
-      return (
-        <div className="flex justify-center">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center justify-center p-1 cursor-default">
-                  <StatusIcon className={cn("h-4 w-4", statusColorClass)} />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="p-4 w-[260px] bg-white shadow-lg border">
-                <div className="space-y-3">
-                  <p className="font-semibold text-sm">{tooltipLabel}</p>
-                  <div className="grid gap-1.5 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0 bg-sac-primary" />
-                        <span className="text-muted-foreground">Ödenen</span>
-                      </div>
-                      <span className="font-medium tabular-nums">{formatCurrency(paid)}</span>
-                    </div>
-                    {paid < total && (
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full shrink-0 bg-sac-red" />
-                          <span className="text-muted-foreground">Kalan</span>
-                        </div>
-                        <span className="font-medium tabular-nums">{formatCurrency(remaining)}</span>
-                      </div>
-                    )}
-                    <Separator />
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
-                        <span className="text-muted-foreground">Toplam</span>
-                      </div>
-                      <span className="font-medium tabular-nums">{formatCurrency(total)}</span>
-                    </div>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      );
-    },
+    cell: ({ row }) => <PaymentStatusCell row={row} />,
   },
   {
     accessorKey: "purchase_time",

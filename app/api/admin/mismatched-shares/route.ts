@@ -2,15 +2,16 @@ import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/admin/mismatched-shares
  * mismatched_shares view + acknowledgments
+ * ?year=2025 - sacrifice_year ile filtrele
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
@@ -18,12 +19,21 @@ export async function GET() {
     }
 
     const tenantId = getTenantId();
+    const { searchParams } = new URL(request.url);
+    const yearParam = searchParams.get("year");
+    const year = yearParam ? parseInt(yearParam, 10) : null;
 
-    const { data: mismatched, error: viewError } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("mismatched_shares")
       .select("*")
       .eq("tenant_id", tenantId)
       .order("sacrifice_id", { ascending: false });
+
+    if (year != null && !Number.isNaN(year)) {
+      query = query.eq("sacrifice_year", year);
+    }
+
+    const { data: mismatched, error: viewError } = await query;
 
     if (viewError) {
       console.error("[mismatched-shares] View hatası:", viewError);

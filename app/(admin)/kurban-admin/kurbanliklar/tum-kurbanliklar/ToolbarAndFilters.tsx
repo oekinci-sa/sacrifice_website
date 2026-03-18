@@ -22,7 +22,7 @@ const columnHeaderMap: { [key: string]: string } = {
   sacrifice_time: "Kesim Saati",
   share_price: "Hisse Bedeli",
   empty_share: "Boş Hisse",
-  payment_status: "Ödeme Oranı",
+  payment_status: "Ödeme Durumu",
   notes: "Notlar",
 };
 

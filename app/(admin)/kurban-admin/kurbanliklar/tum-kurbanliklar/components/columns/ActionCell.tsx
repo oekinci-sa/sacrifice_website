@@ -1,7 +1,5 @@
 "use client";
 
-import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryDisplayLabel } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +13,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrifices } from "@/hooks/useSacrifices";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { getDeliveryDisplayLabel } from "@/lib/delivery-options";
 import { cn } from "@/lib/utils";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { sacrificeSchema, shareholderSchema } from "@/types";
@@ -168,12 +168,12 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
                                   className="flex-1"
                                   style={{
                                     ["--progress-background" as string]: (shareholder.remaining_payment > 0)
-                                      ? shareholder.paid_amount < 5000
+                                      ? shareholder.paid_amount < branding.deposit_amount
                                         ? "var(--sac-red-muted)"
                                         : "var(--sac-yellow-muted)"
                                       : "var(--sac-primary-muted)",
                                     ["--progress-foreground" as string]: (shareholder.remaining_payment > 0)
-                                      ? shareholder.paid_amount < 5000
+                                      ? shareholder.paid_amount < branding.deposit_amount
                                         ? "var(--sac-red)"
                                         : "var(--sac-yellow)"
                                       : "var(--sac-primary)",
@@ -181,7 +181,7 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
                                 />
                                 <span className={cn(
                                   "text-sm tabular-nums",
-                                  shareholder.paid_amount < 5000 ? "text-red-600" : "text-sac-primary"
+                                  shareholder.paid_amount < branding.deposit_amount ? "text-red-600" : "text-sac-primary"
                                 )}>
                                   %{Math.floor((shareholder.paid_amount / shareholder.total_amount) * 100).toString().padStart(3)}
                                 </span>

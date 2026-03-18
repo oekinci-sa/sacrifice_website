@@ -24,8 +24,7 @@ interface ShareholderDetailsProps {
 export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps) {
   const branding = useTenantBranding();
 
-  // Son kapora ödeme tarihi (kayıt tarihinden 3 gün sonra)
-  const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), 3);
+  const lastDepositDate = addDays(new Date(shareholderInfo.purchase_time), branding.deposit_deadline_days);
 
   // Format sacrifice time (remove seconds)
   const formatSacrificeTime = (timeString: string | null | undefined) => {
@@ -129,7 +128,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               <p className={labelClass}>Son kapora ödeme tarihi</p>
               <div className="flex flex-wrap items-center gap-2">
                 <p className={valueClass}>{lastDepositDate.toLocaleDateString("tr-TR")}</p>
-                {shareholderInfo.paid_amount >= 5000 && (
+                {shareholderInfo.paid_amount >= branding.deposit_amount && (
                   <span className="text-[16px] md:text-lg text-sac-primary">• Ödeme yapıldı</span>
                 )}
               </div>
@@ -152,13 +151,13 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
               <p className={valueClass}>Ödeme Miktarı: {fmt(shareholderInfo.paid_amount)}</p>
               <p
                 className={cn("font-medium text-[16px] md:text-lg", {
-                  "text-sac-red": shareholderInfo.paid_amount < 5000,
+                  "text-sac-red": shareholderInfo.paid_amount < branding.deposit_amount,
                   "text-sac-yellow":
-                    shareholderInfo.paid_amount >= 5000 && shareholderInfo.remaining_payment > 0,
+                    shareholderInfo.paid_amount >= branding.deposit_amount && shareholderInfo.remaining_payment > 0,
                   "text-sac-primary": shareholderInfo.remaining_payment <= 0,
                 })}
               >
-                {shareholderInfo.paid_amount < 5000
+                {shareholderInfo.paid_amount < branding.deposit_amount
                   ? "Kapora Bekleniyor"
                   : shareholderInfo.remaining_payment > 0
                     ? "Tüm Ödeme Bekleniyor"
@@ -168,6 +167,7 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
             <ProgressBar
               paidAmount={shareholderInfo.paid_amount}
               totalAmount={shareholderInfo.total_amount}
+              depositAmount={branding.deposit_amount}
             />
           </div>
         </div>

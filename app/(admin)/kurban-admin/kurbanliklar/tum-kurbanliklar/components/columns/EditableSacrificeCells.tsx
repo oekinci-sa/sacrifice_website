@@ -14,11 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { triggerSacrificeRefresh } from "@/utils/data-refresh";
@@ -153,7 +148,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   if (pendingOpt !== null) {
     return (
       <div className="flex items-center gap-1 w-full justify-center">
-        <span className="flex-1 text-center text-sm min-w-0 truncate">{formatPriceOption(pendingOpt)}</span>
+        <span className="flex-1 text-center text-sm min-w-0">{formatPriceOption(pendingOpt)}</span>
         <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
           <Check className="h-4 w-4" />
         </Button>
@@ -249,7 +244,7 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
 
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center truncate px-8">{displayValue}</span>
+      <span className="flex-1 text-center px-8 pr-9">{displayValue}</span>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -310,18 +305,11 @@ export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
     <>
       <div className="group relative w-full min-h-[2rem] flex items-center min-w-0 text-left">
         {notes ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="absolute inset-0 flex items-start justify-start truncate px-8 py-1 text-sm text-left cursor-default">
-                {notes}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap break-words">
-              {notes}
-            </TooltipContent>
-          </Tooltip>
+          <span className="flex-1 text-left px-8 pr-9 py-1 text-sm">
+            {notes}
+          </span>
         ) : (
-          <span className="absolute inset-0 flex items-start justify-start truncate px-8 py-1 text-sm text-left cursor-default">
+          <span className="flex-1 text-left px-8 pr-9 py-1 text-sm text-muted-foreground">
             -
           </span>
         )}

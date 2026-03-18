@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ColumnSelectorPopover } from "./components/column-selector-popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportTableToExcel } from "@/lib/export-to-excel";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
@@ -15,6 +16,7 @@ import { ShareholderFilters } from "./components/shareholder-filters";
 import { ShareholderSearch } from "./components/shareholder-search";
 
 export default function TumHissedarlarPage() {
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
   // Default column visibility - Vekalet gizli, Kayıt Tarihi ve Ödeme görünür (sonda)
   const [columnVisibility] = useState<VisibilityState>({
@@ -38,8 +40,9 @@ export default function TumHissedarlarPage() {
 
   // Initialize data if not already loaded and enable realtime updates
   useEffect(() => {
+    if (selectedYear == null) return;
     if (!isInitialized || allShareholders.length === 0) {
-      fetchShareholders();
+      fetchShareholders(selectedYear);
     }
 
     // Ensure realtime updates are enabled
@@ -51,7 +54,7 @@ export default function TumHissedarlarPage() {
     return () => {
       // We don't disable realtime here to keep the store updated for other components
     };
-  }, [isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
+  }, [selectedYear, isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
 
   // Column header mapping for dropdown - more descriptive names
   const columnHeaderMap: { [key: string]: string } = {
@@ -200,7 +203,7 @@ export default function TumHissedarlarPage() {
     <div className="space-y-8" suppressHydrationWarning>
       <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Hissedarlar</h1>
-        <p className="text-muted-foreground mt-2 max-w-[50%]">
+        <p className="text-muted-foreground mt-2 max-w-[75%]">
           Hisse alan kişileri görüntüleyebilir, görüşme ve ödeme durumunu takip edebilirsiniz.
         </p>
       </div>

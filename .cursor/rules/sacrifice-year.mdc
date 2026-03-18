@@ -12,7 +12,8 @@ globs:
 
 ## Admin sayfalar
 
-- **Varsayılan:** MAX(sacrifice_year) tenant için; veri yoksa `tenant_settings.active_sacrifice_year`
+- **Öncelik:** `tenant_settings.active_sacrifice_year` → MAX(sacrifice_year) sacrifice_animals
+- **availableYears:** tenant_settings + sacrifice_animals yıllarının birleşimi (dropdown'da her ikisi de görünür)
 - **Fallback yok:** İkisi de yoksa 500 hata
 - Geçmiş yıl verisi için `year` query param eklenebilir
 

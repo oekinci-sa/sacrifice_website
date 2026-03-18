@@ -1,7 +1,7 @@
+import { ClientLayout } from "@/app/(admin)/kurban-admin/client-layout";
 import "@/app/globals.css";
 import { AdminDataProvider } from "@/app/providers/AdminDataProvider";
 import { TenantBrandingProvider } from "@/app/providers/TenantBrandingProvider";
-import { ClientLayout } from "@/app/(admin)/kurban-admin/client-layout";
 import { getTenantBranding } from "@/lib/tenant-branding";
 import { Instrument_Sans } from "next/font/google";
 

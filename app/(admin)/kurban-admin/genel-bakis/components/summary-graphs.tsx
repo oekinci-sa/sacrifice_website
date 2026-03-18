@@ -24,6 +24,10 @@ const chartConfig = {
     label: "Bugün",
     color: "var(--sac-primary)",
   },
+  week1: {
+    label: "Son 1 Hafta",
+    color: "var(--sac-primary)",
+  },
   week: {
     label: "Son 2 Hafta",
     color: "var(--sac-primary)",
@@ -33,7 +37,7 @@ const chartConfig = {
     color: "var(--sac-primary)",
   },
   all: {
-    label: "Tüm Zamanlar",
+    label: "Tüm Yıl",
     color: "var(--sac-primary)",
   },
 } satisfies ChartConfig;
@@ -44,6 +48,7 @@ export function SummaryGraphs() {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("today");
   const [chartTotals, setChartTotals] = useState({
     today: 0,
+    week1: 0,
     week: 0,
     month: 0,
     all: 0,
@@ -56,6 +61,7 @@ export function SummaryGraphs() {
     // Calculate totals for each tab
     const totals = {
       today: 0,
+      week1: 0,
       week: 0,
       month: 0,
       all: 0,
@@ -69,6 +75,13 @@ export function SummaryGraphs() {
     totals.today = shareholders.filter((s) => {
       const purchaseDate = new Date(s.purchase_time);
       return purchaseDate >= today && purchaseDate <= todayEnd;
+    }).length;
+
+    // Last 1 week total
+    const oneWeekAgo = subDays(today, 7);
+    totals.week1 = shareholders.filter((s) => {
+      const purchaseDate = new Date(s.purchase_time);
+      return purchaseDate >= oneWeekAgo;
     }).length;
 
     // Last 2 weeks total
@@ -95,6 +108,7 @@ export function SummaryGraphs() {
     todayDate.setHours(0, 0, 0, 0);
 
     let startDate = todayDate;
+    let endDate = todayDate;
     let dailySharesData;
 
     if (activeChart === "today") {
@@ -117,6 +131,9 @@ export function SummaryGraphs() {
       });
     } else {
       switch (activeChart) {
+        case "week1":
+          startDate = subDays(todayDate, 7);
+          break;
         case "week":
           startDate = subDays(todayDate, 14);
           break;
@@ -127,14 +144,15 @@ export function SummaryGraphs() {
           if (shareholders.length === 0) {
             startDate = todayDate;
           } else {
-            // Find the earliest and latest purchase dates
             const dates = shareholders.map(s => new Date(s.purchase_time).getTime());
             startDate = new Date(Math.min(...dates));
+            endDate = new Date(Math.max(...dates));
+            endDate.setHours(23, 59, 59, 999);
           }
           break;
       }
 
-      const dateRange = eachDayOfInterval({ start: startDate, end: todayDate });
+      const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
 
       dailySharesData = dateRange.map((date) => {
         const dayStart = new Date(date);

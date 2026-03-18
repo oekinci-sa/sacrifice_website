@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -145,6 +146,8 @@ interface PaymentFiltersProps {
 }
 
 export function PaymentFilters({ table }: PaymentFiltersProps) {
+  const branding = useTenantBranding();
+  const depositAmount = branding.deposit_amount;
   const [paymentStatusCounts, setPaymentStatusCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -152,23 +155,22 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
       deposit: 0,
       partial: 0,
       completed: 0,
-      none: 0,
     };
     const filteredRows = table.getPreFilteredRowModel().rows;
     filteredRows.forEach((row) => {
       const sh = row.original;
-      if (sh.paid_amount === 0) {
-        counts.none++;
-      } else if (sh.paid_amount >= sh.total_amount) {
+      const paid = Number(sh.paid_amount ?? 0);
+      const total = Number(sh.total_amount ?? 0);
+      if (total > 0 && paid >= total) {
         counts.completed++;
-      } else if (sh.paid_amount >= 5000) {
+      } else if (total > 0 && paid >= depositAmount) {
         counts.partial++;
       } else {
         counts.deposit++;
       }
     });
     setPaymentStatusCounts(counts);
-  }, [table]);
+  }, [table, depositAmount]);
 
   useEffect(() => {
     const paymentColumn = table.getColumn("payment_status");
@@ -180,12 +182,12 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
       ) => {
         if (!filterValues?.length) return true;
         const shareholder = (row as { original: shareholderSchema }).original;
-        let status = "none";
-        if (!shareholder.total_amount || !shareholder.paid_amount) {
-          status = "none";
-        } else if (shareholder.paid_amount >= shareholder.total_amount) {
+        const paid = Number(shareholder.paid_amount ?? 0);
+        const total = Number(shareholder.total_amount ?? 0);
+        let status: string;
+        if (total > 0 && paid >= total) {
           status = "completed";
-        } else if (shareholder.paid_amount >= 5000) {
+        } else if (total > 0 && paid >= depositAmount) {
           status = "partial";
         } else {
           status = "deposit";
@@ -193,7 +195,7 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
         return filterValues.includes(status);
       };
     }
-  }, [table]);
+  }, [table, depositAmount]);
 
   const paymentColumn = table.getColumn("payment_status");
   if (!paymentColumn) return null;

@@ -34,7 +34,7 @@ export function ReservationInfoDialog({ isOpen, onClose }: ReservationInfoDialog
             <ClockIcon className="h-4 w-4 text-yellow-500" />
             <AlertTitle className="font-semibold">Oturum süresi</AlertTitle>
             <AlertDescription>
-              3 dakika boyunca işlem yapılmadığı takdirde oturumunuz sonlandırılacak ve rezervasyonunuz iptal edilecektir.
+              1 dakika boyunca herhangi bir işlem yapılmadığı takdirde oturumunuz sonlandırılacak ve rezervasyonunuz otomatik olarak iptal edilecektir.
             </AlertDescription>
           </Alert>
 

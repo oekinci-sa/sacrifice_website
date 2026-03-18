@@ -76,7 +76,8 @@ const setupRealtimeSubscription = (set: any, get: any) => {
                   sacrifice_id,
                   sacrifice_no,
                   sacrifice_time,
-                  share_price
+                  share_price,
+                  share_weight
                 )
               `)
               .eq('shareholder_id', updatedShareholder.shareholder_id)

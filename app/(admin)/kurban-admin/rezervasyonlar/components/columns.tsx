@@ -21,20 +21,19 @@ export type ReservationTransaction = {
 
 export const columns: ColumnDef<ReservationTransaction>[] = [
   {
-    accessorKey: "_displayNo",
-    header: "Rez. No",
-    cell: ({ row }) => {
-      const no = row.original._displayNo ?? row.index + 1;
-      return <span className="font-medium">Rez-{no}</span>;
-    },
-  },
-  {
     accessorKey: "sacrifice_animals",
+    accessorFn: (row) => row.sacrifice_animals?.sacrifice_no ?? -1,
     header: "Kurban No",
     cell: ({ row }) => {
       const sacrifice = row.original.sacrifice_animals;
       const no = sacrifice?.sacrifice_no;
       return no != null ? <span className="font-medium">{no}</span> : "-";
+    },
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.sacrifice_animals?.sacrifice_no ?? -1;
+      const b = rowB.original.sacrifice_animals?.sacrifice_no ?? -1;
+      return a - b;
     },
   },
   {

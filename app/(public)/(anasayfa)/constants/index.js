@@ -150,7 +150,7 @@ export const processes = [
     number: "05",
     header: "Ödeme",
     description:
-      "Kaydınızın kalıcı olması için 3 gün içinde kaporanızı, 20 Mayıs Cuma gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
+      "Kaydınızın kalıcı olması için 3 gün içinde kaporanızı, 20 Mayıs Çarşamba gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
   },
   {
     number: "06",
@@ -213,7 +213,7 @@ export const faq_categories = [
         id: "7",
         title: "Kapora ücreti var mı, hisse bedelini taksitle ödeyebilir miyim?",
         content:
-          "İlk etapta minimum 5.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 20 Mayıs Cuma gününe kadar tamamlamanız gerekmektedir.",
+          "İlk etapta minimum 5.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 20 Mayıs Çarşamba gününe kadar tamamlamanız gerekmektedir.",
       },
       {
         id: "14",
@@ -243,7 +243,7 @@ export const faq_categories = [
         id: "13",
         title: "Kesim yerine gidip kurbanımı görebilir miyim?",
         content:
-          "Evet, 20 Mayıs Cuma gününden itibaren bizlerle iletişime geçtikten sonra kurbanınızı görebilirsiniz.",
+          "Evet, 20 Mayıs Çarşamba gününden itibaren bizlerle iletişime geçtikten sonra kurbanınızı görebilirsiniz.",
       },
       {
         id: "8",

@@ -194,7 +194,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
         paymentStatusCounts.none++;
       } else if (shareholder.paid_amount >= shareholder.total_amount) {
         paymentStatusCounts.completed++;
-      } else if (shareholder.paid_amount >= 5000) {
+      } else if (shareholder.paid_amount >= branding.deposit_amount) {
         paymentStatusCounts.partial++;
       } else {
         paymentStatusCounts.deposit++;
@@ -202,7 +202,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     });
 
     setPaymentStatusCounts(paymentStatusCounts);
-  }, [table]);
+  }, [table, branding.deposit_amount]);
 
   // Generate sacrifice number options from the data
   const sacrificeOptions = useMemo(() => {
@@ -273,7 +273,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
           status = "none";
         } else if (shareholder.paid_amount >= shareholder.total_amount) {
           status = "completed";
-        } else if (shareholder.paid_amount >= 5000) {
+        } else if (shareholder.paid_amount >= branding.deposit_amount) {
           status = "partial";
         } else {
           status = "deposit";
@@ -282,7 +282,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
         return filterValues.includes(status);
       };
     }
-  }, [table]);
+  }, [table, branding.deposit_amount]);
 
   // Filter column setup for sacrifice number
   useEffect(() => {

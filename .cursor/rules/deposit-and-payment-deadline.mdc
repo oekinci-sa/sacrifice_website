@@ -1,0 +1,16 @@
+---
+description: Kapora ve ödeme tarihi DB'den alınmalı
+globs: 
+---
+# DEPOSIT AND PAYMENT DEADLINE RULE
+
+## Kapora (deposit_amount)
+- Kapora tutarı **asla** kodda sabit (5000, 10000 vb.) yazılmamalı
+- `tenant_settings.deposit_amount` kolonundan alınmalı
+- Admin ve public sayfalarda `useTenantBranding().deposit_amount` veya server-side `getTenantBranding().deposit_amount` kullanılmalı
+- Her tenant farklı kapora değeri kullanabilir
+
+## Ödeme tarihleri
+- Kapora süresi (gün): `tenant_settings.deposit_deadline_days`
+- Tam ödeme son tarihi: `tenant_settings.full_payment_deadline_month` + `full_payment_deadline_day` + `active_sacrifice_year`
+- "3 gün", "20 Mayıs" gibi metinler sabit yazılmamalı; tenant ayarlarından türetilmeli

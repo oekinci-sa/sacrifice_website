@@ -117,7 +117,9 @@ const Banner = () => {
               className="mt-1 w-[28px] h-[28px] md:w-[40px] md:h-[40px]"
             />
             <p className="text-sm md:text-lg text-black/90">
-              Kurban kesim yerimiz, Kahramankazan&apos;a bağlı Ciğir köyündedir.
+              {branding.logo_slug === "elya-hayvancilik"
+                ? "Kesimhanemiz Gölbaşı'na bağlı Cimşit köyünü geçincedir."
+                : "Kurban kesim yerimiz, Kahramankazan'a bağlı Ciğir köyündedir."}
               <br className="hidden md:block" />
               <Link
                 target="_blank"

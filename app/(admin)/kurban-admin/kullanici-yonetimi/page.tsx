@@ -54,7 +54,7 @@ export default function UserManagementPage() {
       <div className="flex items-center justify-between">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Kullanıcı Yönetimi</h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Panel kullanıcılarını ekleyebilir, rol ve onay durumlarını düzenleyebilirsiniz.
           </p>
         </div>

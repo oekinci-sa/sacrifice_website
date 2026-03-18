@@ -2,6 +2,7 @@
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -27,6 +28,7 @@ const TESLIMATLAR_COLUMN_HEADER_MAP: Record<string, string> = {
 
 export default function TeslimatlarPage() {
   const branding = useTenantBranding();
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
   const {
     shareholders: allShareholders,
@@ -39,13 +41,14 @@ export default function TeslimatlarPage() {
   } = useShareholderStore();
 
   useEffect(() => {
+    if (selectedYear == null) return;
     if (!isInitialized || allShareholders.length === 0) {
-      fetchShareholders();
+      fetchShareholders(selectedYear);
     }
     if (!realtimeEnabled) {
       enableRealtime();
     }
-  }, [isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
+  }, [selectedYear, isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
 
   const columns: ColumnDef<shareholderSchema>[] = useMemo(
     () => [
@@ -70,7 +73,7 @@ export default function TeslimatlarPage() {
         header: "İsim Soyisim",
         minSize: 156,
         cell: ({ row }) => (
-          <span className="truncate block">
+          <span>
             {row.original.shareholder_name || "-"}
           </span>
         ),
@@ -138,7 +141,7 @@ export default function TeslimatlarPage() {
       <div className="space-y-8">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Teslimatlar</h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Hissedar teslimat bilgilerini görüntüleyebilir ve düzenleyebilirsiniz.
           </p>
         </div>
@@ -153,7 +156,7 @@ export default function TeslimatlarPage() {
     <div className="space-y-8">
       <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Teslimatlar</h1>
-        <p className="text-muted-foreground mt-2 max-w-[50%]">
+        <p className="text-muted-foreground mt-2 max-w-[75%]">
           Hissedar teslimat bilgilerini görüntüleyebilir, teslimat tercihi ve yerini düzenleyebilirsiniz.
         </p>
       </div>

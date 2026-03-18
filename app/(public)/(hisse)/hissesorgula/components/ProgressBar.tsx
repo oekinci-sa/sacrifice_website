@@ -5,11 +5,12 @@ import { cn } from "@/lib/utils";
 interface ProgressBarProps {
   paidAmount: number;
   totalAmount: number;
+  depositAmount?: number;
 }
 
-export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
+export function ProgressBar({ paidAmount, totalAmount, depositAmount = 10000 }: ProgressBarProps) {
   const progress = (paidAmount / totalAmount) * 100;
-  const isDeposit = paidAmount >= 5000;
+  const isDeposit = paidAmount >= depositAmount;
   const isFullyPaid = paidAmount >= totalAmount;
 
   return (

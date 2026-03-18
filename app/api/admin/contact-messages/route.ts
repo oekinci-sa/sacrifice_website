@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
     const tenantId = getTenantId();
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter"); // "all" | "read" | "unread"
+    const yearParam = searchParams.get("year");
+    const year = yearParam ? parseInt(yearParam, 10) : null;
 
     let query = supabaseAdmin
       .from("contact_messages")
@@ -24,6 +26,10 @@ export async function GET(request: NextRequest) {
       query = query.not("read_at", "is", null);
     } else if (filter === "unread") {
       query = query.is("read_at", null);
+    }
+
+    if (year != null && !Number.isNaN(year)) {
+      query = query.eq("message_year", year);
     }
 
     const { data, error } = await query;

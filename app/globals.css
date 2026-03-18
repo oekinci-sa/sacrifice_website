@@ -109,6 +109,15 @@
   }
 }
 
+/* Admin panel: tenant renkleri yerine nötr ton (yeşil/mavi kaldırılır) */
+.admin-neutral-theme {
+  --sac-primary: #6b7280;
+  --sac-primary-lightest: #f9fafb;
+  --sac-primary-muted: rgb(107 114 128 / 0.2);
+  --sac-icon-primary: #6b7280;
+  --sac-muted: #6b7280;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

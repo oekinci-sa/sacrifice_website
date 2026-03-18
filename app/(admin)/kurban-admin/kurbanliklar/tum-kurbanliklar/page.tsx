@@ -3,6 +3,7 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
 
 export default function TumKurbanliklarPage() {
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   // Search and filter state
   const [globalFilter] = useState("");
 
@@ -34,16 +36,18 @@ export default function TumKurbanliklarPage() {
 
   // Initialize data if not already loaded
   useEffect(() => {
+    if (selectedYear == null) return;
     // Load sacrifices if not initialized
     if (!sacrificesInitialized || sacrifices.length === 0) {
-      refetchSacrifices();
+      refetchSacrifices(selectedYear);
     }
 
     // Load shareholders if not initialized
     if (!shareholdersInitialized || shareholders.length === 0) {
-      fetchShareholders();
+      fetchShareholders(selectedYear);
     }
   }, [
+    selectedYear,
     sacrificesInitialized,
     sacrifices.length,
     refetchSacrifices,
@@ -54,8 +58,9 @@ export default function TumKurbanliklarPage() {
 
   // Refetch shareholders when sacrifice is updated (e.g. hisse bedeli) so tooltip shows correct values
   useEffect(() => {
-    return setupRefreshListener(SACRIFICE_UPDATED_EVENT, fetchShareholders);
-  }, [fetchShareholders]);
+    if (selectedYear == null) return () => {};
+    return setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => fetchShareholders(selectedYear));
+  }, [selectedYear, fetchShareholders]);
 
   // Combine sacrifices with their shareholders
   const sacrificesWithShareholders = useMemo(() => {
@@ -110,7 +115,7 @@ export default function TumKurbanliklarPage() {
       <div className="space-y-8">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Kurbanlık ekleyebilir, hisse ve fiyatları yönetebilirsiniz.
           </p>
         </div>
@@ -126,7 +131,7 @@ export default function TumKurbanliklarPage() {
       <div className="flex items-center justify-between">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Kurbanlık ekleyebilir, hisse ve fiyatları yönetebilirsiniz.
           </p>
         </div>

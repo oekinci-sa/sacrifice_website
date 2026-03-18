@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { formatCurrencyForInput, parseCurrencyFromInput } from "@/utils/formatters";
 import { shareholderSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
@@ -34,7 +35,7 @@ export function EditablePaidAmountCell({
     }).format(amount) + " TL";
 
   const handleStartEdit = useCallback(() => {
-    setEditValue(paidAmount.toString());
+    setEditValue(paidAmount === 0 ? "" : formatCurrencyForInput(paidAmount.toString()));
     setIsEditing(true);
   }, [paidAmount]);
 
@@ -44,7 +45,7 @@ export function EditablePaidAmountCell({
   }, []);
 
   const handleSave = useCallback(async () => {
-    const numValue = parseFloat(editValue.replace(/\s/g, "").replace(",", "."));
+    const numValue = parseCurrencyFromInput(editValue);
     if (isNaN(numValue) || numValue < 0) {
       toast({
         title: "Geçersiz değer",
@@ -109,12 +110,12 @@ export function EditablePaidAmountCell({
           type="text"
           inputMode="numeric"
           value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
+          onChange={(e) => setEditValue(formatCurrencyForInput(e.target.value))}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
             if (e.key === "Escape") handleCancel();
           }}
-          className="h-8 w-24 text-sm tabular-nums"
+          className="h-8 min-w-[7rem] text-sm tabular-nums"
           autoFocus
           disabled={saving}
         />
@@ -142,7 +143,7 @@ export function EditablePaidAmountCell({
 
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center tabular-nums truncate px-8">{formatCurrency(paidAmount)}</span>
+      <span className="flex-1 text-center tabular-nums px-8 pr-9">{formatCurrency(paidAmount)}</span>
       <Button
         variant="ghost"
         size="icon"

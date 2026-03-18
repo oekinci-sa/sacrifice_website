@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { toTitleCase } from "@/utils/formatters"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
 
@@ -140,7 +141,13 @@ export default function ShareholderForm({
                             placeholder="Adınız"
                             value={data.name}
                             onChange={(e) => onInputChange(index, "name", e.target.value)}
-                            onBlur={(e) => onInputBlur(index, "name", e.target.value)}
+                            onBlur={(e) => {
+                              const formatted = toTitleCase(e.target.value);
+                              if (formatted !== e.target.value) {
+                                onInputChange(index, "name", formatted);
+                              }
+                              onInputBlur(index, "name", formatted);
+                            }}
                             className={cn(
                                 "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
                                 errors?.name ? "border-destructive/50 bg-destructive/10" : ""

@@ -41,6 +41,7 @@ export default withAuth(
     const isAdminRoute = req.nextUrl.pathname.startsWith("/kurban-admin");
     const isUserManagementRoute = req.nextUrl.pathname.startsWith("/kurban-admin/kullanici-yonetimi");
     const isReservationsRoute = req.nextUrl.pathname.startsWith("/kurban-admin/rezervasyonlar");
+    const isTenantSettingsRoute = req.nextUrl.pathname.startsWith("/kurban-admin/tenant-ayarlari");
 
     if (publicRoutes.includes(req.nextUrl.pathname)) {
       return NextResponse.next({ request: { headers: requestHeaders } });
@@ -55,6 +56,10 @@ export default withAuth(
     }
 
     if (token?.role !== "super_admin" && isReservationsRoute) {
+      return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
+    }
+
+    if (token?.role !== "super_admin" && isTenantSettingsRoute) {
       return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
     }
 

@@ -237,8 +237,8 @@ export function CustomDataTable<TData, TValue>({
   }, []);
 
   return (
-    <div>
-      <div className="space-y-4">
+    <div className="min-w-0 w-full">
+      <div className="space-y-4 min-w-0">
         {typeof filters === 'function' ? filters({
           table,
           columnFilters,
@@ -250,7 +250,7 @@ export function CustomDataTable<TData, TValue>({
           } : undefined,
         }) : null}
 
-        <div className="rounded-md">
+        <div className="rounded-md min-w-0">
           <Table>
             <CustomTableHeader table={table} tableSize={tableSize} />
             <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} />

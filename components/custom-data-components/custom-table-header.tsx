@@ -45,28 +45,31 @@ export function CustomTableHeader<TData>({
               style={(header.column.columnDef as { minSize?: number }).minSize != null
                 ? { minWidth: `${(header.column.columnDef as { minSize?: number }).minSize}px` }
                 : undefined}
-              className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground font-sans [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass}`}
+              className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass}`}
             >
               {header.isPlaceholder ? null : (
                 <div className="flex items-center justify-center gap-2">
                   {typeof header.column.columnDef.header === "string" ? (
-                    <>
-                      {header.column.columnDef.header}
-                      {header.column.getCanSort() && (
-                        <span
-                          className="-ml-1 md:-ml-0 cursor-pointer rounded hover:bg-muted"
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {header.column.getIsSorted() === "asc" ? (
-                            <ArrowUp className={arrowClass} />
-                          ) : header.column.getIsSorted() === "desc" ? (
-                            <ArrowDown className={arrowClass} />
-                          ) : (
-                            <ArrowUpDown className={arrowClass} />
-                          )}
-                        </span>
-                      )}
-                    </>
+                    header.column.getCanSort() ? (
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 cursor-pointer rounded hover:bg-muted hover:text-foreground px-1 -mx-1"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {header.column.columnDef.header}
+                        {header.column.getIsSorted() === "asc" ? (
+                          <ArrowUp className={arrowClass} />
+                        ) : header.column.getIsSorted() === "desc" ? (
+                          <ArrowDown className={arrowClass} />
+                        ) : (
+                          <ArrowUpDown className={arrowClass} />
+                        )}
+                      </button>
+                    ) : (
+                      <>
+                        {header.column.columnDef.header}
+                      </>
+                    )
                   ) : (
                     flexRender(
                       header.column.columnDef.header,

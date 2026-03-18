@@ -80,20 +80,8 @@ export const columns: ColumnDef<ContactMessage>[] = [
     header: "Mesaj",
     cell: ({ row }) => {
       const msg = row.getValue("message") as string;
-      const truncated = msg.length > 60 ? msg.slice(0, 60) + "…" : msg;
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-help max-w-[200px] truncate block">
-                {truncated}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-sm">
-              <p className="whitespace-pre-wrap">{msg}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <span className="whitespace-pre-wrap">{msg}</span>
       );
     },
   },

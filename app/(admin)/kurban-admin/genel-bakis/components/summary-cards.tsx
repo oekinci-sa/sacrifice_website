@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { StatCardWithProgress } from "@/components/custom-data-components/stat-card-with-progress";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
@@ -7,6 +8,7 @@ import { CreditCard } from "lucide-react";
 import { useMemo } from "react";
 
 export function SummaryCards() {
+    const branding = useTenantBranding();
     // Get data from stores
     const { sacrifices } = useSacrificeStore();
     const { shareholders } = useShareholderStore();
@@ -54,9 +56,10 @@ export function SummaryCards() {
             0
         );
 
-        // Calculate remaining deposits (less than 5000 TL paid after 3 days)
+        // Calculate remaining deposits (less than deposit_amount paid)
+        const depositAmount = branding.deposit_amount;
         const remainingDeposits = shareholders.filter((s) => {
-            return s.paid_amount < 5000;
+            return s.paid_amount < depositAmount;
         }).length;
 
         // Calculate shareholders with incomplete payments
@@ -122,7 +125,7 @@ export function SummaryCards() {
             fullyPaidSacrifices,
             activeSacrificesCount
         };
-    }, [sacrifices, shareholders]);
+    }, [sacrifices, shareholders, branding.deposit_amount]);
 
     return (
         <div className="flex flex-col space-y-8">

@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 
 export const MISMATCHES_UPDATED_EVENT = "mismatches-updated";
 
-export function useUnacknowledgedMismatchesCount() {
+export function useUnacknowledgedMismatchesCount(year?: number | null) {
   const [count, setCount] = useState<number | null>(null);
 
   const fetchCount = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/mismatched-shares");
+      const url = year != null
+        ? `/api/admin/mismatched-shares?year=${year}`
+        : "/api/admin/mismatched-shares";
+      const res = await fetch(url);
       if (!res.ok) return;
       const { items } = await res.json();
       const unackCount = (items ?? []).filter(
@@ -17,7 +20,7 @@ export function useUnacknowledgedMismatchesCount() {
     } catch {
       setCount(0);
     }
-  }, []);
+  }, [year]);
 
   useEffect(() => {
     fetchCount();

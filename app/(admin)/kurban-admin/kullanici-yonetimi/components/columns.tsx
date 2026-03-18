@@ -36,8 +36,8 @@ export const columns: ColumnDef<UserType>[] = [
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start min-w-0">
-            <span className="font-medium truncate max-w-full">{row.getValue("name") || "—"}</span>
-            <span className="text-xs text-muted-foreground truncate max-w-full">
+            <span className="font-medium">{row.getValue("name") || "—"}</span>
+            <span className="text-xs text-muted-foreground">
               {row.original.email}
             </span>
           </div>

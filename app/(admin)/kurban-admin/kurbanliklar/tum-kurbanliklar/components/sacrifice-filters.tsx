@@ -22,6 +22,86 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+// Ödeme Durumu filter
+function PaymentStatusFilter({
+  table,
+  paymentStatusFilter,
+  completedCount,
+  incompleteCount,
+}: {
+  table: Table<sacrificeSchema>;
+  paymentStatusFilter?: string;
+  completedCount: number;
+  incompleteCount: number;
+}) {
+  const column = table.getColumn("payment_status");
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 border-dashed text-xs whitespace-nowrap flex items-center justify-start"
+        >
+          <PlusCircle className="mr-2 h-3 w-3 shrink-0" />
+          Ödeme Durumu
+          {paymentStatusFilter && (
+            <span className="ml-2 bg-muted text-xs px-1.5 py-0.5 rounded">
+              {paymentStatusFilter === "completed" ? "Tamamlananlar" : "Tamamlanmayanlar"}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[220px] p-0" align="start">
+        <Command>
+          <CommandList>
+            <CommandGroup>
+              <CommandItem
+                onSelect={() => {
+                  const next = paymentStatusFilter === "completed" ? undefined : "completed";
+                  column?.setFilterValue(next);
+                }}
+              >
+                <div
+                  className={cn(
+                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                    paymentStatusFilter === "completed"
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-primary opacity-50 [&_svg]:invisible"
+                  )}
+                >
+                  <Check className="h-4 w-4" />
+                </div>
+                <span>Tamamlananlar</span>
+                <span className="ml-auto font-mono text-xs text-muted-foreground">{completedCount}</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  const next = paymentStatusFilter === "incomplete" ? undefined : "incomplete";
+                  column?.setFilterValue(next);
+                }}
+              >
+                <div
+                  className={cn(
+                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
+                    paymentStatusFilter === "incomplete"
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-primary opacity-50 [&_svg]:invisible"
+                  )}
+                >
+                  <Check className="h-4 w-4" />
+                </div>
+                <span>Tamamlanmayanlar</span>
+                <span className="ml-auto font-mono text-xs text-muted-foreground">{incompleteCount}</span>
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Filter Badge component for mobile
 const FilterCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
@@ -189,7 +269,7 @@ function DataTableFacetedFilter<TData, TValue>({
                   >
                     <div
                       className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border rounded-md",
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected
                           ? "bg-primary border-primary text-primary-foreground"
                           : "border-primary opacity-50 [&_svg]:invisible"
@@ -233,11 +313,7 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
         table.getColumn("sacrifice_no")?.setFilterValue(undefined);
         table.getColumn("empty_share")?.setFilterValue(undefined);
         table.getColumn("share_price")?.setFilterValue(undefined);
-
-        // Make sure to check if column exists before trying to reset it
-        if (table.getColumn("payment_status")) {
-          table.getColumn("payment_status")?.setFilterValue(undefined);
-        }
+        table.getColumn("payment_status")?.setFilterValue(undefined);
       });
     }
   }, [registerResetFunction, table]);
@@ -314,6 +390,19 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
     }
   }, [table]);
 
+  const paymentStatusFilter = table.getColumn("payment_status")?.getFilterValue() as string | undefined;
+  const { completedCount, incompleteCount } = useMemo(() => {
+    const rows = table.getPreFilteredRowModel().rows;
+    let completed = 0;
+    let incomplete = 0;
+    rows.forEach((row) => {
+      const ratio = row.getValue("payment_status") as number;
+      if (ratio >= 100) completed++;
+      else incomplete++;
+    });
+    return { completedCount: completed, incompleteCount: incomplete };
+  }, [table]);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <DataTableFacetedFilter
@@ -335,6 +424,12 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
         type="share"
         showHideFullOption={showHideFullOption}
         setShowHideFullOption={setShowHideFullOption}
+      />
+      <PaymentStatusFilter
+        table={table}
+        paymentStatusFilter={paymentStatusFilter}
+        completedCount={completedCount}
+        incompleteCount={incompleteCount}
       />
     </div>
   );

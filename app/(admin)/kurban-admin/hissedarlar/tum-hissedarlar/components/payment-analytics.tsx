@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { shareholderSchema } from "@/types";
 
 interface PaymentAnalyticsProps {
@@ -7,18 +8,21 @@ interface PaymentAnalyticsProps {
 }
 
 export function PaymentAnalytics({ shareholders }: PaymentAnalyticsProps) {
+  const branding = useTenantBranding();
+  const depositAmount = branding.deposit_amount;
+
   // Toplam hedeflenen tutar
   const totalTargetAmount = shareholders.reduce((sum, shareholder) => sum + shareholder.total_amount, 0);
 
   // Toplanan tutar
   const totalCollectedAmount = shareholders.reduce((sum, shareholder) => sum + shareholder.paid_amount, 0);
 
-  // Eksik kapora sayısı (paid_amount < 5000)
-  const missingDepositCount = shareholders.filter(s => s.paid_amount < 5000).length;
+  // Eksik kapora sayısı (paid_amount < deposit_amount)
+  const missingDepositCount = shareholders.filter(s => s.paid_amount < depositAmount).length;
 
-  // Eksik ödeme sayısı (paid_amount >= 5000 && paid_amount < total_amount)
+  // Eksik ödeme sayısı (paid_amount >= deposit_amount && paid_amount < total_amount)
   const missingPaymentCount = shareholders.filter(s =>
-    s.paid_amount >= 5000 && s.paid_amount < s.total_amount
+    s.paid_amount >= depositAmount && s.paid_amount < s.total_amount
   ).length;
 
   // Toplam hissedar sayısı

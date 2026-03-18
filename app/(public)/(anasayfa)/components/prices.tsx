@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ interface PriceItem {
 }
 
 const Prices = () => {
+  const branding = useTenantBranding();
   const router = useRouter();
   const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ const Prices = () => {
             * Kilogram bilgileri <b>±3 kg</b> arasında değişiklik gösterebilmektedir.
           </span>
           <span className="block mt-2">
-            * Kapora ücreti <b>10.000 TL</b>&apos;dir.
+            * Kapora ücreti <b>{new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(branding.deposit_amount)} TL</b>&apos;dir.
           </span>
         </p>
       </motion.div>

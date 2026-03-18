@@ -15,14 +15,14 @@ export const reminders = [
     src: "exclamation.svg",
     header: "Tüm Ödemeler",
     description:
-      "Tüm ödemeler 20 Mayıs Cuma<br/>gününe kadar tamamlanmalıdır.",
+      "Tüm ödemeler 20 Mayıs Çarşamba<br/>gününe kadar tamamlanmalıdır.",
   },
 ];
 
 export const agreementTerms = [
   {
     "title": "Ödeme ve Kapora",
-    "description": "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 20 Mayıs Cuma gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
+    "description": "Her hisse için hisse alımdan itibaren 3 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 20 Mayıs Çarşamba gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
   },
   {
     "title": "Vekalet ve Dini Usuller",

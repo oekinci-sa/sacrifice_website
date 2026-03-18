@@ -219,7 +219,7 @@ export function ClientLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen admin-neutral-theme">
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-2 sm:px-4">

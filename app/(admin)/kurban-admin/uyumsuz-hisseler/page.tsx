@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { MISMATCHES_UPDATED_EVENT } from "@/hooks/useUnacknowledgedMismatchesCount";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import {
   createColumns,
   type MismatchedShareRow,
@@ -21,12 +22,14 @@ export default function UyumsuzHisselerPage() {
     "bilinmeyenler"
   );
   const { toast } = useToast();
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
 
   const fetchItems = useCallback(async () => {
+    if (selectedYear == null) return;
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/mismatched-shares");
+      const res = await fetch(`/api/admin/mismatched-shares?year=${selectedYear}`);
       if (!res.ok) {
         const data = await res.json();
         const msg = data.details
@@ -41,7 +44,7 @@ export default function UyumsuzHisselerPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedYear]);
 
   useEffect(() => {
     fetchItems();
@@ -127,7 +130,7 @@ export default function UyumsuzHisselerPage() {
           <h1 className="text-2xl font-semibold tracking-tight mt-0">
             Uyumsuzluklar
           </h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Hissedar-boş hisse uyumsuzluklarını listeler, farkındalık kaydedebilirsiniz.
           </p>
         </div>

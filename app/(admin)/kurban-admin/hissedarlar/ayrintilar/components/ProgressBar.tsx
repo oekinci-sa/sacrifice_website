@@ -5,15 +5,16 @@ import { cn } from "@/lib/utils";
 interface ProgressBarProps {
   paidAmount: number;
   totalAmount: number;
+  depositAmount?: number;
 }
 
-export function ProgressBar({ paidAmount, totalAmount }: ProgressBarProps) {
+export function ProgressBar({ paidAmount, totalAmount, depositAmount = 10000 }: ProgressBarProps) {
   // Calculate progress percentage
   const progress = Math.min(Math.round((paidAmount / totalAmount) * 100), 100);
 
   // Determine color based on payment status
   const getColor = () => {
-    if (paidAmount < 5000) return "bg-sac-red"; // Red for kapora not paid
+    if (paidAmount < depositAmount) return "bg-sac-red"; // Red for kapora not paid
     if (paidAmount < totalAmount) return "bg-sac-yellow"; // Yellow for partial payment
     return "bg-sac-primary"; // Green for full payment
   };

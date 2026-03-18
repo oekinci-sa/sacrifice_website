@@ -1,0 +1,61 @@
+---
+description: Tenant ayarları tenant_settings'tan dinamik alınmalı, statik kullanılmamalı
+globs: 
+alwaysApply: false
+---
+
+# Tenant Ayarları – Dinamik Kullanım Kuralı
+
+## Kural
+Tenant ayarlarından gelen değerler (IBAN, iletişim bilgileri, logo_slug, deposit_amount, agreement_terms, website_url vb.) sitede kullanılırken **statik/hardcode edilmemeli**; her zaman `tenant_settings` tablosundan **dinamik** olarak alınmalıdır.
+
+## Doğru Kullanım
+
+### Client Component'lerde
+```tsx
+// ✅ DOĞRU
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+
+function MyComponent() {
+  const branding = useTenantBranding();
+  return <span>{branding.contact_phone}</span>;
+}
+```
+
+### Server Component / API / Layout'larda
+```tsx
+// ✅ DOĞRU
+import { getTenantBranding } from "@/lib/tenant-branding";
+
+export default async function Page() {
+  const branding = await getTenantBranding();
+  return <Layout initialBranding={branding}>...</Layout>;
+}
+```
+
+### Layout'ta Provider ile geçirme
+```tsx
+// ✅ DOĞRU – initialBranding sunucudan alınır
+const branding = await getTenantBranding();
+<TenantBrandingProvider initialBranding={branding}>
+  {children}
+</TenantBrandingProvider>
+```
+
+## Yanlış Kullanım
+
+```tsx
+// ❌ YANLIŞ – Statik değer
+const phone = "0312 312 44 64";
+
+// ❌ YANLIŞ – Sabit logo_slug
+const logo = "ankara-kurban";
+
+// ❌ YANLIŞ – Hardcode deposit
+const deposit = 10000;
+```
+
+## Özet
+- **Client**: `useTenantBranding()` hook'u kullan.
+- **Server**: `getTenantBranding()` ile `tenant_settings`'tan al.
+- **Fallback**: Sadece tenant yoksa veya veri gelmezse `DEFAULT_BRANDING` kullanılır; kodda sabit değer yazma.

@@ -1,6 +1,5 @@
 "use client"
 
-import { agreementTerms } from "@/app/(public)/(hisse)/constants"
 import { Button } from "@/components/ui/button"
 import { useTenantBranding } from "@/hooks/useTenantBranding"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -21,7 +20,7 @@ interface TermsAgreementDialogProps {
     onOpenChange: (open: boolean) => void
     onConfirm: () => void
     onBackToSecurityCode: () => void
-    securityCode: string // Pass the security code for display
+    securityCode: string
 }
 
 export default function TermsAgreementDialog({
@@ -102,16 +101,13 @@ export default function TermsAgreementDialog({
                 {/* Main scrollable content area */}
                 <div className="flex-1 overflow-hidden px-6">
 
-                    {/* Security code */}
-                    <div className="flex items-center gap-2 p-3 rounded-md mb-4 bg-muted/30 border border-border/50">
-                        <span className="text-[14px] md:text-lg font-medium">Belirlediğiniz kod:</span>
-                        <span className="text-[14px] md:text-lg font-bold tabular-nums">{securityCode}</span>
-
+                    {/* Kodu değiştir - güvenlik kodu onay sonrası gösterilmez */}
+                    <div className="flex items-center justify-start p-2 mb-4">
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={onBackToSecurityCode}
-                            className="ml-auto text-xs flex items-center text-[14px] md:text-lg gap-1 text-muted-foreground hover:text-primary"
+                            className="text-xs flex items-center gap-1 text-muted-foreground hover:text-primary"
                         >
                             <ArrowLeft className="h-3 w-3" />
                             Kodu değiştir
@@ -137,19 +133,32 @@ export default function TermsAgreementDialog({
                                 Lütfen aşağıdaki maddeleri dikkatlice okuyunuz. Hisse kaydı ve işlemleri sırasında bu şartları kabul etmiş sayılırsınız.
                             </p>
 
-                            {/* Agreement terms */}
+                            {/* Agreement terms - DB'den branding.agreement_terms */}
                             <div className="space-y-3">
-                                {agreementTerms.map((term, index) => (
-                                    <div key={index} className="flex gap-1">
-                                        <p className="flex-shrink-0 justify-center font-medium ">
-                                            {index + 1}.
-                                        </p>
-                                        <div>
-                                            <p className="font-medium ">{term.title}</p>
-                                            <p className="leading-relaxed">{term.description}</p>
+                                {(branding.agreement_terms ?? []).map((term, index) => {
+                                    const description =
+                                        term.title === "Ödeme ve Kapora"
+                                            ? `Her hisse için hisse alımdan itibaren ${branding.deposit_deadline_days} gün içerisinde en az ${new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(branding.deposit_amount)}₺ kapora ödenmesi zorunludur. Kalan tutarın ise ${branding.full_payment_deadline_day} ${["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][branding.full_payment_deadline_month]} gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir.`
+                                            : term.description;
+                                    return (
+                                        <div key={index} className="flex flex-col gap-0">
+                                            <div className="flex gap-1">
+                                                <p className="flex-shrink-0 justify-center font-medium ">
+                                                    {index + 1}.
+                                                </p>
+                                                <div>
+                                                    <p className="font-medium ">{term.title}</p>
+                                                    <p className="leading-relaxed">{description}</p>
+                                                    {branding.logo_slug === "elya-hayvancilik" && term.title === "Bilgilendirme ve Takip" && (
+                                                        <p className="leading-relaxed mt-3 text-muted-foreground">
+                                                            Kesimden 45 dakika önce kesimhanede bulunmanız gerekmektedir.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             {/* Not - Elya için farklı metin */}

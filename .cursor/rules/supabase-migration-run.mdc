@@ -1,0 +1,22 @@
+---
+description: Supabase migration ve SQL komutlarını doğrudan çalıştır
+globs: 
+alwaysApply: true
+---
+# Supabase Migration / SQL Çalıştırma
+
+## Kural
+- **Migration ve SQL komutlarını doğrudan çalıştır** — MCP `user-supabase` ile `apply_migration` veya `execute_sql` kullan. Kullanıcıdan "supabase db push" veya "migration'ı çalıştır" diye sorma.
+- **Kullanıcı onayı isteme** — Kolon ekleme, tablo oluşturma, veri güncelleme gibi normal işlemler için onay isteme.
+
+## Onay Gerektiren İşlemler
+Sadece **geri dönüşü olmayan** işlemlerde kullanıcı onayı iste:
+- Veri silme (`DELETE`, `TRUNCATE`)
+- Kolon silme (`ALTER TABLE ... DROP COLUMN`)
+- Tablo silme (`DROP TABLE`)
+- Index/constraint silme
+
+## Uygulama
+- DDL (ALTER TABLE ADD COLUMN, CREATE TABLE vb.) → `apply_migration`
+- DML (SELECT, UPDATE, INSERT) → `execute_sql` veya `apply_migration`
+- Project ID: Supabase URL'den (`xgrtwbvudkzvgavqskdt` veya env'den)

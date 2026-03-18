@@ -9,12 +9,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -137,7 +131,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     const pendingType = getDeliverySelectionFromLocation(branding.logo_slug, pendingValue);
     return (
       <div className="flex items-center gap-1 w-full justify-center">
-        <span className="flex-1 text-center text-sm min-w-0 truncate">{getDeliveryTypeDisplayLabel(branding.logo_slug, pendingType, null, false)}</span>
+        <span className="flex-1 text-center text-sm min-w-0">{getDeliveryTypeDisplayLabel(branding.logo_slug, pendingType, null, false)}</span>
         <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
           <Check className="h-4 w-4" />
         </Button>
@@ -150,7 +144,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
 
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center text-sm truncate px-8 py-1">{current}</span>
+      <span className="flex-1 text-center text-sm px-8 pr-9 py-1">{current}</span>
       <DropdownMenu open={dropdownOpen} onOpenChange={(open) => { setDropdownOpen(open); if (!open && isEditing && !pendingValue) setIsEditing(false); }}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -209,18 +203,9 @@ export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSche
   return (
     <>
       <div className="group relative w-full min-h-[2rem] flex items-center min-w-0">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="absolute inset-0 flex items-start justify-start truncate px-8 py-1 text-sm text-left cursor-default">
-                {loc || "-"}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[320px] break-words">
-              {loc || "-"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <span className="flex-1 text-left px-8 pr-9 py-1 text-sm">
+          {loc || "-"}
+        </span>
         <Button
           variant="ghost"
           size="icon"

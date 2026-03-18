@@ -4,6 +4,7 @@ import { CustomDataTable } from "@/components/custom-data-components/custom-data
 import { Button } from "@/components/ui/button";
 import { ColumnSelectorPopover } from "../tum-hissedarlar/components/column-selector-popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -36,6 +37,7 @@ const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
 export default function OdemelerPage() {
   const { data: session } = useSession();
   const branding = useTenantBranding();
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
   const {
     shareholders: allShareholders,
@@ -49,13 +51,14 @@ export default function OdemelerPage() {
   } = useShareholderStore();
 
   useEffect(() => {
+    if (selectedYear == null) return;
     if (!isInitialized || allShareholders.length === 0) {
-      fetchShareholders();
+      fetchShareholders(selectedYear);
     }
     if (!realtimeEnabled) {
       enableRealtime();
     }
-  }, [isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
+  }, [selectedYear, isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
 
   const columns: ColumnDef<shareholderSchema>[] = useMemo(
     () => [
@@ -125,7 +128,7 @@ export default function OdemelerPage() {
         accessorFn: (row) => row.delivery_location ?? "",
         header: "Teslimat Yeri",
         cell: ({ row }) => (
-          <span className="truncate block max-w-[180px]" title={row.original.delivery_location || undefined}>
+          <span title={row.original.delivery_location || undefined}>
             {row.original.delivery_location || "-"}
           </span>
         ),
@@ -170,11 +173,23 @@ export default function OdemelerPage() {
           const total = parseFloat(row.total_amount.toString());
           return total > 0 ? (paid / total) * 100 : 0;
         },
-        cell: () => null,
+        cell: ({ row }) => {
+          const paid = parseFloat(row.original.paid_amount.toString());
+          const total = parseFloat(row.original.total_amount.toString());
+          let label: string;
+          if (total > 0 && paid >= total) {
+            label = "Tamamlandı";
+          } else if (total > 0 && paid >= branding.deposit_amount) {
+            label = "Tüm Ödeme Bekleniyor";
+          } else {
+            label = "Kapora Bekleniyor";
+          }
+          return <span className="text-sm">{label}</span>;
+        },
         enableHiding: true,
       },
     ],
-    [session?.user?.name, updateShareholder, branding.logo_slug]
+    [session?.user?.name, updateShareholder, branding.logo_slug, branding.deposit_amount]
   );
 
   const sortedData = useMemo(() => {
@@ -199,7 +214,7 @@ export default function OdemelerPage() {
       <div className="space-y-8">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Ödemeler</h1>
-          <p className="text-muted-foreground mt-2 max-w-[50%]">
+          <p className="text-muted-foreground mt-2 max-w-[75%]">
             Hissedar ödemelerini takip edebilir ve güncelleyebilirsiniz.
           </p>
         </div>
@@ -214,7 +229,7 @@ export default function OdemelerPage() {
     <div className="space-y-8">
       <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Ödemeler</h1>
-        <p className="text-muted-foreground mt-2 max-w-[50%]">
+        <p className="text-muted-foreground mt-2 max-w-[75%]">
           Hissedar ödemelerini takip edebilir ve güncelleyebilirsiniz.
         </p>
       </div>
@@ -231,7 +246,7 @@ export default function OdemelerPage() {
           storageKey="odemeler"
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
-          initialState={{ columnVisibility: { payment_status: false, delivery_location: false, delivery_location_raw: false } }}
+          initialState={{ columnVisibility: { delivery_location: false, delivery_location_raw: false } }}
           filters={({ table, columnOrder, onColumnOrderChange }) => (
             <div className="flex flex-wrap items-center justify-between gap-3 w-full">
               <div className="flex flex-wrap items-center gap-3">

@@ -6,6 +6,7 @@ import ReceiptPDF from "../ReceiptPDF";
 export interface ReceiptData {
   shareholder_name: string;
   phone_number: string;
+  second_phone_number?: string;
   delivery_type: string;
   delivery_location: string;
   sacrifice_consent: boolean;

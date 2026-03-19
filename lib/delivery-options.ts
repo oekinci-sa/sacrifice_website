@@ -91,6 +91,11 @@ export function getDeliveryTypeDisplayLabel(
   return deliveryType;
 }
 
+/** Tenant'ın Adrese teslim seçeneği var mı */
+export function hasAdreseTeslimOption(logoSlug: string): boolean {
+  return getDeliveryOptions(logoSlug).some((o) => o.value === "Adrese teslim");
+}
+
 /** delivery_location → Select value (form gösterimi için) */
 export function getDeliverySelectionFromLocation(logoSlug: string, deliveryLocation: string): string {
   if (!deliveryLocation) return "Kesimhane";

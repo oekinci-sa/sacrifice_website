@@ -11,6 +11,7 @@ interface ShareholderUpdateInput {
   shareholder_id: string; // Required for identifying which shareholder to update
   shareholder_name?: string;
   phone_number?: string;
+  second_phone_number?: string | null;
   delivery_fee?: number;
   delivery_location?: string;
   delivery_type?: string; // Kesimhane | Adrese teslim | Ulus
@@ -26,6 +27,7 @@ interface ShareholderUpdateInput {
 interface UpdateFields {
   shareholder_name?: string;
   phone_number?: string;
+  second_phone_number?: string | null;
   delivery_fee?: number;
   delivery_location?: string;
   delivery_type?: string;
@@ -78,6 +80,14 @@ export async function POST(request: NextRequest) {
     if (updateData.phone_number !== undefined) {
       const formatted = formatPhoneForDB(updateData.phone_number);
       if (formatted) updateFields.phone_number = formatted;
+    }
+    if (updateData.second_phone_number !== undefined) {
+      if (updateData.second_phone_number === null || updateData.second_phone_number === "") {
+        updateFields.second_phone_number = null;
+      } else {
+        const formatted = formatPhoneForDB(updateData.second_phone_number);
+        if (formatted) updateFields.second_phone_number = formatted;
+      }
     }
     if (updateData.delivery_fee !== undefined) updateFields.delivery_fee = updateData.delivery_fee;
     if (updateData.delivery_location !== undefined) updateFields.delivery_location = updateData.delivery_location;

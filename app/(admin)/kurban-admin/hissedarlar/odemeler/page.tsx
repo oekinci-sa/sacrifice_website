@@ -80,6 +80,7 @@ export default function OdemelerPage() {
       {
         accessorKey: "phone_number",
         header: "Telefon",
+        enableSorting: false,
         cell: ({ row }) =>
           formatPhoneForDisplayWithSpacing(row.original.phone_number || ""),
       },

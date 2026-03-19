@@ -1,5 +1,6 @@
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { formatPhoneForDB } from "@/utils/formatters";
 import { NextResponse } from "next/server";
 
 // Define the expected structure for a single shareholder
@@ -7,6 +8,7 @@ import { NextResponse } from "next/server";
 interface ShareholderInput {
   shareholder_name: string;
   phone_number: string;
+  second_phone_number?: string;
   email?: string;
   transaction_id: string;
   sacrifice_id: string;
@@ -49,13 +51,18 @@ export async function POST(req: Request) {
       if (sacrificeYear == null) {
         throw new Error(`Sacrifice ${s.sacrifice_id} not found`);
       }
-      const { share_price: _sharePrice, ...rest } = s as ShareholderInput & { share_price?: number };
+      const { share_price: _sharePrice, second_phone_number: secondPhone, ...rest } = s as ShareholderInput & { share_price?: number };
       void _sharePrice;
-      return {
+      const row: Record<string, unknown> = {
         ...rest,
         tenant_id: tenantId,
         sacrifice_year: sacrificeYear,
       };
+      if (secondPhone) {
+        const formatted = formatPhoneForDB(secondPhone);
+        if (formatted) row.second_phone_number = formatted;
+      }
+      return row;
     });
 
     const { data, error } = await supabaseAdmin

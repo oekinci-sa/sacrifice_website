@@ -16,6 +16,7 @@ interface ShareholderSummaryProps {
     name: string;
     phone: string;
     delivery_location: string;
+    second_phone?: string;
     is_purchaser?: boolean;
     paid_amount?: number;
   }[];

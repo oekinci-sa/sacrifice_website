@@ -1,6 +1,9 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useCompleteReservation } from "@/hooks/useReservations";
-import { useCreateShareholders } from "@/hooks/useShareholders";
+import {
+  ShareholderInput as ApiShareholderInput,
+  useCreateShareholders,
+} from "@/hooks/useShareholders";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useValidateShareholders } from "@/hooks/useValidateShareholders";
 import {
@@ -18,6 +21,7 @@ interface ShareholderInput {
   phone: string;
   email?: string;
   delivery_location: string;
+  second_phone?: string;
   is_purchaser?: boolean;
   paid_amount?: number;
 }
@@ -114,7 +118,7 @@ export function useShareholderSummaryApproval(
           shareholder.paid_amount !== undefined ? shareholder.paid_amount : 0;
         const remainingPayment = totalAmount - paidAmount;
 
-        return {
+        const payload: ApiShareholderInput = {
           shareholder_name: toTitleCase(shareholder.name),
           phone_number: formatPhoneForDB(shareholder.phone),
           email: shareholder.email?.trim() || undefined,
@@ -130,6 +134,10 @@ export function useShareholderSummaryApproval(
           total_amount: totalAmount,
           remaining_payment: remainingPayment,
         };
+        if (delivery_type === "Adrese teslim" && shareholder.second_phone) {
+          payload.second_phone_number = formatPhoneForDB(shareholder.second_phone);
+        }
+        return payload;
       });
 
       const createMethod =

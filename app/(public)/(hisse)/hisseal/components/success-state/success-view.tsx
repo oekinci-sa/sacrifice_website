@@ -22,6 +22,7 @@ interface ShareholderData {
   name?: string;
   phone_number?: string;
   phone?: string;
+  second_phone_number?: string;
   email?: string;
   delivery_location?: string;
   sacrifice_consent?: boolean;
@@ -144,6 +145,9 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     const formattedPhoneNumber = formatPhoneForDisplayWithSpacing(
       shareholder.phone_number || shareholder.phone || ""
     );
+    const formattedSecondPhone = shareholder.second_phone_number
+      ? formatPhoneForDisplayWithSpacing(shareholder.second_phone_number)
+      : undefined;
 
     const deliveryType = (shareholder as { delivery_type?: string }).delivery_type
       || getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || "");
@@ -156,6 +160,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       shareholder_name:
         shareholder.shareholder_name || shareholder.name || "Müşteri",
       phone_number: formattedPhoneNumber,
+      second_phone_number: formattedSecondPhone,
       email: shareholder.email || undefined,
       delivery_type: deliveryType,
       delivery_location: deliveryLocationDisplay,

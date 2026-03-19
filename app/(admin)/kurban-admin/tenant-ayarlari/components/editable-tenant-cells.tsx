@@ -152,8 +152,6 @@ export function EditableYearCell({
   if (editing) {
     return (
       <EditInputWithActions
-        value={value}
-        onChange={setValue}
         onSave={save}
         onCancel={cancel}
         saving={saving}
@@ -303,8 +301,6 @@ export function EditablePhoneCell({
   if (editing) {
     return (
       <EditInputWithActions
-        value={value}
-        onChange={setValue}
         onSave={save}
         onCancel={cancel}
         saving={saving}
@@ -482,8 +478,6 @@ export function EditableTextCell({
   if (editing) {
     return (
       <EditInputWithActions
-        value={value}
-        onChange={setValue}
         onSave={save}
         onCancel={cancel}
         saving={saving}

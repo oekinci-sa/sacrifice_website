@@ -4,6 +4,7 @@ CREATE TABLE "public"."shareholders" (
   "tenant_id" UUID NOT NULL REFERENCES tenants(id),
   "shareholder_name" TEXT NOT NULL,
   "phone_number" VARCHAR(13),
+  "second_phone_number" VARCHAR(13),
   "purchase_time" TIMESTAMPTZ NOT NULL DEFAULT now(),
   "purchased_by" TEXT,
   "transaction_id" CHAR(16) REFERENCES reservation_transactions(transaction_id),

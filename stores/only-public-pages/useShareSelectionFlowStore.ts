@@ -7,6 +7,7 @@ export interface FormData {
   phone: string;
   email?: string;
   delivery_location: string;
+  second_phone?: string;
 }
 
 export const STEP_MAPPING = {

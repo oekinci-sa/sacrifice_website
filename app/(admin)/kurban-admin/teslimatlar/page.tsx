@@ -10,7 +10,7 @@ import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { getDeliverySelectionFromLocation } from "@/lib/delivery-options";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { EditableDeliveryCell, EditableDeliveryLocationCell } from "../components/editable-delivery-cells";
+import { EditableDeliveryCell, EditableDeliveryLocationCell, EditableSecondPhoneCell } from "../components/editable-delivery-cells";
 import { ShareholderSearch } from "../hissedarlar/tum-hissedarlar/components/shareholder-search";
 import { TeslimatFilters } from "./components/teslimat-filters";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const TESLIMATLAR_COLUMN_HEADER_MAP: Record<string, string> = {
   sacrifice_no: "Kurbanlık Sırası",
   shareholder_name: "İsim Soyisim",
   phone_number: "Cep Telefonu",
+  second_phone_number: "İkinci Telefon",
   delivery_type: "Teslimat Tercihi",
   delivery_location: "Teslimat Yeri",
 };
@@ -82,11 +83,19 @@ export default function TeslimatlarPage() {
         accessorKey: "phone_number",
         header: "Cep Telefonu",
         minSize: 176,
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="tabular-nums whitespace-nowrap">
             {formatPhoneForDisplayWithSpacing(row.original.phone_number || "")}
           </span>
         ),
+      },
+      {
+        accessorKey: "second_phone_number",
+        header: "İkinci Telefon",
+        minSize: 176,
+        enableSorting: false,
+        cell: ({ row }) => <EditableSecondPhoneCell row={row} />,
       },
       {
         id: "delivery_type",
@@ -171,6 +180,7 @@ export default function TeslimatlarPage() {
           columns={columns}
           data={sortedData}
           storageKey="teslimatlar"
+          initialState={{ columnVisibility: { second_phone_number: false } }}
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
           filters={({ table, columnOrder, onColumnOrderChange }) => (

@@ -7,13 +7,16 @@ import { useEffect, useState } from "react";
 
 // Define the structure for a single shareholder as expected by the API
 // share_price artık shareholders tablosunda yok, sacrifice_animals ile JOIN'den alınır
-interface ShareholderInput {
+export interface ShareholderInput {
   shareholder_name: string;
   phone_number: string;
+  second_phone_number?: string;
+  email?: string;
   transaction_id: string;
   sacrifice_id: string;
   delivery_fee?: number; // Optional
   delivery_location: string;
+  delivery_type?: string;
   security_code: string;
   purchased_by: string;
   last_edited_by: string;

@@ -25,6 +25,7 @@ export default function TumHissedarlarPage() {
     last_edited_by: false,
     sacrifice_consent: false,
     delivery_location_raw: false, // Teslimat Yeri - default gizli
+    second_phone_number: false, // İkinci Telefon - default gizli
   });
 
   // Use shareholder store instead of React Query
@@ -75,6 +76,7 @@ export default function TumHissedarlarPage() {
     last_edited_time: "Son Güncelleme Tarihi",
     last_edited_by: "Son Güncelleyen",
     sacrifice_info: "Hisse Bedeli",
+    second_phone_number: "İkinci Telefon",
   };
 
   // Filter the data client-side based on search term

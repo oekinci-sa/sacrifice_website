@@ -158,6 +158,7 @@ interface ReceiptPDFProps {
     // Hisse Sahibi Bilgileri
     shareholder_name: string;
     phone_number: string;
+    second_phone_number?: string;
     email?: string;
     delivery_type: string;
     delivery_location: string;
@@ -225,6 +226,12 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
             <Text style={styles.label}>Telefon:</Text>
             <Text style={styles.value}>{data.phone_number}</Text>
           </View>
+          {data.second_phone_number && (
+            <View style={styles.row}>
+              <Text style={styles.label}>İkinci Telefon:</Text>
+              <Text style={styles.value}>{data.second_phone_number}</Text>
+            </View>
+          )}
           {data.email && (
             <View style={styles.row}>
               <Text style={styles.label}>E-posta:</Text>

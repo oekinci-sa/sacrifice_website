@@ -36,6 +36,8 @@ export type FormErrors = {
   phone?: string[];
   email?: string[];
   delivery_location?: string[];
+  delivery_address?: string[];
+  second_phone?: string[];
   is_purchaser?: string[];
 };
 
@@ -101,6 +103,9 @@ export function useCheckoutForm(
         case "delivery_location":
           newErrors[index].delivery_location = ["Teslimat noktası seçiniz"];
           break;
+        case "second_phone":
+          delete newErrors[index].second_phone;
+          break;
         case "email":
           delete newErrors[index].email;
           break;
@@ -141,6 +146,24 @@ export function useCheckoutForm(
       return;
     }
 
+    if (field === "second_phone") {
+      const digitsOnly = value.replace(/\D/g, "");
+      const phoneDigits = (extendedFormData[index]?.phone ?? "").replace(/\D/g, "");
+      if (!value.startsWith("05") && !value.startsWith("5")) {
+        newErrors[index].second_phone = ["Telefon numarası 05XX veya 5XX ile başlamalıdır"];
+      } else if (value.startsWith("05") && digitsOnly.length !== 11) {
+        newErrors[index].second_phone = ["Lütfen telefon numaranızı kontrol ediniz"];
+      } else if (value.startsWith("5") && digitsOnly.length !== 10) {
+        newErrors[index].second_phone = ["Lütfen telefon numaranızı kontrol ediniz"];
+      } else if (digitsOnly && phoneDigits && digitsOnly === phoneDigits) {
+        newErrors[index].second_phone = ["İkinci telefon numarası birinciden farklı olmalıdır"];
+      } else {
+        delete newErrors[index].second_phone;
+      }
+      setErrors(newErrors);
+      return;
+    }
+
     try {
       const fieldSchema = formSchema.shape[field];
       fieldSchema.parse(value);
@@ -162,6 +185,13 @@ export function useCheckoutForm(
     setLastInteractionTime(Date.now());
     const newFormData = [...extendedFormData];
     newFormData[index] = { ...newFormData[index], [field]: value };
+    // Teslimat Adrese teslim'den başka bir seçeneğe değişirse second_phone temizle
+    if (field === "delivery_location") {
+      const selection = getDeliverySelectionFromLocation(branding.logo_slug, value);
+      if (selection !== "Adrese teslim") {
+        newFormData[index].second_phone = "";
+      }
+    }
     setFormData(newFormData as StoreFormData[]);
     handleInputBlur(index, field, value);
   };
@@ -201,6 +231,7 @@ export function useCheckoutForm(
         phone: "",
         email: "",
         delivery_location: defaultDeliveryLocation,
+        second_phone: "",
         is_purchaser: false,
       };
       setFormData([...formData, newShareholderData] as StoreFormData[]);
@@ -311,18 +342,35 @@ export function useCheckoutForm(
 
     formData.forEach((data, index) => {
       try {
-        const { name, phone, email, delivery_location } = data;
+        const { name, phone, email, delivery_location, second_phone } = data;
         formSchema.omit({ is_purchaser: true }).parse({ name, phone, email: email ?? "", delivery_location });
 
+        const selection = getDeliverySelectionFromLocation(branding.logo_slug, delivery_location);
+        // Adrese teslim seçildiyse ikinci telefon zorunlu ve birinciden farklı olmalı
+        if (selection === "Adrese teslim") {
+          const digitsPhone = (phone ?? "").replace(/\D/g, "");
+          const digitsSecond = (second_phone ?? "").replace(/\D/g, "");
+          if (!second_phone || !second_phone.trim()) {
+            newErrors[index].second_phone = ["Adrese teslim için ikinci telefon numarası zorunludur"];
+            hasFormErrors = true;
+          } else if (digitsSecond.length !== 11 || !second_phone.startsWith("05")) {
+            newErrors[index].second_phone = ["Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"];
+            hasFormErrors = true;
+          } else if (digitsPhone && digitsSecond === digitsPhone) {
+            newErrors[index].second_phone = ["İkinci telefon numarası birinciden farklı olmalıdır"];
+            hasFormErrors = true;
+          }
+        }
+
         // Elya: Adrese teslim seçildiyse adres zorunlu, en az 20 karakter (sadece Devam et'te kontrol)
+        // Hata teslimat adresi alanının altında gösterilir (delivery_address)
         if (branding.logo_slug === "elya-hayvancilik") {
-          const selection = getDeliverySelectionFromLocation(branding.logo_slug, delivery_location);
           if (selection === "Adrese teslim") {
             if (!delivery_location || delivery_location === "-" || delivery_location === "Adrese teslim") {
-              newErrors[index].delivery_location = ["Lütfen teslimat adresinizi giriniz"];
+              newErrors[index].delivery_address = ["Lütfen teslimat adresinizi giriniz"];
               hasFormErrors = true;
             } else if (delivery_location.trim().length < 20) {
-              newErrors[index].delivery_location = ["Adres en az 20 karakter olmalıdır"];
+              newErrors[index].delivery_address = ["Adres en az 20 karakter olmalıdır"];
               hasFormErrors = true;
             }
           }

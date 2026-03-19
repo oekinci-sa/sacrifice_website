@@ -1,7 +1,7 @@
 "use client"
 
 import { useTenantBranding } from "@/hooks/useTenantBranding"
-import { getDeliveryOptions, getDeliveryLocationFromSelection, getDeliverySelectionFromLocation } from "@/lib/delivery-options"
+import { getDeliveryOptions, getDeliveryLocationFromSelection, getDeliverySelectionFromLocation, hasAdreseTeslimOption } from "@/lib/delivery-options"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,7 @@ interface ShareholderFormProps {
         phone: string
         email?: string
         delivery_location: string
+        second_phone?: string
         is_purchaser?: boolean
     }
     index: number
@@ -31,10 +32,12 @@ interface ShareholderFormProps {
         phone?: string[]
         email?: string[]
         delivery_location?: string[]
+        delivery_address?: string[]
+        second_phone?: string[]
         is_purchaser?: string[]
     }
-    onInputChange: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
-    onInputBlur: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
+    onInputChange: (index: number, field: "name" | "phone" | "email" | "delivery_location" | "second_phone", value: string) => void
+    onInputBlur: (index: number, field: "name" | "phone" | "email" | "delivery_location" | "second_phone", value: string) => void
     onSelectChange: (index: number, field: "name" | "phone" | "email" | "delivery_location", value: string) => void
     onRemove: (index: number) => void
     onIsPurchaserChange: (index: number, checked: boolean) => void
@@ -83,6 +86,10 @@ export default function ShareholderForm({
         const formattedValue = formatPhoneNumber(e.target.value);
         onInputChange(index, "phone", formattedValue);
     };
+    const handleSecondPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formattedValue = formatPhoneNumber(e.target.value);
+        onInputChange(index, "second_phone", formattedValue);
+    };
     const branding = useTenantBranding();
     const deliveryOptionsData = getDeliveryOptions(branding.logo_slug);
 
@@ -107,6 +114,18 @@ export default function ShareholderForm({
         onInputBlur(index, "phone", value);
     };
 
+    const handleSecondPhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const digitsOnly = value.replace(/\D/g, "");
+        if (!value.startsWith("0") && value) {
+            onInputChange(index, "second_phone", "0" + value);
+        }
+        onInputBlur(index, "second_phone", value);
+    };
+
+    const showSecondPhone = hasAdreseTeslimOption(branding.logo_slug) &&
+        getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim";
+
     // Checkbox durumu için hesaplama
     const isCurrentPurchaser = data.is_purchaser === true;
 
@@ -129,36 +148,36 @@ export default function ShareholderForm({
 
             {/* Inputlar */}
             <div className="flex flex-col gap-3 md:gap-4">
-                {/* Ad Soyad ve Telefon */}
-                <div className="flex flex-col md:flex-row gap-4">
-                    {/* Ad Soyad */}
-                    <div className="space-y-1.5 md:space-y-2 w-full">
-                        <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm md:text-base">
-                            Ad Soyad
-                        </Label>
-                        <Input
-                            id={`name-${index}`}
-                            placeholder="Adınız"
-                            value={data.name}
-                            onChange={(e) => onInputChange(index, "name", e.target.value)}
-                            onBlur={(e) => {
-                              const formatted = toTitleCase(e.target.value);
-                              if (formatted !== e.target.value) {
-                                onInputChange(index, "name", formatted);
-                              }
-                              onInputBlur(index, "name", formatted);
-                            }}
-                            className={cn(
-                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
-                                errors?.name ? "border-destructive/50 bg-destructive/10" : ""
-                            )}
-                        />
-                        {errors?.name && (
-                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.name.join(', ')}</p>
+                {/* Ad Soyad */}
+                <div className="space-y-1.5 md:space-y-2 w-full">
+                    <Label htmlFor={`name-${index}`} className="text-slate-600 text-sm md:text-base">
+                        Ad Soyad
+                    </Label>
+                    <Input
+                        id={`name-${index}`}
+                        placeholder="Adınız"
+                        value={data.name}
+                        onChange={(e) => onInputChange(index, "name", e.target.value)}
+                        onBlur={(e) => {
+                          const formatted = toTitleCase(e.target.value);
+                          if (formatted !== e.target.value) {
+                            onInputChange(index, "name", formatted);
+                          }
+                          onInputBlur(index, "name", formatted);
+                        }}
+                        className={cn(
+                            "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                            errors?.name ? "border-destructive/50 bg-destructive/10" : ""
                         )}
-                    </div>
-                    {/* Telefon */}
-                    <div className="space-y-1.5 md:space-y-2 w-full">
+                    />
+                    {errors?.name && (
+                        <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.name.join(', ')}</p>
+                    )}
+                </div>
+
+                {/* Telefon ve İkinci Telefon (yan yana, birbirine yakın) */}
+                <div className={cn("flex flex-col gap-4", showSecondPhone ? "md:flex-row md:gap-4" : "")}>
+                    <div className="space-y-1.5 md:space-y-2 flex-1">
                         <Label htmlFor={`phone-${index}`} className="text-slate-600 text-sm md:text-base">
                             Telefon
                         </Label>
@@ -177,36 +196,68 @@ export default function ShareholderForm({
                             <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.phone.join(', ')}</p>
                         )}
                     </div>
+                    {showSecondPhone && (
+                        <div className="space-y-1.5 md:space-y-2 flex-1">
+                            <Label htmlFor={`second_phone-${index}`} className="text-slate-600 text-sm md:text-base">
+                                İkinci Telefon (Teslimat için)
+                            </Label>
+                            <Input
+                                id={`second_phone-${index}`}
+                                placeholder="05XX XXX XX XX"
+                                value={data.second_phone ?? ""}
+                                onChange={handleSecondPhoneChange}
+                                onBlur={handleSecondPhoneBlur}
+                                className={cn(
+                                    "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                                    errors?.second_phone ? "border-destructive/50 bg-destructive/10" : ""
+                                )}
+                            />
+                            {errors?.second_phone && (
+                                <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.second_phone.join(", ")}</p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {/* E-posta (İsteğe bağlı) ve Teslimat Tercihi */}
-                <div className="flex flex-col md:flex-row gap-4">
-                    {/* E-posta - İsteğe bağlı */}
-                    <div className="space-y-1.5 md:space-y-2 w-full">
-                        <Label
-                            htmlFor={`email-${index}`}
-                            className="text-slate-600 text-sm md:text-base"
-                        >
-                            E-posta (İsteğe bağlı)
-                        </Label>
-                        <Input
-                            id={`email-${index}`}
-                            type="email"
-                            placeholder="ornek@email.com"
-                            value={data.email ?? ""}
-                            onChange={(e) => onInputChange(index, "email", e.target.value)}
-                            onBlur={(e) => onInputBlur(index, "email", e.target.value)}
-                            className={cn(
-                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
-                                errors?.email ? "border-destructive/50 bg-destructive/10" : ""
-                            )}
-                        />
-                        {errors?.email && (
-                            <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.email.join(", ")}</p>
+                {/* E-posta (İsteğe bağlı) */}
+                <div className="space-y-1.5 md:space-y-2 w-full">
+                    <Label
+                        htmlFor={`email-${index}`}
+                        className="text-slate-600 text-sm md:text-base"
+                    >
+                        E-posta (İsteğe bağlı)
+                    </Label>
+                    <Input
+                        id={`email-${index}`}
+                        type="email"
+                        placeholder="ornek@email.com"
+                        value={data.email ?? ""}
+                        onChange={(e) => onInputChange(index, "email", e.target.value)}
+                        onBlur={(e) => onInputBlur(index, "email", e.target.value)}
+                        className={cn(
+                            "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light focus-visible:ring-0 focus-visible:border-sac-border-light placeholder:text-muted-foreground placeholder:text-base md:placeholder:text-[18px]",
+                            errors?.email ? "border-destructive/50 bg-destructive/10" : ""
                         )}
-                    </div>
-                    {/* Teslimat Tercihi */}
-                    <div className="space-y-1.5 md:space-y-2 w-full">
+                    />
+                    {errors?.email && (
+                        <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.email.join(", ")}</p>
+                    )}
+                </div>
+
+                {/* Teslimat Tercihi (solda) ve Teslimat Adresi (sağda) - yan yana */}
+                <div className={cn(
+                    "flex gap-4",
+                    branding.logo_slug === "elya-hayvancilik" && getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim"
+                        ? "flex-col md:flex-row"
+                        : ""
+                )}>
+                    {/* Teslimat Tercihi - solda */}
+                    <div className={cn(
+                        "space-y-1.5 md:space-y-2",
+                        branding.logo_slug === "elya-hayvancilik" && getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim"
+                            ? "flex-1"
+                            : "w-full"
+                    )}>
                         <Label
                             htmlFor={`delivery_location-${index}`}
                             className="text-slate-600 text-sm md:text-base"
@@ -241,35 +292,37 @@ export default function ShareholderForm({
                             <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(", ")}</p>
                         )}
                     </div>
-                </div>
-
-                {/* Elya: Adrese Teslim seçildiğinde adres input'u - iki kolonu kapsayan */}
-                {branding.logo_slug === "elya-hayvancilik" &&
-                 getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim" && (
-                    <div className="space-y-1.5 md:space-y-2 w-full col-span-full">
-                        <Label htmlFor={`delivery_address-${index}`} className="text-slate-600 text-sm md:text-base">
-                            Teslimat Adresi
-                        </Label>
-                        <Input
-                            id={`delivery_address-${index}`}
-                            placeholder="Lütfen adresinizi ayrıntılı bir şekilde yazınız. (en az 20 karakter)"
-                            value={
-                                data.delivery_location &&
-                                data.delivery_location !== "Gölbaşı" &&
-                                data.delivery_location !== "Adrese teslim" &&
-                                data.delivery_location !== "-"
-                                    ? data.delivery_location
-                                    : ""
-                            }
-                            onChange={(e) => onInputChange(index, "delivery_location", e.target.value)}
-                            onBlur={(e) => onInputBlur(index, "delivery_location", e.target.value)}
-                            className={cn(
-                                "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light",
-                                errors?.delivery_location ? "border-destructive/50 bg-destructive/10" : ""
+                    {/* Teslimat Adresi - sağda (Elya + Adrese teslim seçildiğinde) */}
+                    {branding.logo_slug === "elya-hayvancilik" &&
+                     getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim" && (
+                        <div className="space-y-1.5 md:space-y-2 flex-1">
+                            <Label htmlFor={`delivery_address-${index}`} className="text-slate-600 text-sm md:text-base">
+                                Teslimat Adresi
+                            </Label>
+                            <Input
+                                id={`delivery_address-${index}`}
+                                placeholder="Lütfen adresinizi ayrıntılı bir şekilde yazınız. (en az 20 karakter)"
+                                value={
+                                    data.delivery_location &&
+                                    data.delivery_location !== "Gölbaşı" &&
+                                    data.delivery_location !== "Adrese teslim" &&
+                                    data.delivery_location !== "-"
+                                        ? data.delivery_location
+                                        : ""
+                                }
+                                onChange={(e) => onInputChange(index, "delivery_location", e.target.value)}
+                                onBlur={(e) => onInputBlur(index, "delivery_location", e.target.value)}
+                                className={cn(
+                                    "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light",
+                                    errors?.delivery_address ? "border-destructive/50 bg-destructive/10" : ""
+                                )}
+                            />
+                            {errors?.delivery_address && (
+                                <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_address.join(", ")}</p>
                             )}
-                        />
-                    </div>
-                )}
+                        </div>
+                    )}
+                </div>
 
                 {/* İşlemi yapan kişi checkbox'ı - birden fazla hissedar varsa göster */}
                 {totalForms > 1 && (

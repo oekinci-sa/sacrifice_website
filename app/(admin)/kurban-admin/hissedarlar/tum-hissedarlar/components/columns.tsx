@@ -44,6 +44,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
 import { AlertCircle, Check, CheckCircle2, Clock, Loader2, Pencil, Phone, UserMinus, X } from "lucide-react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { EditableSecondPhoneCell } from "@/app/(admin)/kurban-admin/components/editable-delivery-cells";
 import {
   getDeliveryDisplayLabel,
   getDeliveryLocationFromSelection,
@@ -761,6 +762,13 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     minSize: 130,
     enableSorting: false,
     cell: ({ row }) => <EditablePhoneCell row={row} />,
+  },
+  {
+    accessorKey: "second_phone_number",
+    header: "İkinci Telefon",
+    minSize: 130,
+    enableSorting: false,
+    cell: ({ row }) => <EditableSecondPhoneCell row={row} />,
   },
   {
     accessorKey: "contacted_at",

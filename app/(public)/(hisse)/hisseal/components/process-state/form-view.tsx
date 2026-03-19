@@ -20,6 +20,7 @@ interface ShareholderFormData {
   phone: string;
   email?: string;
   delivery_location: string;
+  second_phone?: string;
   delivery_fee: number;
   sacrifice_consent: boolean;
   is_purchaser?: boolean;

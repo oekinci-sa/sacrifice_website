@@ -49,6 +49,7 @@ export interface shareholderSchema {
   sacrifice_year: number;
   shareholder_name: string;
   phone_number: string | null;
+  second_phone_number?: string | null;
   purchase_time: string;
   sacrifice_id: string;
   security_code: string | null; // Veritabanındaki security_code alanı (varchar(6))

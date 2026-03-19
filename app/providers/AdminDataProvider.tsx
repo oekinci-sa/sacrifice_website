@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
+import { useActiveReservationsCountStore } from "@/stores/only-admin-pages/useActiveReservationsCountStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useReservationTransactionsStore } from "@/stores/only-admin-pages/useReservationTransactionsStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
@@ -20,6 +21,7 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
   const { selectedYear, fetchActiveYear } = useAdminYearStore();
   const { fetchShareholders } = useShareholderStore();
   const { fetchTransactions } = useReservationTransactionsStore();
+  const { fetchCount: fetchActiveReservationsCount } = useActiveReservationsCountStore();
   const { isInitialized: sacrificesInitialized, refetchSacrifices } = useSacrificeStore();
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
                 variant: "destructive",
               });
             }),
+            fetchActiveReservationsCount(year).catch(() => {}),
             sacrificesInitialized
               ? Promise.resolve()
               : refetchSacrifices(year).catch((error) => {
@@ -86,10 +89,11 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
     if (prevYearRef.current !== null && prevYearRef.current !== selectedYear) {
       fetchShareholders(selectedYear).catch(console.error);
       fetchTransactions(selectedYear).catch(console.error);
+      fetchActiveReservationsCount(selectedYear).catch(console.error);
       refetchSacrifices(selectedYear).catch(console.error);
     }
     prevYearRef.current = selectedYear;
-  }, [selectedYear, fetchShareholders, fetchTransactions, refetchSacrifices]);
+  }, [selectedYear, fetchShareholders, fetchTransactions, fetchActiveReservationsCount, refetchSacrifices]);
 
   return <>{children}</>;
 } 

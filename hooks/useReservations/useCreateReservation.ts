@@ -40,6 +40,9 @@ export const useCreateReservation = () => {
 
       const responseData = await response.json();
       await refetchSacrifices();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("reservation-updated"));
+      }
 
       toast({
         title: "Başarılı",

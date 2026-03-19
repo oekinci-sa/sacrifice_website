@@ -1,0 +1,30 @@
+---
+description: Tekrarlayan sorunlarda debug için console desteği
+globs: 
+---
+# Debug Console Desteği (Tekrarlayan Sorunlar)
+
+Bir sorun **sık tekrarlanıyorsa** ve kök neden belirsizse, debug için **console loglama** ekle.
+
+## Ne zaman ekle
+- Sorun 2+ kez rapor edildiğinde veya "hala devam ediyor" denildiğinde
+- Realtime, polling, WebSocket gibi event-driven akışlarda
+- Race condition veya timing şüphesi olduğunda
+
+## Nasıl ekle
+1. **localStorage ile açma/kapama**: `localStorage.setItem('debug:<modül>', '1')` ile etkinleştir; sayfa yenileyince loglar görünür. Kapatmak: `localStorage.removeItem('debug:<modül>')`
+2. **Önek kullan**: `[DEBUG:<modül>]` ile console'da filtreleme kolay olsun
+3. **Anlamlı loglar**: Tetiklenme zamanı, parametreler, callback çağrıları, subscription durumu
+
+## Örnek
+```ts
+function logDebug(...args: unknown[]) {
+  if (typeof window !== 'undefined' && localStorage.getItem('debug:reservation-realtime') === '1') {
+    console.log('[DEBUG:reservation-realtime]', new Date().toISOString(), ...args);
+  }
+}
+```
+
+## İş bittikten sonra
+- Loglama kodu kalabilir (localStorage kapalıyken sessiz)
+- Veya kullanıcı onayı ile kaldırılabilir

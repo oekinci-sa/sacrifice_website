@@ -14,7 +14,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
+    const allowedRoles = ["admin", "editor", "super_admin"];
+    if (!session?.user || !allowedRoles.includes(session.user.role ?? "")) {
       return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
     }
 
@@ -61,7 +62,18 @@ export async function GET(request: NextRequest) {
       ])
     );
 
-    const items = (mismatched ?? []).map((row) => {
+    const { data: activeReservations } = await supabaseAdmin
+      .from("reservation_transactions")
+      .select("sacrifice_id")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active");
+    const activeSacrificeIds = new Set(
+      (activeReservations ?? []).map((r) => r.sacrifice_id).filter(Boolean)
+    );
+
+    const items = (mismatched ?? [])
+      .filter((row) => !activeSacrificeIds.has(row.sacrifice_id))
+      .map((row) => {
       const ack = ackMap.get(row.sacrifice_id);
       return {
         ...row,

@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { useActiveReservationsCount } from "@/hooks/useActiveReservationsCount"
+import { logReservationRealtime } from "@/lib/debug-reservation-realtime"
+import { useActiveReservationsCountStore } from "@/stores/only-admin-pages/useActiveReservationsCountStore"
 import { usePendingUserCount } from "@/hooks/usePendingUserCount"
 import { useUnacknowledgedMismatchesCount } from "@/hooks/useUnacknowledgedMismatchesCount"
 import { useUncontactedShareholdersCount } from "@/hooks/useUncontactedShareholdersCount"
@@ -69,7 +70,31 @@ export function AppSidebar() {
   const { count: uncontactedShareholdersCount, isLoading: uncontactedLoading } = useUncontactedShareholdersCount(selectedYear)
   const { count: pendingUserCount, isLoading: pendingUserLoading } = usePendingUserCount()
   const { count: unacknowledgedMismatchesCount, isLoading: mismatchesLoading } = useUnacknowledgedMismatchesCount(selectedYear)
-  const { count: activeReservationsCount, isLoading: activeReservationsLoading } = useActiveReservationsCount(selectedYear)
+  const activeReservationsCount = useActiveReservationsCountStore((s) => s.count)
+  const activeReservationsLoading = useActiveReservationsCountStore((s) => s.isLoading)
+  const fetchActiveReservationsCount = useActiveReservationsCountStore((s) => s.fetchCount)
+
+  React.useEffect(() => {
+    logReservationRealtime("[SIDEBAR] fetchCount tetiklendi (selectedYear değişti):", selectedYear)
+    fetchActiveReservationsCount(selectedYear)
+  }, [fetchActiveReservationsCount, selectedYear])
+
+  // Rezervasyonlar sayfasına girildiğinde badge'i yeniden çek (realtime bazen tetiklenmeyebilir)
+  React.useEffect(() => {
+    if (pathname.startsWith("/kurban-admin/rezervasyonlar") && selectedYear != null) {
+      logReservationRealtime("[SIDEBAR] Rezervasyonlar sayfasına girildi, fetchCount tetikleniyor")
+      fetchActiveReservationsCount(selectedYear)
+    }
+  }, [pathname, selectedYear, fetchActiveReservationsCount])
+
+  React.useEffect(() => {
+    const handler = () => {
+      logReservationRealtime("[SIDEBAR] reservation-updated event, fetchCount tetikleniyor")
+      fetchActiveReservationsCount(selectedYear)
+    }
+    window.addEventListener("reservation-updated", handler)
+    return () => window.removeEventListener("reservation-updated", handler)
+  }, [fetchActiveReservationsCount, selectedYear])
 
   const {
     isCollapsed,
@@ -78,8 +103,8 @@ export function AppSidebar() {
     toggleSubMenu
   } = useSidebarStore()
 
-  // Badge rengi: Admin'de nötr ton (yeşil/mavi tenant rengi kullanılmaz)
-  const badgeColorClass = "bg-primary text-primary-foreground";
+  // Badge rengi: tenant teması (yeşil/mavi)
+  const badgeColorClass = "admin-tenant-accent bg-primary text-primary-foreground";
 
   const filteredMainItems = mainNavItems.filter(item =>
     !item.roles || (session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>))

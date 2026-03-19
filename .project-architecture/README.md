@@ -21,6 +21,17 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `db/tables/<tablo_adi>/functions_and_triggers/` | Trigger ve fonksiyonlar |
 | `db/tables/<tablo_adi>/operational_scripts/` | Seed, migration, düzeltme script'leri |
 | `db/views/` | View tanımları |
+| `db/migrations/` | Migration SQL dosyaları |
+| `db/rls-and-realtime.md` | RLS ve Realtime durumu |
+
+## Changelog Dosyaları
+
+| Dosya | Konu |
+|-------|------|
+| `changelog-2025-03-ui-improvements.md` | UI iyileştirmeleri, last_edited_by, badge renkleri |
+| `changelog-2025-03-admin-realtime-theme.md` | Rezervasyonlar realtime, admin tema, uyumsuzluklar, ödeme durumu popup |
+| `changelog-2025-03-storage-providers.md` | localStorage, provider konsolidasyonu |
+| `changelog-2025-03-user-tenant-badges.md` | Kullanıcı onayı, badge, hisse bedelleri |
 
 ## Güncelleme
 

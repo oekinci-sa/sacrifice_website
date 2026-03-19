@@ -51,12 +51,22 @@ export async function ThemeStyles() {
     .map(([k, v]) => `--${k}: ${v};`)
     .join("\n");
 
+  const tenantAccentVars = [
+    "--tenant-primary: var(--primary);",
+    "--tenant-primary-foreground: var(--primary-foreground);",
+    "--tenant-primary-dark: var(--primary-dark);",
+    "--tenant-primary-muted: var(--primary-muted);",
+    "--sac-tenant-primary: var(--sac-primary);",
+    "--sac-tenant-primary-lightest: var(--sac-primary-lightest);",
+    "--sac-tenant-icon-primary: var(--sac-icon-primary);",
+  ].join("\n");
+
   if (cssVars.length === 0) return null;
 
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: `:root { ${cssVars} }`,
+        __html: `:root { ${cssVars}\n${tenantAccentVars} }`,
       }}
     />
   );

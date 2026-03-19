@@ -9,6 +9,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+if (typeof window !== 'undefined') {
+  supabase.realtime.setAuth(supabaseAnonKey)
+}
+
 // createRealtimeChannel yardımcı fonksiyonu ekle
 export const createRealtimeChannel = (channelName: string, table: string, filter?: string) => {
   const channel = supabase

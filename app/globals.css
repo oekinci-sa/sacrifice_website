@@ -98,6 +98,15 @@
     --sac-graph-green-tone-light: #1DC355;
     --sac-graph-green-tone-dark: #3A9E5F;
     --sac-graph-green-tone-darkest: #125427;
+
+    /* Admin tenant accent: ThemeStyles bunları tenant temasıyla override eder */
+    --tenant-primary: var(--primary);
+    --tenant-primary-foreground: var(--primary-foreground);
+    --tenant-primary-dark: var(--primary-dark);
+    --tenant-primary-muted: var(--primary-muted);
+    --sac-tenant-primary: var(--sac-primary);
+    --sac-tenant-primary-lightest: var(--sac-primary-lightest);
+    --sac-tenant-icon-primary: var(--sac-icon-primary);
   }
 
   * {
@@ -111,11 +120,40 @@
 
 /* Admin panel: tenant renkleri yerine nötr ton (yeşil/mavi kaldırılır) */
 .admin-neutral-theme {
+  --primary: 0 0% 25%;
+  --primary-foreground: 0 0% 98%;
+  --primary-dark: 0 0% 20%;
+  --primary-muted: 0 0% 55%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 25%;
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 25%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
   --sac-primary: #6b7280;
   --sac-primary-lightest: #f9fafb;
   --sac-primary-muted: rgb(107 114 128 / 0.2);
   --sac-icon-primary: #6b7280;
   --sac-muted: #6b7280;
+  --sac-avatar-bg: #f3f4f6;
+  --sac-icon-light: #e5e7eb;
+  --sac-icon-bg: #f9fafb;
+  --sac-border-light: #e5e7eb;
+  --sidebar-primary: 0 0% 25%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 0 0% 96%;
+  --sidebar-accent-foreground: 0 0% 25%;
+}
+
+/* Admin: badge ve CTA butonları tenant rengi kullanır */
+.admin-neutral-theme .admin-tenant-accent {
+  --primary: var(--tenant-primary);
+  --primary-foreground: var(--tenant-primary-foreground);
+  --primary-dark: var(--tenant-primary-dark);
+  --primary-muted: var(--tenant-primary-muted);
+  --sac-primary: var(--sac-tenant-primary);
+  --sac-primary-lightest: var(--sac-tenant-primary-lightest);
+  --sac-icon-primary: var(--sac-tenant-icon-primary);
 }
 
 @layer utilities {

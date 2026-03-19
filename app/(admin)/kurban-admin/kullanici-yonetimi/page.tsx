@@ -1,11 +1,8 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { columns } from "./components/columns";
 
@@ -23,7 +20,6 @@ interface User {
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -51,16 +47,11 @@ export default function UserManagementPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="w-full">
-          <h1 className="text-2xl font-semibold tracking-tight">Kullanıcı Yönetimi</h1>
-          <p className="text-muted-foreground mt-2 max-w-[75%]">
-            Panel kullanıcılarını ekleyebilir, rol ve onay durumlarını düzenleyebilirsiniz.
-          </p>
-        </div>
-        <Button onClick={() => router.push("/kurban-admin/kullanici-yonetimi/yeni")}>
-          <Plus className="mr-2 h-4 w-4" /> Yeni Kullanıcı
-        </Button>
+      <div className="w-full">
+        <h1 className="text-2xl font-semibold tracking-tight">Kullanıcı Yönetimi</h1>
+        <p className="text-muted-foreground mt-2 max-w-[75%]">
+          Panel kullanıcılarının rol ve onay durumlarını düzenleyebilirsiniz.
+        </p>
       </div>
       {loading ? (
         <div className="space-y-4">

@@ -116,10 +116,10 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 |------|--------------|
 | Genel Bakış | useSacrificeStore, useShareholderStore |
 | Satış grafikleri | shareholders.purchase_time |
-| Rezervasyonlar | GET /api/get-reservation-transactions |
+| Rezervasyonlar | GET /api/get-reservation-transactions; **Realtime**: Supabase `postgres_changes` (reservation_transactions) ile badge ve tablo anında güncellenir |
 | Aşama metrikleri | GET /api/get-stage-metrics |
 | Değişiklik kayıtları | GET /api/get-change-logs |
-| Uyumsuz hisseler | GET /api/admin/mismatched-shares, POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
+| Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
 
 ---
 
@@ -128,8 +128,8 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Adım | Aksiyon |
 |------|---------|
 | 1 | Sayfa yüklenir → globals.css :root (nötr varsayılan) |
-| 2 | ThemeProvider → GET /api/tenant-settings |
-| 3 | theme_json → document.documentElement.style.setProperty ile override |
+| 2 | ThemeStyles (Server Component) → tenant_settings.theme_json → :root inline style |
+| 3 | Admin paneli: .admin-neutral-theme nötr override; .admin-tenant-accent badge/CTA için tenant rengi |
 
 ---
 

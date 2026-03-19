@@ -91,7 +91,6 @@ function DynamicBreadcrumb() {
       "yazilar": "Yazılar",
       "iletisim": "İletişim",
       "iletisim-mesajlari": "İletişim Mesajları",
-      "yeni": "Yeni Kullanıcı",
       "reminder-talepleri": "Bana Haber Ver Talepleri",
       "rezervasyonlar": "Rezervasyonlar",
       "uyumsuz-hisseler": "Uyumsuzluklar",

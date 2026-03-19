@@ -46,10 +46,15 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - shareholders, reservation_transactions, change_logs, reminder_requests tablolarında sacrifice_year alanı.
 - Admin panelde yıl bazlı filtreleme.
 
+## Admin Tema (Nötr + Tenant Accent)
+- **Nötr tema** (`.admin-neutral-theme`): Admin panelinde sidebar, nav ve genel UI nötr gri tonlarda; tenant yeşil/mavi kullanılmaz.
+- **Tenant accent** (`.admin-tenant-accent`): Badge'ler ve CTA butonları (Yeni Kurbanlık, Kaydet, filtre sayı badge'leri) tenant renginde kalır.
+- Detay: [colors.md](colors.md)
+
 ## Sidebar
 - Dar ve geniş görünüm.
 - Dar modda ikonlar görünür.
-- Giriş yapan kullanıcı bilgisi sol alt; dark/light mode seçimi.
+- Badge'ler (Rezervasyonlar, Uyumsuzluklar vb.) tenant renginde; realtime güncelleme.
 
 ## Türkçe UI
 - Tüm kullanıcıya görünen metinler Türkçe (label, buton, placeholder, tooltip).
@@ -62,9 +67,9 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Daha önce kayıtlıysa uyarı toast, yoksa kayıt + başarı toast
 
 ## Admin Tablo Sayfaları
-- **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı)
+- **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı). **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
-- **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır
+- **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır. **Aktif rezervasyon**: `status=active` olan reservation_transactions'a sahip hayvanlar listeden çıkarılır (henüz hissedar eklenmemiş geçici uyumsuzluk önlenir).
 
 ## last_edited_by / change_owner (Admin)
 - Admin bölümünden yapılan düzenlemelerde `last_edited_by` **email** olarak saklanır (sacrifice_animals, shareholders).
@@ -76,5 +81,10 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Açıklamalar sade, `max-w-[50%]` ile sayfa genişliğinin yarısını kaplar.
 - Breadcrumb: tum-kurbanliklar→Kurbanlıklar, tum-hissedarlar→Hissedarlar, uyumsuz-hisseler→Uyumsuzluklar.
 
+## Kurbanlıklar – Ödeme Durumu Popup
+- Ödeme durumu çubuklarına hover: 2 sütunlu popup, her hissedar adı önünde sıra numarası (1. 2. 3. 4.).
+- Hissedarı olmayan hayvanda popup açılmaz.
+
 ## Changelog
 - **2025-03 UI iyileştirmeleri**: [changelog-2025-03-ui-improvements.md](changelog-2025-03-ui-improvements.md)
+- **2025-03 Admin realtime, tema, UI**: [changelog-2025-03-admin-realtime-theme.md](changelog-2025-03-admin-realtime-theme.md)

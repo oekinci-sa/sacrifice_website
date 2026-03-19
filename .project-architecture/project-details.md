@@ -13,6 +13,7 @@ Proje hakkında bilgi almak için bu klasörün ilgili dosyalarına bakın. Tüm
 | **Public sayfalar** | [pages/public-pages.md](./pages/public-pages.md) |
 | **Admin sayfaları** | [pages/admin-pages.md](./pages/admin-pages.md) |
 | **Veritabanı** | [db/](./db/) |
+| **RLS ve Realtime** | [db/rls-and-realtime.md](./db/rls-and-realtime.md) |
 | **Homepage mode ve sacrifice year** | [homepage-and-sacrifice-year.md](./homepage-and-sacrifice-year.md) |
 | **Araçlar ve versiyonlar** | [tools-versions.md](./tools-versions.md) |
 

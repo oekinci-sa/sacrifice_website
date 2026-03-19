@@ -66,7 +66,7 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
     </div>
   );
 
-  if (totalSlots === 0) {
+  if (totalSlots === 0 || shareholders.length === 0) {
     return <div className="flex justify-start py-2">{shareholderBars}</div>;
   }
 
@@ -77,21 +77,24 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
           <TooltipTrigger asChild>{shareholderBars}</TooltipTrigger>
           <TooltipContent className="p-4 max-w-[90vw] bg-white shadow-lg border">
             <p className="font-semibold text-sm mb-3">Hissedarlar</p>
-            <div className="flex flex-col gap-0">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-0">
               {shareholders.map((s, idx) => {
                 const paid = s.paid_amount ?? 0;
                 const totalAmt = s.total_amount ?? 0;
+                const barNum = idx + 1;
                 return (
-                  <div key={s.shareholder_id ?? idx}>
-                    {idx > 0 && (
-                      <div className="py-2 my-4 flex items-center">
+                  <div key={s.shareholder_id ?? idx} className="flex flex-col gap-1 min-w-0">
+                    {idx > 0 && idx % 2 === 0 && (
+                      <div className="col-span-2 py-2 my-2 flex items-center">
                         <Separator className="w-full" />
                       </div>
                     )}
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full shrink-0", getShareholderColor(paid, totalAmt))} />
-                        <span className="text-sm font-medium truncate">{s.shareholder_name ?? "-"}</span>
+                        <span className="text-sm font-medium truncate">
+                          <span className="text-muted-foreground font-normal">{barNum}.</span> {s.shareholder_name ?? "-"}
+                        </span>
                       </div>
                       <div className="grid gap-0.5 text-xs pl-4">
                         <div className="flex justify-between gap-2">

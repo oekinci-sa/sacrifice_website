@@ -46,6 +46,21 @@ Tema **ilk HTML yanıtında** sunucu tarafında enjekte edilir. Böylece tarayı
 
 **Varsayılan:** `theme_json` boş veya anahtar yoksa `app/globals.css` içindeki `:root` nötr gri değerleri kullanılır. Test ve Kahramankazan tenant'larında yeşil tema override edilir.
 
+### Admin Panel – Nötr Tema ve Tenant Accent
+
+Admin panelinde genel UI nötr gri tonlarda; ancak badge ve CTA butonları tenant renginde kalır.
+
+| Sınıf | Kapsam | Açıklama |
+|-------|--------|----------|
+| `.admin-neutral-theme` | Admin layout root | `--primary`, `--sac-primary`, `--sidebar-*` vb. nötr gri override |
+| `.admin-tenant-accent` | Badge, CTA butonları | `--primary: var(--tenant-primary)` ile tenant rengi geri yüklenir |
+
+**Tenant accent değişkenleri** (ThemeStyles tarafından set edilir; admin-neutral-theme override etmez):
+- `--tenant-primary`, `--tenant-primary-foreground`, `--tenant-primary-dark`, `--tenant-primary-muted`
+- `--sac-tenant-primary`, `--sac-tenant-primary-lightest`, `--sac-tenant-icon-primary`
+
+**Uygulama yerleri:** Sidebar badge'leri, Yeni Kurbanlık butonu, Kaydet butonu, filtre sayı badge'leri.
+
 ## Proje renk token'ları (globals.css + tailwind.config.ts)
 
 | Kullanım | Token | Örnek |

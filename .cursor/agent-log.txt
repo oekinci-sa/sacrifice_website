@@ -1,3 +1,22 @@
+=== 2025-03-17 ===
+
+[İstek] Tekrarlayan sorunlarda debug rule; rezervasyon realtime loglama
+
+[Yapılan Değişiklikler]
+1. **Rule:** .cursor/rules/debug-console-support.mdc – Tekrarlayan sorunlarda console loglama kuralı (localStorage ile açma/kapama).
+2. **Debug util:** lib/debug-reservation-realtime.ts – logReservationRealtime() fonksiyonu.
+3. **Loglama:** useActiveReservationsCountStore (badge), Rezervasyonlar page (tablo), app-sidebar – fetchCount, realtime event, channel status logları.
+4. **Etkinleştirme:** localStorage.setItem('debug:reservation-realtime', '1') sonra sayfa yenile.
+
+[Dosyalar]
+- .cursor/rules/debug-console-support.mdc
+- lib/debug-reservation-realtime.ts
+- stores/only-admin-pages/useActiveReservationsCountStore.ts
+- app/(admin)/kurban-admin/rezervasyonlar/page.tsx
+- app/(admin)/kurban-admin/components/layout/app-sidebar.tsx
+
+[Risk] Düşük – Sadece debug loglama; localStorage kapalıyken sessiz.
+
 === 2025-03-16 ===
 
 [İstek] Admin menü adı = sayfa başlığı; açıklamalar sadeleştirildi; genişlik max-w-[50%]

@@ -213,7 +213,7 @@ export function NewSacrificeAnimal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <Button onClick={() => setIsOpen(true)} className="gap-2">
+      <Button onClick={() => setIsOpen(true)} className="admin-tenant-accent gap-2">
         <Plus className="h-4 w-4" />
         Yeni Kurbanlık
       </Button>
@@ -342,7 +342,7 @@ export function NewSacrificeAnimal() {
               >
                 İptal
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="admin-tenant-accent">
                 {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
               </Button>
             </div>

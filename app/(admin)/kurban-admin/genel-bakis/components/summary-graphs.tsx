@@ -7,10 +7,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { formatDateChartShort } from "@/lib/date-utils";
 import { eachDayOfInterval, subDays } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -19,33 +20,37 @@ import {
   YAxis
 } from "recharts";
 
-const chartConfig = {
-  today: {
-    label: "Bugün",
-    color: "var(--sac-primary)",
-  },
-  week1: {
-    label: "Son 1 Hafta",
-    color: "var(--sac-primary)",
-  },
-  week: {
-    label: "Son 2 Hafta",
-    color: "var(--sac-primary)",
-  },
-  month: {
-    label: "Son 1 Ay",
-    color: "var(--sac-primary)",
-  },
-  all: {
-    label: "Tüm Yıl",
-    color: "var(--sac-primary)",
-  },
-} satisfies ChartConfig;
+function getSalesChartBarColor(logoSlug: string): string {
+  if (logoSlug === "elya-hayvancilik") {
+    return "var(--sac-blue)";
+  }
+  if (logoSlug === "ankara-kurban") {
+    return "var(--sac-tenant-primary)";
+  }
+  return "var(--sac-tenant-primary)";
+}
 
 export function SummaryGraphs() {
+  const { logo_slug } = useTenantBranding();
+  const salesBarColor = useMemo(() => getSalesChartBarColor(logo_slug), [logo_slug]);
+
+  const chartConfig = useMemo(
+    () =>
+      ({
+        today: { label: "Bugün", color: salesBarColor },
+        week1: { label: "Son 1 Hafta", color: salesBarColor },
+        week: { label: "Son 2 Hafta", color: salesBarColor },
+        month: { label: "Son 1 Ay", color: salesBarColor },
+        all: { label: "Tüm Yıl", color: salesBarColor },
+      }) satisfies ChartConfig,
+    [salesBarColor]
+  );
+
   const { shareholders } = useShareholderStore();
   const [chartData, setChartData] = useState<Array<{ date: string; count: number }>>([]);
-  const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("today");
+  const [activeChart, setActiveChart] = useState<
+    "today" | "week1" | "week" | "month" | "all"
+  >("today");
   const [chartTotals, setChartTotals] = useState({
     today: 0,
     week1: 0,
@@ -245,7 +250,7 @@ export function SummaryGraphs() {
             />
             <Bar
               dataKey="count"
-              fill="var(--sac-primary)"
+              fill={salesBarColor}
               radius={[4, 4, 0, 0]}
               isAnimationActive={false}
             />

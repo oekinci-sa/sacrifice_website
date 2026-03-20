@@ -105,7 +105,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Kurbanlık güncelleme | PATCH /api/update-sacrifice, update-sacrifice-share, update-sacrifice-timing |
 | Kurbanlık silme | DELETE /api/sacrifices/[id] |
 | Hissedar ekleme | POST /api/create-shareholders |
-| Hissedar güncelleme | PATCH /api/update-shareholder |
+| Hissedar güncelleme | PATCH /api/update-shareholder; **Hissedar Ayrıntıları**nda teslimat tercihi düzenlenmez (hisse alımındaki seçim korunur) |
 | Hissedar silme | POST /api/delete-shareholder |
 
 ---
@@ -116,7 +116,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 |------|--------------|
 | Genel Bakış | useSacrificeStore, useShareholderStore |
 | Satış grafikleri | shareholders.purchase_time |
-| Rezervasyonlar | GET /api/get-reservation-transactions; **Realtime**: Supabase `postgres_changes` (reservation_transactions) ile badge ve tablo anında güncellenir |
+| Rezervasyonlar | GET /api/get-reservation-transactions (kolonlar: `completed_at` işlem bitişi); tablo üstü filtreler: Kurban No, Hisse Sayısı, Durum; **Realtime**: Supabase `postgres_changes` (reservation_transactions) ile badge ve tablo anında güncellenir |
 | Aşama metrikleri | GET /api/get-stage-metrics |
 | Değişiklik kayıtları | GET /api/get-change-logs |
 | Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |

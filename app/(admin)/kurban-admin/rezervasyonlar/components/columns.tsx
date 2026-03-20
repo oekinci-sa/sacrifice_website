@@ -14,6 +14,8 @@ export type ReservationTransaction = {
   created_at: string;
   expires_at: string | null;
   last_edited_time: string | null;
+  /** active → completed | canceled | timed_out | expired geçişinde set edilir */
+  completed_at: string | null;
   status: string;
   sacrifice_animals?: { sacrifice_no: number } | null;
   _displayNo?: number;
@@ -21,8 +23,11 @@ export type ReservationTransaction = {
 
 export const columns: ColumnDef<ReservationTransaction>[] = [
   {
-    accessorKey: "sacrifice_animals",
-    accessorFn: (row) => row.sacrifice_animals?.sacrifice_no ?? -1,
+    id: "sacrifice_no",
+    accessorFn: (row) =>
+      row.sacrifice_animals?.sacrifice_no != null
+        ? String(row.sacrifice_animals.sacrifice_no)
+        : "-",
     header: "Kurban No",
     cell: ({ row }) => {
       const sacrifice = row.original.sacrifice_animals;
@@ -80,5 +85,23 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
     accessorKey: "expires_at",
     header: "Son Geçerlilik",
     cell: ({ row }) => formatDate(row.getValue("expires_at")),
+  },
+  {
+    accessorKey: "completed_at",
+    header: "İşlem Bitişi",
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const raw = row.getValue("completed_at") as string | null | undefined;
+      if (status === "active" || raw == null || raw === "") {
+        return <span className="text-muted-foreground">—</span>;
+      }
+      return formatDate(raw);
+    },
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.completed_at ? new Date(rowA.original.completed_at).getTime() : 0;
+      const b = rowB.original.completed_at ? new Date(rowB.original.completed_at).getTime() : 0;
+      return a - b;
+    },
   },
 ];

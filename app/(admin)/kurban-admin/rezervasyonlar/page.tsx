@@ -4,9 +4,10 @@ import { CustomDataTable } from "@/components/custom-data-components/custom-data
 import { Skeleton } from "@/components/ui/skeleton";
 import { logReservationRealtime } from "@/lib/debug-reservation-realtime";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { columns, type ReservationTransaction } from "./components/columns";
+import { ReservationFilters } from "./components/reservation-filters";
 
 export default function RezervasyonlarPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
@@ -94,6 +95,7 @@ export default function RezervasyonlarPage() {
           columns={columns}
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
+          filters={({ table }) => <ReservationFilters table={table} />}
         />
       )}
     </div>

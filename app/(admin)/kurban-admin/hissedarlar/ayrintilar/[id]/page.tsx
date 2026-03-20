@@ -7,13 +7,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
 import { formatDate } from "@/lib/date-utils";
-import { getDeliveryDisplayLabel, getDeliveryFeeForLocation, getDeliveryLocationFromSelection, getDeliveryOptions } from "@/lib/delivery-options";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
 import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShareholderDetails } from "../components/shareholder-details";
 
 interface PageProps {
@@ -55,25 +54,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
   const branding = useTenantBranding();
   const { data: shareholders, isLoading } = useGetShareholders();
-
-  // Teslimat seçenekleri: tenant bazlı + verideki benzersiz değerler
-  const deliveryLocationOptions = useMemo(() => {
-    const baseOpts = getDeliveryOptions(branding.logo_slug).map((opt) => ({
-      label: opt.label,
-      value: getDeliveryLocationFromSelection(branding.logo_slug, opt.value),
-    }));
-    const fromData = new Set<string>();
-    (shareholders ?? []).forEach((s) => {
-      const loc = s.delivery_location;
-      if (loc && typeof loc === "string" && loc.trim()) fromData.add(loc.trim());
-    });
-    const baseValues = new Set(baseOpts.map((o) => o.value));
-    const extra = Array.from(fromData).filter((l) => !baseValues.has(l)).sort();
-    return [
-      ...baseOpts,
-      ...extra.map((v) => ({ label: getDeliveryDisplayLabel(branding.logo_slug, v), value: v })),
-    ];
-  }, [shareholders, branding.logo_slug]);
 
   const { data: session } = useSession();
 
@@ -127,23 +107,14 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
-    if (field === 'delivery_location') {
-      const deliveryLocation = value as string;
-      const deliveryFee = getDeliveryFeeForLocation(branding.logo_slug, deliveryLocation);
-      setEditFormData(prev => ({
-        ...prev,
-        delivery_location: deliveryLocation,
-        delivery_fee: deliveryFee
-      }));
-    } else {
-      setEditFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleSave = () => {
+    if (!shareholder) return;
     // Session'dan email al (useUser sadece name döndürüyor)
     const userEmail = session?.user?.email;
     if (!userEmail) {
@@ -155,15 +126,17 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       return;
     }
 
-    // Create updated data object including last_edited_by (email) and formatted phone
+    // Teslimat tercihi / ücreti hisse alımından gelir; düzenlemede değiştirilmez
     const updatedData = {
       shareholder_name: editFormData.shareholder_name,
       phone_number: formatPhoneForDB(editFormData.phone_number), // Format phone number
-      delivery_location: editFormData.delivery_location || (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
+      delivery_location:
+        shareholder.delivery_location ||
+        (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
       sacrifice_consent: editFormData.sacrifice_consent,
       paid_amount: editFormData.paid_amount,
       notes: editFormData.notes,
-      delivery_fee: editFormData.delivery_fee,
+      delivery_fee: shareholder.delivery_fee ?? 0,
       security_code: editFormData.security_code,
       last_edited_by: userEmail // Admin: email saklanır
     };
@@ -322,7 +295,6 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         handleChange={handleChange}
         onSave={handleSave}
         onCancel={handleCancel}
-        deliveryLocationOptions={deliveryLocationOptions}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -6,6 +6,7 @@ CREATE TABLE reservation_transactions (
     created_at TIMESTAMPTZ DEFAULT now(),
     expires_at TIMESTAMPTZ DEFAULT (now() + interval '15 minutes'),
     last_edited_time TIMESTAMPTZ DEFAULT now(),
+    completed_at TIMESTAMPTZ NULL,
     status TEXT CHECK (status IN ('active', 'completed', 'canceled', 'timed_out', 'expired')) DEFAULT 'active',
     sacrifice_year INT2
 );

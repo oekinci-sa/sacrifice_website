@@ -1,16 +1,9 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryLocationFromSelection, getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateLong } from "@/lib/date-utils";
@@ -26,14 +19,7 @@ interface ShareholderInfoProps {
   sectionClass: string;
   labelClass: string;
   valueClass: string;
-  deliveryLocationOptions?: { label: string; value: string }[];
 }
-
-const DEFAULT_DELIVERY_OPTIONS: { label: string; value: string }[] = [
-  { label: "Kesimhane", value: "Gölbaşı" },
-  { label: "Kesimhane", value: "Kahramankazan" },
-  { label: "Teslimat Noktası - Ulus (+1500 TL)", value: "Ulus" },
-];
 
 export function ShareholderInfo({
   shareholderInfo,
@@ -43,7 +29,6 @@ export function ShareholderInfo({
   sectionClass,
   labelClass,
   valueClass,
-  deliveryLocationOptions = DEFAULT_DELIVERY_OPTIONS,
 }: ShareholderInfoProps) {
   const branding = useTenantBranding();
 
@@ -84,57 +69,17 @@ export function ShareholderInfo({
           )}
         </div>
 
-        {/* Teslimat Tercihi */}
+        {/* Teslimat Tercihi — hisse alırken belirlenir; admin düzenlemesine kapalı */}
         <div className="space-y-1">
           <p className={labelClass}>Teslimat Tercihi</p>
-          {isEditing ? (
-            <div className="space-y-2 mt-1">
-              <Select
-                value={
-                  deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? ""))
-                    ? (editFormData?.delivery_location ?? "Kesimhane")
-                    : "__OTHER__"
-                }
-                onValueChange={(v) => {
-                  handleChange?.("delivery_location", v === "__OTHER__" ? "" : v);
-                }}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Teslimat noktası seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {deliveryLocationOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="__OTHER__">Diğer (özel girin)</SelectItem>
-                </SelectContent>
-              </Select>
-              {(!deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? "")) ||
-                (editFormData?.delivery_location ?? "") === "__OTHER__") && (
-                <Input
-                  placeholder="Örn: Ankara Etimesgut"
-                  className="h-9 text-sm"
-                  value={
-                    deliveryLocationOptions.some((o) => o.value === (editFormData?.delivery_location ?? ""))
-                      ? ""
-                      : (editFormData?.delivery_location ?? "")
-                  }
-                  onChange={(e) => handleChange?.("delivery_location", e.target.value.trim() || getDeliveryLocationFromSelection(branding.logo_slug, "Kesimhane"))}
-                />
-              )}
-            </div>
-          ) : (
-            <p className={valueClass}>
-              {getDeliveryTypeDisplayLabel(
-                branding.logo_slug,
-                getDeliverySelectionFromLocation(branding.logo_slug, shareholderInfo.delivery_location ?? ""),
-                null,
-                false
-              )}
-            </p>
-          )}
+          <p className={valueClass}>
+            {getDeliveryTypeDisplayLabel(
+              branding.logo_slug,
+              getDeliverySelectionFromLocation(branding.logo_slug, shareholderInfo.delivery_location ?? ""),
+              null,
+              false
+            )}
+          </p>
         </div>
 
         {/* Hisse Alım Tarihi */}

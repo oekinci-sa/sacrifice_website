@@ -67,7 +67,7 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Daha önce kayıtlıysa uyarı toast, yoksa kayıt + başarı toast
 
 ## Admin Tablo Sayfaları
-- **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı). **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
+- **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı); tabloda **İşlem Bitişi** (`completed_at`) — aktif → tamamlandı / iptal / zaman aşımı / süre doldu geçişinde trigger ile set edilir. Tablo üstünde **Kurban No**, **Hisse Sayısı**, **Durum** çoklu seçim filtreleri + tümünü temizle. **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
 - **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır. **Aktif rezervasyon**: `status=active` olan reservation_transactions'a sahip hayvanlar listeden çıkarılır (henüz hissedar eklenmemiş geçici uyumsuzluk önlenir).
 

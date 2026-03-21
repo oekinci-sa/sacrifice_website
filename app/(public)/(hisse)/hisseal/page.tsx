@@ -6,10 +6,10 @@ import { useReservationIDStore } from "@/stores/only-public-pages/useReservation
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilteredSacrificesContent } from "./components/process-state/FilteredSacrificesContent";
 import { PageLayout } from "./components/layout/page-layout";
-import { ActiveReservationsInitializer, columns } from "./components/table-step/columns";
+import { ActiveReservationsInitializer, buildHissealTableColumns } from "./components/table-step/columns";
 import { useHissealPageHandlers } from "./hooks/useHissealPageHandlers";
 import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
@@ -53,6 +53,19 @@ const Page = () => {
     shouldCheckStatus,
     isLoading
   } = usePageInitialization();
+
+  const showAnimalTypeColumn = useMemo(
+    () =>
+      sacrifices.some(
+        (s) => s.animal_type != null && String(s.animal_type).trim() !== ""
+      ),
+    [sacrifices]
+  );
+
+  const tableColumns = useMemo(
+    () => buildHissealTableColumns(showAnimalTypeColumn),
+    [showAnimalTypeColumn]
+  );
 
   // URL'den gelen fiyat filtresi için state
   const [filteredSacrifices, setFilteredSacrifices] = useState<sacrificeSchema[]>([]);
@@ -306,7 +319,7 @@ const Page = () => {
         showWarning={showWarning}
         showInactivityWarning={showWarning}
         inactivitySecondsLeft={inactivitySecondsLeft}
-        columns={columns}
+        columns={tableColumns}
         data={filteredSacrifices}
         selectedSacrifice={selectedSacrifice}
         formData={formData}

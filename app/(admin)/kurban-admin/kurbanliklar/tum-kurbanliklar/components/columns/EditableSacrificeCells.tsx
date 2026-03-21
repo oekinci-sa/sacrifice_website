@@ -20,7 +20,6 @@ import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { sacrificeSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
@@ -31,13 +30,11 @@ type PriceOption = { kg: string; price: string } | { kg: number; price: number }
 async function updateSacrificeApi(
   sacrificeId: string,
   sacrificeYear: number | undefined,
-  payload: Partial<{ share_weight: number; share_price: number; empty_share: number; notes: string }>,
-  lastEditedBy: string
+  payload: Partial<{ share_weight: number; share_price: number; empty_share: number; animal_type: string | null; notes: string }>
 ) {
   const body: Record<string, unknown> = {
     sacrifice_id: sacrificeId,
     ...payload,
-    last_edited_by: lastEditedBy,
     last_edited_time: new Date().toISOString(),
   };
   if (sacrificeYear != null) body.sacrifice_year = sacrificeYear;
@@ -64,7 +61,6 @@ function formatPriceOption(opt: PriceOption): string {
 export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
-  const { data: session } = useSession();
   const branding = useTenantBranding();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [options, setOptions] = useState<PriceOption[]>([]);
@@ -114,8 +110,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
         const { data } = await updateSacrificeApi(
           sacrifice.sacrifice_id,
           sacrifice.sacrifice_year,
-          { share_weight: kg, share_price: price },
-          session?.user?.email ?? "Sistem"
+          { share_weight: kg, share_price: price }
         );
         updateSacrifice({ ...sacrifice, ...data });
         triggerSacrificeRefresh();
@@ -128,7 +123,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
         setSaving(false);
       }
     },
-    [pendingOpt, sacrifice, session?.user?.email, updateSacrifice, toast]
+    [pendingOpt, sacrifice, updateSacrifice, toast]
   );
 
   const handleCancel = useCallback(() => {
@@ -190,7 +185,6 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
 export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
-  const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [pendingValue, setPendingValue] = useState<number | null>(null);
@@ -206,8 +200,7 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
         const { data } = await updateSacrificeApi(
           sacrifice.sacrifice_id,
           sacrifice.sacrifice_year,
-          { empty_share: pendingValue },
-          session?.user?.email ?? "Sistem"
+          { empty_share: pendingValue }
         );
         updateSacrifice({ ...sacrifice, ...data });
         triggerSacrificeRefresh();
@@ -220,7 +213,7 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
         setSaving(false);
       }
     },
-    [pendingValue, sacrifice, session?.user?.email, updateSacrifice, toast]
+    [pendingValue, sacrifice, updateSacrifice, toast]
   );
 
   const handleCancel = useCallback(() => {
@@ -270,10 +263,89 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
   );
 }
 
+const ANIMAL_TYPE_OPTIONS = ["Dana", "Düve", ""] as const;
+
+export function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
+  const { toast } = useToast();
+  const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
+  const [open, setOpen] = useState(false);
+  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const sacrifice = row.original;
+
+  const handleConfirm = useCallback(async () => {
+    if (pendingValue === null) return;
+    setSaving(true);
+    try {
+      const { data } = await updateSacrificeApi(
+        sacrifice.sacrifice_id,
+        sacrifice.sacrifice_year,
+        { animal_type: pendingValue === "" ? null : pendingValue }
+      );
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setPendingValue(null);
+      setOpen(false);
+    } catch (e) {
+      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [pendingValue, sacrifice, updateSacrifice, toast]);
+
+  const handleCancel = useCallback(() => {
+    setPendingValue(null);
+    setOpen(false);
+  }, []);
+
+  const displayValue = sacrifice.animal_type ?? "-";
+
+  if (pendingValue !== null) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center">
+        <span className="flex-1 text-center text-sm min-w-0">{pendingValue || "-"}</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative w-full min-h-[2rem] flex items-center">
+      <span className="flex-1 text-center px-8 pr-9">{displayValue}</span>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {ANIMAL_TYPE_OPTIONS.map((opt) => (
+            <DropdownMenuItem
+              key={opt || "_empty"}
+              onSelect={() => { setPendingValue(opt); setOpen(false); }}
+            >
+              {opt || "-"}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
-  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(row.original.notes || "");
   const [saving, setSaving] = useState(false);
@@ -286,8 +358,7 @@ export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
       const { data } = await updateSacrificeApi(
         sacrifice.sacrifice_id,
         sacrifice.sacrifice_year,
-        { notes: value.trim() },
-        session?.user?.email ?? "Sistem"
+        { notes: value.trim() }
       );
       updateSacrifice({ ...sacrifice, ...data });
       toast({ title: "Güncellendi" });
@@ -297,7 +368,7 @@ export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [value, sacrifice, session?.user?.email, updateSacrifice, toast]);
+  }, [value, sacrifice, updateSacrifice, toast]);
 
   const notes = sacrifice.notes || "";
 

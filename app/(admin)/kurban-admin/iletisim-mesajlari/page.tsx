@@ -70,6 +70,7 @@ export default function IletisimMesajlariPage() {
             <CustomDataTable
               data={data}
               columns={columns}
+              storageKey="iletisim-mesajlari"
               pageSizeOptions={[10, 20, 50]}
               tableSize="medium"
             />

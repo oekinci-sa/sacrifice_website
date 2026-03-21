@@ -183,6 +183,7 @@ export default function UyumsuzHisselerPage() {
                 <CustomDataTable
                   columns={columns}
                   data={bilinmeyenler}
+                  storageKey="uyumsuz-hisseler-bilinmeyenler"
                   tableSize="medium"
                   pageSizeOptions={[20, 50, 100, 200]}
                 />
@@ -198,6 +199,7 @@ export default function UyumsuzHisselerPage() {
                 <CustomDataTable
                   columns={columns}
                   data={bilinenler}
+                  storageKey="uyumsuz-hisseler-bilinenler"
                   tableSize="medium"
                   pageSizeOptions={[20, 50, 100, 200]}
                 />

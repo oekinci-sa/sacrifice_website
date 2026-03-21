@@ -8,6 +8,7 @@ CREATE TABLE "public"."sacrifice_animals" (
   "share_weight" INT2 NOT NULL,
   "share_price" NUMERIC(12,2) NOT NULL,
   "empty_share" INT2 NOT NULL DEFAULT 7 CHECK (empty_share BETWEEN 0 AND 7),
+  "animal_type" TEXT,
   "slaughter_time" TIMESTAMPTZ,
   "butcher_time" TIMESTAMPTZ,
   "delivery_time" TIMESTAMPTZ,

@@ -67,24 +67,23 @@ const EmptyShareCell = ({ sacrifice }: { sacrifice: sacrificeSchema }) => {
   );
 };
 
-// Ana columns tanımı
-export const columns: ColumnDef<sacrificeSchema>[] = [
-  // 
-  // {
-  //   accessorKey: "sacrifice_no",
-  //   header: "Kurbanlık Sırası",
-  //   cell: ({ row }) => (
-  //     <div className="text-center py-0.5 md:py-1">
-  //       {row.getValue("sacrifice_no")}
-  //     </div>
-  //   ),
-  //   filterFn: (row, id, value: string) => {
-  //     const searchValue = value.toLowerCase();
-  //     const cellValue = String(row.getValue(id)).toLowerCase();
-  //     return cellValue.includes(searchValue);
-  //   },
-  //   enableSorting: true,
-  // },
+const sacrificeNoColumn: ColumnDef<sacrificeSchema> = {
+  accessorKey: "sacrifice_no",
+  header: "Sıra No",
+  cell: ({ row }) => (
+    <div className="text-center py-0.5 md:py-1">
+      {row.getValue("sacrifice_no")}
+    </div>
+  ),
+  filterFn: (row, id, value: string) => {
+    const searchValue = value.toLowerCase();
+    const cellValue = String(row.getValue(id)).toLowerCase();
+    return cellValue.includes(searchValue);
+  },
+  enableSorting: true,
+};
+
+const baseColumnsAfterSacrificeNo: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "sacrifice_time",
     header: "Kesim Saati",
@@ -153,36 +152,65 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
     enableSorting: true,
   },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row, table }) => {
-      const sacrifice = row.original;
-      const emptyShare = sacrifice.empty_share;
-      const meta = table.options.meta as TableMeta;
+];
 
-      if (emptyShare === 0) {
-        return (
-          <div className="flex justify-center py-0.5 md:py-1">
-            <span className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-red-light text-sac-red px-2 md:px-4 py-1 md:py-1.5 rounded">
-              <Ban className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5" />
-              Tükendi
-            </span>
-          </div>
-        );
-      }
+const animalTypeColumn: ColumnDef<sacrificeSchema> = {
+  accessorKey: "animal_type",
+  header: "Cins",
+  cell: ({ row }) => {
+    const c = row.original.animal_type;
+    return (
+      <div className="text-center py-0.5 md:py-1">
+        {c != null && String(c).trim() !== "" ? c : "—"}
+      </div>
+    );
+  },
+  enableSorting: true,
+};
 
+const actionsColumn: ColumnDef<sacrificeSchema> = {
+  id: "actions",
+  header: "",
+  cell: ({ row, table }) => {
+    const sacrifice = row.original;
+    const emptyShare = sacrifice.empty_share;
+    const meta = table.options.meta as TableMeta;
+
+    if (emptyShare === 0) {
       return (
         <div className="flex justify-center py-0.5 md:py-1">
-          <button
-            onClick={() => meta?.onSacrificeSelect(sacrifice)}
-            className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-primary-lightest hover:bg-primary text-primary font-medium hover:text-white px-2 md:px-4 py-1 md:py-1.5 rounded transition-colors duration-200"
-          >
-            <Plus className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5" />
-            Hisse Al
-          </button>
+          <span className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-red-light text-sac-red px-2 md:px-4 py-1 md:py-1.5 rounded">
+            <Ban className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5" />
+            Tükendi
+          </span>
         </div>
       );
-    },
+    }
+
+    return (
+      <div className="flex justify-center py-0.5 md:py-1">
+        <button
+          onClick={() => meta?.onSacrificeSelect(sacrifice)}
+          className="inline-flex items-center justify-center min-w-[80px] md:min-w-[100px] bg-sac-primary-lightest hover:bg-primary text-primary font-medium hover:text-white px-2 md:px-4 py-1 md:py-1.5 rounded transition-colors duration-200"
+        >
+          <Plus className="h-2.5 w-2.5 md:h-3.5 md:w-3.5 mr-1 md:mr-1.5" />
+          Hisse Al
+        </button>
+      </div>
+    );
   },
-];
+};
+
+/**
+ * O tenant/yılda en az bir kurbanlıkta `animal_type` doluysa true verin;
+ * böylece Elya gibi cins kullanmayan sitelerde sütun gizlenir.
+ */
+export function buildHissealTableColumns(showAnimalType: boolean): ColumnDef<sacrificeSchema>[] {
+  const middle = showAnimalType
+    ? [...baseColumnsAfterSacrificeNo, animalTypeColumn]
+    : baseColumnsAfterSacrificeNo;
+  return [sacrificeNoColumn, ...middle, actionsColumn];
+}
+
+/** Varsayılan: cins sütunu yok (SSR / geriye dönük import için) */
+export const columns = buildHissealTableColumns(false);

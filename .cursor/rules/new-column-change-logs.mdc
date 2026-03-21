@@ -1,0 +1,32 @@
+---
+description: Yeni tablo/sütun eklendiğinde change_logs izleme sorusu
+globs: 
+---
+
+# Change Logs — Yeni Sütun İzleme Kuralı
+
+## Kural
+
+Veritabanındaki **herhangi bir tabloya yeni sütun** eklediğinizde veya **yeni tablo** oluşturduğunuzda:
+
+1. **Kullanıcıya sor:** "Bu sütun/tablo `change_logs` tablosunda izlenmeli mi?"
+2. Kullanıcı evet derse:
+   - İlgili tabloda `change_logs` yazan audit tetikleyiciyi güncelle
+   - Yeni sütun için `IF NEW.<kolon> IS DISTINCT FROM OLD.<kolon>` bloğu ekle
+   - INSERT açıklamasında yeni sütunu dahil et (varsa)
+3. Kullanıcı hayır derse:
+   - Sadece şema ve types güncellemesi yap; tetikleyiciye dokunma
+
+## Mevcut change_logs tetikleyicileri
+
+| Tablo | Tetikleyici dosyası |
+|-------|---------------------|
+| sacrifice_animals | `db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
+| shareholders | `db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql` |
+| stage_metrics | `db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql` |
+| mismatched_share_acknowledgments | `db/tables/change_logs/triggers/log_mismatch_changes.sql` (veya ilgili dosya) |
+| users | `db/tables/users/functions_and_triggers/log_user_changes.sql` |
+
+## Yeni tablo eklendiğinde
+
+Yeni tablo oluşturulduğunda: "Bu tablo change_logs ile izlenmeli mi? Hangi sütunlar audit için önemli?" diye sor.

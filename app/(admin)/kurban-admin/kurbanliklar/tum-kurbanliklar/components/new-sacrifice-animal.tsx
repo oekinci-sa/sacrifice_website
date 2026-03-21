@@ -87,6 +87,7 @@ const formSchema = z.object({
     required_error: "Lütfen hisse ağırlığı/bedeli seçin",
   }),
   empty_share: z.coerce.number().min(0).max(7).default(7),
+  animal_type: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -134,6 +135,7 @@ export function NewSacrificeAnimal() {
       sacrifice_time: "",
       weight_price: "",
       empty_share: 7,
+      animal_type: "",
       notes: "",
     },
   });
@@ -160,9 +162,8 @@ export function NewSacrificeAnimal() {
         share_weight: parseFloat(selectedPriceInfo.kg.replace(/[^\d.]/g, '')),
         share_price: parseInt(selectedPriceInfo.price.replace(/\./g, ''), 10),
         empty_share: values.empty_share,
+        animal_type: values.animal_type || null,
         notes: values.notes || null,
-        last_edited_time: new Date().toISOString(),
-        last_edited_by: userEmail // Admin: email saklanır
       };
 
       const response = await fetch('/api/create-sacrifice', {
@@ -309,6 +310,32 @@ export function NewSacrificeAnimal() {
                           {n}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="animal_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hayvan Cinsi (Opsiyonel)</FormLabel>
+                  <Select
+                    value={field.value || "_empty"}
+                    onValueChange={(v) => field.onChange(v === "_empty" ? "" : v)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Cins seçin" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="_empty">-</SelectItem>
+                      <SelectItem value="Dana">Dana</SelectItem>
+                      <SelectItem value="Düve">Düve</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

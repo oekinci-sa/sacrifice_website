@@ -1,0 +1,22 @@
+---
+description: Admin CustomDataTable — sütun sırası (başlık sürükleme) ve storageKey zorunluluğu
+globs: app/(admin)/**/*.tsx, components/custom-data-components/*
+---
+# Admin sütun sırası ve kalıcılık
+
+## Zorunluluk
+- `app/(admin)/` altında **`CustomDataTable`** kullanan her sayfa **`storageKey`** prop’unu vermelidir.
+- `storageKey`, sayfa (veya aynı sayfadaki **ayrı tablo / sekme** başına) **benzersiz** kısa bir sabit olmalıdır (örn. `rezervasyonlar`, `uyumsuz-hisseler-bilinmeyenler` / `uyumsuz-hisseler-bilinenler`).
+- `storageKey` olmadan `onColumnOrderChange` bağlanmaz; **başlıktan sütun taşıma** ve sıra için **localStorage** çalışmaz.
+
+## Davranış (referans)
+- Başlık satırında sürükleme: `CustomTableHeader` — `security_code` ve `actions` hariç, `getCanHide()` true olan sütunlar.
+- Bırakma konumu: hedef hücrenin **sol yarısı** = öncesine, **sağ yarısı** = sonrasına ekleme; sürüklerken **dikey çizgi** göstergesi.
+- Kalıcılık: `table-column-visibility-{storageKey}-{userId}` ve aynı anahtar + `-order` ile sıra (`CustomDataTable`).
+
+## Sütunlar popover (opsiyonel ama tutarlılık)
+- Toolbar’ı olan sayfalarda `ColumnSelectorPopover` + `filters` içinde `columnOrder` / `onColumnOrderChange` ile bağlanmalı; içinde **varsayılan sütun düzenine dön** (`onColumnOrderChange([])`) tercih edilir.
+- Popover olmayan sayfalarda da kullanıcı **yalnızca başlık sürüklemesi** ile sırayı değiştirebilir (storageKey şart).
+
+## Özel başlıklar
+- `header` string olmayan sütunlarda sürükleme önizlemesi için `columnHeaderLabels` (veya sayfaya özel map) kullanılmalıdır.

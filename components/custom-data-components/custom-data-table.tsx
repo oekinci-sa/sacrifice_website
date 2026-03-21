@@ -30,6 +30,8 @@ interface DataTableProps<TData, TValue> {
   initialState?: {
     columnVisibility?: VisibilityState
   }
+  /** Sütun id → görünen başlık (özelleştirilmiş header bileşenlerinde sürükleme önizlemesi için) */
+  columnHeaderLabels?: Record<string, string>
   /** localStorage key for persisting column visibility (e.g. "hissedarlar", "kurbanliklar") */
   storageKey?: string
   filters?: (props: {
@@ -89,6 +91,7 @@ export function CustomDataTable<TData, TValue>({
   meta,
   pageSizeOptions = [20, 50, 100, 200, 500, 1000],
   initialState,
+  columnHeaderLabels,
   storageKey,
   filters,
   tableSize = "medium",
@@ -131,6 +134,16 @@ export function CustomDataTable<TData, TValue>({
     if (storedVis) setColumnVisibility(storedVis);
     if (storedOrder && storedOrder.length > 0) setColumnOrder(storedOrder);
   }, [fullStorageKey]);
+
+  const handleColumnOrderChangePersisted = React.useCallback(
+    (order: string[]) => {
+      setColumnOrder(order);
+      if (fullStorageKey) {
+        setStoredColumnOrder(fullStorageKey, order);
+      }
+    },
+    [fullStorageKey]
+  );
 
   const handleColumnVisibilityChange = React.useCallback(
     (updaterOrValue: VisibilityState | ((old: VisibilityState) => VisibilityState)) => {
@@ -246,15 +259,17 @@ export function CustomDataTable<TData, TValue>({
           columnFilters,
           onColumnFiltersChange: setColumnFilters,
           columnOrder,
-          onColumnOrderChange: fullStorageKey ? (order) => {
-            setColumnOrder(order);
-            setStoredColumnOrder(fullStorageKey, order);
-          } : undefined,
+          onColumnOrderChange: fullStorageKey ? handleColumnOrderChangePersisted : undefined,
         }) : null}
 
         <div className="rounded-md min-w-0">
           <Table>
-            <CustomTableHeader table={table} tableSize={tableSize} />
+            <CustomTableHeader
+              table={table}
+              tableSize={tableSize}
+              columnHeaderLabels={columnHeaderLabels}
+              onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
+            />
             <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} />
           </Table>
         </div>

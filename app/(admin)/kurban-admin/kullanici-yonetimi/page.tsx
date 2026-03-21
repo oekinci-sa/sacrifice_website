@@ -63,6 +63,7 @@ export default function UserManagementPage() {
         <CustomDataTable
           data={filteredUsers}
           columns={columns}
+          storageKey="kullanici-yonetimi"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
         />

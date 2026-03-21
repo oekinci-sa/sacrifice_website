@@ -7,8 +7,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Table } from "@tanstack/react-table";
-import { motion } from "framer-motion";
-import { GripVertical, SlidersHorizontal } from "lucide-react";
+import { LayoutGroup, motion } from "framer-motion";
+import { GripVertical, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useCallback, useState } from "react";
 
 const EXCLUDED_IDS = ["security_code", "actions"];
@@ -32,35 +32,60 @@ function ColumnItem({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const layoutTransition = {
+    layout: {
+      type: "spring" as const,
+      stiffness: 420,
+      damping: 32,
+      mass: 0.7,
+    },
+  };
+
   return (
     <motion.div
-      layout
-      layoutId={columnId}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        onDrop(e, columnId);
-      }}
-      className={cn(
-        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60",
-        isDragOver && "ring-1 ring-primary/30 bg-muted/30"
-      )}
+      layout="position"
+      layoutId={`column-selector-${columnId}`}
+      transition={layoutTransition}
     >
-      <span
-        draggable
-        onDragStart={(e) => onDragStart(e, columnId)}
-        className="touch-none p-0.5 -ml-0.5 rounded hover:bg-muted cursor-grab active:cursor-grabbing"
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setIsDragOver(false);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          onDrop(e, columnId);
+        }}
+        className={cn(
+          "flex select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60 touch-none",
+          isDragOver && "ring-1 ring-primary/30 bg-muted/30"
+        )}
+        style={{ WebkitTapHighlightColor: "transparent" }}
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </span>
-      <span className="flex-1 truncate">{label}</span>
+        <span
+          draggable
+          onDragStart={(e: React.DragEvent) => {
+            e.stopPropagation();
+            onDragStart(e, columnId);
+          }}
+          onDragEnd={() => setIsDragOver(false)}
+          className="p-0.5 -ml-0.5 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing touch-none"
+          title="Sürükleyerek sırayı değiştir"
+        >
+          <GripVertical className="h-4 w-4" />
+        </span>
+        <span className="flex-1 truncate pointer-events-none" title={label}>
+          {label}
+        </span>
+      </div>
     </motion.div>
   );
 }
@@ -165,7 +190,9 @@ export function ColumnSelectorPopover<TData = unknown>({
     dragEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg><span>${label}</span>`;
     document.body.appendChild(dragEl);
     e.dataTransfer.setDragImage(dragEl, 12, 12);
-    setTimeout(() => dragEl.parentNode?.removeChild(dragEl), 0);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => dragEl.remove());
+    });
   }, [columnHeaderMap]);
 
   const handleDrop = useCallback(
@@ -251,6 +278,7 @@ export function ColumnSelectorPopover<TData = unknown>({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-2" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <LayoutGroup id="admin-column-selector">
         <div className="space-y-4">
           <DroppableSection
             id="visible-section"
@@ -286,7 +314,23 @@ export function ColumnSelectorPopover<TData = unknown>({
               />
             ))}
           </DroppableSection>
+
+          {onColumnOrderChange ? (
+            <div className="pt-1 border-t border-border">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full h-8 text-xs justify-center gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={() => onColumnOrderChange([])}
+              >
+                <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+                Varsayılan sütun düzenine dön
+              </Button>
+            </div>
+          ) : null}
         </div>
+        </LayoutGroup>
       </PopoverContent>
     </Popover>
   );

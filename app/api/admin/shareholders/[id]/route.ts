@@ -1,3 +1,4 @@
+import { buildEmailToEditorDisplayMap, editorDisplayFromRaw } from "@/lib/resolve-editor-display";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
@@ -35,7 +36,16 @@ export async function GET(
       return NextResponse.json({ error: "Hissedar bulunamadı" }, { status: 404 });
     }
 
-    return NextResponse.json(data);
+    const displayMap = await buildEmailToEditorDisplayMap(supabaseAdmin, [
+      data.last_edited_by as string | null,
+    ]);
+    return NextResponse.json({
+      ...data,
+      last_edited_by_display: editorDisplayFromRaw(
+        data.last_edited_by as string | null,
+        displayMap
+      ),
+    });
   } catch {
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }

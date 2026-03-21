@@ -1,5 +1,5 @@
 ---
-description: Admin tabloları - sütun adları tutarlılığı ve animasyon
+description: Admin tabloları - sütun adları, animasyon, storageKey / sütun sırası
 globs: app/(admin)/**/*columns*, app/(admin)/**/*table*, components/custom-data-components/*
 ---
 # Admin Tabloları Kuralı
@@ -28,8 +28,10 @@ Admin sayfalarındaki tablolarda aynı veri için aynı sütun adı kullanılmal
 - Seçim → Pending değer gösterimi → Check (✓) ile onay veya X ile iptal.
 - Detay: `.cursor/rules/inline-editable-table-cells.mdc`
 
+## Sütun sırası ve kalıcılık
+- **Zorunlu:** Her admin `CustomDataTable` için `storageKey`. Detay: `.cursor/rules/admin-column-reorder.mdc`
+- Başlıktan sürükleme tüm bu tablolarda çalışır; sıra kullanıcı + tarayıcıda saklanır.
+
 ## Sütun Seçici (ColumnSelectorPopover)
-- Tüm Hissedarlar, Ödemeler, Tüm Kurbanlıklar ve diğer admin tablolarında Sütunlar popover'ı olmalı.
-- Sütun sırası değiştirme (drag-drop) ve sütun görünürlüğü özellikleri tüm tablolarda tutarlı olmalı.
-- Excel'e Aktar butonu (hissedar tablolarında) Sütunlar butonunun yanında yer almalı.
-- CustomDataTable storageKey ile kullanıcı bazlı sütun tercihleri saklanmalı.
+- Toolbar’lı sayfalarda (Tüm Hissedarlar, Kurbanlıklar, Ödemeler, Teslimatlar vb.) **Sütunlar** popover’ı: görünürlük + listede sıra; **Varsayılan sütun düzenine dön** butonu tercih edilir.
+- Excel’e Aktar varsa Sütunlar ile aynı satırda konumlandırılmalıdır.

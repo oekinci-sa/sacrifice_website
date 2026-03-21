@@ -3,5 +3,6 @@ CREATE TABLE "public"."stage_metrics" (
   stage TEXT NOT NULL,
   avg_progress_duration INT2,
   current_sacrifice_number INT2,
+  last_edited_by TEXT,
   PRIMARY KEY (tenant_id, stage)
 );

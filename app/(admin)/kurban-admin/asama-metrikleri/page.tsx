@@ -44,6 +44,7 @@ export default function AsamaMetrikleriPage() {
         <CustomDataTable
           data={data}
           columns={columns}
+          storageKey="asama-metrikleri"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
         />

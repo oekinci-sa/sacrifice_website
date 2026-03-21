@@ -1,3 +1,4 @@
+import { editorDisplayFromRaw, buildEmailToEditorDisplayMap } from "@/lib/resolve-editor-display";
 import { getTenantId } from "@/lib/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -26,33 +27,26 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to fetch change logs" },
+        { error: "Değişiklik kayıtları alınamadı" },
         { status: 500 }
       );
     }
 
-    // change_owner DB'de email olarak saklanır; users tablosu ile eşleştirip name göster
-    // Loglardaki email benzeri değerleri topla (@ içeren)
-    const emailsFromLogs = Array.from(new Set(
-      (data || [])
-        .map((log) => log.change_owner)
-        .filter((v): v is string => typeof v === "string" && v.includes("@"))
-    ));
-
-    const { data: usersData } = emailsFromLogs.length > 0
-      ? await supabaseAdmin.from("users").select("email, name").in("email", emailsFromLogs)
-      : { data: [] };
-
-    const emailToName = new Map(
-      (usersData || []).filter((u) => u.email).map((u) => [u.email, u.name || u.email])
+    // DB'de change_owner = e-posta veya sistem etiketi; UI'da kullanıcı adı (yoksa e-posta / ham metin)
+    const emailToDisplay = await buildEmailToEditorDisplayMap(
+      supabaseAdmin,
+      (data || []).map((log) => log.change_owner as string | null)
     );
 
-    const logsWithFilteredOwner = (data || []).map((log) => ({
+    const logsWithDisplayOwner = (data || []).map((log) => ({
       ...log,
-      change_owner: emailToName.has(log.change_owner) ? emailToName.get(log.change_owner) : null,
+      change_owner: editorDisplayFromRaw(
+        log.change_owner as string | null,
+        emailToDisplay
+      ) || null,
     }));
 
-    return NextResponse.json({ logs: logsWithFilteredOwner }, {
+    return NextResponse.json({ logs: logsWithDisplayOwner }, {
       headers: { 
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',
@@ -62,7 +56,7 @@ export async function GET(request: NextRequest) {
     
   } catch {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Sunucu hatası" },
       { status: 500 }
     );
   }

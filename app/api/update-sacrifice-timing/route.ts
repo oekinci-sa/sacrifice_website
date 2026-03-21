@@ -1,6 +1,12 @@
+import { authOptions } from '@/lib/auth';
+import {
+    getSessionActorEmail,
+    TAKIP_EKRANI_ACTOR,
+} from '@/lib/admin-editor-session';
 import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = "force-dynamic";
@@ -8,6 +14,10 @@ export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        const actor =
+            getSessionActorEmail(session) ?? TAKIP_EKRANI_ACTOR;
+
         const tenantId = getTenantId();
         const sacrificeYear = getDefaultSacrificeYear();
         const body = await request.json();
@@ -15,7 +25,7 @@ export async function POST(request: NextRequest) {
 
         if (!sacrifice_id || !stage) {
             return NextResponse.json(
-                { error: "sacrifice_id and stage are required" },
+                { error: "sacrifice_id ve stage gerekli" },
                 {
                     status: 400,
                     headers: {
@@ -28,7 +38,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Determine which field to update based on stage
-        let timeField: string;
+        let timeField: 'slaughter_time' | 'butcher_time' | 'delivery_time';
         switch (stage) {
             case 'slaughter_stage':
                 timeField = 'slaughter_time';
@@ -41,7 +51,7 @@ export async function POST(request: NextRequest) {
                 break;
             default:
                 return NextResponse.json(
-                    { error: "Invalid stage" },
+                    { error: "Geçersiz aşama" },
                     {
                         status: 400,
                         headers: {
@@ -56,17 +66,19 @@ export async function POST(request: NextRequest) {
         // DB TIMESTAMPTZ: UTC ile sakla
         const completedTime = is_completed ? new Date().toISOString() : null;
 
-        const { data, error } = await supabaseAdmin
-            .from("sacrifice_animals")
-            .update({ [timeField]: completedTime })
-            .eq("tenant_id", tenantId)
-            .eq("sacrifice_id", sacrifice_id)
-            .eq("sacrifice_year", sacrificeYear)
-            .select();
+        const { data, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_timing', {
+            p_actor: actor,
+            p_tenant_id: tenantId,
+            p_sacrifice_id: sacrifice_id,
+            p_sacrifice_year: sacrificeYear,
+            p_field: timeField,
+            p_value: completedTime,
+        });
 
         if (error) {
+            console.error('rpc_update_sacrifice_timing', error);
             return NextResponse.json(
-                { error: "Failed to update sacrifice timing" },
+                { error: "Aşama zamanı güncellenemedi" },
                 {
                     status: 500,
                     headers: {
@@ -78,8 +90,23 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Return the updated data
-        return NextResponse.json(data, {
+        const list = data as Record<string, unknown>[] | null;
+        if (!list || list.length === 0) {
+            return NextResponse.json(
+                { error: "Kurban kaydı bulunamadı" },
+                {
+                    status: 404,
+                    headers: {
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                }
+            );
+        }
+
+        // Return the updated data (önceki API tek satır yerine dizi dönüyordu — uyum için dizi)
+        return NextResponse.json(list, {
             headers: {
                 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
                 'Pragma': 'no-cache',
@@ -87,8 +114,8 @@ export async function POST(request: NextRequest) {
             }
         });
     } catch {
-        return NextResponse.json(
-            { error: "An unexpected error occurred" },
+            return NextResponse.json(
+            { error: "Beklenmeyen bir sunucu hatası oluştu" },
             {
                 status: 500,
                 headers: {

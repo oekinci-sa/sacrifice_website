@@ -93,6 +93,7 @@ export default function RezervasyonlarPage() {
         <CustomDataTable
           data={data}
           columns={columns}
+          storageKey="rezervasyonlar"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
           filters={({ table }) => <ReservationFilters table={table} />}

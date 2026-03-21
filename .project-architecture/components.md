@@ -8,13 +8,14 @@ Bu dosya projede oluşturulan özel bileşenleri ve özelliklerini listeler. `co
 
 ### CustomDataTable
 - **Amaç:** Sayfalama, sıralama, filtreleme destekli veri tablosu
-- **Props:** `columns`, `data`, `pageSizeOptions`, `tableSize`, `filters`, `initialState`
-- **Özellikler:** TanStack Table, sütun görünürlüğü, sayfa boyutu seçimi
-- **Kullanım:** Kurbanlıklar, Hissedarlar, Değişiklik Kayıtları, Rezervasyonlar, Aşama Metrikleri sayfaları
+- **Props:** `columns`, `data`, `pageSizeOptions`, `tableSize`, `filters`, `initialState`, **`storageKey`** (admin’de zorunlu), `columnHeaderLabels` (özel header’larda sürükleme etiketi)
+- **Özellikler:** TanStack Table, sütun görünürlüğü, sayfa boyutu seçimi; `storageKey` ile kullanıcı bazlı görünürlük + **sütun sırası** (`localStorage`, `…-order` anahtarı)
+- **Kullanım:** Tüm ana admin liste sayfaları (kurbanlıklar, hissedarlar, rezervasyonlar, değişiklik kayıtları, uyumsuzluklar sekmeleri, vb.)
 
 ### CustomTableHeader / CustomTableBody
 - CustomDataTable içinde kullanılan header ve body bileşenleri
-- Sıralama, sütun gizleme dropdown desteği
+- **Header:** Sıralama; `storageKey` bağlıyken başlıktan **sütun sürükleme** (sol/sağ yarı ile yerleşim, dikey çizgi göstergesi); `security_code` / `actions` hariç
+- Body: satır animasyonları (`motion.tr`)
 
 ### CustomDataTableFooter
 - Sayfa navigasyonu, sayfa boyutu seçimi

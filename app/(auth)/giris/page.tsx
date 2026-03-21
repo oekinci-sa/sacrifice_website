@@ -1,15 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-import { Mail, Lock } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import Image from "next/image";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 
@@ -22,11 +17,7 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { logo_slug } = useTenantBranding();
 
@@ -47,27 +38,6 @@ function LoginContent() {
     }
   }, [searchParams, toast]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      toast({
-        variant: "destructive",
-        title: "Giriş başarısız",
-        description: "Email veya şifre hatalı",
-      });
-      return;
-    }
-
-    router.push(`${window.location.origin}/kurban-admin/genel-bakis`);
-  };
-
   const handleGoogleLogin = () => {
     signIn("google", {
       callbackUrl: `${window.location.origin}/kurban-admin/genel-bakis`,
@@ -76,7 +46,6 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50/80 relative overflow-hidden">
-      {/* Radiant-style gradient - top right */}
       <div
         className="absolute top-0 right-0 w-[60%] h-[60%] -translate-y-1/4 translate-x-1/4 rounded-full opacity-60"
         style={{
@@ -86,7 +55,6 @@ function LoginContent() {
       />
 
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 sm:p-10">
-        {/* Tenant logosu */}
         <div className="flex justify-center mb-6">
           <div
             className={
@@ -111,93 +79,14 @@ function LoginContent() {
             Tekrar hoş geldiniz!
           </h1>
           <p className="text-sm text-gray-500">
-            Devam etmek için hesabınıza giriş yapın.
+            Devam etmek için Google hesabınızla giriş yapın.
           </p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email
-            </Label>
-            <div className="relative">
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="ornek@email.com"
-                className="h-10 pl-3 pr-10 rounded-lg border-gray-200 bg-white focus-visible:ring-gray-900"
-              />
-              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Şifre
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-10 pl-3 pr-10 rounded-lg border-gray-200 bg-white focus-visible:ring-gray-900"
-              />
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:border-gray-900"
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none text-gray-700 cursor-pointer select-none"
-              >
-                Beni hatırla
-              </label>
-            </div>
-            <Button
-              variant="link"
-              className="px-0 font-normal text-sm text-gray-600 hover:text-gray-900"
-              type="button"
-            >
-              Şifremi unuttum?
-            </Button>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full h-10 rounded-lg bg-gray-900 hover:bg-gray-800 text-white font-medium"
-          >
-            Giriş Yap
-          </Button>
-        </form>
-
-        <div className="relative mt-6">
-          <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full bg-gray-200" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">
-              Veya Google ile devam et
-            </span>
-          </div>
         </div>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full h-10 mt-4 rounded-lg border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+          className="w-full h-10 rounded-lg border-gray-200 hover:bg-gray-50 hover:border-gray-300"
           onClick={handleGoogleLogin}
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -223,4 +112,4 @@ function LoginContent() {
       </div>
     </div>
   );
-} 
+}

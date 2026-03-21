@@ -4,25 +4,58 @@ import { CustomDataTable } from "@/components/custom-data-components/custom-data
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
 import { useMemo, useState } from "react";
-import { ChangeLogFilters } from "./components/change-log-filters";
-import { ChangeLogSearch } from "./components/change-log-search";
+import {
+  ChangeLogFilters,
+  type ChangeLogDatePreset,
+} from "./components/change-log-filters";
 import { columns } from "./components/columns";
+
+function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
+  if (preset === "all") return null;
+  const now = new Date();
+  if (preset === "today") {
+    const s = new Date(now);
+    s.setHours(0, 0, 0, 0);
+    return s;
+  }
+  const days = preset === "last7" ? 7 : 30;
+  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+}
 
 export default function ChangeLogsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [datePreset, setDatePreset] = useState<ChangeLogDatePreset>("all");
 
   const { data = [], isLoading, error } = useChangeLogs();
 
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return data;
-    const lowerCaseSearch = searchTerm.toLowerCase();
-    return data.filter(log => {
-      const description = log.description?.toLowerCase() || '';
-      return description.includes(lowerCaseSearch);
-    });
-  }, [data, searchTerm]);
-
-  const handleSearch = (value: string) => setSearchTerm(value);
+    let rows = data;
+    const rangeStart = startOfFilterRange(datePreset);
+    if (rangeStart) {
+      rows = rows.filter((log) => new Date(log.changed_at) >= rangeStart);
+    }
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      rows = rows.filter((log) => {
+        const blob = [
+          log.description,
+          log.column_name,
+          log.change_owner,
+          log.old_value,
+          log.new_value,
+          log.table_name,
+          log.change_type,
+          log.row_id,
+          String(log.event_id),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return blob.includes(q);
+      });
+    }
+    return rows;
+  }, [data, searchTerm, datePreset]);
 
   if (error) {
     return (
@@ -56,13 +89,17 @@ export default function ChangeLogsPage() {
         <CustomDataTable
           data={filteredData}
           columns={columns}
+          storageKey="degisiklik-kayitlari"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
           filters={({ table }) => (
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <ChangeLogFilters table={table} />
-              <ChangeLogSearch onSearch={handleSearch} />
-            </div>
+            <ChangeLogFilters
+              table={table}
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              datePreset={datePreset}
+              onDatePresetChange={setDatePreset}
+            />
           )}
         />
       )}

@@ -1,3 +1,4 @@
+import { buildEmailToEditorDisplayMap, editorDisplayFromRaw } from "@/lib/resolve-editor-display";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: "Failed to fetch shareholders" },
+        { error: "Hissedarlar alınamadı" },
         {
           status: 500,
           headers: {
@@ -47,7 +48,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ shareholders: data }, {
+    const displayMap = await buildEmailToEditorDisplayMap(
+      supabaseAdmin,
+      (data || []).map((r) => r.last_edited_by as string | null)
+    );
+    const shareholders = (data || []).map((row) => ({
+      ...row,
+      last_edited_by_display: editorDisplayFromRaw(
+        row.last_edited_by as string | null,
+        displayMap
+      ),
+    }));
+
+    return NextResponse.json({ shareholders }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',

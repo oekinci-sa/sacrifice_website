@@ -39,7 +39,7 @@
 - app/(admin)/kurban-admin/iletisim-mesajlari/page.tsx
 - app/(admin)/kurban-admin/reminder-talepleri/page.tsx
 - app/(admin)/kurban-admin/kullanici-yonetimi/page.tsx
-- .project-architecture/changelog-2025-03-ui-improvements.md
+- .project-architecture/changelogs/changelog-2025-03-ui-improvements.md
 - .project-architecture/pages/admin-pages.md
 - .project-architecture/features.md
 
@@ -446,3 +446,73 @@
 - supabase/ (silindi)
 
 [Risk] Orta – DB view ve trigger değişti; API tenant-aware zaten.
+
+=== 2026-03-20 ===
+
+[Istek] change_logs tablosuna tum yazimi RPC'den DB trigger'lara tasima; eski gereksiz script ve migration dosyalarini silme; .project-architecture/ guncelleme
+
+[Yapilan Degisiklikler]
+
+1. Yeni trigger fonksiyonlari olusturuldu ve Supabase'e uygulandı (trigger_only_change_logs_part1 + part2):
+   - log_user_changes(): users tablosu AFTER INSERT/UPDATE/DELETE — ad, gorsel, rol, e-posta, durum degisikliklerini Turkce aciklamayla loglar
+   - log_user_tenants_changes(): user_tenants AFTER INSERT/UPDATE — actor artik yalnizca app.actor GUC'tan alinir (tablo last_edited_by kolonu yok)
+   - log_mismatch_changes(): mismatched_share_acknowledgments AFTER INSERT/DELETE — hisse uyumsuzlugu onay/iptal loglar
+   - log_stage_metrics_changes(): stage_metrics AFTER UPDATE OF current_sacrifice_number — kesim/parcalama/teslimat asama numarasi degisimini loglar
+
+2. RPC'lerdeki dogrudan INSERT INTO change_logs bloklari kaldirildi:
+   - rpc_update_stage_metrics: dogrudan INSERT kaldirildi; last_edited_by guncellenir, trigger tetiklenir
+   - rpc_acknowledge_mismatch: dogrudan INSERT kaldirildi; last_edited_by guncellenir, trigger tetiklenir
+   - rpc_revoke_mismatch: dogrudan INSERT kaldirildi; trigger tetiklenir
+   - rpc_create_user: dogrudan INSERT kaldirildi; last_edited_by + last_audit_tenant_id yazilir, trigger tetiklenir
+   - rpc_update_user: dogrudan INSERT'ler kaldirildi; trigger tetiklenir
+   - rpc_delete_user: dogrudan INSERT kaldirildi; once last_edited_by update, sonra DELETE
+   - rpc_patch_user_tenant_status: dogrudan INSERT'ler kaldirildi; trigger tetiklenir
+
+3. Eski/duplikat DB trigger ve fonksiyonlar silindi (cleanup_old_change_log_triggers migration):
+   - trigger_mismatched_share_ack_changes + log_mismatched_share_ack_changes()
+   - trigger_users_changes + log_users_changes()
+
+4. scripts/ klasoru tamamen silindi (7 .mjs dosyasi artik gereksiz):
+   export-sql-for-mcp.mjs, emit-mcp-query.mjs, apply-change-log-migrations.mjs,
+   build-change-logs-migration-bundle.mjs, write-change-logs-full-sql.mjs,
+   split-change-logs-migration.mjs, build-change-logs-triggers-migration.mjs
+
+5. .project-architecture/db/migrations/ altindaki 19 eski gecici dosya silindi:
+   change_logs_triggers_only_part* (8 dosya), change_logs_friendlier_* (7 dosya),
+   change_logs_triggers_only_unified.sql, change_logs_friendlier_FULL.sql,
+   _mcp_apply_buffer.sql, _terminal_capture.sql, _exec/extract blob dosyalari,
+   phase6_stage_metrics_rpc.sql (eski RPC, artik rpc_update_stage_metrics.sql ile degistirildi)
+
+[Dosyalar]
+- .project-architecture/db/migrations/trigger_only_change_logs_2026_03.sql (yeni, ana migration)
+- .project-architecture/db/migrations/phase5_users_audit_rpc.sql (guncellendi — INSERT'ler kaldirildi)
+- .project-architecture/db/migrations/phase4_mismatch_ack_rpc.sql (guncellendi — INSERT'ler kaldirildi)
+- .project-architecture/db/tables/users/functions_and_triggers/log_user_changes.sql (yeni)
+- .project-architecture/db/tables/user_tenants/functions_and_triggers/log_user_tenants_changes.sql (guncellendi)
+- .project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql (yeni)
+- .project-architecture/db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql (yeni)
+- .project-architecture/db/tables/stage_metrics/functions_and_triggers/rpc_update_stage_metrics.sql (guncellendi)
+- scripts/ klasoru silindi
+
+[Mimari durum — change_logs yazimi]
+Artik YALNIZCA 6 DB trigger change_logs'a yazar:
+trigger_shareholder_changes (shareholders)
+trigger_sacrifice_changes (sacrifice_animals)
+trigger_user_changes (users)
+trigger_user_tenants_changes (user_tenants)
+trigger_mismatch_changes (mismatched_share_acknowledgments)
+trigger_stage_metrics_changes (stage_metrics)
+Hicbir RPC dogrudan change_logs'a yazmaz.
+
+[Risk] Dusuk — Tum mantik DB trigger'larda; actor app.actor GUC uzerinden geciriiliyor.
+
+=== 2026-03-20 (changelog klasoru) ===
+
+[Istek] changelog-2025-* vb. dosyalari daha duzenli bir yere tasima
+
+[Yapilan]
+- Tum changelog-*.md dosyalari `.project-architecture/changelogs/` altina tasindi.
+- `.project-architecture/changelogs/README.md` indeks + yeni dosya adlandirma notu eklendi.
+- `.project-architecture/README.md`: db tablosuna `changelogs/` satiri; kokteki changelog tablosu kaldirildi.
+- `features.md` ve `changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md` ic linkler guncellendi (2026 dosyasinda silinmis phase6 migration yerine trigger_only + rpc path).
+- `.cursor/agent-log.txt` eski changelog yolu duzeltildi.

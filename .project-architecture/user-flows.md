@@ -101,11 +101,11 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Akış | API / Aksiyon |
 |------|---------------|
 | Kurbanlık listesi | GET /api/sacrifices (getSacrificeAnimals) |
-| Kurbanlık ekleme | POST /api/create-sacrifice |
-| Kurbanlık güncelleme | PATCH /api/update-sacrifice, update-sacrifice-share, update-sacrifice-timing |
-| Kurbanlık silme | DELETE /api/sacrifices/[id] |
-| Hissedar ekleme | POST /api/create-shareholders |
-| Hissedar güncelleme | PATCH /api/update-shareholder; **Hissedar Ayrıntıları**nda teslimat tercihi düzenlenmez (hisse alımındaki seçim korunur) |
+| Kurbanlık ekleme | POST /api/create-sacrifice (editor+; `last_edited_by` sunucuda oturum e-postası) |
+| Kurbanlık güncelleme | PUT /api/update-sacrifice; POST /api/update-sacrifice-share, /api/update-sacrifice-timing |
+| Kurbanlık silme | DELETE /api/sacrifices/[id] (`rpc_delete_sacrifice`, oturum e-postası = `app.actor`) |
+| Hissedar ekleme | POST /api/create-shareholders (`last_edited_by` sunucuda: oturum e-postası veya `hisseal-akisi`; `purchased_by` müşteri) |
+| Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Hissedar Ayrıntıları**nda teslimat tercihi düzenlenmez (hisse alımındaki seçim korunur) |
 | Hissedar silme | POST /api/delete-shareholder |
 
 ---
@@ -117,7 +117,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Genel Bakış | useSacrificeStore, useShareholderStore |
 | Satış grafikleri | shareholders.purchase_time |
 | Rezervasyonlar | GET /api/get-reservation-transactions (kolonlar: `completed_at` işlem bitişi); tablo üstü filtreler: Kurban No, Hisse Sayısı, Durum; **Realtime**: Supabase `postgres_changes` (reservation_transactions) ile badge ve tablo anında güncellenir |
-| Aşama metrikleri | GET /api/get-stage-metrics |
+| Aşama metrikleri | GET /api/get-stage-metrics (takip + admin okuma); **POST /api/update-stage-metrics** — anlık kurban no (editor+; RPC + `change_logs` satırı) |
 | Değişiklik kayıtları | GET /api/get-change-logs |
 | Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
 

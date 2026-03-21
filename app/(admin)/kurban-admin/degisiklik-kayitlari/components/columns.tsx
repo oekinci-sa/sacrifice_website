@@ -61,13 +61,7 @@ export const columns: ColumnDef<ChangeLog>[] = [
     header: "Tablo",
     cell: ({ row }) => {
       const tableName = row.getValue("table_name") as string;
-      const displayName = tableName === "sacrifice_animals"
-        ? "Kurbanlıklar"
-        : tableName === "shareholders"
-          ? "Hissedarlar"
-          : tableName;
-
-      return <div className="text-center">{displayName}</div>;
+      return <div className="text-center">{tableName || "-"}</div>;
     },
     filterFn: (row, id, value: unknown) => {
       const arr = Array.isArray(value) ? value : [];

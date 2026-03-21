@@ -7,6 +7,7 @@ import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
 import { Download, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { SacrificeFilters } from "./components/sacrifice-filters";
 import { SacrificeSearch } from "./components/sacrifice-search";
 
@@ -16,15 +17,7 @@ interface ToolbarAndFiltersProps {
   onColumnOrderChange?: (order: string[]) => void;
 }
 
-// Column header mapping
-const columnHeaderMap: { [key: string]: string } = {
-  sacrifice_no: "Kurban No",
-  sacrifice_time: "Kesim Saati",
-  share_price: "Hisse Bedeli",
-  empty_share: "Boş Hisse",
-  payment_status: "Ödeme Durumu",
-  notes: "Notlar",
-};
+const columnHeaderMap = kurbanliklarColumnHeaderLabels;
 
 export function ToolbarAndFilters({
   table,

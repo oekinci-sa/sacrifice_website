@@ -113,23 +113,20 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!shareholder) return;
-    // Session'dan email al (useUser sadece name döndürüyor)
-    const userEmail = session?.user?.email;
-    if (!userEmail) {
+    if (!session?.user?.email) {
       toast({
         title: "Hata",
-        description: "Kullanıcı bilgisi bulunamadı.",
+        description: "Oturumda e-posta bulunamadı.",
         variant: "destructive",
       });
       return;
     }
 
-    // Teslimat tercihi / ücreti hisse alımından gelir; düzenlemede değiştirilmez
     const updatedData = {
       shareholder_name: editFormData.shareholder_name,
-      phone_number: formatPhoneForDB(editFormData.phone_number), // Format phone number
+      phone_number: formatPhoneForDB(editFormData.phone_number),
       delivery_location:
         shareholder.delivery_location ||
         (branding.logo_slug === "elya-hayvancilik" ? "Gölbaşı" : "Kahramankazan"),
@@ -138,25 +135,19 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
       notes: editFormData.notes,
       delivery_fee: shareholder.delivery_fee ?? 0,
       security_code: editFormData.security_code,
-      last_edited_by: userEmail // Admin: email saklanır
     };
 
     try {
-      updateMutation.mutate({
+      const saved = await updateMutation.mutateAsync({
         shareholderId: params.id,
-        data: updatedData
+        data: updatedData,
       });
-
-      setShareholder(prevState => {
-        if (!prevState) return prevState;
-        return {
-          ...prevState,
-          ...updatedData
-        };
+      setShareholder({
+        ...shareholder,
+        ...saved,
+        sacrifice: shareholder.sacrifice,
       });
-
       setIsEditing(false);
-
       toast({
         title: "Başarılı",
         description: "Hissedar bilgileri güncellendi.",
@@ -223,7 +214,13 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
         {/* Son düzenleyen bilgisi */}
         <div className="text-sm text-muted-foreground">
-          Son düzenleyen: <span className="font-medium">{shareholder.last_edited_by || "Belirtilmemiş"}</span> - {shareholder.last_edited_time ? formatDate(shareholder.last_edited_time) : ""}
+          Son düzenleyen:{" "}
+          <span className="font-medium">
+            {shareholder.last_edited_by_display?.trim() ||
+              shareholder.last_edited_by ||
+              "Belirtilmemiş"}
+          </span>{" "}
+          - {shareholder.last_edited_time ? formatDate(shareholder.last_edited_time) : ""}
         </div>
       </div>
 

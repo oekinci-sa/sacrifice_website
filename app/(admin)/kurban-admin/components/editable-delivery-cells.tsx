@@ -28,7 +28,6 @@ import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/formatters";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useCallback, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,12 +36,10 @@ export async function updateShareholderField(
   shareholderId: string,
   field: string,
   value: string | boolean | null,
-  lastEditedBy: string,
   extraFields?: Record<string, string | boolean | null>
 ) {
   const body: Record<string, unknown> = {
     shareholder_id: shareholderId,
-    last_edited_by: lastEditedBy,
     [field]: value,
     ...extraFields,
   };
@@ -62,7 +59,6 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const branding = useTenantBranding();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
@@ -117,7 +113,6 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
         row.original.shareholder_id,
         "delivery_location",
         pendingValue,
-        session?.user?.name ?? "Sistem",
         extraFields
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
@@ -130,7 +125,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [pendingValue, row.original, session?.user?.name, updateShareholder, toast, branding.logo_slug]);
+  }, [pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
 
   const handleSecondPhoneConfirm = useCallback(async () => {
     const digitsSecond = secondPhoneValue.replace(/\D/g, "");
@@ -155,7 +150,6 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
         row.original.shareholder_id,
         "delivery_location",
         pendingValue ?? "",
-        session?.user?.name ?? "Sistem",
         { delivery_type, second_phone_number: secondPhoneValue }
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
@@ -171,7 +165,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [secondPhoneValue, pendingValue, row.original, session?.user?.name, updateShareholder, toast, branding.logo_slug]);
+  }, [secondPhoneValue, pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
 
   const handleSecondPhoneCancel = useCallback(() => {
     setSecondPhoneDialogOpen(false);
@@ -282,7 +276,6 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
 export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const rawPhone = row.original.second_phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "";
   const [value, setValue] = useState(() => formatPhoneForInput(rawPhone));
@@ -296,8 +289,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
         const { data } = await updateShareholderField(
           row.original.shareholder_id,
           "second_phone_number",
-          null,
-          session?.user?.name ?? "Sistem"
+          null
         );
         updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
         window.dispatchEvent(new Event("shareholders-updated"));
@@ -325,8 +317,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "second_phone_number",
-        value,
-        session?.user?.name ?? "Sistem"
+        value
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -337,7 +328,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
@@ -385,7 +376,6 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
 export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(row.original.delivery_location || "");
   const [saving, setSaving] = useState(false);
@@ -396,8 +386,7 @@ export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSche
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "delivery_location",
-        value.trim() || row.original.delivery_location || "",
-        session?.user?.name ?? "Sistem"
+        value.trim() || row.original.delivery_location || ""
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -408,7 +397,7 @@ export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSche
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   const loc = row.original.delivery_location;
 

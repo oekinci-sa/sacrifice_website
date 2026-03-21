@@ -8,16 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useTenantBranding } from "@/hooks/useTenantBranding"
 import { useEffect, useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface SecurityCodeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSecurityCodeSet: (code: string) => void
-  initialCode?: string // Allow passing an initial code
+  initialCode?: string
 }
 
 export default function SecurityCodeDialog({
@@ -26,43 +23,50 @@ export default function SecurityCodeDialog({
   onSecurityCodeSet,
   initialCode = "",
 }: SecurityCodeDialogProps) {
-  const [securityCode, setSecurityCode] = useState<string>(initialCode || "")
+  const [code, setCode] = useState<string>(initialCode || "")
+  const [confirmCode, setConfirmCode] = useState<string>("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [showCode, setShowCode] = useState(false)
-  const branding = useTenantBranding()
-  const isElya = branding.logo_slug === "elya-hayvancilik"
-  const filledCircleClass = isElya ? "bg-sac-blue text-white" : "bg-sac-graph-green-tone-light text-white"
 
-  // Update security code when initialCode changes
   useEffect(() => {
-    if (initialCode) {
-      setSecurityCode(initialCode)
+    if (open) {
+      setCode(initialCode || "")
+      setConfirmCode("")
+      setError("")
+      setIsLoading(false)
     }
   }, [initialCode, open])
 
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCodeChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.replace(/\D/g, "").slice(0, 6)
-    setSecurityCode(v)
+    setter(v)
     setError("")
   }
 
-  const validateAndSubmit = () => {
-    if (isLoading) return // Prevent double submission
+  const bothSix = code.length === 6 && confirmCode.length === 6
+  const codesMatch = code === confirmCode && /^\d{6}$/.test(code)
+  const canSubmit = bothSix && codesMatch && !isLoading
 
-    // Validate that code is 6 digits
-    if (securityCode.length !== 6 || !/^\d{6}$/.test(securityCode)) {
+  const validateAndSubmit = () => {
+    if (isLoading) return
+
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
       setError("Lütfen 6 rakamlı bir kod belirleyiniz.")
+      return
+    }
+    if (confirmCode.length !== 6) {
+      setError("Lütfen güvenlik kodunuzu tekrar giriniz.")
+      return
+    }
+    if (code !== confirmCode) {
+      setError("Girdiğiniz kodlar eşleşmiyor. Lütfen kontrol ediniz.")
       return
     }
 
     setIsLoading(true)
     setError("")
-
     try {
-      // Pass the security code to parent component
-      onSecurityCodeSet(securityCode)
-      // Keep the dialog open because we'll control closing in the parent
+      onSecurityCodeSet(code)
       setIsLoading(false)
     } catch {
       setError("İşlem sırasında bir hata oluştu.")
@@ -70,16 +74,17 @@ export default function SecurityCodeDialog({
     }
   }
 
-  const handleClose = () => {
-    setError("")
-    setIsLoading(false)
-    // We don't reset the security code here to preserve it
-    onOpenChange(false)
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setError("")
+      setIsLoading(false)
+      onOpenChange(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="md:max-w-md">
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <DialogContent className="md:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-base md:text-lg text-center">
             Kendi Güvenlik Kodunuzu Belirleyin
@@ -88,64 +93,57 @@ export default function SecurityCodeDialog({
 
         <div className="space-y-4 mb-4">
           <p className="text-sm md:text-base text-muted-foreground text-center">
-            Hisse sorgulama sayfasında bilgilerinize erişmek için <strong className="text-primary">kendinizin belirleyeceği</strong> 6 rakamlı bir kod oluşturun.
+            Hisse sorgulama sayfasında bilgilerinize erişmek için{" "}
+            <strong className="text-primary">kendinizin belirleyeceği</strong> 6 rakamlı bir kod oluşturun.
           </p>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="security-code" className="text-sm font-medium text-muted-foreground text-center">
-              6 rakamlı kodunuzu belirleyin
-            </label>
-            <div className="relative flex items-center justify-center h-12 rounded-md border border-input bg-background transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="security-code-primary" className="text-sm font-medium text-muted-foreground">
+                6 rakamlı kodunuzu belirleyin
+              </label>
               <Input
-                id="security-code"
+                id="security-code-primary"
                 type="text"
                 inputMode="numeric"
                 pattern="\d*"
                 maxLength={6}
-                value={securityCode}
-                onChange={handleCodeChange}
+                value={code}
+                onChange={handleCodeChange(setCode)}
                 autoComplete="one-time-code"
-                className="absolute inset-0 opacity-0 cursor-default caret-transparent z-0"
+                className="text-center text-lg tracking-widest font-mono tabular-nums"
+                placeholder="••••••"
               />
-              <div className="flex items-center justify-center gap-1.5 pointer-events-none z-0" aria-hidden>
-                {[0, 1, 2, 3, 4, 5].map((i) => {
-                  const hasDigit = i < securityCode.length
-                  const emptyBorderClass = "border-sac-blue/60"
-                  return (
-                    <span
-                      key={i}
-                      className={cn(
-                        "inline-flex items-center justify-center w-4 h-4 rounded-full text-xs font-semibold tabular-nums",
-                        hasDigit ? filledCircleClass : `border-2 bg-transparent ${emptyBorderClass}`
-                      )}
-                    >
-                      {hasDigit && showCode ? securityCode[i] : null}
-                    </span>
-                  )
-                })}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 z-10"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setShowCode((p) => !p)
-                }}
-                aria-label={showCode ? "Kodu gizle" : "Kodu göster"}
-              >
-                {showCode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="security-code-confirm" className="text-sm font-medium text-muted-foreground">
+                Güvenlik kodunuzu tekrar giriniz
+              </label>
+              <Input
+                id="security-code-confirm"
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
+                maxLength={6}
+                value={confirmCode}
+                onChange={handleCodeChange(setConfirmCode)}
+                autoComplete="off"
+                className="text-center text-lg tracking-widest font-mono tabular-nums"
+                placeholder="••••••"
+              />
             </div>
           </div>
         </div>
-        {error && <p className="text-xs md:text-sm text-destructive text-center">{error}</p>}
+
+        {error && (
+          <p className="text-xs md:text-sm text-destructive text-center">{error}</p>
+        )}
+
         <div className="flex justify-center">
           <Button
+            type="button"
             onClick={validateAndSubmit}
-            disabled={isLoading || securityCode.length !== 6}
+            disabled={!canSubmit}
             className="h-10 md:h-12 text-base md:text-lg whitespace-nowrap mx-auto"
           >
             Onayla
@@ -154,4 +152,4 @@ export default function SecurityCodeDialog({
       </DialogContent>
     </Dialog>
   )
-} 
+}

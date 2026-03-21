@@ -1,7 +1,8 @@
+import { authOptions } from "@/lib/auth";
+import { getSessionActorEmail } from "@/lib/admin-editor-session";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +14,17 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Oturum gerekli" }, { status: 401 });
+    const allowedRoles = ["admin", "editor", "super_admin"];
+    if (!session?.user || !allowedRoles.includes(session.user.role ?? "")) {
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
+    }
+
+    const actor = getSessionActorEmail(session);
+    if (!actor) {
+      return NextResponse.json(
+        { error: "Oturumda e-posta bulunamadı." },
+        { status: 400 }
+      );
     }
 
     const tenantId = getTenantId();
@@ -28,21 +38,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { error } = await supabaseAdmin
-      .from("mismatched_share_acknowledgments")
-      .upsert(
-        {
-          sacrifice_id,
-          tenant_id: tenantId,
-          acknowledged_by: session.user.email,
-          acknowledged_at: new Date().toISOString(),
-        },
-        { onConflict: "sacrifice_id" }
-      );
+    const { error } = await supabaseAdmin.rpc("rpc_acknowledge_mismatch", {
+      p_actor: actor,
+      p_tenant_id: tenantId,
+      p_sacrifice_id: sacrifice_id,
+    });
 
     if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("sacrifice_not_found")) {
+        return NextResponse.json({ error: "Kurban kaydı bulunamadı." }, { status: 404 });
+      }
+      console.error("rpc_acknowledge_mismatch", error);
       return NextResponse.json(
-        { error: "Farkındalık kaydedilemedi", details: error.message },
+        { error: "Farkındalık kaydedilemedi" },
         { status: 500 }
       );
     }

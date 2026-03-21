@@ -70,6 +70,8 @@ export interface shareholderSchema {
   // Düzenleme bilgileri
   last_edited_time: string | null;
   last_edited_by: string | null;
+  /** API: admin listesinde gösterim (DB'de e-posta) */
+  last_edited_by_display?: string | null;
   notes: string | null;
 
   // Görüşüldü bilgisi (yeni kayıt takibi)
@@ -97,6 +99,8 @@ export interface sacrificeSchema {
   share_price: number;
   share_weight: number;
   empty_share: number;
+  /** Hayvan cinsi (DANA, DÜVE vb.) */
+  animal_type: string | null;
 
   // Düzenleme bilgileri
   last_edited_time: string | null;

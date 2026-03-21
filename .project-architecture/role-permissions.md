@@ -74,6 +74,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | Kurbanlık silme (DELETE /api/sacrifices/[id]) | ✗ | ✓ | ✓ |
 | Rezervasyon işlemleri (GET /api/get-reservation-transactions) | ✗ | ✗ | ✓ |
 | Uyumsuz hisseler (mismatched-shares) | ✓ | ✓ | ✓ |
+| Aşama metrikleri güncelleme (POST /api/update-stage-metrics) | ✓ | ✓ | ✓ |
 
 ---
 
@@ -104,5 +105,9 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | `app/api/users/[id]/status/route.ts` | addToOtherTenant super_admin check |
 | `app/api/users/[id]/route.ts` | Rol güncelleme, super_admin atama |
 | `app/api/users/route.ts` | Yeni kullanıcı, super_admin atama |
+| `app/api/update-stage-metrics/route.ts` | `rpc_update_stage_metrics`; editor+ ve oturum e-postası |
+| `app/api/create-sacrifice/route.ts` | editor+; `last_edited_by` oturum e-postası |
+| `app/api/create-shareholders/route.ts` | Açık (hisseal); audit için `last_edited_by` sunucuda (oturum veya `hisseal-akisi`) |
+| `app/api/sacrifices/[id]/route.ts` | `rpc_delete_sacrifice`; admin/super_admin; oturum e-postası zorunlu |
 | `status-cell.tsx` | "Onayla ve diğer siteye de ekle" sadece super_admin |
 | `role-cell.tsx` | super_admin seçeneği sadece super_admin'de |

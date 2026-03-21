@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { getSessionActorEmail } from "@/lib/admin-editor-session";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
@@ -14,7 +15,7 @@ export async function GET() {
 
         // Check authorization
         if (!session || !session.user) {
-            return NextResponse.json({ error: "Unauthorized" }, {
+            return NextResponse.json({ error: "Yetkisiz" }, {
                 status: 401,
                 headers: {
                     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -87,7 +88,7 @@ export async function GET() {
     } catch (error) {
         console.error("Kullanıcıları getirme sırasında bilinmeyen hata:", error);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: "Sunucu hatası" },
             {
                 status: 500,
                 headers: {
@@ -107,7 +108,7 @@ export async function POST(request: Request) {
 
         // Check authorization (only admin can create users)
         if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
-            return NextResponse.json({ error: "Unauthorized" }, {
+            return NextResponse.json({ error: "Yetkisiz" }, {
                 status: 401,
                 headers: {
                     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -120,6 +121,14 @@ export async function POST(request: Request) {
         const json = await request.json();
         const tenantId = getTenantId();
 
+        const actor = getSessionActorEmail(session);
+        if (!actor) {
+            return NextResponse.json(
+                { error: "Oturumda e-posta bulunamadı." },
+                { status: 400, headers: { 'Cache-Control': 'no-store', Pragma: 'no-cache', Expires: '0' } }
+            );
+        }
+
         // Sadece super_admin yeni kullanıcıya super_admin rolü verebilir
         if (json.role === "super_admin" && session.user.role !== "super_admin") {
             return NextResponse.json(
@@ -128,15 +137,23 @@ export async function POST(request: Request) {
             );
         }
 
-        const { data, error } = await supabaseAdmin
-            .from("users")
-            .insert(json)
-            .select()
-            .single();
+        const payload = {
+            email: json.email,
+            name: json.name ?? null,
+            image: json.image ?? null,
+            role: json.role ?? null,
+            status: json.status ?? null,
+        };
+
+        const { data: rows, error } = await supabaseAdmin.rpc("rpc_create_user", {
+            p_actor: actor,
+            p_tenant_id: tenantId,
+            p_user: payload as unknown as Record<string, unknown>,
+        });
 
         if (error) {
-            console.error("Kullanıcı oluşturma hatası:", error);
-            return NextResponse.json({ error: error.message }, {
+            console.error("rpc_create_user", error);
+            return NextResponse.json({ error: error.message || "Kullanıcı oluşturulamadı" }, {
                 status: 500,
                 headers: {
                     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -146,13 +163,10 @@ export async function POST(request: Request) {
             });
         }
 
-        // Yeni kullanıcıyı mevcut tenant'a ekle
-        if (data?.id) {
-            await supabaseAdmin.from("user_tenants").insert({
-                user_id: data.id,
-                tenant_id: tenantId,
-                approved_at: json.status === "approved" ? new Date().toISOString() : null,
-            });
+        const list = rows as Record<string, unknown>[] | null;
+        const data = list?.[0];
+        if (!data) {
+            return NextResponse.json({ error: "Kullanıcı oluşturulamadı" }, { status: 500, headers: { 'Cache-Control': 'no-store', Pragma: 'no-cache', Expires: '0' } });
         }
 
         return NextResponse.json(data, {
@@ -165,7 +179,7 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Kullanıcı oluşturma sırasında bilinmeyen hata:", error);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: "Sunucu hatası" },
             {
                 status: 500,
                 headers: {

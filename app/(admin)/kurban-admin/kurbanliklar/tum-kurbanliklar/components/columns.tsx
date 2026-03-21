@@ -14,7 +14,7 @@ import { sacrificeSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { ActionCellContent } from "./columns/ActionCell";
-import { EditableEmptyShareCell, EditableNotesCell, EditableSharePriceCell } from "./columns/EditableSacrificeCells";
+import { EditableAnimalTypeCell, EditableEmptyShareCell, EditableNotesCell, EditableSharePriceCell } from "./columns/EditableSacrificeCells";
 
 function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
   const branding = useTenantBranding();
@@ -308,6 +308,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       <ShareholderBarsCell row={row} />
     ),
     minSize: 180,
+  },
+  {
+    accessorKey: "animal_type",
+    header: "Cins",
+    minSize: 90,
+    cell: ({ row }) => <EditableAnimalTypeCell row={row} />,
+    enableSorting: true,
   },
   {
     accessorKey: "notes",

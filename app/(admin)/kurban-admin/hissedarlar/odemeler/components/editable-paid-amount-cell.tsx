@@ -11,13 +11,11 @@ import { useCallback, useState } from "react";
 
 interface EditablePaidAmountCellProps {
   row: Row<shareholderSchema>;
-  lastEditedBy: string;
   onUpdate: (shareholder: shareholderSchema) => void;
 }
 
 export function EditablePaidAmountCell({
   row,
-  lastEditedBy,
   onUpdate,
 }: EditablePaidAmountCellProps) {
   const { toast } = useToast();
@@ -71,7 +69,6 @@ export function EditablePaidAmountCell({
         body: JSON.stringify({
           shareholder_id: row.original.shareholder_id,
           paid_amount: numValue,
-          last_edited_by: lastEditedBy,
         }),
       });
 
@@ -98,7 +95,6 @@ export function EditablePaidAmountCell({
     editValue,
     totalAmount,
     row.original,
-    lastEditedBy,
     onUpdate,
     toast,
   ]);

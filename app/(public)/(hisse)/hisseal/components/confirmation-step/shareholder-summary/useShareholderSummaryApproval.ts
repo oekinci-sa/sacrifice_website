@@ -129,7 +129,6 @@ export function useShareholderSummaryApproval(
           delivery_type,
           security_code: securityCode,
           purchased_by: purchaserName,
-          last_edited_by: purchaserName,
           sacrifice_consent: false,
           total_amount: totalAmount,
           remaining_payment: remainingPayment,

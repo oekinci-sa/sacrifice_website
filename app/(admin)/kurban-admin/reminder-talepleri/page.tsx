@@ -47,6 +47,7 @@ export default function ReminderTalepleriPage() {
         <CustomDataTable
           data={data}
           columns={columns}
+          storageKey="reminder-talepleri"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
         />

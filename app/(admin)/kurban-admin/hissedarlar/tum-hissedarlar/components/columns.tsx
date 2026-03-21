@@ -52,7 +52,6 @@ import {
   getDeliverySelectionFromLocation,
   getDeliveryTypeDisplayLabel,
 } from "@/lib/delivery-options";
-import { useSession } from "next-auth/react";
 import { useCallback, useMemo, useState } from "react";
 
 function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
@@ -192,12 +191,10 @@ async function updateShareholderField(
   shareholderId: string,
   field: string,
   value: string | boolean | null,
-  lastEditedBy: string,
   extraFields?: Record<string, string | boolean | null>
 ) {
   const body: Record<string, unknown> = {
     shareholder_id: shareholderId,
-    last_edited_by: lastEditedBy,
     [field]: value,
     ...extraFields,
   };
@@ -216,7 +213,6 @@ async function updateShareholderField(
 const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(row.original.shareholder_name || "");
   const [saving, setSaving] = useState(false);
@@ -232,8 +228,7 @@ const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "shareholder_name",
-        trimmed,
-        session?.user?.name ?? "Sistem"
+        trimmed
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -244,7 +239,7 @@ const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   const handleCancel = useCallback(() => { setIsEditing(false); setValue(row.original.shareholder_name || ""); }, [row.original.shareholder_name]);
 
@@ -281,7 +276,6 @@ const EditableNameCell = ({ row }: { row: Row<shareholderSchema> }) => {
 const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const rawPhone = row.original.phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "";
   const [value, setValue] = useState(() => formatPhoneForInput(rawPhone));
@@ -298,8 +292,7 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "phone_number",
-        value,
-        session?.user?.name ?? "Sistem"
+        value
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -310,7 +303,7 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
@@ -357,7 +350,6 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const branding = useTenantBranding();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
@@ -394,7 +386,6 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
         row.original.shareholder_id,
         "delivery_location",
         pendingValue,
-        session?.user?.name ?? "Sistem",
         { delivery_type }
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
@@ -407,7 +398,7 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
     } finally {
       setSaving(false);
     }
-  }, [pendingValue, row.original, session?.user?.name, updateShareholder, toast, branding.logo_slug]);
+  }, [pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
@@ -460,7 +451,6 @@ const EditableDeliveryCell = ({ row }: { row: Row<shareholderSchema> }) => {
 const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(row.original.delivery_location || "");
   const [saving, setSaving] = useState(false);
@@ -471,8 +461,7 @@ const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) 
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "delivery_location",
-        value.trim() || row.original.delivery_location || "",
-        session?.user?.name ?? "Sistem"
+        value.trim() || row.original.delivery_location || ""
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -483,7 +472,7 @@ const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) 
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   const loc = row.original.delivery_location;
 
@@ -530,7 +519,6 @@ const EditableDeliveryLocationCell = ({ row }: { row: Row<shareholderSchema> }) 
 const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
   const consent = row.original.sacrifice_consent ?? false;
 
@@ -540,8 +528,7 @@ const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "sacrifice_consent",
-        !consent,
-        session?.user?.name ?? "Sistem"
+        !consent
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -551,7 +538,7 @@ const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
     } finally {
       setSaving(false);
     }
-  }, [row.original, consent, session?.user?.name, updateShareholder, toast]);
+  }, [row.original, consent, updateShareholder, toast]);
 
   return (
     <TooltipProvider>
@@ -581,7 +568,6 @@ const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
 const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
-  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(row.original.notes || "");
   const [saving, setSaving] = useState(false);
@@ -592,8 +578,7 @@ const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "notes",
-        value || null,
-        session?.user?.name ?? "Sistem"
+        value || null
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -604,7 +589,7 @@ const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, session?.user?.name, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, toast]);
 
   return (
     <>
@@ -873,8 +858,12 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     minSize: 110,
     enableSorting: true,
     cell: ({ row }) => {
-      const editor = row.getValue("last_edited_by") as string;
-      return editor || "-";
+      const sh = row.original;
+      const label =
+        sh.last_edited_by_display?.trim() ||
+        sh.last_edited_by ||
+        "";
+      return label || "-";
     },
   },
   {

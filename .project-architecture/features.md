@@ -67,14 +67,23 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Daha önce kayıtlıysa uyarı toast, yoksa kayıt + başarı toast
 
 ## Admin Tablo Sayfaları
+- **Sütun sırası:** Tüm admin `CustomDataTable` sayfalarında `storageKey` ile kullanıcı bazlı kalıcılık; başlık satırından sürükle-bırak (hedef hücrenin sol/sağ yarısı = önce/sonra; bırakma yeri dikey çizgi ile gösterilir). Toolbar’lı sayfalarda `ColumnSelectorPopover` içinde **varsayılan sütun düzenine dön** (`[]` sıra). Ayrıntı: [changelogs/changelog-2026-03-admin-column-reorder.md](changelogs/changelog-2026-03-admin-column-reorder.md).
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı); tabloda **İşlem Bitişi** (`completed_at`) — aktif → tamamlandı / iptal / zaman aşımı / süre doldu geçişinde trigger ile set edilir. Tablo üstünde **Kurban No**, **Hisse Sayısı**, **Durum** çoklu seçim filtreleri + tümünü temizle. **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
 - **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır. **Aktif rezervasyon**: `status=active` olan reservation_transactions'a sahip hayvanlar listeden çıkarılır (henüz hissedar eklenmemiş geçici uyumsuzluk önlenir).
 
 ## last_edited_by / change_owner (Admin)
-- Admin bölümünden yapılan düzenlemelerde `last_edited_by` **email** olarak saklanır (sacrifice_animals, shareholders).
-- Değişiklik Kayıtları: `change_owner` DB'de email; API `users` tablosu ile eşleştirip **name** döndürür.
-- Sadece users tablosunda kayıtlı kullanıcılar "Son Düzenleyen" sütununda görünür.
+- **Faz 1 (API):** `PUT /api/update-sacrifice`, `POST /api/update-sacrifice-share`, `POST /api/update-sacrifice-timing` için `last_edited_by` **sunucuda** oturumdan türetilir (yalnızca e-posta; isim asla yazılmaz). Public: `takip-ekranı` / `hisseal-akisi`. **Oluşturma:** `POST /api/create-sacrifice` editor+ ve oturum e-postası zorunlu; `last_edited_by` / zaman sunucuda. `POST /api/create-shareholders` — `last_edited_by` = oturum e-postası yoksa `hisseal-akisi` (istemci alanı yok sayılır; `purchased_by` müşteri bilgisi için kalır).
+- **Faz 2 (shareholders):** `rpc_update_shareholder` / `rpc_delete_shareholder` — `set_config('app.actor', …)` + genişletilmiş `log_shareholder_changes` (DELETE’te silen = actor). `POST /api/update-shareholder` ve `POST /api/delete-shareholder` bu RPC’leri kullanır.
+- **Faz 3 (sacrifice_animals):** `rpc_update_sacrifice_core` / `rpc_update_sacrifice_timing` / `rpc_update_sacrifice_share` — `app.actor` + `log_sacrifice_changes` genişletildi (`share_weight`, `empty_share`, `notes`, DELETE’te `app.actor`). `PUT /api/update-sacrifice`, `POST /api/update-sacrifice-timing`, `POST /api/update-sacrifice-share` bu RPC’leri kullanır; kurban güncellemede `last_edited_by_display` döner. **Silme:** `DELETE /api/sacrifices/[id]` → `rpc_delete_sacrifice` (aynı transaction’da hissedar + rezervasyon + kurban; `change_logs` silende `app.actor`).
+- **Faz 4 (uyumsuzluk):** `rpc_acknowledge_mismatch` / `rpc_revoke_mismatch` — farkındalık kaydı + açık `change_logs` (`Hisse Uyumsuzluğu`). `POST /api/admin/mismatched-shares/acknowledge` ve `.../revoke`.
+- **Faz 5 (kullanıcılar):** `rpc_create_user` / `rpc_update_user` / `rpc_delete_user` / `rpc_patch_user_tenant_status` — `users` + `user_tenants` + açık `change_logs` (`Kullanıcılar`). `POST/PUT/DELETE /api/users/*`, `PATCH /api/users/[id]/status`.
+- **Faz 6 (aşama metrikleri):** `rpc_update_stage_metrics` — `app.actor` + `change_logs` (`Aşama Metrikleri`, anlık kurban numarası). `POST /api/update-stage-metrics` (editor+; oturum e-postası zorunlu).
+- **Faz 7 (dokümantasyon):** `.project-architecture` altında migration + `db/tables/...` RPC/trigger SQL senkronu; [features.md](features.md), [role-permissions.md](role-permissions.md), [user-flows.md](user-flows.md), [pages/admin-pages.md](pages/admin-pages.md); audit changelog: [changelog-2026-03-admin-audit-rpc-faz6-7.md](changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md).
+- **Gösterim:** DB’de `last_edited_by` ve `change_logs.change_owner` = **e-posta** (veya sistem etiketi). `GET /api/get-shareholders`, `GET /api/admin/shareholders/[id]`, `GET /api/get-change-logs` yanıtında kullanıcı adı `users.name` ile eşlenir; admin tabloda **isim** gösterilir (`last_edited_by_display` / `change_owner` çözümlü metin).
+- **update-shareholder / delete-shareholder:** Oturum **e-postası** zorunlu; istemci `last_edited_by` gönderse bile sunucu yok sayar.
+- `sacrifice_animals.last_edited_by`: admin için e-posta; Faz 3 RPC ile güncelleme ve tetikleyicide `app.actor` ile uyumlu.
+- **Son Düzenleyen sütunu:** E-postası `users`’ta yoksa veya eşleşme yoksa tabloda ham değer (e-posta veya `takip-ekranı` vb.) gösterilir.
 
 ## Admin Sayfa Başlıkları ve Açıklamalar
 - Menü adı = sayfa başlığı (örn. "Kurbanlıklar", "Hissedarlar" — "Tüm X" kaldırıldı).
@@ -86,5 +95,6 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Hissedarı olmayan hayvanda popup açılmaz.
 
 ## Changelog
-- **2025-03 UI iyileştirmeleri**: [changelog-2025-03-ui-improvements.md](changelog-2025-03-ui-improvements.md)
-- **2025-03 Admin realtime, tema, UI**: [changelog-2025-03-admin-realtime-theme.md](changelog-2025-03-admin-realtime-theme.md)
+- **2026-03 Admin audit RPC (Faz 6–7)**: [changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md](changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md)
+- **2025-03 UI iyileştirmeleri**: [changelogs/changelog-2025-03-ui-improvements.md](changelogs/changelog-2025-03-ui-improvements.md)
+- **2025-03 Admin realtime, tema, UI**: [changelogs/changelog-2025-03-admin-realtime-theme.md](changelogs/changelog-2025-03-admin-realtime-theme.md)

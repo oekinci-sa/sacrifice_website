@@ -1,6 +1,8 @@
 import { authOptions } from '@/lib/auth';
+import { getSessionActorEmail, sessionHasAdminEditorOrSuperRole } from '@/lib/admin-editor-session';
 import { getDeliveryFeeForLocation, getDeliveryFeeForType } from '@/lib/delivery-options';
 import { getTenantId } from '@/lib/tenant';
+import { buildEmailToEditorDisplayMap, editorDisplayFromRaw } from '@/lib/resolve-editor-display';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { formatPhoneForDB } from '@/utils/formatters';
 import { getServerSession } from 'next-auth';
@@ -20,7 +22,8 @@ interface ShareholderUpdateInput {
   remaining_payment?: number;
   paid_amount?: number;
   security_code?: string;
-  last_edited_by: string; // Required to track who made the changes
+  /** İstemci gönderebilir; API dikkate almaz, oturumdan türetilir (Faz 1). */
+  last_edited_by?: string;
 }
 
 // Define a type for the database update fields which includes last_edited_time
@@ -48,8 +51,16 @@ interface UpdateFields {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin" && session.user.role !== "editor")) {
+    if (!sessionHasAdminEditorOrSuperRole(session)) {
       return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+    }
+
+    const actor = getSessionActorEmail(session);
+    if (!actor) {
+      return NextResponse.json(
+        { error: "Oturumda e-posta bulunamadı. Düzenleme için giriş e-postası gerekli." },
+        { status: 400 }
+      );
     }
 
     const tenantId = getTenantId();
@@ -63,16 +74,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!updateData.last_edited_by) {
-      return NextResponse.json(
-        { error: "last_edited_by is required" },
-        { status: 400 }
-      );
-    }
-
     // Create update object - only include fields that were provided
     const updateFields: UpdateFields = {
-      last_edited_by: updateData.last_edited_by // Required field
+      last_edited_by: actor
     };
 
     // Copy other fields if they exist (phone_number: her zaman +90 formatında sakla)
@@ -142,32 +146,45 @@ export async function POST(request: NextRequest) {
     // Add last_edited_time
     updateFields.last_edited_time = new Date().toISOString();
 
-    // Update the shareholder in the database
-    const { data, error } = await supabaseAdmin
-      .from("shareholders")
-      .update(updateFields)
-      .eq("tenant_id", tenantId)
-      .eq("shareholder_id", updateData.shareholder_id)
-      .select();
+    const { data: rows, error } = await supabaseAdmin.rpc("rpc_update_shareholder", {
+      p_actor: actor,
+      p_tenant_id: tenantId,
+      p_shareholder_id: updateData.shareholder_id,
+      p_patch: updateFields as unknown as Record<string, unknown>,
+    });
 
     if (error) {
+      console.error("rpc_update_shareholder", error);
       return NextResponse.json(
         { error: "Hissedar güncellenemedi" },
         { status: 500 }
       );
     }
 
-    if (!data || data.length === 0) {
+    const list = rows as Record<string, unknown>[] | null;
+    if (!list || list.length === 0) {
       return NextResponse.json(
         { error: "Hissedar bulunamadı" },
         { status: 404 }
       );
     }
 
+    const row = list[0];
+    const displayMap = await buildEmailToEditorDisplayMap(supabaseAdmin, [
+      row.last_edited_by as string | null,
+    ]);
+    const dataWithDisplay = {
+      ...row,
+      last_edited_by_display: editorDisplayFromRaw(
+        row.last_edited_by as string | null,
+        displayMap
+      ),
+    };
+
     return NextResponse.json({
       success: true,
-      message: "Shareholder updated successfully",
-      data: data[0]
+      message: "Hissedar güncellendi",
+      data: dataWithDisplay,
     });
 
   } catch {

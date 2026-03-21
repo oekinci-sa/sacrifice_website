@@ -67,41 +67,40 @@ const setupRealtimeSubscription = (set: any, get: any) => {
           );
 
           if (existingShareholder) {
-            // Fetch the complete updated record with relations
-            supabase
-              .from("shareholders")
-              .select(`
-                *,
-                sacrifice:sacrifice_animals (
-                  sacrifice_id,
-                  sacrifice_no,
-                  sacrifice_time,
-                  share_price,
-                  share_weight
-                )
-              `)
-              .eq('shareholder_id', updatedShareholder.shareholder_id)
-              .single()
-              .then(({ data, error }) => {
-                if (!error && data) {
+            const sid = updatedShareholder.shareholder_id;
+            fetch(`/api/admin/shareholders/${sid}`)
+              .then((res) => (res.ok ? res.json() : null))
+              .then((data: shareholderSchema | null) => {
+                if (data) {
                   set({
-                    shareholders: state.shareholders.map((s: shareholderSchema) =>
-                      s.shareholder_id === data.shareholder_id ? data as shareholderSchema : s
+                    shareholders: get().shareholders.map((s: shareholderSchema) =>
+                      s.shareholder_id === data.shareholder_id
+                        ? { ...data, sacrifice: existingShareholder.sacrifice }
+                        : s
                     ),
                   });
                 } else {
-                  // If fetch fails, fallback to merging the existing sacrifice data
                   const mergedShareholder = {
                     ...updatedShareholder,
-                    sacrifice: existingShareholder.sacrifice
+                    sacrifice: existingShareholder.sacrifice,
                   };
-
                   set({
-                    shareholders: state.shareholders.map((s: shareholderSchema) =>
+                    shareholders: get().shareholders.map((s: shareholderSchema) =>
                       s.shareholder_id === updatedShareholder.shareholder_id ? mergedShareholder : s
                     ),
                   });
                 }
+              })
+              .catch(() => {
+                const mergedShareholder = {
+                  ...updatedShareholder,
+                  sacrifice: existingShareholder.sacrifice,
+                };
+                set({
+                  shareholders: get().shareholders.map((s: shareholderSchema) =>
+                    s.shareholder_id === updatedShareholder.shareholder_id ? mergedShareholder : s
+                  ),
+                });
               });
           } else {
             // If we can't find the existing record, just use the update as is

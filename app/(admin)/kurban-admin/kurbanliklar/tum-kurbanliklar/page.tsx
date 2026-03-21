@@ -7,6 +7,7 @@ import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { useEffect, useMemo, useState } from "react";
+import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { setupRefreshListener } from "@/utils/data-refresh";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { columns } from "./components/columns";
@@ -151,6 +152,7 @@ export default function TumKurbanliklarPage() {
           data={filteredData}
           columns={columns}
           storageKey="kurbanliklar"
+          columnHeaderLabels={kurbanliklarColumnHeaderLabels}
           initialState={{ columnVisibility: { notes: true } }}
           filters={({ table, columnOrder, onColumnOrderChange }) => (
             <ToolbarAndFilters

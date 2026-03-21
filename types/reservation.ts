@@ -71,7 +71,8 @@ export interface ShareholderInput {
     delivery_location: string;
     security_code: string;
     purchased_by: string;
-    last_edited_by: string;
+    /** Sunucuda set edilir; istemci göndermek zorunda değil */
+    last_edited_by?: string;
     sacrifice_consent?: boolean;
     total_amount: number;
     remaining_payment: number;

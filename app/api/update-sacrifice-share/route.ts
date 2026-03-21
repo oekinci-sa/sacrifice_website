@@ -1,10 +1,16 @@
+import { authOptions } from '@/lib/auth';
+import { getSessionActorEmail, HISSE_AL_AKISI_ACTOR } from '@/lib/admin-editor-session';
 import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const actor = getSessionActorEmail(session) ?? HISSE_AL_AKISI_ACTOR;
+
     const tenantId = getTenantId();
     const sacrificeYear = getDefaultSacrificeYear();
     const { sacrificeId, emptyShare } = await request.json();
@@ -12,39 +18,43 @@ export async function POST(request: NextRequest) {
     // Validate input
     if (!sacrificeId) {
       return NextResponse.json(
-        { error: "sacrifice_id is required" },
+        { error: "sacrifice_id gerekli" },
         { status: 400 }
       );
     }
 
     if (typeof emptyShare !== 'number') {
       return NextResponse.json(
-        { error: "empty_share must be a number" },
+        { error: "empty_share sayı olmalıdır" },
         { status: 400 }
       );
     }
 
-    // Use the supabaseAdmin client with service role to update data
-    const { data, error } = await supabaseAdmin
-      .from("sacrifice_animals")
-      .update({ empty_share: emptyShare })
-      .eq("tenant_id", tenantId)
-      .eq("sacrifice_id", sacrificeId)
-      .eq("sacrifice_year", sacrificeYear)
-      .select();
+    const { data, error } = await supabaseAdmin.rpc("rpc_update_sacrifice_share", {
+      p_actor: actor,
+      p_tenant_id: tenantId,
+      p_sacrifice_id: sacrificeId,
+      p_sacrifice_year: sacrificeYear,
+      p_empty_share: emptyShare,
+    });
 
     if (error) {
+      console.error("rpc_update_sacrifice_share", error);
       return NextResponse.json(
-        { error: "Failed to update sacrifice animal" },
+        { error: "Boş hisse güncellenemedi" },
         { status: 500 }
       );
     }
 
-    // Return the updated data
-    return NextResponse.json(data);
+    const list = data as unknown[] | null;
+    if (!list || list.length === 0) {
+      return NextResponse.json({ error: "Kurban kaydı bulunamadı" }, { status: 404 });
+    }
+
+    return NextResponse.json(list);
   } catch {
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: "Beklenmeyen bir sunucu hatası oluştu" },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { getSessionActorEmail } from "@/lib/admin-editor-session";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
@@ -20,10 +21,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
 
-    // Check authorization
     const canManage = session?.user?.role === "admin" || session?.user?.role === "super_admin";
     if (!session || !session.user || !canManage) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+    }
+
+    const actor = getSessionActorEmail(session);
+    if (!actor) {
+      return NextResponse.json(
+        { error: "Oturumda e-posta bulunamadı." },
+        { status: 400 }
+      );
     }
 
     const { id } = params;
@@ -31,77 +39,72 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const body = await request.json();
     const { status, addToOtherTenant, revokeApproval } = body;
 
-    // "Onayla ve diğer siteye de ekle" sadece super_admin için
     if (addToOtherTenant && session.user.role !== "super_admin") {
-      return NextResponse.json({ error: "Bu işlem sadece super admin tarafından yapılabilir." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Bu işlem sadece super admin tarafından yapılabilir." },
+        { status: 403 }
+      );
     }
 
-    const { data: ut } = await supabaseAdmin
-      .from("user_tenants")
-      .select("user_id")
-      .eq("user_id", id)
-      .eq("tenant_id", tenantId)
-      .single();
-
-    if (!ut) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Onayı kaldır: user_tenants.approved_at = null
     if (revokeApproval) {
-      await supabaseAdmin
-        .from("user_tenants")
-        .update({ approved_at: null })
-        .eq("user_id", id)
-        .eq("tenant_id", tenantId);
-      const { data: u } = await supabaseAdmin.from("users").select("*").eq("id", id).single();
+      const { data: rows, error } = await supabaseAdmin.rpc("rpc_patch_user_tenant_status", {
+        p_actor: actor,
+        p_tenant_id: tenantId,
+        p_user_id: id,
+        p_revoke_approval: true,
+        p_status: null,
+        p_other_tenant_id: null,
+      });
+
+      if (error) {
+        const msg = error.message ?? "";
+        if (msg.includes("user_tenant_not_found")) {
+          return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+        }
+        console.error("rpc_patch_user_tenant_status (revoke)", error);
+        return NextResponse.json({ error: "İşlem başarısız" }, { status: 500 });
+      }
+
+      const list = rows as Record<string, unknown>[] | null;
+      const u = list?.[0];
+      if (!u) {
+        return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+      }
       return NextResponse.json(u);
     }
 
     if (!status || !["pending", "approved", "blacklisted"].includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status value" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Geçersiz durum değeri" }, { status: 400 });
     }
 
-    const { data, error: _error } = await supabaseAdmin
-      .from("users")
-      .update({ status })
-      .eq("id", id)
-      .select();
+    const otherId = addToOtherTenant ? getOtherTenantId(tenantId) : null;
 
-    if (_error) {
-      return NextResponse.json({ error: _error.message }, { status: 500 });
-    }
+    const { data: rows, error } = await supabaseAdmin.rpc("rpc_patch_user_tenant_status", {
+      p_actor: actor,
+      p_tenant_id: tenantId,
+      p_user_id: id,
+      p_revoke_approval: false,
+      p_status: status,
+      p_other_tenant_id: otherId,
+    });
 
-    // Onay: user_tenants.approved_at güncelle (per-tenant onay)
-    if (status === "approved") {
-      await supabaseAdmin
-        .from("user_tenants")
-        .update({ approved_at: new Date().toISOString() })
-        .eq("user_id", id)
-        .eq("tenant_id", tenantId);
-
-      // "Diğer siteye de ekle" seçildiyse: diğer tenant'a pre-approved ekle (sadece super_admin)
-      if (addToOtherTenant) {
-        const otherTenantId = getOtherTenantId(tenantId);
-        await supabaseAdmin.from("user_tenants").upsert(
-          {
-            user_id: id,
-            tenant_id: otherTenantId,
-            approved_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,tenant_id" }
-        );
+    if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("user_tenant_not_found") || msg.includes("user_not_found")) {
+        return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
       }
+      console.error("rpc_patch_user_tenant_status", error);
+      return NextResponse.json({ error: error.message || "İşlem başarısız" }, { status: 500 });
     }
 
-    return NextResponse.json(data[0]);
+    const list = rows as Record<string, unknown>[] | null;
+    const row = list?.[0];
+    if (!row) {
+      return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+    }
+
+    return NextResponse.json(row);
   } catch {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
-} 
+}

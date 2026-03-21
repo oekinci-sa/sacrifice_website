@@ -19,7 +19,8 @@ export interface ShareholderInput {
   delivery_type?: string;
   security_code: string;
   purchased_by: string;
-  last_edited_by: string;
+  /** Sunucu tarafından oturum / hisseal-akisi ile set edilir (isteğe bağlı, gönderilmez). */
+  last_edited_by?: string;
   is_purchaser?: boolean; // Made optional as it's only used locally
   sacrifice_consent?: boolean; // Made optional since it's not required when creating shareholders
   total_amount: number; // Total amount = share_price (from sacrifice) + delivery_fee
@@ -114,9 +115,7 @@ export const useUpdateShareholder = () => {
       // Include the shareholderId in the request body
       const payload = {
         ...data,
-        shareholder_id: shareholderId,
-        // Make sure last_edited_by is included if not already in data
-        last_edited_by: data.last_edited_by || 'admin-user'
+        shareholder_id: shareholderId
       };
 
       const response = await fetch(`/api/update-shareholder`, {
@@ -158,8 +157,9 @@ export const useUpdateShareholder = () => {
 
   return {
     mutate,
+    mutateAsync: mutate,
     isLoading,
-    error
+    error,
   };
 };
 

@@ -12,7 +12,6 @@ import { formatDateMedium } from "@/lib/date-utils";
 import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { ColumnDef } from "@tanstack/react-table";
-import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { exportTableToExcel } from "@/lib/export-to-excel";
@@ -35,7 +34,6 @@ const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
 };
 
 export default function OdemelerPage() {
-  const { data: session } = useSession();
   const branding = useTenantBranding();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
@@ -138,11 +136,7 @@ export default function OdemelerPage() {
         accessorKey: "paid_amount",
         header: "Ödeme Yapılan Tutar",
         cell: ({ row }) => (
-          <EditablePaidAmountCell
-            row={row}
-            lastEditedBy={session?.user?.name ?? "Sistem"}
-            onUpdate={updateShareholder}
-          />
+          <EditablePaidAmountCell row={row} onUpdate={updateShareholder} />
         ),
       },
       {
@@ -190,7 +184,7 @@ export default function OdemelerPage() {
         enableHiding: true,
       },
     ],
-    [session?.user?.name, updateShareholder, branding.logo_slug, branding.deposit_amount]
+    [updateShareholder, branding.logo_slug, branding.deposit_amount]
   );
 
   const sortedData = useMemo(() => {

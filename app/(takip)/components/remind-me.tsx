@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { normalizeEmail } from "@/lib/email-utils"
 import { cn } from '@/lib/utils'
 import { toast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button'
 const RemindMe = () => {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     // Telefon numarası formatlama fonksiyonu
@@ -100,7 +102,11 @@ const RemindMe = () => {
             const res = await fetch("/api/reminder-requests", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: name.trim(), phone: phoneDigits }),
+                body: JSON.stringify({
+                    name: name.trim(),
+                    phone: phoneDigits,
+                    ...(email.trim() ? { email: normalizeEmail(email) } : {}),
+                }),
             });
 
             const data = await res.json();
@@ -120,6 +126,7 @@ const RemindMe = () => {
             });
             setName("");
             setPhone("");
+            setEmail("");
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
             setError(errorMessage);
@@ -146,9 +153,9 @@ const RemindMe = () => {
   return (
     <form>
         <FieldGroup>
-            <FieldGroup className="md:grid  md:grid-cols-3">
+            <FieldGroup className="md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Field>
-                    <Label htmlFor="name">İsim-Soyisim</Label>
+                    <Label htmlFor="name" className="text-sm font-medium">İsim-Soyisim</Label>
                     <Input
                         id="name"
                         value={name}
@@ -156,13 +163,13 @@ const RemindMe = () => {
                         onChange={(e) => setName(e.target.value)}
                         onKeyUp={handleKeyPress}
                         className={cn(
-                                " text-sm md:text-base focus-visible:ring-0 focus-visible:ring-offset-0",
+                                "h-9 text-sm md:h-9 focus-visible:ring-0 focus-visible:ring-offset-0",
                                 error ? "border-destructive focus-visible:ring-destructive" : ""
                             )}
                     />
                 </Field>
                 <Field>
-                    <Label htmlFor="phone">Telefon Numarası</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium">Telefon Numarası</Label>
                     <Input
                         id="phone"
                         type="tel"
@@ -171,12 +178,28 @@ const RemindMe = () => {
                         onChange={handlePhoneChange}
                         onKeyUp={handleKeyPress}
                         className={cn(
-                            " text-sm md:text-base focus-visible:ring-0 focus-visible:ring-offset-0",
+                            "h-9 text-sm md:h-9 focus-visible:ring-0 focus-visible:ring-offset-0",
                             error ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                     />
                 </Field>
-                <Field className="md:flex md:flex-row md:items-end ">
+                <Field>
+                    <Label htmlFor="reminder-email" className="text-sm font-medium">E-posta (isteğe bağlı)</Label>
+                    <Input
+                        id="reminder-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="ornek@eposta.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyUp={handleKeyPress}
+                        className={cn(
+                            "h-9 text-sm md:h-9 focus-visible:ring-0 focus-visible:ring-offset-0",
+                            error ? "border-destructive focus-visible:ring-destructive" : ""
+                        )}
+                    />
+                </Field>
+                <Field className="md:flex md:flex-row md:items-end">
                     <Button onClick={handleReminder} type="button">
                         <div className='bi bi-bell-fill'/> Haber Ver</Button>
                 </Field>

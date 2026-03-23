@@ -1,7 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { adminPrimaryCtaClassName } from "@/lib/admin-tenant-accent";
+import { cn } from "@/lib/utils";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { Button } from "@/components/ui/button";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import {
@@ -214,7 +216,10 @@ export function NewSacrificeAnimal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <Button onClick={() => setIsOpen(true)} className="admin-tenant-accent gap-2">
+      <Button
+        onClick={() => setIsOpen(true)}
+        className={cn("gap-2", adminPrimaryCtaClassName(branding.logo_slug))}
+      >
         <Plus className="h-4 w-4" />
         Yeni Kurbanlık
       </Button>
@@ -369,7 +374,11 @@ export function NewSacrificeAnimal() {
               >
                 İptal
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="admin-tenant-accent">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={cn(adminPrimaryCtaClassName(branding.logo_slug))}
+              >
                 {isSubmitting ? "Kaydediliyor..." : "Kaydet"}
               </Button>
             </div>

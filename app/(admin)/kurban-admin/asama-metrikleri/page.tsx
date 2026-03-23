@@ -1,13 +1,17 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { columns, type StageMetric } from "./components/columns";
 
 export default function AsamaMetrikleriPage() {
   const [data, setData] = useState<StageMetric[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +30,19 @@ export default function AsamaMetrikleriPage() {
     fetchData();
   }, []);
 
+  const filteredData = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return data;
+    return data.filter((row) => {
+      const t = row.tenants;
+      const blob = [t?.name, t?.slug, row.stage, String(row.current_sacrifice_number ?? "")]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return blob.includes(q);
+    });
+  }, [data, searchTerm]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -42,11 +59,44 @@ export default function AsamaMetrikleriPage() {
         </div>
       ) : (
         <CustomDataTable
-          data={data}
+          data={filteredData}
           columns={columns}
           storageKey="asama-metrikleri"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
+          filters={({ table, columnFilters }) => {
+            const hasAnyFilter =
+              searchTerm.trim().length > 0 || columnFilters.length > 0;
+            return (
+              <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                <div className="relative w-96 max-w-full min-w-0 sm:w-[28rem]">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
+                  <Input
+                    placeholder="Kiracı, aşama veya kurban no’da ara…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-9"
+                    aria-label="Tabloda ara"
+                  />
+                </div>
+                {hasAnyFilter ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
+                    onClick={() => {
+                      setSearchTerm("");
+                      table.resetColumnFilters();
+                    }}
+                  >
+                    <X className="h-4 w-4 shrink-0" />
+                    Tüm filtreleri temizle
+                  </Button>
+                ) : null}
+              </div>
+            );
+          }}
         />
       )}
     </div>

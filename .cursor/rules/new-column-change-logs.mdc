@@ -1,32 +1,51 @@
 ---
-description: Yeni tablo/sütun eklendiğinde change_logs izleme sorusu
-globs: 
+description: Tablo/sütun ekleme veya silmede change_logs audit tetikleyicileri ve ilgili dosyaların güncellenmesi
+alwaysApply: true
 ---
 
-# Change Logs — Yeni Sütun İzleme Kuralı
+# Change Logs / Audit — Sütun ve Tablo Şema Değişiklikleri
 
 ## Kural
 
-Veritabanındaki **herhangi bir tabloya yeni sütun** eklediğinizde veya **yeni tablo** oluşturduğunuzda:
+Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **tablo kaldırma** yapılırken, `change_logs` ve ilgili audit akışının **doğru ve eksiksiz** çalışması için aşağıdaki dosya ve adımlar gözden geçirilip **gerekirse düzenlenmelidir**. Sadece migration çalıştırmak yetmez.
 
-1. **Kullanıcıya sor:** "Bu sütun/tablo `change_logs` tablosunda izlenmeli mi?"
-2. Kullanıcı evet derse:
-   - İlgili tabloda `change_logs` yazan audit tetikleyiciyi güncelle
-   - Yeni sütun için `IF NEW.<kolon> IS DISTINCT FROM OLD.<kolon>` bloğu ekle
-   - INSERT açıklamasında yeni sütunu dahil et (varsa)
-3. Kullanıcı hayır derse:
-   - Sadece şema ve types güncellemesi yap; tetikleyiciye dokunma
+Şema SQL’leri bu repoda `.project-architecture/db/` altında tutulur; `db-sync` kuralındaki `db/` ile aynı mantık geçerlidir.
 
-## Mevcut change_logs tetikleyicileri
+## Sütun eklendiğinde
 
-| Tablo | Tetikleyici dosyası |
-|-------|---------------------|
-| sacrifice_animals | `db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
-| shareholders | `db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql` |
-| stage_metrics | `db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql` |
-| mismatched_share_acknowledgments | `db/tables/change_logs/triggers/log_mismatch_changes.sql` (veya ilgili dosya) |
-| users | `db/tables/users/functions_and_triggers/log_user_changes.sql` |
+1. **Kullanıcıya sor:** Bu sütun/tablo `change_logs` ile izlenmeli mi?
+2. Evet ise ilgili **audit tetikleyici fonksiyonunda**:
+   - `IF NEW.<kolon> IS DISTINCT FROM OLD.<kolon>` (UPDATE) ve gerekirse INSERT/DELETE dalları
+   - INSERT ile oluşturulan `change_logs` kaydının açıklama/metin kısımlarında yeni alan
+3. Hayır ise: tetikleyiciye dokunma; yine de `table.sql` ve kod tipleri güncel kalmalı.
 
-## Yeni tablo eklendiğinde
+## Sütun silindiğinde
 
-Yeni tablo oluşturulduğunda: "Bu tablo change_logs ile izlenmeli mi? Hangi sütunlar audit için önemli?" diye sor.
+- Audit tetikleyicisinden **silinen sütuna** ait tüm referansları kaldır: `OLD.x`, `NEW.x`, `to_jsonb` alan listeleri, `IF` blokları, hata mesajı veya açıklama string’leri.
+- Aksi halde trigger **derlenmez** veya yanlış audit üretir.
+
+## Yeni tablo / tablo kaldırma
+
+- Yeni tablo: izlenecek mi, hangi kolonlar anlamlı diff üretir? → uygun tetikleyici ekle veya `change_logs` altına bağla.
+- Tablo kaldırma: o tabloya bağlı **audit trigger’ları** ve ilgili fonksiyonlar kaldırılmalı veya migration’da düşürülmeli.
+
+## Güncellenmesi gereken dosya türleri (checklist)
+
+| Ne değişti | Nerede |
+|------------|--------|
+| Tablo şeması | `.project-architecture/db/tables/<tablo>/table.sql` |
+| Satır bazlı audit (INSERT/UPDATE/DELETE) | `.project-architecture/db/tables/<tablo>/functions_and_triggers/log_*_changes.sql` ve gerekiyorsa `.../change_logs/triggers/` altı |
+| Uyumsuzluk / özel audit | `.project-architecture/db/tables/change_logs/triggers/log_mismatch_changes.sql` vb. |
+| Migration | Supabase migration / proje migration; tetikleyici ve `table.sql` ile uyumlu |
+
+## Mevcut audit tetikleyicileri (örnek)
+
+| Tablo | Örnek dosya |
+|-------|-------------|
+| sacrifice_animals | `.project-architecture/db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
+| shareholders | `.project-architecture/db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql` |
+| stage_metrics | `.project-architecture/db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql` |
+| mismatched_share_acknowledgments | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` ve/veya `change_logs/triggers/log_mismatch_changes.sql` |
+| users | `.project-architecture/db/tables/users/functions_and_triggers/log_user_changes.sql` |
+
+Yeni tablolar için bu listeye uygun yeni satır eklenebilir.

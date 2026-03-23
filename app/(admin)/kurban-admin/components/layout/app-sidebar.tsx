@@ -1,5 +1,6 @@
 "use client"
 
+import { useTenantBranding } from "@/hooks/useTenantBranding"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { logReservationRealtime } from "@/lib/debug-reservation-realtime"
@@ -14,21 +15,22 @@ import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore"
 import { UserRole } from "@/types"
 import {
   AlertTriangle,
-  BarChart3,
   Bell,
   ChevronDown,
   ChevronRight,
   FileSpreadsheet,
   History,
   Home,
-  Menu,
+  Mail,
   MessageSquare,
+  PanelLeft,
   Receipt,
   Settings,
   Truck,
   UserCog
 } from "lucide-react"
 import { useSession } from "next-auth/react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
@@ -53,6 +55,7 @@ const mainNavItems: NavItem[] = [
   { id: "reservations", title: "Rezervasyonlar", url: "/kurban-admin/rezervasyonlar", icon: Receipt, roles: ["admin", "editor", "super_admin"] },
   { id: "contact-messages", title: "İletişim Mesajları", url: "/kurban-admin/iletisim-mesajlari", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
   { id: "reminder-requests", title: "Bana Haber Ver Talepleri", url: "/kurban-admin/reminder-talepleri", icon: Bell, roles: ["admin", "editor", "super_admin"] },
+  { id: "mail-operations", title: "Mail İşlemleri", url: "/kurban-admin/mail-islemleri", icon: Mail, roles: ["admin", "editor", "super_admin"] },
 ];
 
 const bottomNavItems: NavItem[] = [
@@ -64,6 +67,7 @@ const separatorAfterIds = ["all-shareholders", "teslimatlar", "reservations"];
 
 export function AppSidebar() {
   const { data: session } = useSession()
+  const { logo_slug: logoSlug } = useTenantBranding()
   const pathname = usePathname()
   const selectedYear = useAdminYearStore((s) => s.selectedYear)
   const { count: unreadContactCount, isLoading: unreadContactLoading } = useUnreadContactMessagesCount(selectedYear)
@@ -176,31 +180,43 @@ export function AppSidebar() {
       isCollapsed ? "w-[60px]" : "w-[240px]"
     )}>
       {/* Sidebar Header */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
+      <div className="flex h-16 items-center justify-between gap-2 border-b px-2 sm:px-3">
         {isCollapsed ? (
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground mx-auto"
             onClick={toggleCollapsed}
+            aria-label="Kenar çubuğunu aç"
           >
-            <Menu className="h-5 w-5" />
+            <PanelLeft className="h-5 w-5" />
           </Button>
         ) : (
           <>
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-6 w-6 shrink-0" />
-              <span className="text-lg font-semibold">Kurban Yönetim</span>
+            <div
+              className={
+                logoSlug === "elya-hayvancilik"
+                  ? "relative h-9 w-[100px] min-w-0 shrink"
+                  : "relative h-[60px] w-[min(210px,calc(100%-2.75rem))] min-w-0 shrink"
+              }
+            >
+              <Image
+                src={`/logos/${logoSlug}/${logoSlug}.svg`}
+                alt="Organizasyon logosu"
+                fill
+                className="object-contain object-left"
+                sizes={logoSlug === "elya-hayvancilik" ? "100px" : "240px"}
+                priority
+              />
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground"
+              className="h-8 w-8 shrink-0 text-muted-foreground"
               onClick={toggleCollapsed}
+              aria-label="Kenar çubuğunu daralt"
             >
-              <ChevronRight className={cn(
-                "h-4 w-4 transition-transform rotate-180"
-              )} />
+              <PanelLeft className="h-5 w-5" />
             </Button>
           </>
         )}

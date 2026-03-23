@@ -1,15 +1,19 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
-import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { columns, type ReminderRequest } from "./components/columns";
 
 export default function ReminderTalepleriPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [data, setData] = useState<ReminderRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (selectedYear == null) return;
@@ -29,6 +33,18 @@ export default function ReminderTalepleriPage() {
     fetchData();
   }, [selectedYear]);
 
+  const filteredData = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return data;
+    return data.filter((r) => {
+      const blob = [r.name, r.phone, String(r.sacrifice_year)]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return blob.includes(q);
+    });
+  }, [data, searchTerm]);
+
   return (
     <div className="space-y-8">
       <div className="w-full">
@@ -45,11 +61,44 @@ export default function ReminderTalepleriPage() {
         </div>
       ) : (
         <CustomDataTable
-          data={data}
+          data={filteredData}
           columns={columns}
           storageKey="reminder-talepleri"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
+          filters={({ table, columnFilters }) => {
+            const hasAnyFilter =
+              searchTerm.trim().length > 0 || columnFilters.length > 0;
+            return (
+              <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                <div className="relative w-96 max-w-full min-w-0 sm:w-[28rem]">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
+                  <Input
+                    placeholder="Ad, telefon veya yılda ara…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-9"
+                    aria-label="Tabloda ara"
+                  />
+                </div>
+                {hasAnyFilter ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
+                    onClick={() => {
+                      setSearchTerm("");
+                      table.resetColumnFilters();
+                    }}
+                  >
+                    <X className="h-4 w-4 shrink-0" />
+                    Tüm filtreleri temizle
+                  </Button>
+                ) : null}
+              </div>
+            );
+          }}
         />
       )}
     </div>

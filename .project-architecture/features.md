@@ -56,6 +56,10 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Dar modda ikonlar görünür.
 - Badge'ler (Rezervasyonlar, Uyumsuzluklar vb.) tenant renginde; realtime güncelleme.
 
+## Mail İşlemleri (Resend)
+- Sayfa: `/kurban-admin/mail-islemleri` — konu + **TipTap** WYSIWYG mesaj (ham etiket görünmez); gövde HTML olarak `POST /api/admin/send-email` (`body`); sunucuda `isomorphic-dompurify` ile sanitize. Alıcılar: `GET /api/admin/email-recipients?year=`. Ortam: `RESEND_API_KEY_ANKARAKURBAN`, `RESEND_API_KEY_ELYAHAYVANCILIK`; yedek `RESEND_API_KEY`. Gönderen varsayılan: `iletisim@ankarakurban.com.tr` / `iletisim@elyahayvancilik.com.tr`.
+- **Otomatik teşekkür e-postası:** Hisse alımı tamamlanıp teşekkür / PDF sayfasına düşünce `POST /api/purchase-confirmation-email` (e-posta adresi girilmiş hissedarlara; `reservation_transactions.purchase_confirmation_email_sent_at` ile idempotency).
+
 ## Türkçe UI
 - Tüm kullanıcıya görünen metinler Türkçe (label, buton, placeholder, tooltip).
 - Varsayılan İngilizce bırakma: Submit, Cancel, Search vb.

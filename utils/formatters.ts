@@ -52,7 +52,10 @@ export const parseCurrencyFromInput = (value: string): number => {
   return cleaned ? parseFloat(cleaned) : 0;
 };
 
-/** Ad Soyad: Her kelimenin baş harfi büyük (Türkçe uyumlu) */
+/**
+ * Ad Soyad: Her kelimenin baş harfi büyük (Türkçe uyumlu).
+ * Hisse al formu ve admin listelerindeki isim gösterimi için ortak kullanın.
+ */
 export const toTitleCase = (str: string): string => {
   if (!str || typeof str !== "string") return "";
   return str
@@ -63,4 +66,7 @@ export const toTitleCase = (str: string): string => {
       word.slice(1).toLocaleLowerCase("tr-TR")
     )
     .join(" ");
-}; 
+};
+
+/** Liste / özet ekranlarında ad-soyad gösterimi (`toTitleCase` ile aynı). */
+export const formatPersonNameForDisplay = toTitleCase; 

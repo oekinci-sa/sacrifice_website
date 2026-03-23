@@ -120,6 +120,8 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Aşama metrikleri | GET /api/get-stage-metrics (takip + admin okuma); **POST /api/update-stage-metrics** — anlık kurban no (editor+; RPC + `change_logs` satırı) |
 | Değişiklik kayıtları | GET /api/get-change-logs |
 | Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
+| Mail (admin) | `/kurban-admin/mail-islemleri` → GET /api/admin/email-recipients?year=, POST /api/admin/send-email (Resend; editor+; alıcılar panel + seçili yıl hissedar allowlist) |
+| Mail (otomatik) | Hisseal teşekkür sayfası → POST /api/purchase-confirmation-email { transaction_id } (hissedar e-postası varsa; bir kez / işlem) |
 
 ---
 

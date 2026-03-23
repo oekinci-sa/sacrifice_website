@@ -1,6 +1,8 @@
 import { getDefaultSacrificeYear } from "@/lib/constants/sacrifice-year";
-import { getTenantIdOptional } from "@/lib/tenant";
+import { normalizeEmail } from "@/lib/email-utils";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantIdOptional } from "@/lib/tenant";
+import { toTitleCase } from "@/utils/formatters";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +21,26 @@ export async function POST(request: NextRequest) {
       );
     }
     const body = await request.json();
-    const { name, phone } = body;
+    const { name, phone, email: rawEmail } = body;
 
     if (!name || !phone) {
       return NextResponse.json(
         { error: "İsim ve telefon numarası zorunludur." },
         { status: 400 }
       );
+    }
+
+    let email: string | null = null;
+    if (rawEmail != null && String(rawEmail).trim() !== "") {
+      const trimmed = String(rawEmail).trim();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+      if (!emailOk) {
+        return NextResponse.json(
+          { error: "Geçerli bir e-posta adresi giriniz veya alanı boş bırakınız." },
+          { status: 400 }
+        );
+      }
+      email = normalizeEmail(trimmed);
     }
 
     const phoneDigits = phone.replace(/\D/g, "");
@@ -37,13 +52,15 @@ export async function POST(request: NextRequest) {
     }
 
     const sacrificeYear = getDefaultSacrificeYear();
+    const displayName = toTitleCase(String(name));
     const { data, error } = await supabaseAdmin
       .from("reminder_requests")
       .insert({
         tenant_id: tenantId,
-        name: name.trim(),
+        name: displayName,
         phone: phoneDigits,
         sacrifice_year: sacrificeYear,
+        email,
       })
       .select()
       .single();

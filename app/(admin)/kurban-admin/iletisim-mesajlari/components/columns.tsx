@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { formatPersonNameForDisplay } from "@/utils/formatters";
 import { Mail, MailOpen, Trash2 } from "lucide-react";
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -59,7 +60,9 @@ export const columns: ColumnDef<ContactMessage>[] = [
     accessorKey: "name",
     header: "Ad Soyad",
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue("name")}</span>
+      <span className="font-medium">
+        {formatPersonNameForDisplay(String(row.getValue("name") ?? ""))}
+      </span>
     ),
   },
   {

@@ -49,6 +49,9 @@ Uyumsuz hisseler (mismatched_shares). Aktif rezervasyonu olan hayvanlar listeden
 ### /kurban-admin/reminder-talepleri
 Bana Haber Ver talepleri.
 
+### /kurban-admin/mail-islemleri
+Panel ve hissedar e-posta listeleri; konu/HTML ile toplu gönderim (`GET /api/admin/email-recipients`, `POST /api/admin/send-email`). Ortam: `RESEND_API_KEY`, isteğe bağlı `RESEND_FROM_EMAIL`.
+
 ### /kurban-admin/kullanici-yonetimi
 Kullanıcı yönetimi (admin, editor vb.).
 

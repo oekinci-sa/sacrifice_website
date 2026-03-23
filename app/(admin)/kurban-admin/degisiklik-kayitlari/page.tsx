@@ -92,9 +92,10 @@ export default function ChangeLogsPage() {
           storageKey="degisiklik-kayitlari"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
-          filters={({ table }) => (
+          filters={({ table, columnFilters }) => (
             <ChangeLogFilters
               table={table}
+              columnFilters={columnFilters}
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
               datePreset={datePreset}

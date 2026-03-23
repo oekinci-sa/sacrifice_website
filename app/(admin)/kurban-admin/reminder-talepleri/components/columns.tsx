@@ -1,7 +1,10 @@
 "use client";
 
 import { formatDate } from "@/lib/date-utils";
-import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+import {
+  formatPersonNameForDisplay,
+  formatPhoneForDisplayWithSpacing,
+} from "@/utils/formatters";
 import { ColumnDef } from "@tanstack/react-table";
 
 export type ReminderRequest = {
@@ -18,7 +21,9 @@ export const columns: ColumnDef<ReminderRequest>[] = [
     accessorKey: "name",
     header: "Ad Soyad",
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue("name")}</span>
+      <span className="font-medium">
+        {formatPersonNameForDisplay(String(row.getValue("name") ?? ""))}
+      </span>
     ),
   },
   {

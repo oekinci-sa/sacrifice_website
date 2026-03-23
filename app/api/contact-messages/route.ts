@@ -1,5 +1,6 @@
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { toTitleCase } from "@/utils/formatters";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     const messageYear = new Date().getFullYear();
     const { error } = await supabaseAdmin.from("contact_messages").insert({
       tenant_id: tenantId,
-      name: String(name).trim(),
+      name: toTitleCase(String(name)),
       phone: String(phone).trim(),
       email: email ? String(email).trim() : null,
       message: String(message).trim(),

@@ -25,6 +25,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | **Rezervasyonlar** | ✗ | ✗ | ✓ |
 | İletişim Mesajları | ✓ | ✓ | ✓ |
 | Bana Haber Ver Talepleri | ✓ | ✓ | ✓ |
+| Mail İşlemleri | ✓ | ✓ | ✓ |
 | **Kullanıcı Yönetimi** | ✗ | ✓ | ✓ |
 
 ---
@@ -74,6 +75,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | Kurbanlık silme (DELETE /api/sacrifices/[id]) | ✗ | ✓ | ✓ |
 | Rezervasyon işlemleri (GET /api/get-reservation-transactions) | ✗ | ✗ | ✓ |
 | Uyumsuz hisseler (mismatched-shares) | ✓ | ✓ | ✓ |
+| Toplu e-posta (POST /api/admin/send-email), alıcı listesi (GET /api/admin/email-recipients) | ✓ | ✓ | ✓ |
 | Aşama metrikleri güncelleme (POST /api/update-stage-metrics) | ✓ | ✓ | ✓ |
 
 ---

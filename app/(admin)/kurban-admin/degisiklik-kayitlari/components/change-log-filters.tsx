@@ -8,8 +8,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Table } from "@tanstack/react-table";
-import { RotateCcw } from "lucide-react";
+import { ColumnFiltersState, Table } from "@tanstack/react-table";
+import { X } from "lucide-react";
 import { useMemo } from "react";
 import { ChangeLog } from "./columns";
 import { ChangeLogSearch } from "./change-log-search";
@@ -57,6 +57,7 @@ function QuickGroup({
 
 interface ChangeLogFiltersProps {
     table: Table<ChangeLog>;
+    columnFilters: ColumnFiltersState;
     searchValue: string;
     onSearchChange: (value: string) => void;
     datePreset: ChangeLogDatePreset;
@@ -65,6 +66,7 @@ interface ChangeLogFiltersProps {
 
 export function ChangeLogFilters({
     table,
+    columnFilters,
     searchValue,
     onSearchChange,
     datePreset,
@@ -112,24 +114,19 @@ export function ChangeLogFilters({
         table.resetColumnFilters();
     };
 
+    const hasAnyFilter =
+        searchValue.trim().length > 0 ||
+        datePreset !== "all" ||
+        columnFilters.length > 0;
+
     return (
         <div className="flex flex-col gap-4 w-full rounded-lg border bg-card/40 p-3 sm:p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="w-full">
                 <ChangeLogSearch
                     onSearch={onSearchChange}
                     searchValue={searchValue}
-                    className="relative w-full min-w-0 lg:max-w-md"
+                    className="relative w-96 max-w-full min-w-0 sm:w-[28rem]"
                 />
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 shrink-0 gap-1.5 text-xs"
-                    onClick={resetAll}
-                >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    Filtreleri sıfırla
-                </Button>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -205,6 +202,21 @@ export function ChangeLogFilters({
                     </Select>
                 </QuickGroup>
             </div>
+
+            {hasAnyFilter ? (
+                <div className="flex justify-end pt-1">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 border-dashed gap-1.5 text-xs"
+                        onClick={resetAll}
+                    >
+                        <X className="h-3.5 w-3.5 shrink-0" />
+                        Tüm filtreleri temizle
+                    </Button>
+                </div>
+            ) : null}
         </div>
     );
 }

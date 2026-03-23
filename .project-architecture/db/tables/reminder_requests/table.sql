@@ -4,6 +4,7 @@ CREATE TABLE reminder_requests (
   name TEXT NOT NULL,
   phone VARCHAR(13) NOT NULL,
   sacrifice_year INT2 NOT NULL,
+  email TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(tenant_id, phone)
 );

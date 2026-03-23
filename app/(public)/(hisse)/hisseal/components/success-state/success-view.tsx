@@ -6,7 +6,7 @@ import { getDeliveryFeeForLocation, getDeliverySelectionFromLocation } from "@/l
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SuccessViewErrorMessage } from "./success-view/SuccessViewErrorMessage";
 import { SuccessViewLoadingSkeletons } from "./success-view/SuccessViewLoadingSkeletons";
 import { SuccessViewNoData } from "./success-view/SuccessViewNoData";
@@ -64,6 +64,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
   const [isDbLoading, setIsDbLoading] = useState(true);
   const [isDbError, setIsDbError] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
+  const purchaseEmailSentForTxRef = useRef<string | null>(null);
 
   // Teşekkürler sayfasında en üste smooth scroll (PDF indir butonu görünsün)
   useEffect(() => {
@@ -114,6 +115,25 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
 
     fetchData();
   }, [transaction_id]);
+
+  /** Hisse tamamlandıktan sonra teşekkür / bilgilendirme e-postası (e-posta adresi varsa, bir kez). */
+  useEffect(() => {
+    if (!transaction_id || isDbLoading || isDbError) return;
+    const sh = dbData.shareholders;
+    if (!sh?.length) return;
+    if (purchaseEmailSentForTxRef.current === transaction_id) return;
+
+    purchaseEmailSentForTxRef.current = transaction_id;
+
+    void fetch("/api/purchase-confirmation-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transaction_id }),
+    }).catch((err) => {
+      console.error("purchase-confirmation-email", err);
+      purchaseEmailSentForTxRef.current = null;
+    });
+  }, [transaction_id, isDbLoading, isDbError, dbData.shareholders]);
 
   // Generate a security code (this would typically come from backend)
   const generateSecurityCode = () => {

@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Column, Table } from "@tanstack/react-table";
+import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
@@ -159,10 +159,13 @@ const STATUS_OPTIONS: { label: string; value: string }[] = [
 
 export function ReservationFilters({
   table,
+  columnFilters,
 }: {
   table: Table<ReservationTransaction>;
+  /** CustomDataTable state — table.getState() ile aynı anda güncellenir */
+  columnFilters: ColumnFiltersState;
 }) {
-  const hasFilters = table.getState().columnFilters.length > 0;
+  const hasFilters = columnFilters.length > 0;
 
   // sacrifice_no: facet değeri string; "-" = kurban atanmamış
   useEffect(() => {
@@ -231,41 +234,44 @@ export function ReservationFilters({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 w-full">
-      {table.getColumn("sacrifice_no") && sacrificeOptions.length > 0 && (
-        <DataTableFacetedFilter
-          column={table.getColumn("sacrifice_no")}
-          title="Kurban No"
-          options={sacrificeOptions}
-          numericBadges
-        />
-      )}
-      {table.getColumn("share_count") && shareCountOptions.length > 0 && (
-        <DataTableFacetedFilter
-          column={table.getColumn("share_count")}
-          title="Hisse Sayısı"
-          options={shareCountOptions}
-          numericBadges
-        />
-      )}
-      {table.getColumn("status") && (
-        <DataTableFacetedFilter
-          column={table.getColumn("status")}
-          title="Durum"
-          options={STATUS_OPTIONS}
-        />
-      )}
-      {hasFilters && (
+    <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
+      <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
+        {table.getColumn("sacrifice_no") && sacrificeOptions.length > 0 && (
+          <DataTableFacetedFilter
+            column={table.getColumn("sacrifice_no")}
+            title="Kurban No"
+            options={sacrificeOptions}
+            numericBadges
+          />
+        )}
+        {table.getColumn("share_count") && shareCountOptions.length > 0 && (
+          <DataTableFacetedFilter
+            column={table.getColumn("share_count")}
+            title="Hisse Sayısı"
+            options={shareCountOptions}
+            numericBadges
+          />
+        )}
+        {table.getColumn("status") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("status")}
+            title="Durum"
+            options={STATUS_OPTIONS}
+          />
+        )}
+      </div>
+      {hasFilters ? (
         <Button
-          variant="ghost"
+          type="button"
+          variant="outline"
           size="sm"
           onClick={clearFilters}
-          className="h-8 px-2 flex items-center gap-1"
+          className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
         >
-          <X className="h-4 w-4 mr-1" />
+          <X className="h-4 w-4 shrink-0" />
           Tüm filtreleri temizle
         </Button>
-      )}
+      ) : null}
     </div>
   );
-}
+} 

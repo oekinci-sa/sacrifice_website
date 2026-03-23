@@ -4,9 +4,11 @@
  * Production: ankarakurban.com.tr→3001, elyahayvancilik.com.tr→3002
  * ID: 01=test, 02=kahramankazan, 03=golbasi
  */
-const TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const KAHRAMANKAZAN_TENANT_ID = "00000000-0000-0000-0000-000000000002";
-const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
+export const TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001";
+/** Ankara Kurban (kahramankazan / ankarakurban.com.tr) */
+export const KAHRAMANKAZAN_TENANT_ID = "00000000-0000-0000-0000-000000000002";
+/** Elya Hayvancılık (gölbaşı / elyahayvancilik.com.tr) */
+export const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
 
 export function resolveTenantIdFromHost(host: string): string | null {
   const tenantMapRaw = process.env.TENANT_MAP;

@@ -13,7 +13,7 @@ import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { exportTableToExcel } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
@@ -242,31 +242,54 @@ export default function OdemelerPage() {
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
           initialState={{ columnVisibility: { delivery_location: false, delivery_location_raw: false } }}
-          filters={({ table, columnOrder, onColumnOrderChange }) => (
-            <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-              <div className="flex flex-wrap items-center gap-3">
-                <ShareholderSearch onSearch={setSearchTerm} className="w-64 sm:w-72" />
-                <PaymentFilters table={table} />
+          filters={({ table, columnOrder, onColumnOrderChange, columnFilters }) => {
+            const hasAnyFilter =
+              columnFilters.length > 0 || searchTerm.trim().length > 0;
+            return (
+              <div className="flex flex-col gap-3 w-full">
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <ShareholderSearch onSearch={setSearchTerm} className="w-96 sm:w-[28rem] max-w-full min-w-0" />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <ColumnSelectorPopover
+                      table={table}
+                      columnHeaderMap={ODEMELER_COLUMN_HEADER_MAP}
+                      columnOrder={columnOrder ?? []}
+                      onColumnOrderChange={onColumnOrderChange}
+                    />
+                    <Button
+                      onClick={() => exportTableToExcel(table, "odemeler", ODEMELER_COLUMN_HEADER_MAP)}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-dashed flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Excel&apos;e Aktar
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                    <PaymentFilters table={table} />
+                  </div>
+                  {hasAnyFilter ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
+                      onClick={() => {
+                        table.resetColumnFilters();
+                        setSearchTerm("");
+                      }}
+                    >
+                      <X className="h-4 w-4 shrink-0" />
+                      Tüm filtreleri temizle
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <ColumnSelectorPopover
-                  table={table}
-                  columnHeaderMap={ODEMELER_COLUMN_HEADER_MAP}
-                  columnOrder={columnOrder ?? []}
-                  onColumnOrderChange={onColumnOrderChange}
-                />
-                <Button
-                  onClick={() => exportTableToExcel(table, "odemeler", ODEMELER_COLUMN_HEADER_MAP)}
-                  variant="outline"
-                  size="sm"
-                  className="h-8 border-dashed flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Excel&apos;e Aktar
-                </Button>
-              </div>
-            </div>
-          )}
+            );
+          }}
         />
       )}
     </div>

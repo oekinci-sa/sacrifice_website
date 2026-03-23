@@ -96,7 +96,9 @@ export default function RezervasyonlarPage() {
           storageKey="rezervasyonlar"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
-          filters={({ table }) => <ReservationFilters table={table} />}
+          filters={({ table, columnFilters }) => (
+            <ReservationFilters table={table} columnFilters={columnFilters} />
+          )}
         />
       )}
     </div>

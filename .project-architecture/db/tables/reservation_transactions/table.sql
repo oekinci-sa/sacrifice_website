@@ -8,7 +8,8 @@ CREATE TABLE reservation_transactions (
     last_edited_time TIMESTAMPTZ DEFAULT now(),
     completed_at TIMESTAMPTZ NULL,
     status TEXT CHECK (status IN ('active', 'completed', 'canceled', 'timed_out', 'expired')) DEFAULT 'active',
-    sacrifice_year INT2
+    sacrifice_year INT2,
+    purchase_confirmation_email_sent_at TIMESTAMPTZ NULL
 );
 
 CREATE INDEX idx_reservation_transactions_tenant ON reservation_transactions (tenant_id);

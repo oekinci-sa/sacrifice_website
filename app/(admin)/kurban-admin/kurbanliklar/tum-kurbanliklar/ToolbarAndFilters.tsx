@@ -6,7 +6,7 @@ import { exportTableToExcel } from "@/lib/export-to-excel";
 import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
 import { Download, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { SacrificeFilters } from "./components/sacrifice-filters";
 import { SacrificeSearch } from "./components/sacrifice-search";
@@ -25,7 +25,6 @@ export function ToolbarAndFilters({
   onColumnOrderChange,
 }: ToolbarAndFiltersProps) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const [isFiltered, setIsFiltered] = useState(false);
   const resetFilterStateRef = useRef<(() => void) | null>(null);
 
   // Register reset function from child component
@@ -33,18 +32,9 @@ export function ToolbarAndFilters({
     resetFilterStateRef.current = resetFn;
   };
 
-  // Memoize the column filters to avoid complex expressions in dependency array
-  const columnFilters = useMemo(() =>
-    table.getState().columnFilters,
-    [table]
-  );
-
-  // Check if any filters are active
-  useEffect(() => {
-    const hasColumnFilters = columnFilters.length > 0;
-    const hasGlobalFilter = globalFilter.trim().length > 0;
-    setIsFiltered(hasColumnFilters || hasGlobalFilter);
-  }, [columnFilters, globalFilter]);
+  /** table referansı sabit kaldığı için useMemo([table]) ile sütun filtreleri donuyordu — her render'da oku. */
+  const isFiltered =
+    table.getState().columnFilters.length > 0 || globalFilter.trim().length > 0;
 
   // Handle search - update to only search in notes
   const handleSearch = (value: string) => {
@@ -91,22 +81,25 @@ export function ToolbarAndFilters({
       </div>
 
       {/* Alt satır: Kurban No, Hisse Bedeli, Boş Hisse filtreleri */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <SacrificeFilters
-          table={table}
-          registerResetFunction={registerResetFunction}
-        />
-        {isFiltered && (
+      <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+        <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+          <SacrificeFilters
+            table={table}
+            registerResetFunction={registerResetFunction}
+          />
+        </div>
+        {isFiltered ? (
           <Button
-            variant="ghost"
+            type="button"
+            variant="outline"
             size="sm"
             onClick={handleResetFilters}
-            className="h-8 px-2 flex items-center gap-1"
+            className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
           >
-            <X className="h-4 w-4 mr-1" />
+            <X className="h-4 w-4 shrink-0" />
             Tüm filtreleri temizle
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

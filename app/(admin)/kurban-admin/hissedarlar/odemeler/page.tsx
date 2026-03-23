@@ -248,7 +248,7 @@ export default function OdemelerPage() {
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
           initialState={{ columnVisibility: { delivery_location: false, delivery_location_raw: false } }}
-          filters={({ table, columnOrder, onColumnOrderChange, columnFilters }) => {
+          filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
             const hasAnyFilter =
               columnFilters.length > 0 || searchTerm.trim().length > 0;
             return (
@@ -261,6 +261,7 @@ export default function OdemelerPage() {
                       columnHeaderMap={ODEMELER_COLUMN_HEADER_MAP}
                       columnOrder={columnOrder ?? []}
                       onColumnOrderChange={onColumnOrderChange}
+                      onResetColumnLayout={resetColumnLayout}
                     />
                     <Button
                       onClick={() => exportTableToExcel(table, "odemeler", ODEMELER_COLUMN_HEADER_MAP)}

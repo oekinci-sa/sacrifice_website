@@ -30,6 +30,11 @@ BEGIN
     empty_share = CASE WHEN p_patch ? 'empty_share' THEN (p_patch->>'empty_share')::int2 ELSE sa.empty_share END,
     animal_type = CASE WHEN p_patch ? 'animal_type' THEN NULLIF(trim(p_patch->>'animal_type'), '')::text ELSE sa.animal_type END,
     notes = CASE WHEN p_patch ? 'notes' THEN (p_patch->>'notes')::text ELSE sa.notes END,
+    foundation = CASE
+      WHEN NOT (p_patch ? 'foundation') THEN sa.foundation
+      WHEN p_patch->'foundation' IS NULL OR jsonb_typeof(p_patch->'foundation') = 'null' THEN NULL
+      ELSE NULLIF(trim(p_patch->>'foundation'), '')
+    END,
     slaughter_time = CASE
       WHEN NOT (p_patch ? 'slaughter_time') THEN sa.slaughter_time
       WHEN p_patch->'slaughter_time' IS NULL OR jsonb_typeof(p_patch->'slaughter_time') = 'null' THEN NULL

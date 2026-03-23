@@ -111,13 +111,14 @@ export default function TumHissedarlarPage() {
           initialState={{
             columnVisibility: columnVisibility
           }}
-          filters={({ table, columnFilters, onColumnFiltersChange, onColumnOrderChange, columnOrder }) => (
+          filters={({ table, columnFilters, onColumnFiltersChange, onColumnOrderChange, columnOrder, resetColumnLayout }) => (
             <HissedarlarTableToolbar
               table={table}
               columnFilters={columnFilters}
               columnVisibility={table.getState().columnVisibility}
               onColumnFiltersChange={onColumnFiltersChange}
               onColumnOrderChange={onColumnOrderChange}
+              onResetColumnLayout={resetColumnLayout}
               columnOrder={columnOrder}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}

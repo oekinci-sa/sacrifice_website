@@ -1,5 +1,6 @@
 "use client";
 
+import { SacrificeMoveControl } from "../../components/sacrifice-move-control";
 import { shareholderSchema } from "@/types";
 
 interface SacrificeInfoProps {
@@ -33,9 +34,13 @@ export function SacrificeInfo({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <p className={labelClass}>Kurban Sırası</p>
-          <p className={valueClass}>
-            {shareholderInfo.sacrifice?.sacrifice_no || "-"}
-          </p>
+          <div className={valueClass}>
+            <SacrificeMoveControl
+              shareholder={shareholderInfo}
+              selectedYear={shareholderInfo.sacrifice_year}
+              layout="detail"
+            />
+          </div>
         </div>
         <div className="space-y-1">
           <p className={labelClass}>Kesim Saati</p>

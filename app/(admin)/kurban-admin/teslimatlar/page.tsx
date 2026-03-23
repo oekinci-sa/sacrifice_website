@@ -189,7 +189,7 @@ export default function TeslimatlarPage() {
           initialState={{ columnVisibility: { second_phone_number: false } }}
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
-          filters={({ table, columnOrder, onColumnOrderChange, columnFilters }) => {
+          filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
             const hasAnyFilter =
               columnFilters.length > 0 || searchTerm.trim().length > 0;
             return (
@@ -202,6 +202,7 @@ export default function TeslimatlarPage() {
                       columnHeaderMap={TESLIMATLAR_COLUMN_HEADER_MAP}
                       columnOrder={columnOrder ?? []}
                       onColumnOrderChange={onColumnOrderChange}
+                      onResetColumnLayout={resetColumnLayout}
                     />
                     <Button
                       onClick={() => exportTableToExcel(table, "teslimatlar", TESLIMATLAR_COLUMN_HEADER_MAP)}

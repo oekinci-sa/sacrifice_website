@@ -1,7 +1,7 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel, showPlannedTeslimSaatiOnPublicPages } from "@/lib/delivery-options";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -15,6 +15,7 @@ interface ShareholderDetailsProps {
       sacrifice_id: string;
       sacrifice_no: string;
       sacrifice_time?: string;
+      planned_delivery_time?: string | null;
       share_price?: number;
       share_weight?: string | number;
     };
@@ -107,6 +108,12 @@ export function ShareholderDetails({ shareholderInfo }: ShareholderDetailsProps)
                 <p className={labelClass}>Kesim Saati</p>
                 <p className={valueClass}>{formatSacrificeTime(shareholderInfo.sacrifice?.sacrifice_time)}</p>
               </div>
+              {showPlannedTeslimSaatiOnPublicPages(branding.logo_slug) && (
+                <div>
+                  <p className={labelClass}>Teslim Saati</p>
+                  <p className={valueClass}>{formatSacrificeTime(shareholderInfo.sacrifice?.planned_delivery_time)}</p>
+                </div>
+              )}
               <div>
                 <p className={labelClass}>Kilogram</p>
                 <p className={valueClass}>

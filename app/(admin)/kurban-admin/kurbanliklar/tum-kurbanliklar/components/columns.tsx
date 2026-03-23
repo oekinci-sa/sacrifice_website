@@ -15,12 +15,32 @@ import { sacrificeSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { ActionCellContent } from "./columns/ActionCell";
-import { EditableAnimalTypeCell, EditableEmptyShareCell, EditableNotesCell, EditableSharePriceCell } from "./columns/EditableSacrificeCells";
+import {
+  EditableAnimalTypeCell,
+  EditableEmptyShareCell,
+  EditableFoundationCell,
+  EditableNotesCell,
+  EditableSharePriceCell,
+} from "./columns/EditableSacrificeCells";
+
+function formatPlanTimeCell(value: unknown) {
+  const time = value as string | undefined;
+  if (!time) return <div className="text-center">-</div>;
+  try {
+    const [hours, minutes] = time.split(":");
+    return (
+      <div className="text-center tabular-nums">
+        {`${hours}:${minutes}`}
+      </div>
+    );
+  } catch {
+    return <div className="text-center">-</div>;
+  }
+}
 
 function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
   const branding = useTenantBranding();
   const depositAmount = branding.deposit_amount;
-  const ratio = row.getValue("payment_status") as number;
   const shareholders = row.original.shareholders || [];
 
   const formatCurrency = (amount: number) =>
@@ -207,6 +227,46 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
   },
   {
+    accessorKey: "planned_delivery_time",
+    minSize: 100,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        className="px-0 hover:bg-muted hover:text-foreground"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Teslim Saati
+        {column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-1 h-4 w-4" />
+        ) : column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-1 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-1 h-4 w-4" />
+        )}
+      </Button>
+    ),
+    cell: ({ row }) => formatPlanTimeCell(row.original.planned_delivery_time),
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.planned_delivery_time ?? "";
+      const b = rowB.original.planned_delivery_time ?? "";
+      if (!a) return 1;
+      if (!b) return -1;
+      return a.localeCompare(b);
+    },
+  },
+  {
+    accessorKey: "ear_tag_display",
+    minSize: 100,
+    header: "Küpe No",
+    cell: ({ row }) => (
+      <div className="text-center tabular-nums text-sm">
+        {row.original.ear_tag_display ?? "-"}
+      </div>
+    ),
+    enableSorting: true,
+  },
+  {
     accessorKey: "share_price",
     header: ({ column }) => {
       return (
@@ -316,6 +376,14 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     minSize: 90,
     cell: ({ row }) => <EditableAnimalTypeCell row={row} />,
     enableSorting: true,
+  },
+  {
+    accessorKey: "foundation",
+    header: "Vakıf",
+    minSize: 88,
+    cell: ({ row }) => <EditableFoundationCell row={row} />,
+    enableSorting: true,
+    enableHiding: true,
   },
   {
     accessorKey: "notes",

@@ -82,6 +82,8 @@ export interface shareholderSchema {
     sacrifice_id: string;
     sacrifice_no: string;
     sacrifice_time?: string;
+    /** Planlı kesim + 1,5 saat (DB generated) */
+    planned_delivery_time?: string | null;
     share_price?: number;
     share_weight?: number | string;
   };
@@ -101,6 +103,12 @@ export interface sacrificeSchema {
   empty_share: number;
   /** Hayvan cinsi (DANA, DÜVE vb.) */
   animal_type: string | null;
+  /** Vakıf kodu (AKV, İMH, AGD) veya boş */
+  foundation?: string | null;
+  /** Planlı kesim saatine +1,5 saat (DB generated) */
+  planned_delivery_time?: string | null;
+  /** Yıl + 4 haneli sıra (DB generated) */
+  ear_tag_display?: string | null;
 
   // Düzenleme bilgileri
   last_edited_time: string | null;

@@ -75,11 +75,12 @@ export default function TenantAyarlariPage() {
               contact_address: false,
             },
           }}
-          filters={({ table, columnOrder, onColumnOrderChange }) => (
+          filters={({ table, columnOrder, onColumnOrderChange, resetColumnLayout }) => (
             <TenantSettingsToolbar
               table={table}
               columnOrder={columnOrder ?? []}
               onColumnOrderChange={onColumnOrderChange}
+              onResetColumnLayout={resetColumnLayout}
             />
           )}
           pageSizeOptions={[10, 20, 50]}

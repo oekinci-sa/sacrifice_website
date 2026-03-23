@@ -40,6 +40,8 @@ interface DataTableProps<TData, TValue> {
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
     columnOrder: string[];
     onColumnOrderChange?: (order: string[]) => void;
+    /** Sütun görünürlüğü + sıra: sayfa initialState + localStorage sıfırlanır */
+    resetColumnLayout?: () => void;
   }) => React.ReactNode | null
   tableSize?: "small" | "medium" | "large"
 }
@@ -100,6 +102,14 @@ export function CustomDataTable<TData, TValue>({
   const userId = session?.user?.id as string | undefined;
   const fullStorageKey = storageKey ? getStorageKey(storageKey, userId) : null;
 
+  /** Sayfa ilk render’daki varsayılan görünürlük (inline initialState her render yeni nesne olsa bile tek snapshot) */
+  const defaultColumnVisibilityRef = React.useRef<VisibilityState | undefined>(undefined);
+  if (defaultColumnVisibilityRef.current === undefined) {
+    defaultColumnVisibilityRef.current = initialState?.columnVisibility
+      ? { ...initialState.columnVisibility }
+      : {};
+  }
+
   const tableColumns = React.useMemo(() => columns, [columns])
 
   // Force re-render when data changes
@@ -144,6 +154,16 @@ export function CustomDataTable<TData, TValue>({
     },
     [fullStorageKey]
   );
+
+  const resetColumnLayout = React.useCallback(() => {
+    const defaultVis = { ...(defaultColumnVisibilityRef.current ?? {}) };
+    setColumnVisibility(defaultVis);
+    setColumnOrder([]);
+    if (fullStorageKey) {
+      setStoredVisibility(fullStorageKey, defaultVis);
+      setStoredColumnOrder(fullStorageKey, []);
+    }
+  }, [fullStorageKey]);
 
   const handleColumnVisibilityChange = React.useCallback(
     (updaterOrValue: VisibilityState | ((old: VisibilityState) => VisibilityState)) => {
@@ -260,6 +280,7 @@ export function CustomDataTable<TData, TValue>({
           onColumnFiltersChange: setColumnFilters,
           columnOrder,
           onColumnOrderChange: fullStorageKey ? handleColumnOrderChangePersisted : undefined,
+          resetColumnLayout: fullStorageKey ? resetColumnLayout : undefined,
         }) : null}
 
         <div className="rounded-md min-w-0">

@@ -32,6 +32,7 @@ export async function PUT(request: Request) {
             share_price,
             empty_share,
             animal_type,
+            foundation,
             notes,
             last_edited_time,
             sacrifice_year: bodyYear
@@ -54,6 +55,28 @@ export async function PUT(request: Request) {
         if (share_price !== undefined) patch.share_price = share_price;
         if (empty_share !== undefined) patch.empty_share = empty_share;
         if (animal_type !== undefined) patch.animal_type = animal_type === "" ? null : animal_type;
+        if (foundation !== undefined) {
+            if (foundation === null) {
+                patch.foundation = null;
+            } else if (typeof foundation === "string") {
+                const t = foundation.trim();
+                if (t === "") {
+                    patch.foundation = null;
+                } else if (t === "AKV" || t === "İMH" || t === "AGD") {
+                    patch.foundation = t;
+                } else {
+                    return NextResponse.json(
+                        { error: "Vakıf yalnızca AKV, İMH veya AGD olabilir (veya boş)." },
+                        { status: 400 }
+                    );
+                }
+            } else {
+                return NextResponse.json(
+                    { error: "Vakıf alanı geçersiz." },
+                    { status: 400 }
+                );
+            }
+        }
         if (notes !== undefined) patch.notes = notes;
 
         const { data: rows, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_core', {

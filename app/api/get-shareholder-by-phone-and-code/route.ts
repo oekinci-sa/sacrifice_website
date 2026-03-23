@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
         sacrifice:sacrifice_animals (
           sacrifice_no,
           sacrifice_time,
+          planned_delivery_time,
           share_price,
           share_weight,
           sacrifice_year

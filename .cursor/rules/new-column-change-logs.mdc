@@ -42,7 +42,7 @@ Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **t
 
 | Tablo | Örnek dosya |
 |-------|-------------|
-| sacrifice_animals | `.project-architecture/db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
+| sacrifice_animals | Birleştirilmiş `log_sacrifice_changes.sql`; düzenleme **parçalardan**: `log_sacrifice_changes/fragments/` → `npm run db:merge:log-sacrifice-changes` (bkz. `db-sql-file-size` kuralı) |
 | shareholders | `.project-architecture/db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql` |
 | stage_metrics | `.project-architecture/db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql` |
 | mismatched_share_acknowledgments | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` |

@@ -116,7 +116,6 @@ export default function ShareholderForm({
 
     const handleSecondPhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const digitsOnly = value.replace(/\D/g, "");
         if (!value.startsWith("0") && value) {
             onInputChange(index, "second_phone", "0" + value);
         }

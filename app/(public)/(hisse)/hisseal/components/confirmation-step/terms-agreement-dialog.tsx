@@ -28,7 +28,7 @@ export default function TermsAgreementDialog({
     onOpenChange,
     onConfirm,
     onBackToSecurityCode,
-    securityCode,
+    securityCode: _securityCode,
 }: TermsAgreementDialogProps) {
     const [isAgreed, setIsAgreed] = useState(false)
     const [isLoading, setIsLoading] = useState(false)

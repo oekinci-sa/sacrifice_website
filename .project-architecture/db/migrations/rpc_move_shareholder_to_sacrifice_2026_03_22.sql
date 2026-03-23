@@ -122,7 +122,8 @@ $f$;
 
 REVOKE ALL ON FUNCTION public.rpc_move_shareholder_to_sacrifice(text, uuid, uuid, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.rpc_move_shareholder_to_sacrifice(text, uuid, uuid, uuid) TO service_role;
-\n\n-- shareholders → change_logs; change_owner = app.actor (RPC) veya last_edited_by
+
+-- shareholders → change_logs; change_owner = app.actor (RPC) veya last_edited_by
 -- Açıklamalar: admin panelinde okunabilir Türkçe özetler
 
 CREATE OR REPLACE FUNCTION public.log_shareholder_changes()

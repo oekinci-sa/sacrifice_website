@@ -138,6 +138,8 @@ interface ColumnSelectorPopoverProps<TData> {
   columnHeaderMap: Record<string, string>;
   columnOrder: string[];
   onColumnOrderChange?: (order: string[]) => void;
+  /** Varsayılan düzen: görünürlük + sıra (CustomDataTable resetColumnLayout) */
+  onResetColumnLayout?: () => void;
 }
 
 export function ColumnSelectorPopover<TData = unknown>({
@@ -145,6 +147,7 @@ export function ColumnSelectorPopover<TData = unknown>({
   columnHeaderMap,
   columnOrder,
   onColumnOrderChange,
+  onResetColumnLayout,
 }: ColumnSelectorPopoverProps<TData>) {
   const allColumns = table
     .getAllColumns()
@@ -315,14 +318,17 @@ export function ColumnSelectorPopover<TData = unknown>({
             ))}
           </DroppableSection>
 
-          {onColumnOrderChange ? (
+          {onColumnOrderChange || onResetColumnLayout ? (
             <div className="pt-1 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="w-full h-8 text-xs justify-center gap-1.5 text-muted-foreground hover:text-foreground"
-                onClick={() => onColumnOrderChange([])}
+                onClick={() => {
+                  if (onResetColumnLayout) onResetColumnLayout();
+                  else onColumnOrderChange?.([]);
+                }}
               >
                 <RotateCcw className="h-3.5 w-3.5 shrink-0" />
                 Varsayılan sütun düzenine dön

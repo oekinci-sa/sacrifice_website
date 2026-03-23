@@ -5,7 +5,7 @@
 | Tetiklenen tablo | Kaynak dosya |
 |------------------|--------------|
 | `shareholders` | `../shareholders/functions_and_triggers/log_shareholder_changes.sql` |
-| `sacrifice_animals` | `../sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
+| `sacrifice_animals` | Birleştirilmiş: `../sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` — düzenleme parçaları: `log_sacrifice_changes/fragments/`, sonra `npm run db:merge:log-sacrifice-changes` |
 | `users` | `../users/functions_and_triggers/log_user_changes.sql` |
 | `user_tenants` | `../user_tenants/functions_and_triggers/log_user_tenants_changes.sql` |
 | `mismatched_share_acknowledgments` | `../mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` |

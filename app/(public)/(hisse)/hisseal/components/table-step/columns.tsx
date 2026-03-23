@@ -83,23 +83,38 @@ const sacrificeNoColumn: ColumnDef<sacrificeSchema> = {
   enableSorting: true,
 };
 
-const baseColumnsAfterSacrificeNo: ColumnDef<sacrificeSchema>[] = [
-  {
-    accessorKey: "sacrifice_time",
-    header: "Kesim Saati",
-    cell: ({ row }) => {
-      const time = row.getValue("sacrifice_time") as string;
-      if (!time) return <div className="text-center py-0.5 md:py-1">-</div>;
+function formatTimeCellHisseal(time: string | null | undefined) {
+  if (!time) return <div className="text-center py-0.5 md:py-1">-</div>;
+  const [hours, minutes] = time.split(":");
+  return (
+    <div className="text-center py-0.5 md:py-1">
+      {`${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`}
+    </div>
+  );
+}
 
-      const [hours, minutes] = time.split(":");
-      return (
-        <div className="text-center py-0.5 md:py-1">
-          {`${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`}
-        </div>
-      );
-    },
-    enableSorting: true,
+const kesimSaatiColumn: ColumnDef<sacrificeSchema> = {
+  accessorKey: "sacrifice_time",
+  header: "Kesim Saati",
+  cell: ({ row }) => formatTimeCellHisseal(row.getValue("sacrifice_time") as string),
+  enableSorting: true,
+};
+
+const teslimSaatiColumn: ColumnDef<sacrificeSchema> = {
+  accessorKey: "planned_delivery_time",
+  header: "Teslim Saati",
+  cell: ({ row }) => formatTimeCellHisseal(row.original.planned_delivery_time ?? undefined),
+  enableSorting: true,
+  sortingFn: (rowA, rowB) => {
+    const a = rowA.original.planned_delivery_time ?? "";
+    const b = rowB.original.planned_delivery_time ?? "";
+    if (!a) return 1;
+    if (!b) return -1;
+    return a.localeCompare(b);
   },
+};
+
+const baseColumnsAfterKesim: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "share_price",
     header: "Hisse Bedeli",
@@ -205,10 +220,14 @@ const actionsColumn: ColumnDef<sacrificeSchema> = {
  * O tenant/yılda en az bir kurbanlıkta `animal_type` doluysa true verin;
  * böylece Elya gibi cins kullanmayan sitelerde sütun gizlenir.
  */
-export function buildHissealTableColumns(showAnimalType: boolean): ColumnDef<sacrificeSchema>[] {
-  const middle = showAnimalType
-    ? [...baseColumnsAfterSacrificeNo, animalTypeColumn]
-    : baseColumnsAfterSacrificeNo;
+export function buildHissealTableColumns(
+  showAnimalType: boolean,
+  showTeslimSaati = true
+): ColumnDef<sacrificeSchema>[] {
+  const afterKesim = showTeslimSaati
+    ? [kesimSaatiColumn, teslimSaatiColumn, ...baseColumnsAfterKesim]
+    : [kesimSaatiColumn, ...baseColumnsAfterKesim];
+  const middle = showAnimalType ? [...afterKesim, animalTypeColumn] : afterKesim;
   return [sacrificeNoColumn, ...middle, actionsColumn];
 }
 

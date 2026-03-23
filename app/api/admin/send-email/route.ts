@@ -49,8 +49,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: first }, { status: 400 });
     }
 
-    const { subject, body, recipients, sacrificeYear: _sacrificeYear, senderKind } =
-      parsed.data;
+    const { subject, body, recipients, senderKind } = parsed.data;
     const textPlain = htmlToPlainTextForEmail(body);
     if (!textPlain.trim()) {
       return NextResponse.json({ error: "Mesaj boş olamaz" }, { status: 400 });

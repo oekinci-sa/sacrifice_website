@@ -77,6 +77,7 @@ export function AdminDataProvider({ children }: AdminDataProviderProps) {
     fetchActiveYear,
     fetchShareholders,
     fetchTransactions,
+    fetchActiveReservationsCount,
     refetchSacrifices,
     sacrificesInitialized,
     toast,

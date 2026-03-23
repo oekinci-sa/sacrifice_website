@@ -38,6 +38,7 @@ type ToolbarProps = {
   columnVisibility: VisibilityState;
   onColumnFiltersChange: (filters: ColumnFiltersState) => void;
   onColumnOrderChange?: (order: string[]) => void;
+  onResetColumnLayout?: () => void;
   columnOrder: string[];
   searchTerm: string;
   setSearchTerm: (value: string) => void;
@@ -53,6 +54,7 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
   columnVisibility: _columnVisibility,
   onColumnFiltersChange,
   onColumnOrderChange,
+  onResetColumnLayout,
   columnOrder,
   searchTerm,
   setSearchTerm,
@@ -78,6 +80,7 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
             columnHeaderMap={SHAREHOLDER_COLUMN_HEADER_MAP}
             columnOrder={columnOrder ?? []}
             onColumnOrderChange={onColumnOrderChange}
+            onResetColumnLayout={onResetColumnLayout}
           />
           <Button
             onClick={() =>
@@ -97,16 +100,17 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
         <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
           <ShareholderFilters table={table} />
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleResetFilters}
-          disabled={!isFiltered}
-          className="h-8 px-2 flex items-center gap-1 shrink-0 ml-auto"
-        >
-          <X className="h-4 w-4 mr-1" />
-          Tüm filtreleri temizle
-        </Button>
+        {isFiltered ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            className="h-8 px-2 flex items-center gap-1 shrink-0 ml-auto"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Tüm filtreleri temizle
+          </Button>
+        ) : null}
       </div>
     </div>
   );

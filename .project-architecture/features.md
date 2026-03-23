@@ -71,6 +71,7 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Daha önce kayıtlıysa uyarı toast, yoksa kayıt + başarı toast
 
 ## Admin Tablo Sayfaları
+- **Hissedar kurban sırası (taşıma):** Tüm Hissedarlar tablosunda «Kur. Sır.» sütunu ve hissedar detayındaki «Kurban Sırası» alanından hissedar başka bir kurbanlığa taşınabilir (hedef sıra seçimi + onay). API: `POST /api/admin/shareholders/[id]/move-sacrifice` (`target_sacrifice_no`); DB: `rpc_move_shareholder_to_sacrifice` (boş hisse dengesi, `total_amount` / `remaining_payment` güncellemesi, `change_logs`).
 - **Sütun sırası:** Tüm admin `CustomDataTable` sayfalarında `storageKey` ile kullanıcı bazlı kalıcılık; başlık satırından sürükle-bırak (hedef hücrenin sol/sağ yarısı = önce/sonra; bırakma yeri dikey çizgi ile gösterilir). Toolbar’lı sayfalarda `ColumnSelectorPopover` içinde **varsayılan sütun düzenine dön** (`[]` sıra). Ayrıntı: [changelogs/changelog-2026-03-admin-column-reorder.md](changelogs/changelog-2026-03-admin-column-reorder.md).
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı); tabloda **İşlem Bitişi** (`completed_at`) — aktif → tamamlandı / iptal / zaman aşımı / süre doldu geçişinde trigger ile set edilir. Tablo üstünde **Kurban No**, **Hisse Sayısı**, **Durum** çoklu seçim filtreleri + tümünü temizle. **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)

@@ -72,10 +72,15 @@ const setupRealtimeSubscription = (set: any, get: any) => {
               .then((res) => (res.ok ? res.json() : null))
               .then((data: shareholderSchema | null) => {
                 if (data) {
+                  const sacrificeChanged =
+                    data.sacrifice_id !== existingShareholder.sacrifice_id;
+                  const sacrifice = sacrificeChanged
+                    ? data.sacrifice
+                    : data.sacrifice ?? existingShareholder.sacrifice;
                   set({
                     shareholders: get().shareholders.map((s: shareholderSchema) =>
                       s.shareholder_id === data.shareholder_id
-                        ? { ...data, sacrifice: existingShareholder.sacrifice }
+                        ? { ...data, sacrifice }
                         : s
                     ),
                   });

@@ -1,0 +1,50 @@
+---
+description: .project-architecture/db SQL dosya boyutu, parçalama ve MCP (Supabase) uyumluluğu
+globs: .project-architecture/db/**/*.sql
+alwaysApply: false
+---
+
+# SQL dosya boyutu ve parçalama
+
+## Amaç
+
+- Uzun tek SQL dosyaları hem okunması zor hem de **MCP ile `apply_migration` / `execute_sql`** kullanırken büyük tek string / yüksek token nedeniyle hata veya kesilme riski yaratır.
+- Bu yüzden dosyalar **makul boyutta** tutulur; gerektiğinde **parça + birleştirme** kullanılır.
+
+## Yumuşak limitler (`.project-architecture/db` altı)
+
+| Metrik | Hedef |
+|--------|--------|
+| Satır | **~200 satır** üzerindeyse bölme veya parçalama değerlendir |
+| Boyut | **~10 KB** üzerindeyse özellikle tetikleyici / uzun `CREATE FUNCTION` için parçalama düşün |
+
+Limitler katı değildir; tek seferlik kısa migration’lar daha uzun olabilir.
+
+## Ne zaman parçala?
+
+- Tek bir **PL/pgSQL tetikleyici fonksiyonu** yüzlerce satır veya çok sayıda `IF` bloğu içeriyorsa.
+- Aynı dosyada **birden fazla bağımsız** nesne (ör. fonksiyon + tetikleyici + başka fonksiyon) varsa mantıksal dosyalara ayır.
+
+## Örnek: `log_sacrifice_changes`
+
+- **Kaynak (düzenlenecek):** `.project-architecture/db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes/fragments/*.sql`
+- **Birleştirilmiş (Supabase’e yapıştırılacak / tek dosya referansı):** `.../log_sacrifice_changes.sql`
+- **Yenileme:** repo kökünde `npm run db:merge:log-sacrifice-changes`
+
+Birleştirilmiş `log_sacrifice_changes.sql` dosyasını **elle düzenleme**; üstündeki uyarı yorumuna uy.
+
+## Yeni parçalı yapı ekleme
+
+1. `fragments/` altında sıralı dosyalar (ör. `01_...sql`, `02_...sql`).
+2. Birleştirme sırasını `scripts/` altındaki ilgili `merge-*.mjs` içinde tanımla veya yeni script ekle.
+3. `package.json` içine `db:merge:...` script’i ekle.
+4. README veya kısa yorum ile sırayı belgele.
+
+## MCP / migration kullanırken
+
+- Mümkünse büyük DDL’yi **mantıksal parçalara** böl veya parça dosyalarından üretilen çıktıyı migration’a koy.
+- Tek seferde gönderilen SQL string’i **aşırı uzun** olmamalı; sorun olursa aynı migration’ı iki adımlı veya iki migration dosyasıyla uygulamayı değerlendir.
+
+## İlişkili kurallar
+
+- Şema / audit: `new-column-change-logs.mdc`, `db-sync.mdc`

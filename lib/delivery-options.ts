@@ -9,6 +9,14 @@ export interface DeliveryOption {
   fee: number;
 }
 
+/**
+ * Hisse al / hisse sorgula kurbanlık tablolarında "Teslim Saati" (planlı teslim) sütunu.
+ * Elya Hayvancılık tenant'ında gösterilmez; Ankara Kurban vb. tenant'larda gösterilir.
+ */
+export function showPlannedTeslimSaatiOnPublicPages(logoSlug: string): boolean {
+  return logoSlug !== "elya-hayvancilik";
+}
+
 /** Form seçenekleri - value kullanıcı seçimini temsil eder (Kesimhane, Adrese teslim, Ulus) */
 export function getDeliveryOptions(logoSlug: string): DeliveryOption[] {
   if (logoSlug === "elya-hayvancilik") {

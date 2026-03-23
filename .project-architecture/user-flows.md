@@ -106,6 +106,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Kurbanlık silme | DELETE /api/sacrifices/[id] (`rpc_delete_sacrifice`, oturum e-postası = `app.actor`) |
 | Hissedar ekleme | POST /api/create-shareholders (`last_edited_by` sunucuda: oturum e-postası veya `hisseal-akisi`; `purchased_by` müşteri) |
 | Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Hissedar Ayrıntıları**nda teslimat tercihi düzenlenmez (hisse alımındaki seçim korunur) |
+| Hissedar kurban sırası (başka kurbanlığa taşıma) | POST /api/admin/shareholders/[id]/move-sacrifice (`target_sacrifice_no`; `rpc_move_shareholder_to_sacrifice`); **Tüm Hissedarlar** «Kur. Sır.» sütunu ve hissedar detayı |
 | Hissedar silme | POST /api/delete-shareholder |
 
 ---

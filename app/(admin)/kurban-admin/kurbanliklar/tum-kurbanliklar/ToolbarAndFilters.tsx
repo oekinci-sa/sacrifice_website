@@ -15,6 +15,7 @@ interface ToolbarAndFiltersProps {
   table: Table<sacrificeSchema>;
   columnOrder?: string[];
   onColumnOrderChange?: (order: string[]) => void;
+  onResetColumnLayout?: () => void;
 }
 
 const columnHeaderMap = kurbanliklarColumnHeaderLabels;
@@ -23,6 +24,7 @@ export function ToolbarAndFilters({
   table,
   columnOrder = [],
   onColumnOrderChange,
+  onResetColumnLayout,
 }: ToolbarAndFiltersProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const resetFilterStateRef = useRef<(() => void) | null>(null);
@@ -67,6 +69,7 @@ export function ToolbarAndFilters({
             columnHeaderMap={columnHeaderMap}
             columnOrder={columnOrder}
             onColumnOrderChange={onColumnOrderChange}
+            onResetColumnLayout={onResetColumnLayout}
           />
           <Button
             onClick={exportToExcel}

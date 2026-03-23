@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { Search, X } from "lucide-react";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { columns, type ReminderRequest } from "./components/columns";
 
@@ -34,13 +35,12 @@ export default function ReminderTalepleriPage() {
   }, [selectedYear]);
 
   const filteredData = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (!q) return data;
     return data.filter((r) => {
-      const blob = [r.name, r.phone, String(r.sacrifice_year)]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+      const blob = normalizeTurkishSearchText(
+        [r.name, r.phone, String(r.sacrifice_year)].filter(Boolean).join(" ")
+      );
       return blob.includes(q);
     });
   }, [data, searchTerm]);

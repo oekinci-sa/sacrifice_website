@@ -33,6 +33,10 @@ const styles = StyleSheet.create({
   logo: {
     width: 150,
   },
+  /** Elya logosu PDF’te daha geniş; yarı genişlikte gösterilir. */
+  logoElya: {
+    width: 75,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -191,7 +195,10 @@ function getRemindersWithBranding(branding: TenantBranding | null | undefined) {
 }
 
 export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
-  const logoBase64 = getLogoBase64ForSlug(branding?.logo_slug ?? "ankara-kurban");
+  const logoSlug = branding?.logo_slug ?? "ankara-kurban";
+  const logoBase64 = getLogoBase64ForSlug(logoSlug);
+  const logoStyle =
+    logoSlug === "elya-hayvancilik" ? styles.logoElya : styles.logo;
   const remindersList = getRemindersWithBranding(branding);
   const websiteUrl = branding?.website_url ?? "ankarakurban.com.tr";
   const contactPhone = branding?.contact_phone ?? "0552 652 90 00 / 0312 312 44 64";
@@ -202,7 +209,7 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
       {/* Logo */}
       <View style={styles.header}>
         {/* alt attribute not supported by react-pdf's Image component */}
-        <Image src={logoBase64} style={styles.logo} />
+        <Image src={logoBase64} style={logoStyle} />
       </View>
 
       {/* Title */}

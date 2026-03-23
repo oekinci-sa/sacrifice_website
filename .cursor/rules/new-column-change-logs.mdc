@@ -34,8 +34,8 @@ Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **t
 | Ne değişti | Nerede |
 |------------|--------|
 | Tablo şeması | `.project-architecture/db/tables/<tablo>/table.sql` |
-| Satır bazlı audit (INSERT/UPDATE/DELETE) | `.project-architecture/db/tables/<tablo>/functions_and_triggers/log_*_changes.sql` ve gerekiyorsa `.../change_logs/triggers/` altı |
-| Uyumsuzluk / özel audit | `.project-architecture/db/tables/change_logs/triggers/log_mismatch_changes.sql` vb. |
+| Satır bazlı audit (INSERT/UPDATE/DELETE) | `.project-architecture/db/tables/<tablo>/functions_and_triggers/log_*_changes.sql` (tek kaynak) |
+| Uyumsuzluk / özel audit | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` |
 | Migration | Supabase migration / proje migration; tetikleyici ve `table.sql` ile uyumlu |
 
 ## Mevcut audit tetikleyicileri (örnek)
@@ -45,7 +45,7 @@ Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **t
 | sacrifice_animals | `.project-architecture/db/tables/sacrifice_animals/functions_and_triggers/log_sacrifice_changes.sql` |
 | shareholders | `.project-architecture/db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql` |
 | stage_metrics | `.project-architecture/db/tables/stage_metrics/functions_and_triggers/log_stage_metrics_changes.sql` |
-| mismatched_share_acknowledgments | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` ve/veya `change_logs/triggers/log_mismatch_changes.sql` |
+| mismatched_share_acknowledgments | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` |
 | users | `.project-architecture/db/tables/users/functions_and_triggers/log_user_changes.sql` |
 
 Yeni tablolar için bu listeye uygun yeni satır eklenebilir.

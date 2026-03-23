@@ -100,31 +100,28 @@ export function ShareholderSummaryCard({
         </div>
 
         <div className="space-y-3 md:space-y-4">
-          {/* Teslimat Tercihi solda, Teslimat Adresi sağda */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div>
-              <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
-                Teslimat Tercihi
-              </span>
-              <span className="text-black font-medium text-[16px] md:text-lg">
-                {getDeliveryTypeDisplayLabel(
-                  branding.logo_slug,
-                  getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || ""),
-                  null,
-                  false
-                )}
-              </span>
-            </div>
-            <div>
-              <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
-                Teslimat Adresi
-              </span>
-              <span className="text-black font-medium text-[16px] md:text-lg">
-                {shareholder.delivery_location && shareholder.delivery_location !== "-"
-                  ? shareholder.delivery_location
-                  : "-"}
-              </span>
-            </div>
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Teslimat Tercihi
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {getDeliveryTypeDisplayLabel(
+                branding.logo_slug,
+                getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || ""),
+                null,
+                false
+              )}
+            </span>
+          </div>
+          <div>
+            <span className="text-sac-muted font-medium block text-[16px] md:text-lg">
+              Teslimat Adresi
+            </span>
+            <span className="text-black font-medium text-[16px] md:text-lg">
+              {shareholder.delivery_location && shareholder.delivery_location !== "-"
+                ? shareholder.delivery_location
+                : "-"}
+            </span>
           </div>
         </div>
       </div>

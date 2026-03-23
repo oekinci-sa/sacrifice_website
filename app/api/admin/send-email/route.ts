@@ -6,7 +6,7 @@ import {
 } from "@/lib/mail-rich-text";
 import {
   getResendForTenant,
-  getResendFromEmailForTenant,
+  getResendFromForAdminEmail,
 } from "@/lib/resend-client";
 import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
@@ -19,6 +19,8 @@ const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
 
 const MAX_RECIPIENTS = 80;
 
+const senderKindSchema = z.enum(["bilgi", "iletisim"]);
+
 const bodySchema = z.object({
   subject: z.string().min(1, "Konu gerekli").max(300),
   /** WYSIWYG editör HTML çıktısı (sunucuda sanitize). */
@@ -28,6 +30,8 @@ const bodySchema = z.object({
     .min(1, "En az bir alıcı seçin")
     .max(MAX_RECIPIENTS),
   sacrificeYear: z.number().int().min(2000).max(2100),
+  /** Gönderen posta kutusu (bilgi@ veya iletisim@). */
+  senderKind: senderKindSchema.default("iletisim"),
 });
 
 export async function POST(request: Request) {
@@ -45,7 +49,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: first }, { status: 400 });
     }
 
-    const { subject, body, recipients, sacrificeYear } = parsed.data;
+    const { subject, body, recipients, sacrificeYear: _sacrificeYear, senderKind } =
+      parsed.data;
     const textPlain = htmlToPlainTextForEmail(body);
     if (!textPlain.trim()) {
       return NextResponse.json({ error: "Mesaj boş olamaz" }, { status: 400 });
@@ -65,13 +70,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "E-posta yapılandırması eksik. Bu tenant için RESEND_API_KEY_ANKARAKURBAN veya RESEND_API_KEY_ELYAHAYVANCILIK (veya yedek RESEND_API_KEY) tanımlayın.",
+            "E-posta yapılandırması eksik. Ortamda RESEND_API_KEY tanımlayın.",
         },
         { status: 503 }
       );
     }
 
-    const from = getResendFromEmailForTenant(tenantId);
+    const from = getResendFromForAdminEmail(tenantId, senderKind);
 
     let sent = 0;
     const errors: string[] = [];

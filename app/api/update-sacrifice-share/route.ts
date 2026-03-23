@@ -30,16 +30,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabaseAdmin.rpc("rpc_update_sacrifice_share", {
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin.rpc("rpc_update_sacrifice_core", {
       p_actor: actor,
       p_tenant_id: tenantId,
       p_sacrifice_id: sacrificeId,
       p_sacrifice_year: sacrificeYear,
-      p_empty_share: emptyShare,
+      p_patch: {
+        empty_share: emptyShare,
+        last_edited_by: actor,
+        last_edited_time: now,
+      },
     });
 
     if (error) {
-      console.error("rpc_update_sacrifice_share", error);
+      console.error("rpc_update_sacrifice_core (empty_share)", error);
       return NextResponse.json(
         { error: "Boş hisse güncellenemedi" },
         { status: 500 }

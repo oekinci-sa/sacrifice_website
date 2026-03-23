@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { Search, X } from "lucide-react";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { columns, type ContactMessage } from "./components/columns";
 
@@ -45,13 +46,12 @@ export default function IletisimMesajlariPage() {
   }, [fetchData]);
 
   const filteredData = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (!q) return data;
     return data.filter((m) => {
-      const blob = [m.name, m.phone, m.email, m.message]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+      const blob = normalizeTurkishSearchText(
+        [m.name, m.phone, m.email, m.message].filter(Boolean).join(" ")
+      );
       return blob.includes(q);
     });
   }, [data, searchTerm]);

@@ -65,18 +65,24 @@ export async function POST(request: NextRequest) {
 
         // DB TIMESTAMPTZ: UTC ile sakla
         const completedTime = is_completed ? new Date().toISOString() : null;
+        const now = new Date().toISOString();
 
-        const { data, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_timing', {
+        const patch: Record<string, unknown> = {
+            last_edited_by: actor,
+            last_edited_time: now,
+            [timeField]: completedTime,
+        };
+
+        const { data, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_core', {
             p_actor: actor,
             p_tenant_id: tenantId,
             p_sacrifice_id: sacrifice_id,
             p_sacrifice_year: sacrificeYear,
-            p_field: timeField,
-            p_value: completedTime,
+            p_patch: patch,
         });
 
         if (error) {
-            console.error('rpc_update_sacrifice_timing', error);
+            console.error('rpc_update_sacrifice_core (timing)', error);
             return NextResponse.json(
                 { error: "Aşama zamanı güncellenemedi" },
                 {

@@ -11,8 +11,8 @@ import {
 import { ColumnFiltersState, Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import { useMemo } from "react";
-import { ChangeLog } from "./columns";
 import { ChangeLogSearch } from "./change-log-search";
+import { ChangeLog } from "./columns";
 
 // change_logs tablosunda kullanılan table_name değerleri (DB trigger'larından)
 const CHANGE_LOG_TABLE_OPTIONS: { value: string; label: string }[] = [
@@ -46,11 +46,11 @@ function QuickGroup({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex flex-col gap-1.5 min-w-0">
+        <div className="flex flex-col gap-1 min-w-0">
             <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 {label}
             </span>
-            <div className="flex flex-wrap gap-1.5">{children}</div>
+            <div className="flex flex-wrap gap-0.5">{children}</div>
         </div>
     );
 }
@@ -120,7 +120,7 @@ export function ChangeLogFilters({
         columnFilters.length > 0;
 
     return (
-        <div className="flex flex-col gap-4 w-full rounded-lg border bg-card/40 p-3 sm:p-4">
+        <div className="flex flex-col gap-2 w-full p-3 sm:p-4">
             <div className="w-full">
                 <ChangeLogSearch
                     onSearch={onSearchChange}
@@ -129,7 +129,7 @@ export function ChangeLogFilters({
                 />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 <QuickGroup label="Tarih">
                     <Select
                         value={datePreset}

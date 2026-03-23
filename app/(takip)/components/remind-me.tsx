@@ -153,7 +153,7 @@ const RemindMe = () => {
   return (
     <form>
         <FieldGroup>
-            <FieldGroup className="md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <FieldGroup className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <Field>
                     <Label htmlFor="name" className="text-sm font-medium">İsim-Soyisim</Label>
                     <Input
@@ -183,7 +183,7 @@ const RemindMe = () => {
                         )}
                     />
                 </Field>
-                <Field>
+                <Field className="md:col-span-2">
                     <Label htmlFor="reminder-email" className="text-sm font-medium">E-posta (isteğe bağlı)</Label>
                     <Input
                         id="reminder-email"
@@ -199,7 +199,7 @@ const RemindMe = () => {
                         )}
                     />
                 </Field>
-                <Field className="md:flex md:flex-row md:items-end">
+                <Field className="md:col-span-2">
                     <Button onClick={handleReminder} type="button">
                         <div className='bi bi-bell-fill'/> Haber Ver</Button>
                 </Field>

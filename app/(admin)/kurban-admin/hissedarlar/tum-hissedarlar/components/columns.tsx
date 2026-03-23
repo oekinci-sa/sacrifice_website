@@ -36,6 +36,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/formatters";
@@ -736,9 +737,10 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     cell: ({ row }) => <EditableNameCell row={row} />,
     filterFn: (row, id, value: string) => {
       const rowValue = row.getValue(id);
-      return typeof rowValue === 'string'
-        ? rowValue.toLowerCase().includes((value as string).toLowerCase())
-        : false;
+      if (typeof rowValue !== "string") return false;
+      const needle = normalizeTurkishSearchText(value);
+      if (!needle) return true;
+      return normalizeTurkishSearchText(rowValue).includes(needle);
     },
   },
   {

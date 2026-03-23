@@ -6,6 +6,7 @@ import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { setupRefreshListener } from "@/utils/data-refresh";
@@ -87,22 +88,21 @@ export default function TumKurbanliklarPage() {
   const filteredData = useMemo(() => {
     if (!globalFilter.trim()) return sacrificesWithShareholders;
 
-    const lowerCaseFilter = globalFilter.toLowerCase();
+    const needle = normalizeTurkishSearchText(globalFilter.trim());
 
-    return sacrificesWithShareholders.filter(sacrifice => {
-      // Search in sacrifice_no - ensure we convert to string and use lowercase comparison
-      const sacrificeNoStr = sacrifice.sacrifice_no?.toString().toLowerCase() || '';
-      if (sacrificeNoStr.includes(lowerCaseFilter)) {
+    return sacrificesWithShareholders.filter((sacrifice) => {
+      const sacrificeNoStr = normalizeTurkishSearchText(
+        sacrifice.sacrifice_no?.toString() ?? ""
+      );
+      if (sacrificeNoStr.includes(needle)) {
         return true;
       }
-
-      // Search in notes
-      if (sacrifice.notes &&
-        sacrifice.notes.toLowerCase().includes(lowerCaseFilter)) {
+      if (
+        sacrifice.notes &&
+        normalizeTurkishSearchText(sacrifice.notes).includes(needle)
+      ) {
         return true;
       }
-
-      // Search only in the fields above, not in other columns
       return false;
     });
   }, [sacrificesWithShareholders, globalFilter]);

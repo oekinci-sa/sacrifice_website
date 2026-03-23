@@ -12,12 +12,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { adminPrimaryCtaClassName } from "@/lib/admin-tenant-accent";
 import { normalizeEmail } from "@/lib/email-utils";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { buildMailRecipientRows, type MailRecipientRow } from "@/lib/mail-recipient-rows";
 import { htmlToPlainTextForEmail } from "@/lib/mail-rich-text";
+import {
+  DISPLAY_ANKARA,
+  DISPLAY_ANKARA_ILETISIM,
+  DISPLAY_ELYA,
+  DISPLAY_ELYA_ILETISIM,
+  getAdminMailboxLabelsForLogoSlug,
+  type AdminMailSenderKind,
+} from "@/lib/resend-mail-config";
 import { cn } from "@/lib/utils";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
@@ -74,6 +90,8 @@ export default function MailIslemleriPage() {
 
   const [subject, setSubject] = useState("");
   const [messageHtml, setMessageHtml] = useState(MAIL_EDITOR_DEFAULT_HTML);
+  /** Önceki davranış (yalnızca iletisim@) ile uyumlu varsayılan */
+  const [senderKind, setSenderKind] = useState<AdminMailSenderKind>("iletisim");
 
   /** Normalize edilmiş e-posta adresleri (tablo + liste dışı eklenenler) */
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
@@ -149,13 +167,15 @@ export default function MailIslemleriPage() {
     if (sourceFilter !== "all") {
       rows = rows.filter((r) => r.sources.includes(sourceFilter));
     }
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (q) {
       rows = rows.filter((r) => {
-        const kaynakBlob = `${r.kaynakKisa} ${r.kaynakParcalari.join(" ")}`.toLowerCase();
+        const kaynakBlob = normalizeTurkishSearchText(
+          `${r.kaynakKisa} ${r.kaynakParcalari.join(" ")}`
+        );
         return (
-          r.mailSahibi.toLowerCase().includes(q) ||
-          r.mailAdresi.toLowerCase().includes(q) ||
+          normalizeTurkishSearchText(r.mailSahibi).includes(q) ||
+          normalizeTurkishSearchText(r.mailAdresi).includes(q) ||
           kaynakBlob.includes(q)
         );
       });
@@ -205,6 +225,19 @@ export default function MailIslemleriPage() {
     () => createMailRecipientColumns(selected, toggleEmail),
     [selected, toggleEmail]
   );
+
+  const mailboxLabels = useMemo(
+    () => getAdminMailboxLabelsForLogoSlug(logo_slug),
+    [logo_slug]
+  );
+
+  const adminFromDisplayPreview = useMemo(() => {
+    const isElya = logo_slug === "elya-hayvancilik";
+    if (senderKind === "iletisim") {
+      return isElya ? DISPLAY_ELYA_ILETISIM : DISPLAY_ANKARA_ILETISIM;
+    }
+    return isElya ? DISPLAY_ELYA : DISPLAY_ANKARA;
+  }, [logo_slug, senderKind]);
 
   const selectAllFiltered = useCallback(() => {
     setSelected((prev) => {
@@ -257,6 +290,7 @@ export default function MailIslemleriPage() {
           body: messageHtml,
           recipients,
           sacrificeYear: selectedYear,
+          senderKind,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -304,12 +338,38 @@ export default function MailIslemleriPage() {
       <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Mail İşlemleri</h1>
         <p className="text-muted-foreground mt-2 max-w-[90%]">
-          Kime alanını açarak tablodan seçim yapın veya geçerli bir e-posta ekleyin. Konu ve
-          mesajı düzenleyin. Gönderen ve Resend anahtarı tenant’a göre sunucuda ayarlanır.
+          Gönderen kutusundan bilgi veya iletişim adresini seçin. Kime alanını açarak tablodan
+          seçim yapın veya geçerli bir e-posta ekleyin. Resend anahtarı tenant’a göre sunucuda
+          ayarlanır.
         </p>
       </div>
 
       <form onSubmit={handleSend} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="mail-sender-kind" className="text-base font-semibold">
+            Gönderen
+          </Label>
+          <Select
+            value={senderKind}
+            onValueChange={(v) => setSenderKind(v as AdminMailSenderKind)}
+          >
+            <SelectTrigger id="mail-sender-kind" className="w-full max-w-md">
+              <SelectValue placeholder="Gönderen seçin" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bilgi">
+                Bilgi ({mailboxLabels.bilgi})
+              </SelectItem>
+              <SelectItem value="iletisim">
+                İletişim ({mailboxLabels.iletisim})
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Alıcılar bu adresten «{adminFromDisplayPreview}» görünen adıyla görür.
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="kime-trigger" className="text-base font-semibold">
             Kime

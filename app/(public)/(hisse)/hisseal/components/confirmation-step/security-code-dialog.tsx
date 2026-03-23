@@ -111,8 +111,8 @@ export default function SecurityCodeDialog({
                 value={code}
                 onChange={handleCodeChange(setCode)}
                 autoComplete="one-time-code"
-                className="text-center text-lg tracking-widest font-mono tabular-nums"
-                placeholder="••••••"
+                spellCheck={false}
+                className="text-center text-lg tracking-[0.35em] font-mono tabular-nums text-black caret-foreground [-webkit-text-security:disc]"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -128,8 +128,8 @@ export default function SecurityCodeDialog({
                 value={confirmCode}
                 onChange={handleCodeChange(setConfirmCode)}
                 autoComplete="off"
-                className="text-center text-lg tracking-widest font-mono tabular-nums"
-                placeholder="••••••"
+                spellCheck={false}
+                className="text-center text-lg tracking-[0.35em] font-mono tabular-nums text-black caret-foreground [-webkit-text-security:disc]"
               />
             </div>
           </div>

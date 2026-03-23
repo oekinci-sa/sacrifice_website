@@ -10,6 +10,7 @@ import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { formatDateMedium } from "@/lib/date-utils";
 import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -190,12 +191,17 @@ export default function OdemelerPage() {
   const sortedData = useMemo(() => {
     let data = allShareholders || [];
     if (searchTerm.trim()) {
-      const lower = searchTerm.toLowerCase();
-      data = data.filter(
-        (sh) =>
-          sh.shareholder_name?.toLowerCase().includes(lower) ||
-          sh.phone_number?.includes(searchTerm.replace(/\s/g, ""))
-      );
+      const q = normalizeTurkishSearchText(searchTerm.trim());
+      const qDigits = searchTerm.replace(/\D/g, "");
+      data = data.filter((sh) => {
+        if (q && sh.shareholder_name && normalizeTurkishSearchText(sh.shareholder_name).includes(q)) {
+          return true;
+        }
+        if (qDigits && sh.phone_number?.replace(/\D/g, "").includes(qDigits)) {
+          return true;
+        }
+        return false;
+      });
     }
     return [...data].sort((a, b) => {
       const noA = a.sacrifice?.sacrifice_no ?? 0;

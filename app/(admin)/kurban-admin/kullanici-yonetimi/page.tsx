@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
 import { Search, X } from "lucide-react";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { columns } from "./components/columns";
 
@@ -50,10 +51,12 @@ export default function UserManagementPage() {
   const baseUsers = users.filter((u) => u.email !== session?.user?.email);
 
   const filteredUsers = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (!q) return baseUsers;
     return baseUsers.filter((u) => {
-      const blob = [u.name, u.email, u.role, u.status].filter(Boolean).join(" ").toLowerCase();
+      const blob = normalizeTurkishSearchText(
+        [u.name, u.email, u.role, u.status].filter(Boolean).join(" ")
+      );
       return blob.includes(q);
     });
   }, [baseUsers, searchTerm]);

@@ -3,12 +3,13 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useMemo, useState } from "react";
 import {
   ChangeLogFilters,
   type ChangeLogDatePreset,
 } from "./components/change-log-filters";
-import { columns } from "./components/columns";
+import { ChangeLogsTooltipProvider, columns } from "./components/columns";
 
 function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
   if (preset === "all") return null;
@@ -34,23 +35,24 @@ export default function ChangeLogsPage() {
     if (rangeStart) {
       rows = rows.filter((log) => new Date(log.changed_at) >= rangeStart);
     }
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (q) {
       rows = rows.filter((log) => {
-        const blob = [
-          log.description,
-          log.column_name,
-          log.change_owner,
-          log.old_value,
-          log.new_value,
-          log.table_name,
-          log.change_type,
-          log.row_id,
-          String(log.event_id),
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
+        const blob = normalizeTurkishSearchText(
+          [
+            log.description,
+            log.column_name,
+            log.change_owner,
+            log.old_value,
+            log.new_value,
+            log.table_name,
+            log.change_type,
+            log.row_id,
+            String(log.event_id),
+          ]
+            .filter(Boolean)
+            .join(" ")
+        );
         return blob.includes(q);
       });
     }
@@ -86,23 +88,25 @@ export default function ChangeLogsPage() {
           <Skeleton className="h-8 w-full" />
         </div>
       ) : (
-        <CustomDataTable
-          data={filteredData}
-          columns={columns}
-          storageKey="degisiklik-kayitlari"
-          pageSizeOptions={[10, 20, 50, 100]}
-          tableSize="medium"
-          filters={({ table, columnFilters }) => (
-            <ChangeLogFilters
-              table={table}
-              columnFilters={columnFilters}
-              searchValue={searchTerm}
-              onSearchChange={setSearchTerm}
-              datePreset={datePreset}
-              onDatePresetChange={setDatePreset}
-            />
-          )}
-        />
+        <ChangeLogsTooltipProvider>
+          <CustomDataTable
+            data={filteredData}
+            columns={columns}
+            storageKey="degisiklik-kayitlari"
+            pageSizeOptions={[10, 20, 50, 100]}
+            tableSize="medium"
+            filters={({ table, columnFilters }) => (
+              <ChangeLogFilters
+                table={table}
+                columnFilters={columnFilters}
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                datePreset={datePreset}
+                onDatePresetChange={setDatePreset}
+              />
+            )}
+          />
+        </ChangeLogsTooltipProvider>
       )}
     </div>
   );

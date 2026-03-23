@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, X } from "lucide-react";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { columns, type StageMetric } from "./components/columns";
 
@@ -31,14 +32,15 @@ export default function AsamaMetrikleriPage() {
   }, []);
 
   const filteredData = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
     if (!q) return data;
     return data.filter((row) => {
       const t = row.tenants;
-      const blob = [t?.name, t?.slug, row.stage, String(row.current_sacrifice_number ?? "")]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+      const blob = normalizeTurkishSearchText(
+        [t?.name, t?.slug, row.stage, String(row.current_sacrifice_number ?? "")]
+          .filter(Boolean)
+          .join(" ")
+      );
       return blob.includes(q);
     });
   }, [data, searchTerm]);

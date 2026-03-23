@@ -7,6 +7,7 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | Yol | Açıklama |
 |-----|----------|
 | `project-details.md` | Ana giriş noktası. Proje özeti, sayfa/db/tools referansları |
+| `audit-rpc-and-triggers.md` | `change_logs`, tetikleyiciler, RPC listesi ve kaldırılan fonksiyonların gerekçesi |
 | `architecture.md` | Mimari: tenant, auth, uygulama yapısı |
 | `role-permissions.md` | Rol yetkileri: editor, admin, super_admin – kim ne yapabilir |
 | `pages/` | Sayfa açıklamaları (public, admin) |

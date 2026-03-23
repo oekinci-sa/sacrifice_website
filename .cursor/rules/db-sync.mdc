@@ -14,7 +14,7 @@ Supabase veya başka bir ortamda veritabanı şemasında yapılan **her değişi
 
 1. **Tablo değişikliği** → `db/tables/<tablo_adi>/table.sql` güncelle
 2. **Trigger/fonksiyon değişikliği** → `db/tables/<tablo_adi>/functions_and_triggers/<dosya>.sql` güncelle
-3. **`change_logs` tablosuna satır yazan audit trigger'ları** → yalnızca `db/tables/change_logs/triggers/<dosya>.sql` altında tutulur (hangi tabloda tetiklense de). Bu dosyaları `tables/<başka_tablo>/functions_and_triggers/` içine taşıma.
+3. **`change_logs` tablosuna satır yazan audit trigger'ları** → tetiklendikleri tablonun altında `db/tables/<tablo_adi>/functions_and_triggers/log_*_changes.sql` olarak tutulur (ör. `users/functions_and_triggers/log_user_changes.sql`). Yinelenen kopya `change_logs/triggers/log_*.sql` dosyası oluşturma; açıklama için `db/tables/change_logs/triggers/README.md`.
 4. **View değişikliği** → `db/views/<view_adi>.sql` güncelle
 5. **Operational script** → `db/tables/<tablo_adi>/operational_scripts/<dosya>.sql` güncelle
 

@@ -34,6 +34,16 @@ BEGIN
       WHEN p_patch->'second_phone_number' IS NULL OR jsonb_typeof(p_patch->'second_phone_number') = 'null' THEN NULL
       ELSE NULLIF((p_patch->>'second_phone_number'), '')::varchar
     END,
+    email = CASE
+      WHEN NOT (p_patch ? 'email') THEN sh.email
+      WHEN p_patch->'email' IS NULL OR jsonb_typeof(p_patch->'email') = 'null' THEN NULL
+      ELSE NULLIF(trim(p_patch->>'email'), '')::varchar
+    END,
+    contacted_at = CASE
+      WHEN NOT (p_patch ? 'contacted_at') THEN sh.contacted_at
+      WHEN p_patch->'contacted_at' IS NULL OR jsonb_typeof(p_patch->'contacted_at') = 'null' THEN NULL
+      ELSE (p_patch->>'contacted_at')::timestamptz
+    END,
     delivery_fee = CASE
       WHEN p_patch ? 'delivery_fee' THEN (p_patch->>'delivery_fee')::numeric
       ELSE sh.delivery_fee

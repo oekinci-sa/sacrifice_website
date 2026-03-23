@@ -1,3 +1,5 @@
+-- ⚠️ Tarihsel: `consolidate_audit_rpc_2026_03_20.sql` ile birleştirildi.
+-- `rpc_update_sacrifice_timing` ve `rpc_update_sacrifice_share` artık yok; davranış `rpc_update_sacrifice_core` içinde.
 -- Faz 3: sacrifice_animals RPC (app.actor + güvenli güncelleme)
 
 CREATE OR REPLACE FUNCTION public.rpc_update_sacrifice_core(

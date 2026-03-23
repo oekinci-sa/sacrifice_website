@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
@@ -326,8 +327,10 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     enableHiding: true,
     filterFn: (row, id, value: string | number) => {
       if (!value) return true;
-      const notes = row.getValue(id)?.toString().toLowerCase() || "";
-      return notes.includes(value.toString().toLowerCase());
+      const needle = normalizeTurkishSearchText(value.toString());
+      if (!needle) return true;
+      const notes = normalizeTurkishSearchText(row.getValue(id)?.toString() ?? "");
+      return notes.includes(needle);
     },
   },
   {

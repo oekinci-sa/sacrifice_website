@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { VisibilityState } from "@tanstack/react-table";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { columns } from "./components/columns";
 import { HissedarlarTableToolbar } from "./components/hissedarlar-table-toolbar";
@@ -57,25 +58,19 @@ export default function TumHissedarlarPage() {
       return allShareholders || [];
     }
 
-    const lowercasedSearch = searchTerm.toLowerCase();
+    const q = normalizeTurkishSearchText(searchTerm.trim());
+    const qDigits = searchTerm.replace(/\D/g, "");
 
-    return allShareholders.filter(shareholder => {
-      // Search in shareholder name
-      if (shareholder.shareholder_name?.toLowerCase().includes(lowercasedSearch)) {
+    return allShareholders.filter((shareholder) => {
+      if (q && shareholder.shareholder_name && normalizeTurkishSearchText(shareholder.shareholder_name).includes(q)) {
         return true;
       }
-
-      // Search in phone number
-      if (shareholder.phone_number?.includes(lowercasedSearch)) {
+      if (qDigits && shareholder.phone_number?.replace(/\D/g, "").includes(qDigits)) {
         return true;
       }
-
-      // Search in notes
-      if (shareholder.notes?.toLowerCase().includes(lowercasedSearch)) {
+      if (q && shareholder.notes && normalizeTurkishSearchText(shareholder.notes).includes(q)) {
         return true;
       }
-
-      // Search only in the fields above, not in other columns
       return false;
     });
   }, [allShareholders, searchTerm]);

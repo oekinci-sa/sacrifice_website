@@ -32,29 +32,18 @@ export async function POST(request: Request) {
             );
         }
 
-        const now = new Date().toISOString();
-
-        // sacrifice_id DB'de UUID olarak otomatik üretilir
-        // last_edited_by / last_edited_time: sunucu (Faz 1); istemci gövdesi dikkate alınmaz
-        const { data, error } = await supabaseAdmin
-            .from('sacrifice_animals')
-            .insert([
-                {
-                    tenant_id: tenantId,
-                    sacrifice_year: sacrificeYear,
-                    sacrifice_no: sacrificeData.sacrifice_no,
-                    sacrifice_time: sacrificeData.sacrifice_time,
-                    share_weight: sacrificeData.share_weight,
-                    share_price: sacrificeData.share_price,
-                    empty_share: sacrificeData.empty_share || 7,
-                    animal_type: sacrificeData.animal_type || null,
-                    notes: sacrificeData.notes || null,
-                    last_edited_time: now,
-                    last_edited_by: actor
-                }
-            ])
-            .select()
-            .single();
+        const { data, error } = await supabaseAdmin.rpc('rpc_create_sacrifice', {
+            p_actor: actor,
+            p_tenant_id: tenantId,
+            p_sacrifice_year: sacrificeYear,
+            p_sacrifice_no: sacrificeData.sacrifice_no,
+            p_sacrifice_time: sacrificeData.sacrifice_time,
+            p_share_weight: sacrificeData.share_weight,
+            p_share_price: sacrificeData.share_price,
+            p_empty_share: sacrificeData.empty_share ?? 7,
+            p_animal_type: sacrificeData.animal_type ?? null,
+            p_notes: sacrificeData.notes ?? null,
+        });
 
         if (error) {
             console.error('Kurbanlık ekleme hatası:', error);

@@ -1,8 +1,13 @@
-import { buildPurchaseConfirmationHtml } from "@/lib/emails/purchase-confirmation-html";
+import {
+  buildPurchaseConfirmationHtml,
+  getPurchaseConfirmationTenantDisplayName,
+} from "@/lib/emails/purchase-confirmation-html";
 import { normalizeEmail } from "@/lib/email-utils";
+import { buildPurchaseReceiptData } from "@/lib/purchase-receipt-data";
+import { getTenantBranding } from "@/lib/tenant-branding";
 import {
   getResendForTenant,
-  getResendFromEmailForTenant,
+  getResendFromForPurchaseConfirmation,
 } from "@/lib/resend-client";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
       .eq("tenant_id", tenantId)
       .is("purchase_confirmation_email_sent_at", null)
       .eq("status", "completed")
-      .select("transaction_id, sacrifice_id")
+      .select("transaction_id, sacrifice_id, created_at")
       .maybeSingle();
 
     if (claimError) {
@@ -53,17 +58,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Rezervasyon bulunamadı" }, { status: 404 });
     }
 
-    const { data: tenantRow } = await supabaseAdmin
-      .from("tenants")
-      .select("name")
-      .eq("id", tenantId)
-      .single();
-
-    const tenantName = (tenantRow?.name as string) || "Kurban Organizasyonu";
-
     const { data: sacrifice, error: sacErr } = await supabaseAdmin
       .from("sacrifice_animals")
-      .select("sacrifice_no")
+      .select("*")
       .eq("sacrifice_id", sacrificeId)
       .eq("tenant_id", tenantId)
       .single();
@@ -73,11 +70,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Kurban bilgisi alınamadı" }, { status: 500 });
     }
 
-    const sacrificeNo = String(sacrifice.sacrifice_no ?? "");
+    const claimedRow = claimed as {
+      sacrifice_id?: string | null;
+      created_at?: string | null;
+    };
+    const reservationRow = { created_at: claimedRow.created_at ?? null };
 
     const { data: shareholders, error: shErr } = await supabaseAdmin
       .from("shareholders")
-      .select("shareholder_name, email, security_code")
+      .select("*")
       .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id);
 
@@ -112,24 +113,33 @@ export async function POST(request: Request) {
       );
     }
 
-    const from = getResendFromEmailForTenant(tenantId);
+    const from = getResendFromForPurchaseConfirmation(tenantId);
     let sent = 0;
+
+    const branding = await getTenantBranding();
+    const tenantDisplayName = getPurchaseConfirmationTenantDisplayName(
+      branding.logo_slug
+    );
 
     for (const row of rows) {
       const email = (row.email as string).trim();
-      const name = (row.shareholder_name as string) || "Hissedar";
-      const code = (row.security_code as string) || "------";
+      const receipt = buildPurchaseReceiptData(
+        row,
+        sacrifice,
+        reservationRow,
+        transaction_id,
+        branding
+      );
       const { html, text } = buildPurchaseConfirmationHtml({
-        tenantName,
-        shareholderName: name,
-        sacrificeNo,
-        securityCode: code,
+        tenantName: tenantDisplayName,
+        branding,
+        receipt,
       });
 
       const { error } = await resend.emails.send({
         from,
         to: email,
-        subject: `${tenantName} — Hisse kaydınız tamamlandı`,
+        subject: `${tenantDisplayName} — Hisse kaydınız tamamlandı`,
         html,
         text,
       });

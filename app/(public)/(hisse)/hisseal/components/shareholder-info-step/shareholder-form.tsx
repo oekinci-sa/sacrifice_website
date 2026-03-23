@@ -244,20 +244,9 @@ export default function ShareholderForm({
                     )}
                 </div>
 
-                {/* Teslimat Tercihi (solda) ve Teslimat Adresi (sağda) - yan yana */}
-                <div className={cn(
-                    "flex gap-4",
-                    branding.logo_slug === "elya-hayvancilik" && getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim"
-                        ? "flex-col md:flex-row"
-                        : ""
-                )}>
-                    {/* Teslimat Tercihi - solda */}
-                    <div className={cn(
-                        "space-y-1.5 md:space-y-2",
-                        branding.logo_slug === "elya-hayvancilik" && getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim"
-                            ? "flex-1"
-                            : "w-full"
-                    )}>
+                {/* Teslimat Tercihi ve Teslimat Adresi — her zaman alt alta */}
+                <div className="flex flex-col gap-4 w-full">
+                    <div className="space-y-1.5 md:space-y-2 w-full">
                         <Label
                             htmlFor={`delivery_location-${index}`}
                             className="text-slate-600 text-sm md:text-base"
@@ -292,10 +281,10 @@ export default function ShareholderForm({
                             <p className="text-sm md:text-lg text-destructive mt-1.5 md:mt-2">{errors.delivery_location.join(", ")}</p>
                         )}
                     </div>
-                    {/* Teslimat Adresi - sağda (Elya + Adrese teslim seçildiğinde) */}
+                    {/* Teslimat Adresi — teslimat tercihinin altında (Elya + Adrese teslim) */}
                     {branding.logo_slug === "elya-hayvancilik" &&
                      getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim" && (
-                        <div className="space-y-1.5 md:space-y-2 flex-1">
+                        <div className="space-y-1.5 md:space-y-2 w-full">
                             <Label htmlFor={`delivery_address-${index}`} className="text-slate-600 text-sm md:text-base">
                                 Teslimat Adresi
                             </Label>

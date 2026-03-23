@@ -37,27 +37,12 @@ export async function POST(req: Request) {
 
     if (!Array.isArray(shareholdersData) || shareholdersData.length === 0) {
       return NextResponse.json(
-        { error: "Shareholder data must be a non-empty array" },
+        { error: "Hissedar verisi boş olamaz" },
         { status: 400 }
       );
     }
 
-    const sacrificeIds = Array.from(new Set(shareholdersData.map((s) => s.sacrifice_id)));
-    const { data: sacrifices } = await supabaseAdmin
-      .from("sacrifice_animals")
-      .select("sacrifice_id, sacrifice_year")
-      .in("sacrifice_id", sacrificeIds)
-      .eq("tenant_id", tenantId);
-
-    const sacrificeYearMap = new Map(
-      (sacrifices ?? []).map((s) => [s.sacrifice_id, s.sacrifice_year])
-    );
-
-    const shareholdersWithTenant = shareholdersData.map((s) => {
-      const sacrificeYear = sacrificeYearMap.get(s.sacrifice_id);
-      if (sacrificeYear == null) {
-        throw new Error(`Sacrifice ${s.sacrifice_id} not found`);
-      }
+    const pRows = shareholdersData.map((s) => {
       const {
         share_price: _sharePrice,
         second_phone_number: secondPhone,
@@ -66,12 +51,8 @@ export async function POST(req: Request) {
       } = s as ShareholderInput & { share_price?: number };
       void _sharePrice;
       void _ignoredLastEdited;
-      const row: Record<string, unknown> = {
-        ...rest,
-        last_edited_by: actor,
-        tenant_id: tenantId,
-        sacrifice_year: sacrificeYear,
-      };
+
+      const row: Record<string, unknown> = { ...rest };
       if (secondPhone) {
         const formatted = formatPhoneForDB(secondPhone);
         if (formatted) row.second_phone_number = formatted;
@@ -79,14 +60,28 @@ export async function POST(req: Request) {
       return row;
     });
 
-    const { data, error } = await supabaseAdmin
-      .from("shareholders")
-      .insert(shareholdersWithTenant)
-      .select(); // Select the inserted data to confirm
+    const { data, error } = await supabaseAdmin.rpc("rpc_insert_shareholders_batch", {
+      p_actor: actor,
+      p_tenant_id: tenantId,
+      p_rows: pRows,
+    });
 
     if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("invalid_sacrifice_or_tenant")) {
+        return NextResponse.json(
+          { error: "Geçersiz kurban veya tenant eşleşmesi" },
+          { status: 400 }
+        );
+      }
+      if (msg.includes("rows_required")) {
+        return NextResponse.json(
+          { error: "Hissedar verisi gerekli" },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
-        { error: "Failed to create shareholders" },
+        { error: "Hissedarlar oluşturulamadı" },
         { status: 500 }
       );
     }
@@ -95,8 +90,8 @@ export async function POST(req: Request) {
 
   } catch {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Sunucu hatası" },
       { status: 500 }
     );
   }
-} 
+}

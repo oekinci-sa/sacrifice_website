@@ -1,18 +1,50 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logReservationRealtime } from "@/lib/debug-reservation-realtime";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { supabase } from "@/utils/supabaseClient";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { columns, type ReservationTransaction } from "./components/columns";
+import { Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ColumnSelectorPopover } from "../hissedarlar/tum-hissedarlar/components/column-selector-popover";
+import {
+  columns,
+  REZERVASYONLAR_COLUMN_HEADER_MAP,
+  type ReservationTransaction,
+} from "./components/columns";
 import { ReservationFilters } from "./components/reservation-filters";
+
+function matchesReservationSearch(
+  row: ReservationTransaction,
+  rawQuery: string
+): boolean {
+  const trimmed = rawQuery.trim();
+  if (!trimmed) return true;
+  const qLower = trimmed.toLowerCase();
+  const tid = row.transaction_id.toLowerCase();
+  if (tid.includes(qLower)) return true;
+
+  const disp = row._displayNo ?? 0;
+  if (disp > 0) {
+    if (qLower === String(disp)) return true;
+    const withDash = `rez-${disp}`;
+    if (qLower === withDash || qLower === `rez${disp}`) return true;
+    if (withDash.includes(qLower)) return true;
+  }
+
+  const qNorm = normalizeTurkishSearchText(trimmed);
+  return qNorm.length > 0 && normalizeTurkishSearchText(tid).includes(qNorm);
+}
 
 export default function RezervasyonlarPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [data, setData] = useState<ReservationTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const yearRef = useRef(selectedYear);
   yearRef.current = selectedYear;
 
@@ -53,7 +85,7 @@ export default function RezervasyonlarPage() {
         },
         (payload) => {
           logReservationRealtime("[TABLO] Realtime event alındı", payload?.eventType ?? payload);
-          fetchData(false);
+          void fetchData(false);
         }
       )
       .subscribe((status) => {
@@ -75,6 +107,11 @@ export default function RezervasyonlarPage() {
     return () => window.removeEventListener("reservation-updated", handler);
   }, [fetchData]);
 
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) return data;
+    return data.filter((row) => matchesReservationSearch(row, searchTerm));
+  }, [data, searchTerm]);
+
   return (
     <div className="space-y-8">
       <div className="w-full">
@@ -91,14 +128,68 @@ export default function RezervasyonlarPage() {
         </div>
       ) : (
         <CustomDataTable
-          data={data}
+          data={filteredData}
           columns={columns}
           storageKey="rezervasyonlar"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
-          filters={({ table, columnFilters }) => (
-            <ReservationFilters table={table} columnFilters={columnFilters} />
-          )}
+          initialState={{ columnVisibility: { created_at: false } }}
+          filters={({
+            table,
+            columnFilters,
+            columnOrder,
+            onColumnOrderChange,
+            resetColumnLayout,
+          }) => {
+            const hasAnyFilter =
+              columnFilters.length > 0 || searchTerm.trim().length > 0;
+            return (
+              <div className="flex flex-col gap-3 w-full">
+                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+                  <div className="relative w-full sm:w-96 max-w-full min-w-0">
+                    <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="search"
+                      placeholder="Rezervasyon no (örn. Rez-3) veya işlem kodu..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <ColumnSelectorPopover
+                      table={table}
+                      columnHeaderMap={REZERVASYONLAR_COLUMN_HEADER_MAP}
+                      columnOrder={columnOrder ?? []}
+                      onColumnOrderChange={onColumnOrderChange}
+                      onResetColumnLayout={resetColumnLayout}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                    <ReservationFilters table={table} columnFilters={columnFilters} />
+                  </div>
+                  {hasAnyFilter ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
+                      onClick={() => {
+                        table.resetColumnFilters();
+                        setSearchTerm("");
+                      }}
+                    >
+                      <X className="h-4 w-4 shrink-0" />
+                      Tüm filtreleri temizle
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            );
+          }}
         />
       )}
     </div>

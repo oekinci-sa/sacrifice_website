@@ -68,10 +68,11 @@ export async function POST(request: Request) {
             );
         }
 
-        // Don't update if already expired or timed_out
-        if (existingReservation.status === ReservationStatus.EXPIRED || existingReservation.status === 'timed_out') {
+        // Terminal durumlarda tekrar güncelleme yapma (offline: heartbeat kesildi; canceled vb.)
+        const terminalSkip = ['expired', 'timed_out', 'offline', 'canceled', 'completed'] as const;
+        if (terminalSkip.includes(existingReservation.status as (typeof terminalSkip)[number])) {
             return NextResponse.json(
-                { message: 'Reservation is already expired or timed_out', reservation: existingReservation },
+                { message: 'Rezervasyon zaten sonlandırılmış', reservation: existingReservation },
                 { status: 200 }
             );
         }

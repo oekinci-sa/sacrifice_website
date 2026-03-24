@@ -29,7 +29,13 @@ export async function fetchReservationExpiry(
       };
     }
 
-    if (data.status === "expired") {
+    // active/completed dışı: seçim adımına dönüş (bootstrap)
+    if (
+      data.status === "expired" ||
+      data.status === "offline" ||
+      data.status === "canceled" ||
+      data.status === "timed_out"
+    ) {
       return { timeLeftSeconds: 0, expiresAt: null };
     }
 

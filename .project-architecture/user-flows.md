@@ -84,6 +84,17 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | 2 | reservation_transactions status güncelleme |
 | 3 | DB trigger: empty_share artar |
 
+### 3.4 Heartbeat (Canlılık Sinyali)
+
+| Adım | Aksiyon |
+|------|---------|
+| 1 | details / confirmation adımlarında istemci 15 sn'de bir POST /api/reservation/heartbeat atar |
+| 2 | API: last_heartbeat_at = now() güncellenir (status aktif olmalı) |
+| 3 | pg_cron (30s): expire_stale_reservations() — last_heartbeat_at 30 sn'den eski aktif rezervasyonları **offline** yapar |
+| 4 | DB trigger: empty_share otomatik restore (mevcut trg_handle_reservation_deactivation) |
+| 5 | Supabase Realtime: client status='offline' (veya expired/canceled/timed_out) alır → handleTimeoutRedirect (setTimeout(0) ile defer) |
+| 6 | bfCache dönüşü: pageshow ile status kontrol → expired ise handleTimeoutRedirect |
+
 ---
 
 ## 4. Hisse Sorgulama (Public)

@@ -12,6 +12,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { FilteredSacrificesContent } from "./components/process-state/FilteredSacrificesContent";
 import { PageLayout } from "./components/layout/page-layout";
 import { ActiveReservationsInitializer, buildHissealTableColumns } from "./components/table-step/columns";
+import { useHandlePageShow } from "@/helpers/hisseal";
 import { useHissealPageHandlers } from "./hooks/useHissealPageHandlers";
 import { usePageInitialization } from "./hooks/usePageInitialization";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
@@ -269,6 +270,14 @@ const Page = () => {
     INACTIVITY_WARNING_THRESHOLD,
     handleCustomTimeout: handleCustomTimeoutWithPromise,
     toast,
+  });
+
+  // bfCache'ten dönüşte rezervasyon durumunu kontrol et (invariant §5.2: defer ile)
+  useHandlePageShow({
+    currentStep,
+    transaction_id,
+    isSuccess,
+    onExpired: () => setTimeout(() => void handleTimeoutRedirect(), 0),
   });
 
   // Add a debug utility to test expire-reservation API (DEV only)

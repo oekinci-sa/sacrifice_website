@@ -124,3 +124,29 @@ setTimeout(() => handleTimeoutRedirect(), 0);
 1. **5.2** — Tüm timeout yollarında `handleTimeoutRedirect` defer ediliyor mu? (`setTimeout(0)`)
 2. **5.1** — Tüm dialog/warning state'leri redirect öncesi kapatılıyor mu?
 3. **5.3** — Inactivity `performRedirect` kullanıyor mu (session ile aynı akış)?
+
+## 6. Heartbeat Invariantları
+
+### 6.1 Heartbeat yalnızca aktif adımlarda çalışmalı
+
+`useReservationHeartbeat` (`helpers/hisseal/use-reservation-heartbeat.ts`) **sadece** `currentStep === "details"` veya `"confirmation"` iken ve `transaction_id` doluyken çalışır. `isSuccess = true` olduğunda durdurulur.
+
+### 6.2 Heartbeat kaçırılması hata değildir
+
+Tek bir heartbeat isteğinin başarısız olması durumunda sessizce devam edilir. Güvenlik ağı: DB'deki `expires_at` TTL ve `check_expires_at_field()` cron. Stale heartbeat sonucu status **`offline`** olur; süre dolması **`expired`** (TTL) ile ayrıdır.
+
+### 6.3 expire_stale_reservations sadece heartbeat gelen rezervasyonlara dokunur
+
+`last_heartbeat_at IS NULL` olan satırlar (rezervasyon oluşturuldu ama henüz hiç heartbeat gelmedi) bu fonksiyon tarafından işlenmez; mevcut `check_expires_at_field` devreye girer. Fonksiyon stale satırları **`offline`** yapar (expired değil).
+
+### 6.4 Terminal durumda hisseal seçim adımı
+
+`active` ve `completed` dışındaki status (`expired`, `offline`, `canceled`, `timed_out`) için kullanıcı hisse tablosu (selection) adımına dönmelidir. Mantık: `lib/reservation-terminal-status.ts` → `shouldRedirectReservationToSelection`; Realtime + polling + bootstrap (`fetchReservationExpiry`) uyumlu olmalıdır.
+
+### 6.5 pagehide ile iptal (unload yerine)
+
+`unload` kaldırıldı; iptal beacon'ı artık `pagehide` olayında gönderilir. `event.persisted === true` ise (bfCache) beacon atılmaz.
+
+### 6.6 bfCache dönüşü defer zorunluluğu
+
+`pageshow` ile `persisted === true` geldiğinde rezervasyon durumu kontrol edilir. Durum `shouldRedirectReservationToSelection` true ise `handleTimeoutRedirect` **mutlaka** `setTimeout(0)` ile defer edilmeli (bkz. §5.2).

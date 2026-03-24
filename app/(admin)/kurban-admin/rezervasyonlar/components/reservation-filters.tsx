@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Column, ColumnFiltersState, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, PlusCircle, X } from "lucide-react";
+import { Check, PlusCircle } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import type { ReservationTransaction } from "./columns";
 
@@ -155,17 +155,18 @@ const STATUS_OPTIONS: { label: string; value: string }[] = [
   { label: "İptal", value: "canceled" },
   { label: "Zaman Aşımı", value: "timed_out" },
   { label: "Süresi Doldu", value: "expired" },
+  { label: "Çevrimdışı", value: "offline" },
 ];
 
 export function ReservationFilters({
   table,
-  columnFilters,
+  columnFilters: _columnFilters,
 }: {
   table: Table<ReservationTransaction>;
   /** CustomDataTable state — table.getState() ile aynı anda güncellenir */
   columnFilters: ColumnFiltersState;
 }) {
-  const hasFilters = columnFilters.length > 0;
+  void _columnFilters;
 
   // sacrifice_no: facet değeri string; "-" = kurban atanmamış
   useEffect(() => {
@@ -229,10 +230,6 @@ export function ReservationFilters({
       .map((v) => ({ label: `${v} hisse`, value: v }));
   }, [table]);
 
-  const clearFilters = () => {
-    table.resetColumnFilters();
-  };
-
   return (
     <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
       <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
@@ -260,18 +257,6 @@ export function ReservationFilters({
           />
         )}
       </div>
-      {hasFilters ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={clearFilters}
-          className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
-        >
-          <X className="h-4 w-4 shrink-0" />
-          Tüm filtreleri temizle
-        </Button>
-      ) : null}
     </div>
   );
 } 

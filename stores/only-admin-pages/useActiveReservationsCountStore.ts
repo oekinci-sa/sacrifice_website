@@ -10,7 +10,7 @@ interface ActiveReservationsCountState {
   isInitialized: boolean;
   realtimeEnabled: boolean;
 
-  fetchCount: (year?: number | null) => Promise<void>;
+  fetchCount: (year?: number | null, options?: { silent?: boolean }) => Promise<void>;
   enableRealtime: () => void;
   disableRealtime: () => void;
 }
@@ -26,10 +26,9 @@ const setupRealtimeSubscription = (get: () => ActiveReservationsCountState) => {
         schema: "public",
         table: "reservation_transactions",
       },
-      (payload) => {
-        logReservationRealtime("[BADGE] Realtime event alındı", payload?.eventType ?? payload);
+      () => {
         const year = useAdminYearStore.getState().selectedYear;
-        get().fetchCount(year);
+        void get().fetchCount(year, { silent: true });
       }
     )
     .subscribe((status) => {
@@ -49,10 +48,11 @@ export const useActiveReservationsCountStore = create<ActiveReservationsCountSta
     isInitialized: false,
     realtimeEnabled: false,
 
-    fetchCount: async (year?: number | null) => {
+    fetchCount: async (year?: number | null, options?: { silent?: boolean }) => {
+      const silent = options?.silent === true;
       logReservationRealtime("[BADGE] fetchCount çağrıldı, year:", year);
       try {
-        set({ isLoading: true, error: null });
+        if (!silent) set({ isLoading: true, error: null });
 
         const url =
           year != null
@@ -89,7 +89,6 @@ export const useActiveReservationsCountStore = create<ActiveReservationsCountSta
       logReservationRealtime("[BADGE] enableRealtime çağrıldı");
       if (channelRef) {
         supabase.removeChannel(channelRef);
-        logReservationRealtime("[BADGE] Eski channel kaldırıldı");
       }
       channelRef = setupRealtimeSubscription(get);
       set({ realtimeEnabled: true });

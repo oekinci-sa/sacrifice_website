@@ -4,7 +4,9 @@ export enum ReservationStatus {
     COMPLETED = 'completed',
     CANCELED = 'canceled',
     TIMED_OUT = 'timed_out',
-    EXPIRED = 'expired'
+    EXPIRED = 'expired',
+    /** Heartbeat kesildi (ör. sekme dondu); süre doldu (expired) değil */
+    OFFLINE = 'offline',
 }
 
 // Rezervasyon veri tipi

@@ -1,5 +1,5 @@
 -- ===============================================
--- Açıklama: Rezervasyon 'canceled', 'timed_out' veya 'expired' durumuna
+-- Açıklama: Rezervasyon 'canceled', 'timed_out', 'expired' veya 'offline' durumuna
 --           geçtiğinde sacrifice_animals.empty_share değerini share_count
 --           kadar artırır. Boş hisseyi geri serbest bırakır.
 --           Sınır (7) aşımında failed_reservation_transactions_logs'a yazar.
@@ -11,7 +11,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   current_empty INT;
 BEGIN
-  IF OLD.status = 'active' AND NEW.status IN ('canceled', 'timed_out', 'expired') THEN
+  IF OLD.status = 'active' AND NEW.status IN ('canceled', 'timed_out', 'expired', 'offline') THEN
     -- Mevcut boş hisse sayısını al
     SELECT empty_share INTO current_empty
     FROM sacrifice_animals

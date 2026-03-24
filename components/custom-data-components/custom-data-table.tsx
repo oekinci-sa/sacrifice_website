@@ -17,7 +17,6 @@ import { useSession } from "next-auth/react"
 import * as React from "react"
 
 import { Table } from "@/components/ui/table"
-import { supabase } from "@/utils/supabaseClient"
 import { CustomDataTableFooter } from "./custom-data-table-footer"
 import { CustomTableBody } from "./custom-table-body"
 import { CustomTableHeader } from "./custom-table-header"
@@ -247,29 +246,6 @@ export function CustomDataTable<TData, TValue>({
       },
     },
   })
-
-  React.useEffect(() => {
-    const fetchSharePrices = async () => {
-      const { data: prices } = await supabase
-        .from("sacrifice_animals")
-        .select("share_price")
-        .order("share_price", { ascending: true });
-
-      if (prices) {
-        const uniquePrices = Array.from(new Set(prices.map((p) => p.share_price)));
-        // Store prices in state if needed for future use
-        uniquePrices.map((price) => ({
-          label: `${new Intl.NumberFormat('tr-TR', {
-            style: 'decimal',
-            maximumFractionDigits: 0
-          }).format(price)}  TL`,
-          value: price.toString(),
-        }));
-      }
-    };
-
-    fetchSharePrices();
-  }, []);
 
   return (
     <div className="min-w-0 w-full">

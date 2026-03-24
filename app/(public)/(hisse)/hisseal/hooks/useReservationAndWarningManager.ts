@@ -1,5 +1,6 @@
 import { TIMEOUT_DURATION, INACTIVITY_TIMEOUT, INACTIVITY_WARNING_THRESHOLD, THREE_MINUTE_WARNING, ONE_MINUTE_WARNING } from "@/lib/constants/reservation-timer";
-import { GenericReservationMutation, ReservationStatus } from "@/types/reservation";
+import { shouldRedirectReservationToSelection } from "@/lib/reservation-terminal-status";
+import { GenericReservationMutation } from "@/types/reservation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchReservationExpiry as fetchReservationExpiryUtil, formatRemainingTime as formatRemainingTimeUtil } from "./reservation-timer-utils";
@@ -11,9 +12,10 @@ type ToastFunction = {
 
 interface UseReservationAndWarningManagerProps {
     transactionId: string;
+    /** check-reservation-status API yanıtı (status string) */
     reservationStatus?: {
-        status: ReservationStatus;
-        timeRemaining: number | null;
+        status: string;
+        timeLeftSeconds?: number;
     } | null | undefined;
     shouldCheckStatus: boolean;
     createReservation: GenericReservationMutation;
@@ -42,7 +44,6 @@ export function useReservationAndWarningManager({
     const [showOneMinuteWarning, setShowOneMinuteWarning] = useState(false);
     const [remainingTime, setRemainingTime] = useState<string>("15:00");
 
-    // Initialize Supabase client
     const supabase = createClientComponentClient();
 
     // Refs for tracking warning states and animation frame
@@ -183,7 +184,7 @@ export function useReservationAndWarningManager({
         resetSessionTimerState();
     }, [transactionId, shouldCheckStatus, resetSessionTimerState]);
 
-    // Realtime subscription for reservation updates
+    /** İlk süre + Realtime ile expires_at / status güncellemeleri; yedek olarak useReservationStatus yoklaması. */
     useEffect(() => {
         if (!transactionId || !shouldCheckStatus) return;
 
@@ -234,39 +235,49 @@ export function useReservationAndWarningManager({
 
         void bootstrapReservationTimer();
 
-        // Realtime subscription
         const subscription = supabase
             .channel(`reservation-${transactionId}`)
             .on(
-                'postgres_changes',
+                "postgres_changes",
                 {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'reservation_transactions',
-                    filter: `transaction_id=eq.${transactionId}`
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "reservation_transactions",
+                    filter: `transaction_id=eq.${transactionId}`,
                 },
                 (payload) => {
-                    const { new: newData } = payload;
+                    const newData = payload.new as {
+                        status?: string;
+                        expires_at?: string | null;
+                    };
 
-                    // Rezervasyon durumu değiştiyse timeout kontrolü yap
-                    if (newData.status === 'expired') {
+                    if (
+                        typeof newData.status === "string" &&
+                        shouldRedirectReservationToSelection(newData.status)
+                    ) {
                         setShowWarning(false);
                         setIsDialogOpen(false);
                         setShowReservationInfo(false);
                         setShowThreeMinuteWarning(false);
                         setShowOneMinuteWarning(false);
 
+                        const title =
+                            newData.status === "offline"
+                                ? "Bağlantı kesildi"
+                                : newData.status === "canceled"
+                                  ? "Rezervasyon iptal edildi"
+                                  : "Rezervasyon sonlandı";
                         toast({
                             variant: "destructive",
-                            title: "Rezervasyon Süresi Doldu",
-                            description: "Rezervasyon süreniz doldu. Başa dönülüyor."
+                            title,
+                            description:
+                                "Rezervasyon geçerli değil. Hisse seçim sayfasına yönlendiriliyorsunuz.",
                         });
 
                         setTimeout(() => handleTimeoutRedirect(), 0);
                         return;
                     }
 
-                    // Expires_at değiştiyse zamanlayıcıyı güncelle
                     if (newData.expires_at) {
                         const expiresAt = new Date(newData.expires_at).getTime();
                         const now = Date.now();
@@ -295,18 +306,24 @@ export function useReservationAndWarningManager({
     useEffect(() => {
         if (!reservationStatus || !shouldCheckStatus) return;
 
-        if (reservationStatus.status === ReservationStatus.EXPIRED) {
-            // Close all dialogs
+        if (shouldRedirectReservationToSelection(reservationStatus.status)) {
             setShowWarning(false);
             setIsDialogOpen(false);
             setShowReservationInfo(false);
             setShowThreeMinuteWarning(false);
             setShowOneMinuteWarning(false);
 
+            const title =
+                reservationStatus.status === "offline"
+                    ? "Bağlantı kesildi"
+                    : reservationStatus.status === "canceled"
+                      ? "Rezervasyon iptal edildi"
+                      : "İşlem Süresi Doldu";
             toast({
                 variant: "destructive",
-                title: "İşlem Süresi Doldu",
-                description: "İşlem süresi dolduğu için hisse seçim sayfasına yönlendiriliyorsunuz.",
+                title,
+                description:
+                    "Rezervasyon geçerli değil. Hisse seçim sayfasına yönlendiriliyorsunuz.",
             });
 
             setTimeout(() => handleTimeoutRedirect(), 0);

@@ -1,7 +1,6 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useUpdateSacrifice } from "@/hooks/useSacrifices";
 import { sacrificeSchema, Step } from "@/types";
-import { supabase } from "@/utils/supabaseClient";
 import { useEffect } from "react";
 import { FormData } from "./types";
 
@@ -38,13 +37,12 @@ export const setupNavigationHandler = ({
     isNavigating = true;
 
     try {
-      const { data: currentSacrifice, error: fetchError } = await supabase
-        .from("sacrifice_animals")
-        .select("empty_share")
-        .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-        .single();
+      const res = await fetch(
+        `/api/get-latest-sacrifice-share?id=${encodeURIComponent(selectedSacrifice.sacrifice_id)}`
+      );
+      const currentSacrifice = res.ok ? await res.json() : null;
 
-      if (fetchError || !currentSacrifice) {
+      if (!currentSacrifice || typeof currentSacrifice.empty_share !== "number") {
         toast({
           variant: "destructive",
           title: "Hata",
@@ -103,13 +101,12 @@ export const useHandleNavigation = (
       isNavigating = true;
 
       try {
-        const { data: currentSacrifice, error: fetchError } = await supabase
-          .from("sacrifice_animals")
-          .select("empty_share")
-          .eq("sacrifice_id", selectedSacrifice.sacrifice_id)
-          .single();
+        const res = await fetch(
+          `/api/get-latest-sacrifice-share?id=${encodeURIComponent(selectedSacrifice.sacrifice_id)}`
+        );
+        const currentSacrifice = res.ok ? await res.json() : null;
 
-        if (fetchError || !currentSacrifice) {
+        if (!currentSacrifice || typeof currentSacrifice.empty_share !== "number") {
           toast({
             variant: "destructive",
             title: "Hata",

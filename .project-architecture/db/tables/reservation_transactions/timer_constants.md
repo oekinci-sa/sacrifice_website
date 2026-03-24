@@ -14,10 +14,24 @@ Client (useReservationAndWarningManager) ve API (create-reservation) bu dosyayı
 | `THREE_MINUTE_WARNING` | 180 (3 dk) | "3 dk kaldı" uyarısı eşiği |
 | `ONE_MINUTE_WARNING` | 60 (1 dk) | "1 dk kaldı" uyarısı eşiği |
 
+## Heartbeat Sabitleri (client)
+
+| Sabit | Değer | Açıklama |
+|-------|-------|----------|
+| `HEARTBEAT_INTERVAL_MS` | 15000 (15 sn) | `helpers/hisseal/use-reservation-heartbeat.ts` içinde |
+
 ## DB (reservation_transactions tablosu)
 
-| Alan | Default |
-|------|---------|
-| `expires_at` | `now() + interval '15 minutes'` |
+| Alan | Default | Açıklama |
+|------|---------|----------|
+| `expires_at` | `now() + interval '15 minutes'` | TTL; create-reservation'da TIMEOUT_DURATION ile set |
+| `last_heartbeat_at` | `NULL` | Client'ın son heartbeat zamanı; NULL ise heartbeat henüz gelmemiş |
+
+### Heartbeat eşikleri (DB / cron)
+
+| Eşik | Değer | Kaynak |
+|------|-------|--------|
+| Stale heartbeat eşiği | 30 saniye | `expire_stale_reservations()` → status **offline** |
+| Cron aralığı | 30 saniye | pg_cron `expire-stale-reservations` job |
 
 Tablo tanımı: `.project-architecture/db/tables/reservation_transactions/table.sql`

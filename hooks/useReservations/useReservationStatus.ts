@@ -52,8 +52,7 @@ export const useReservationStatus = (transaction_id: string) => {
     };
 
     checkStatus();
-    // Fallback polling — Supabase Realtime is the primary mechanism for detecting
-    // expired reservations. This interval is only a safety net.
+    // Yedek yoklama — asıl güncelleme Realtime ile gelir; bu aralık güvenlik ağıdır.
     const interval = setInterval(checkStatus, 30000);
 
     return () => {

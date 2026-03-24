@@ -65,6 +65,14 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Varsayılan İngilizce bırakma: Submit, Cancel, Search vb.
 - Terminoloji tutarlı; Türkçe karakterler doğru (Ş, İ, Ğ, Ü, Ö, Ç).
 
+## Rezervasyon Heartbeat
+
+- details / confirmation adımlarında istemci 15 sn'de bir `POST /api/reservation/heartbeat` ile `last_heartbeat_at` günceller.
+- pg_cron job (30s aralık): `expire_stale_reservations()` — son heartbeat'ten 30 sn geçmişse aktif rezervasyonu `offline` yapar (TTL süresi dolması `expired` / `check_expires_at_field` ile ayrı).
+- Mevcut TTL (`expires_at`) ve `check_expires_at_field()` güvenlik ağı olarak devrede kalır.
+- `pagehide` (persisted=false) → sendBeacon ile erken iptal (mobil uyumlu); `unload` kaldırıldı.
+- bfCache dönüşü (`pageshow persisted=true`) → `/api/check-reservation-status` → expired ise `handleTimeoutRedirect`.
+
 ## Bana Haber Ver (Takip sayfası)
 - `reminder_requests` tablosu: tenant_id, name, phone (tenant+phone unique)
 - POST /api/reminder-requests, GET /api/reminder-requests/check

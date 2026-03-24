@@ -2,6 +2,7 @@ import {
     useHandleInteractionTimeout,
     useHandleNavigationHistory,
     useHandlePageUnload,
+    useReservationHeartbeat,
     useTrackInteractions,
 } from "@/helpers/hisseal";
 import { Step } from "@/stores/only-public-pages/useShareSelectionFlowStore";
@@ -234,6 +235,13 @@ export function usePageLifecycle({
         currentStep,
         selectedSacrifice,
         formData,
+        isSuccess,
+    });
+
+    // Heartbeat: sunucuya 15 sn'de bir rezervasyonun hâlâ aktif olduğunu bildir
+    useReservationHeartbeat({
+        currentStep,
+        transaction_id,
         isSuccess,
     });
 } 

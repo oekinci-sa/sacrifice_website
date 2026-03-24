@@ -49,7 +49,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ transactions: data }, {
+    const list = data ?? [];
+    const chronological = [...list].sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    const displayNoById = new Map(
+      chronological.map((row, i) => [row.transaction_id, i + 1])
+    );
+    const transactions = list.map((row) => ({
+      ...row,
+      _displayNo: displayNoById.get(row.transaction_id) ?? 0,
+    }));
+
+    return NextResponse.json({ transactions }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',

@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabaseClient';
 import { create } from 'zustand';
 
-interface ReservationTransaction {
+export interface ReservationTransactionRow {
   transaction_id: string;
   sacrifice_id: string;
   share_count: number;
@@ -10,33 +10,36 @@ interface ReservationTransaction {
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
+  last_heartbeat_at?: string | null;
+  _displayNo?: number;
 }
 
 interface ReservationTransactionsState {
-  transactions: ReservationTransaction[];
+  transactions: ReservationTransactionRow[];
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
   realtimeEnabled: boolean;
+  /** Son başarılı fetch’te kullanılan yıl — Realtime sonrası API yenilemesi için */
+  lastFetchedYear: number | null;
 
-  // Actions
-  fetchTransactions: (year?: number | null) => Promise<void>;
-  setTransactions: (data: ReservationTransaction[]) => void;
-  updateTransaction: (transaction: ReservationTransaction) => void;
-  addTransaction: (transaction: ReservationTransaction) => void;
+  fetchTransactions: (
+    year?: number | null,
+    options?: { silent?: boolean }
+  ) => Promise<void>;
+  setTransactions: (data: ReservationTransactionRow[]) => void;
+  updateTransaction: (transaction: ReservationTransactionRow) => void;
+  addTransaction: (transaction: ReservationTransactionRow) => void;
   removeTransaction: (transactionId: string) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   clearTransactions: () => void;
-
-  // Realtime functions
   enableRealtime: () => void;
   disableRealtime: () => void;
 }
 
-// Create a realtime channel for reservation_transactions table
-const setupRealtimeSubscription = (set: any, get: any) => {
-  const channel = supabase
+const setupRealtimeSubscription = (get: () => ReservationTransactionsState) => {
+  return supabase
     .channel('reservation-transactions-changes')
     .on(
       'postgres_changes',
@@ -45,78 +48,15 @@ const setupRealtimeSubscription = (set: any, get: any) => {
         schema: 'public',
         table: 'reservation_transactions',
       },
-      (payload) => {
-        const state = get();
-
-        // Handle INSERT events
-        if (payload.eventType === 'INSERT') {
-          // For INSERT events, we need to fetch the complete record with any relations
-          // that might be needed in the UI
-          supabase
-            .from("reservation_transactions")
-            .select("*")
-            .eq('transaction_id', payload.new.transaction_id)
-            .single()
-            .then(({ data, error }) => {
-              if (!error && data) {
-                // Check if not already in the store
-                const exists = state.transactions.some(
-                  (t: ReservationTransaction) => t.transaction_id === data.transaction_id
-                );
-
-                if (!exists) {
-                  set({
-                    transactions: [...state.transactions, data as ReservationTransaction],
-                  });
-                }
-              }
-            });
-        }
-
-        // Handle UPDATE events
-        else if (payload.eventType === 'UPDATE') {
-          // For UPDATE events, get the complete updated record
-          // to ensure we have all the data we need
-          supabase
-            .from("reservation_transactions")
-            .select("*")
-            .eq('transaction_id', payload.new.transaction_id)
-            .single()
-            .then(({ data, error }) => {
-              if (!error && data) {
-                set({
-                  transactions: state.transactions.map((t: ReservationTransaction) =>
-                    t.transaction_id === data.transaction_id ? data as ReservationTransaction : t
-                  ),
-                });
-              } else {
-                // Fallback to the payload data if the fetch fails
-                const updatedTransaction = payload.new as ReservationTransaction;
-                set({
-                  transactions: state.transactions.map((t: ReservationTransaction) =>
-                    t.transaction_id === updatedTransaction.transaction_id ? updatedTransaction : t
-                  ),
-                });
-              }
-            });
-        }
-
-        // Handle DELETE events
-        else if (payload.eventType === 'DELETE') {
-          const deletedId = payload.old.transaction_id;
-          set({
-            transactions: state.transactions.filter((t: ReservationTransaction) => t.transaction_id !== deletedId),
-          });
-        }
+      () => {
+        const y = get().lastFetchedYear;
+        void get().fetchTransactions(y, { silent: true });
       }
     )
     .subscribe();
-
-  return channel;
 };
 
 export const useReservationTransactionsStore = create<ReservationTransactionsState>((set, get) => {
-  // Reference to store the channel for cleanup
   let channelRef: ReturnType<typeof supabase.channel> | null = null;
 
   return {
@@ -125,15 +65,18 @@ export const useReservationTransactionsStore = create<ReservationTransactionsSta
     error: null,
     isInitialized: false,
     realtimeEnabled: false,
+    lastFetchedYear: null,
 
-    // Fetch transactions from API
-    fetchTransactions: async (year?: number | null) => {
+    fetchTransactions: async (year?: number | null, options?: { silent?: boolean }) => {
+      const silent = options?.silent === true;
       try {
-        set({ isLoading: true, error: null });
+        if (!silent) set({ isLoading: true, error: null });
+        set({ lastFetchedYear: year ?? null });
 
-        const url = year != null
-          ? `/api/get-reservation-transactions?year=${year}`
-          : '/api/get-reservation-transactions';
+        const url =
+          year != null
+            ? `/api/get-reservation-transactions?year=${year}`
+            : '/api/get-reservation-transactions';
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -146,68 +89,59 @@ export const useReservationTransactionsStore = create<ReservationTransactionsSta
           transactions: data.transactions || [],
           isLoading: false,
           error: null,
-          isInitialized: true
+          isInitialized: true,
         });
 
-        // Enable realtime subscriptions after initial load
         if (!get().realtimeEnabled) {
           get().enableRealtime();
         }
       } catch (error) {
         set({
-          error: error instanceof Error ? error.message : "Unknown error",
-          isLoading: false
+          error: error instanceof Error ? error.message : 'Unknown error',
+          isLoading: false,
         });
       }
     },
 
-    // Set all transactions
-    setTransactions: (data) => set({
-      transactions: data,
-      isLoading: false,
-      error: null,
-      isInitialized: true
-    }),
+    setTransactions: (data) =>
+      set({
+        transactions: data,
+        isLoading: false,
+        error: null,
+        isInitialized: true,
+      }),
 
-    // Update a single transaction
-    updateTransaction: (transaction) => set((state) => ({
-      transactions: state.transactions.map(t =>
-        t.transaction_id === transaction.transaction_id ? transaction : t
-      ),
-    })),
+    updateTransaction: (transaction) =>
+      set((state) => ({
+        transactions: state.transactions.map((t) =>
+          t.transaction_id === transaction.transaction_id ? transaction : t
+        ),
+      })),
 
-    // Add a new transaction
-    addTransaction: (transaction) => set((state) => ({
-      transactions: [...state.transactions, transaction],
-    })),
+    addTransaction: (transaction) =>
+      set((state) => ({
+        transactions: [...state.transactions, transaction],
+      })),
 
-    // Remove a transaction
-    removeTransaction: (transactionId) => set((state) => ({
-      transactions: state.transactions.filter(t => t.transaction_id !== transactionId),
-    })),
+    removeTransaction: (transactionId) =>
+      set((state) => ({
+        transactions: state.transactions.filter((t) => t.transaction_id !== transactionId),
+      })),
 
-    // Set loading state
     setLoading: (isLoading) => set({ isLoading }),
 
-    // Set error state
     setError: (error) => set({ error, isLoading: false }),
 
-    // Clear all transactions
     clearTransactions: () => set({ transactions: [], error: null }),
 
-    // Enable realtime subscription
     enableRealtime: () => {
-      // First, clean up existing subscription if any
       if (channelRef) {
         supabase.removeChannel(channelRef);
       }
-
-      // Create new subscription
-      channelRef = setupRealtimeSubscription(set, get);
+      channelRef = setupRealtimeSubscription(get);
       set({ realtimeEnabled: true });
     },
 
-    // Disable realtime subscription
     disableRealtime: () => {
       if (channelRef) {
         supabase.removeChannel(channelRef);
@@ -216,4 +150,4 @@ export const useReservationTransactionsStore = create<ReservationTransactionsSta
       set({ realtimeEnabled: false });
     },
   };
-}); 
+});

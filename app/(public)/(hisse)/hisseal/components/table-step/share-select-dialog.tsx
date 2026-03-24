@@ -105,8 +105,6 @@ export function ShareSelectDialog({
           },
           (payload: { new: { empty_share: number } }) => {
             const newEmptyShare = payload.new.empty_share;
-            // Real-time updates will be handled by the Zustand store,
-            // but we'll adjust the selected count if needed
             if (newEmptyShare === 0) {
               setSelectedShareCount(1);
             } else if (selectedShareCount > newEmptyShare) {

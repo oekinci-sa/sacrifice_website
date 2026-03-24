@@ -15,7 +15,19 @@ export function SummaryCards() {
 
     // Calculate stats from store data
     const stats = useMemo(() => {
-        if (sacrifices.length === 0 || shareholders.length === 0) {
+        if (sacrifices.length === 0) {
+            const depositAmount = branding.deposit_amount;
+            const totalAmount = shareholders.reduce(
+                (sum, shareholder) => sum + (shareholder.total_amount || 0),
+                0
+            );
+            const paidAmount = shareholders.reduce(
+                (sum, shareholder) => sum + (shareholder.paid_amount || 0),
+                0
+            );
+            const remainingDeposits = shareholders.filter(
+                (s) => s.paid_amount < depositAmount
+            ).length;
             return {
                 totalSacrifices: 0,
                 completedSacrifices: 0,
@@ -23,13 +35,17 @@ export function SummaryCards() {
                 totalShares: 0,
                 emptyShares: 0,
                 filledShares: 0,
-                totalShareholders: 0,
-                remainingDeposits: 0,
-                shareholdersWithIncompletePayments: 0,
-                shareholdersWithCompletePayments: 0,
-                totalAmount: 0,
-                paidAmount: 0,
-                remainingAmount: 0,
+                totalShareholders: shareholders.length,
+                remainingDeposits,
+                shareholdersWithIncompletePayments: shareholders.filter(
+                    (s) => s.paid_amount < s.total_amount
+                ).length,
+                shareholdersWithCompletePayments: shareholders.filter(
+                    (s) => s.paid_amount >= s.total_amount
+                ).length,
+                totalAmount,
+                paidAmount,
+                remainingAmount: totalAmount - paidAmount,
                 fullyPaidSacrifices: 0,
                 activeSacrificesCount: 0
             };
@@ -154,7 +170,8 @@ export function SummaryCards() {
                     title="Alınan Hisseler"
                     value={stats.emptyShares}
                     maxValue={stats.totalShares}
-                    displayValue={stats.filledShares}
+                    displayValue={stats.totalShareholders}
+                    remainingDisplay={stats.emptyShares}
                 />
                 <StatCardWithProgress
                     title="Toplanan Tutar"

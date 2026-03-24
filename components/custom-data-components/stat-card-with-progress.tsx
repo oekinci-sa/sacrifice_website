@@ -13,6 +13,8 @@ interface StatCardProps {
   maxValue?: number;
   suffix?: string;
   displayValue?: number;
+  /** Ana sayı (displayValue) ile aynı olmayan "Kalan" gösterimi için (ör. hissedar / boş hisse karışımı) */
+  remainingDisplay?: number;
   actionLink?: {
     text: string;
     href: string;
@@ -57,6 +59,7 @@ function StatCard({
   maxValue,
   suffix = "",
   displayValue,
+  remainingDisplay,
   actionLink,
   description,
   icon: Icon,
@@ -103,8 +106,13 @@ function StatCard({
   }
 
   const percentage = Math.round((value / maxValue) * 100);
-  const displayPercentage = displayValue ? Math.round((displayValue / maxValue) * 100) : percentage;
-  const remaining = maxValue - (displayValue || value);
+  const displayPercentage = displayValue != null
+    ? Math.round((displayValue / maxValue) * 100)
+    : percentage;
+  const remaining =
+    remainingDisplay !== undefined
+      ? remainingDisplay
+      : maxValue - (displayValue ?? value);
 
   // Get progress colors based on percentage
   const getProgressColors = (percentage: number) => {

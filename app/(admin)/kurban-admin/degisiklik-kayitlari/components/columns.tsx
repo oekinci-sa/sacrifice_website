@@ -1,9 +1,7 @@
 "use client";
 
 import { formatDate } from "@/lib/date-utils";
-import { ANKARA_LOGO_SLUG } from "@/lib/admin-tenant-accent";
 import { cn } from "@/lib/utils";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 import {
   Content,
   Portal,
@@ -29,22 +27,15 @@ export type ChangeLog = {
   change_owner: string | null;
 };
 
-/** Ekleme: Ankara → yeşil tonlar; Elya/diğer → açık mavi zemin + koyu mavi metin (Güncelleme sarı desenine benzer). */
 function ChangeTypeCell({ row }: { row: Row<ChangeLog> }) {
-  const { logo_slug } = useTenantBranding();
   const type = row.getValue("change_type") as string;
-
-  const eklemeClass =
-    logo_slug === ANKARA_LOGO_SLUG
-      ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100"
-      : "bg-sky-100 text-blue-900 dark:bg-sky-950/40 dark:text-sky-100";
 
   return (
     <div className="text-center">
       <span
         className={cn(
           "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center text-xs font-semibold",
-          type === "Ekleme" && eklemeClass,
+          type === "Ekleme" && "bg-muted text-muted-foreground",
           type === "Güncelleme" && "bg-sac-yellow-light text-sac-yellow",
           type === "Silme" && "bg-sac-red-light text-sac-red"
         )}

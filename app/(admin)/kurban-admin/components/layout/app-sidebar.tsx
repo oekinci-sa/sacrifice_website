@@ -142,8 +142,8 @@ export function AppSidebar() {
             <item.icon className="h-4 w-4 shrink-0" />
             {!isCollapsed && <span className="min-w-0 truncate">{item.title}</span>}
             {showBadge && (
-              <span className={cn("ml-auto shrink-0 min-w-[1.25rem] h-5 flex items-center justify-center rounded-full text-xs font-semibold px-1.5", badgeColorClass)}>
-                {badgeCount > 99 ? "99+" : badgeCount}
+              <span className={cn("ml-auto shrink-0 min-w-0 h-5 flex items-center justify-center rounded-full text-xs font-semibold px-1.5 tabular-nums", badgeColorClass)}>
+                {badgeCount.toLocaleString("tr-TR")}
               </span>
             )}
           </Link>

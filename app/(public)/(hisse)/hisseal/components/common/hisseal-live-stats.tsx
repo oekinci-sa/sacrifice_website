@@ -1,39 +1,47 @@
 "use client";
 
 import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { useMemo } from "react";
+import { usePublicShareholderCountStore } from "@/stores/only-public-pages/usePublicShareholderCountStore";
+import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
+import { useEffect, useMemo } from "react";
 
 /**
- * Yıl içi kurbanlıklar: satılmış toplam hisse (7 - boş) ve aktif rezervasyondaki hisse adedi.
- * Store + Realtime ile güncellenir.
+ * Toplam satılan hisse (etiket): sayı hissedar kayıt sayısı (/api/public/shareholders-count) + Realtime.
+ * İşlemdeki hisse: aktif rezervasyon store.
  */
 export function HissealLiveStats() {
-  const sacrifices = useSacrificeStore((s) => s.sacrifices);
+  const selectedYear = usePublicYearStore((s) => s.selectedYear);
+  const totalShareholders = usePublicShareholderCountStore((s) => s.count);
+  const fetchCount = usePublicShareholderCountStore((s) => s.fetchCount);
+  const disableRealtime = usePublicShareholderCountStore((s) => s.disableRealtime);
+
   const reservations = useActiveReservationsStore((s) => s.reservations);
 
-  const { totalSoldShares, inProgressShares } = useMemo(() => {
-    let sold = 0;
-    for (const s of sacrifices) {
-      const empty = s.empty_share ?? 0;
-      sold += 7 - empty;
-    }
-    let inProgress = 0;
+  useEffect(() => {
+    if (selectedYear == null) return;
+    void fetchCount(selectedYear);
+    return () => {
+      disableRealtime();
+    };
+  }, [selectedYear, fetchCount, disableRealtime]);
+
+  const inProgressShares = useMemo(() => {
+    let n = 0;
     for (const v of Object.values(reservations)) {
-      inProgress += v;
+      n += v;
     }
-    return { totalSoldShares: sold, inProgressShares: inProgress };
-  }, [sacrifices, reservations]);
+    return n;
+  }, [reservations]);
 
   const showInProgress = inProgressShares > 0;
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-6 gap-y-2 text-sm md:text-base text-muted-foreground">
       <span>
+        Toplam Satılan Hisse:{" "}
         <span className="font-medium text-foreground tabular-nums">
-          {totalSoldShares}
-        </span>{" "}
-        Alınan Toplam Hisse
+          {totalShareholders}
+        </span>
       </span>
       {showInProgress ? (
         <>
@@ -44,10 +52,10 @@ export function HissealLiveStats() {
             |
           </span>
           <span>
+            Şu Anda İşlem Yapılan Hisse Sayısı:{" "}
             <span className="font-medium text-foreground tabular-nums">
               {inProgressShares}
-            </span>{" "}
-            şu anda işlem yapılan hisse
+            </span>
           </span>
         </>
       ) : null}

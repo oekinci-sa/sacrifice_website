@@ -4,12 +4,11 @@ import { CustomDataTable } from "@/components/custom-data-components/custom-data
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { logReservationRealtime } from "@/lib/debug-reservation-realtime";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
-import { supabase } from "@/utils/supabaseClient";
+import { useReservationTransactionsStore } from "@/stores/only-admin-pages/useReservationTransactionsStore";
 import { Search, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ColumnSelectorPopover } from "../hissedarlar/tum-hissedarlar/components/column-selector-popover";
 import {
   columns,
@@ -42,70 +41,27 @@ function matchesReservationSearch(
 
 export default function RezervasyonlarPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
-  const [data, setData] = useState<ReservationTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const transactions = useReservationTransactionsStore((s) => s.transactions);
+  const loading = useReservationTransactionsStore((s) => s.isLoading);
+  const fetchTransactions = useReservationTransactionsStore((s) => s.fetchTransactions);
+
   const [searchTerm, setSearchTerm] = useState("");
-  const yearRef = useRef(selectedYear);
-  yearRef.current = selectedYear;
-
-  const fetchData = useCallback(async (isInitial = true) => {
-    const y = yearRef.current;
-    logReservationRealtime("[TABLO] fetchData çağrıldı, year:", y, "isInitial:", isInitial);
-    if (y == null) return;
-    try {
-      if (isInitial) setLoading(true);
-      const res = await fetch(`/api/get-reservation-transactions?year=${y}`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const json = await res.json();
-      const transactions = json.transactions ?? [];
-      logReservationRealtime("[TABLO] fetchData sonuç:", transactions.length, "kayıt");
-      setData(transactions);
-    } catch (err) {
-      logReservationRealtime("[TABLO] fetchData hata:", err);
-      setData([]);
-    } finally {
-      if (isInitial) setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    fetchData(true);
-  }, [fetchData, selectedYear]);
-
-  useEffect(() => {
-    logReservationRealtime("[TABLO] Realtime channel kuruluyor (rezervasyonlar-realtime)");
-    const channel = supabase
-      .channel("rezervasyonlar-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "reservation_transactions",
-        },
-        (payload) => {
-          logReservationRealtime("[TABLO] Realtime event alındı", payload?.eventType ?? payload);
-          void fetchData(false);
-        }
-      )
-      .subscribe((status) => {
-        logReservationRealtime("[TABLO] Channel subscription status:", status);
-      });
-
-    return () => {
-      logReservationRealtime("[TABLO] Realtime channel kaldırılıyor (unmount)");
-      supabase.removeChannel(channel);
-    };
-  }, [fetchData]);
+    if (selectedYear == null) return;
+    void fetchTransactions(selectedYear);
+  }, [selectedYear, fetchTransactions]);
 
   useEffect(() => {
     const handler = () => {
-      logReservationRealtime("[TABLO] reservation-updated event alındı");
-      fetchData(false);
+      if (selectedYear == null) return;
+      void fetchTransactions(selectedYear, { silent: true });
     };
     window.addEventListener("reservation-updated", handler);
     return () => window.removeEventListener("reservation-updated", handler);
-  }, [fetchData]);
+  }, [selectedYear, fetchTransactions]);
+
+  const data = transactions as unknown as ReservationTransaction[];
 
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data;

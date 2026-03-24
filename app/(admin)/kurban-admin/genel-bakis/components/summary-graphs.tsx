@@ -392,6 +392,7 @@ export function SummaryGraphs() {
           className="aspect-auto h-[250px] w-full"
         >
           <BarChart
+            key={`${activeChart}-${rangeMode}-${appliedCustomRange?.from?.getTime() ?? ""}-${appliedCustomRange?.to?.getTime() ?? ""}`}
             data={chartData}
             margin={{
               left: 12,
@@ -428,7 +429,9 @@ export function SummaryGraphs() {
               dataKey="count"
               fill={salesBarColor}
               radius={[4, 4, 0, 0]}
-              isAnimationActive={false}
+              isAnimationActive
+              animationDuration={650}
+              animationEasing="ease-out"
             />
           </BarChart>
         </ChartContainer>

@@ -24,10 +24,6 @@ export interface SacrificeState {
   // Realtime methods
   subscribeToRealtime: () => void;
   unsubscribeFromRealtime: () => void;
-
-  // Event listener methods
-  setupEventListeners: () => void;
-  cleanupEventListeners: () => void;
 }
 
 export const useSacrificeStore = create<SacrificeState>()(
@@ -162,48 +158,16 @@ export const useSacrificeStore = create<SacrificeState>()(
               // }, 300);
             } else if (eventType === "DELETE" && oldData?.sacrifice_id) {
               get().removeSacrifice(oldData.sacrifice_id);
+              window.dispatchEvent(new CustomEvent(SACRIFICE_UPDATED_EVENT));
             }
 
-            // Her türlü değişiklik için global event tetikle
-            window.dispatchEvent(new CustomEvent(SACRIFICE_UPDATED_EVENT));
+            // INSERT/UPDATE: updateSacrifice zaten SACRIFICE_UPDATED_EVENT tetikler
           }
         );
-
-        // Ayrıca event listener'ları kur
-        get().setupEventListeners();
       },
 
       unsubscribeFromRealtime: () => {
-
-        // RealtimeManager handles cleanup internally
-
-        // Clean up event listeners
-        get().cleanupEventListeners();
-      },
-
-      // Event listener methods
-      setupEventListeners: () => {
-        // Event handler function for sacrifice-updated events
-        const handleSacrificeUpdated = () => {
-          get().refetchSacrifices();
-        };
-
-        // Add event listener for our custom sacrifice-updated event
-        window.addEventListener(SACRIFICE_UPDATED_EVENT, handleSacrificeUpdated);
-
-        // Store the handler function on window for cleanup
-        (window as any).__sacrificeUpdatedHandler = handleSacrificeUpdated;
-      },
-
-      cleanupEventListeners: () => {
-        // Remove event listener for sacrifice-updated event
-        if ((window as any).__sacrificeUpdatedHandler) {
-          window.removeEventListener(
-            SACRIFICE_UPDATED_EVENT,
-            (window as any).__sacrificeUpdatedHandler
-          );
-          delete (window as any).__sacrificeUpdatedHandler;
-        }
+        RealtimeManager.cleanup();
       },
     }),
     { name: "sacrifice-store" }

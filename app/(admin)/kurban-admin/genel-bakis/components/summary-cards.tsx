@@ -1,7 +1,7 @@
 "use client";
 
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { StatCardWithProgress } from "@/components/custom-data-components/stat-card-with-progress";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { CreditCard } from "lucide-react";

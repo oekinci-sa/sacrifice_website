@@ -75,10 +75,16 @@ const sacrificeNoColumn: ColumnDef<sacrificeSchema> = {
       {row.getValue("sacrifice_no")}
     </div>
   ),
-  filterFn: (row, id, value: string) => {
-    const searchValue = value.toLowerCase();
-    const cellValue = String(row.getValue(id)).toLowerCase();
-    return cellValue.includes(searchValue);
+  filterFn: (row, id, filterValues: (string | number)[]) => {
+    if (!filterValues || filterValues.length === 0) return true;
+    const rowValue = row.getValue(id) as number;
+    return filterValues.some((filterValue: string | number) => {
+      const numericFilterValue =
+        typeof filterValue === "string"
+          ? parseFloat(filterValue)
+          : filterValue;
+      return rowValue === numericFilterValue;
+    });
   },
   enableSorting: true,
 };

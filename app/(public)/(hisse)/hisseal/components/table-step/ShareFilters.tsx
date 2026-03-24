@@ -27,6 +27,20 @@ function ClientShareFilters({
   const pathname = usePathname();
   const router = useRouter();
 
+  const kurbanNoOptions = useMemo(() => {
+    const seen = new Set<number>();
+    for (const s of sacrifices) {
+      const n = s.sacrifice_no;
+      if (typeof n === "number" && !Number.isNaN(n)) seen.add(n);
+    }
+    return Array.from(seen)
+      .sort((a, b) => a - b)
+      .map((no) => ({
+        label: String(no),
+        value: String(no),
+      }));
+  }, [sacrifices]);
+
   const sharePrices = useMemo(() => {
     const priceGroups = sacrifices.reduce((groups, sacrifice) => {
       const price = sacrifice.share_price;
@@ -123,6 +137,12 @@ function ClientShareFilters({
     <div className="flex flex-col justify-center gap-2 md:gap-4">
       <div className="flex flex-row flex-wrap items-center justify-center gap-2 md:my-4 md:gap-4">
         {[
+          {
+            column: "sacrifice_no",
+            title: "Kurban No",
+            options: kurbanNoOptions,
+            type: "price" as const,
+          },
           {
             column: "share_price",
             title: "Hisse Bedeli",

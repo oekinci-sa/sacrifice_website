@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -21,9 +21,9 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { adminPrimaryCtaClassName } from "@/lib/admin-tenant-accent";
 import { normalizeEmail } from "@/lib/email-utils";
-import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { buildMailRecipientRows, type MailRecipientRow } from "@/lib/mail-recipient-rows";
 import { htmlToPlainTextForEmail } from "@/lib/mail-rich-text";
 import {
@@ -34,8 +34,8 @@ import {
   getAdminMailboxLabelsForLogoSlug,
   type AdminMailSenderKind,
 } from "@/lib/resend-mail-config";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -393,46 +393,46 @@ export default function MailIslemleriPage() {
                 )}
               >
                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                {sortedSelectedEmails.length === 0 ? (
-                  <span className="text-muted-foreground">
-                    Alıcı seçmek veya eklemek için tıklayın…
-                  </span>
-                ) : (
-                  sortedSelectedEmails.map((norm) => {
-                    const row = rowByEmail.get(norm);
-                    const label =
-                      row && row.mailSahibi && row.mailSahibi !== "—"
-                        ? `${row.mailSahibi} (${row.mailAdresi})`
-                        : row?.mailAdresi ?? norm;
-                    const initialSource =
-                      row?.mailSahibi && row.mailSahibi !== "—" ? row.mailSahibi : norm;
-                    const initialChar = initialSource.charAt(0).toLocaleUpperCase("tr");
-                    return (
-                      <span
-                        key={norm}
-                        className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground"
-                      >
-                        <span className={recipientInitialClassName} aria-hidden>
-                          {initialChar}
-                        </span>
-                        <span className="min-w-0 truncate" title={label}>
-                          {label}
-                        </span>
-                        <button
-                          type="button"
-                          className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeRecipient(norm);
-                          }}
-                          aria-label="Alıcıyı kaldır"
+                  {sortedSelectedEmails.length === 0 ? (
+                    <span className="text-muted-foreground">
+                      Alıcı seçmek veya eklemek için tıklayın…
+                    </span>
+                  ) : (
+                    sortedSelectedEmails.map((norm) => {
+                      const row = rowByEmail.get(norm);
+                      const label =
+                        row && row.mailSahibi && row.mailSahibi !== "—"
+                          ? `${row.mailSahibi} (${row.mailAdresi})`
+                          : row?.mailAdresi ?? norm;
+                      const initialSource =
+                        row?.mailSahibi && row.mailSahibi !== "—" ? row.mailSahibi : norm;
+                      const initialChar = initialSource.charAt(0).toLocaleUpperCase("tr");
+                      return (
+                        <span
+                          key={norm}
+                          className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground"
                         >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </span>
-                    );
-                  })
-                )}
+                          <span className={recipientInitialClassName} aria-hidden>
+                            {initialChar}
+                          </span>
+                          <span className="min-w-0 truncate" title={label}>
+                            {label}
+                          </span>
+                          <button
+                            type="button"
+                            className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeRecipient(norm);
+                            }}
+                            aria-label="Alıcıyı kaldır"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      );
+                    })
+                  )}
                 </div>
                 <ChevronDown
                   className={cn(

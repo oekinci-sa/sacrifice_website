@@ -50,11 +50,26 @@ export async function POST(request: Request) {
     }
 
     const { subject, body, recipients, senderKind } = parsed.data;
-    const textPlain = htmlToPlainTextForEmail(body);
-    if (!textPlain.trim()) {
-      return NextResponse.json({ error: "Mesaj boş olamaz" }, { status: 400 });
+
+    let textPlain: string;
+    let html: string;
+    try {
+      textPlain = htmlToPlainTextForEmail(body);
+      if (!textPlain.trim()) {
+        return NextResponse.json({ error: "Mesaj boş olamaz" }, { status: 400 });
+      }
+      html = mailBodyEditorHtmlToEmailHtml(body);
+    } catch (e) {
+      console.error("[send-email] mesaj html işleme", e);
+      return NextResponse.json(
+        {
+          error:
+            "Mesaj içeriği işlenemedi. Biçimlendirmeyi sadeleştirip tekrar deneyin.",
+        },
+        { status: 400 }
+      );
     }
-    const html = mailBodyEditorHtmlToEmailHtml(body);
+
     const tenantId = getTenantId();
 
     const uniqueRecipients = Array.from(
@@ -110,7 +125,14 @@ export async function POST(request: Request) {
       failedRecipients: errors.length ? errors : undefined,
     });
   } catch (e) {
-    console.error("[send-email]", e);
-    return NextResponse.json({ error: "Beklenmeyen hata" }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[send-email]", msg, e);
+    return NextResponse.json(
+      {
+        error: "Beklenmeyen hata",
+        ...(process.env.NODE_ENV === "development" ? { detail: msg } : {}),
+      },
+      { status: 500 }
+    );
   }
 }

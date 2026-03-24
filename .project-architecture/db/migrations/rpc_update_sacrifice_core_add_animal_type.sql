@@ -1,2 +1,0 @@
--- ⚠️ Superseded: tam tanım `.project-architecture/db/tables/sacrifice_animals/functions_and_triggers/rpc_update_sacrifice_core.sql`
--- ve uygulanan migration `consolidate_audit_rpc_2026_03_20.sql` ile birleştirildi (timing + empty_share dahil).

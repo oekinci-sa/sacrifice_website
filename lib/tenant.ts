@@ -3,18 +3,16 @@ import { headers } from "next/headers";
 import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 
 /** Vercel vb.: x-forwarded-host virgülle birden fazla değer içerebilir. */
-function primaryHostFromHeaders(h: Headers): string {
+export function primaryHostFromHeaders(h: Headers): string {
   const forwarded = h.get("x-forwarded-host")?.split(",")[0]?.trim();
   if (forwarded) return forwarded;
   return h.get("host") ?? "";
 }
 
 /**
- * Önce middleware'in `x-tenant-id` değeri; yoksa `Host` / `x-forwarded-host` ile çözümleme.
- * (Production'da bazı isteklerde middleware header'ı Route Handler'a iletilmeyebilir — Vercel.)
+ * Route Handler'da tercihen `request.headers` ile çağırın (middleware `x-tenant-id` ile uyumlu).
  */
-export function getTenantId(): string {
-  const h = headers();
+export function getTenantIdFromHeaders(h: Headers): string {
   const fromMiddleware = h.get("x-tenant-id");
   if (fromMiddleware) return fromMiddleware;
 
@@ -27,13 +25,24 @@ export function getTenantId(): string {
   );
 }
 
-/**
- * Tenant ID'yi optional döndürür. Bazı route'larda (örn. health check) gerekmez.
- */
-export function getTenantIdOptional(): string | null {
-  const h = headers();
+export function getTenantIdOptionalFromHeaders(h: Headers): string | null {
   const fromMiddleware = h.get("x-tenant-id");
   if (fromMiddleware) return fromMiddleware;
   const host = primaryHostFromHeaders(h);
   return resolveTenantIdFromHost(host);
+}
+
+/**
+ * Önce middleware'in `x-tenant-id` değeri; yoksa `Host` / `x-forwarded-host` ile çözümleme.
+ * (Production'da bazı isteklerde middleware header'ı Route Handler'a iletilmeyebilir — Vercel.)
+ */
+export function getTenantId(): string {
+  return getTenantIdFromHeaders(headers());
+}
+
+/**
+ * Tenant ID'yi optional döndürür. Bazı route'larda (örn. health check) gerekmez.
+ */
+export function getTenantIdOptional(): string | null {
+  return getTenantIdOptionalFromHeaders(headers());
 }

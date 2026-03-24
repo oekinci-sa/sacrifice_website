@@ -22,6 +22,7 @@ import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import { AdminIdleTimeout } from "./components/admin-idle-timeout";
 import { AppSidebar } from "./components/layout/app-sidebar";
 import { YearDropdown } from "./components/layout/year-dropdown";
 
@@ -220,6 +221,7 @@ export function ClientLayout({
 }) {
   return (
     <div className="flex h-screen admin-neutral-theme">
+      <AdminIdleTimeout />
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-2 sm:px-4">

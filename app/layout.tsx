@@ -15,8 +15,11 @@ const DEFAULT_METADATA: Metadata = {
   title: "Ankara Kurban Hisse Organizasyonu",
   description:
     "İMH Ankara Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah’a sadece takvanız ulaşır…",
-  /** Host’a göre dinamik: app/icon/route.ts */
-  icons: { icon: "/icon" },
+  /** Host’a göre dinamik: `lib/tenant-favicon.ts` → `/icon` ve `/favicon.ico` */
+  icons: {
+    icon: "/icon",
+    shortcut: "/favicon.ico",
+  },
 };
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -1,7 +1,8 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/date-utils";
+import { clientDeviceCategoryLabel } from "@/lib/client-device-category";
+import { formatDateWithSeconds } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -17,13 +18,14 @@ export type ReservationTransaction = {
   /** active → completed | canceled | timed_out | expired geçişinde set edilir */
   completed_at: string | null;
   last_heartbeat_at?: string | null;
+  client_device_category?: string | null;
   status: string;
   sacrifice_animals?: { sacrifice_no: number } | null;
   _displayNo?: number;
 };
 
 export const REZERVASYONLAR_COLUMN_HEADER_MAP: Record<string, string> = {
-  rez_no: "Rezervasyon No",
+  transaction_id: "Rezervasyon No",
   sacrifice_no: "Kurban No",
   share_count: "Hisse Sayısı",
   status: "Durum",
@@ -31,28 +33,22 @@ export const REZERVASYONLAR_COLUMN_HEADER_MAP: Record<string, string> = {
   completed_at: "Tamamlandı",
   last_heartbeat_at: "Son Bağlantı",
   expires_at: "Son Geçerlilik",
+  client_device_category: "Cihaz",
 };
 
 export const columns: ColumnDef<ReservationTransaction>[] = [
   {
-    id: "rez_no",
-    accessorFn: (row) =>
-      row._displayNo != null && row._displayNo > 0 ? String(row._displayNo) : "-",
+    id: "transaction_id",
+    accessorKey: "transaction_id",
     header: "Rezervasyon No",
-    cell: ({ row }) => {
-      const n = row.original._displayNo;
-      return n != null && n > 0 ? (
-        <span className="font-medium tabular-nums">Rez-{n}</span>
-      ) : (
-        "-"
-      );
-    },
+    cell: ({ row }) => (
+      <span className="font-medium break-all">
+        {row.original.transaction_id}
+      </span>
+    ),
     enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original._displayNo ?? 0;
-      const b = rowB.original._displayNo ?? 0;
-      return a - b;
-    },
+    sortingFn: (rowA, rowB) =>
+      rowA.original.transaction_id.localeCompare(rowB.original.transaction_id),
   },
   {
     id: "sacrifice_no",
@@ -79,6 +75,25 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
     cell: ({ row }) => row.getValue("share_count"),
   },
   {
+    id: "client_device_category",
+    accessorKey: "client_device_category",
+    accessorFn: (row) =>
+      clientDeviceCategoryLabel(row.client_device_category ?? "unknown"),
+    header: "Cihaz",
+    cell: ({ row }) => {
+      const raw = row.original.client_device_category ?? "unknown";
+      return (
+        <span className="text-sm">{clientDeviceCategoryLabel(raw)}</span>
+      );
+    },
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = String(rowA.original.client_device_category ?? "unknown");
+      const b = String(rowB.original.client_device_category ?? "unknown");
+      return a.localeCompare(b, "tr");
+    },
+  },
+  {
     accessorKey: "status",
     header: "Durum",
     cell: ({ row }) => {
@@ -93,7 +108,7 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
               status === "expired" ||
               status === "timed_out" ||
               status === "offline") &&
-              "bg-sac-red-light text-sac-red"
+            "bg-sac-red-light text-sac-red"
           )}
         >
           {status === "active"
@@ -116,7 +131,7 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
   {
     accessorKey: "created_at",
     header: "Oluşturulma",
-    cell: ({ row }) => formatDate(row.getValue("created_at")),
+    cell: ({ row }) => formatDateWithSeconds(row.getValue("created_at")),
   },
   {
     accessorKey: "completed_at",
@@ -134,7 +149,7 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
       if (raw == null || raw === "") {
         return <span className="text-muted-foreground">—</span>;
       }
-      return formatDate(raw);
+      return formatDateWithSeconds(raw);
     },
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -159,12 +174,12 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
             <span className="text-muted-foreground">Henüz bağlantı yok</span>
           );
         }
-        return <span>{formatDate(raw)}</span>;
+        return <span>{formatDateWithSeconds(raw)}</span>;
       }
       if (raw == null || raw === "") {
         return <span className="text-muted-foreground">—</span>;
       }
-      return formatDate(raw);
+      return formatDateWithSeconds(raw);
     },
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -180,6 +195,6 @@ export const columns: ColumnDef<ReservationTransaction>[] = [
   {
     accessorKey: "expires_at",
     header: "Son Geçerlilik",
-    cell: ({ row }) => formatDate(row.getValue("expires_at")),
+    cell: ({ row }) => formatDateWithSeconds(row.getValue("expires_at")),
   },
 ];

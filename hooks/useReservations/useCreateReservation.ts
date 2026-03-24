@@ -1,4 +1,5 @@
 import { useToast } from "@/components/ui/use-toast";
+import { getClientDeviceCategory } from "@/lib/client-device-category";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { GenericReservationMutation } from "@/types/reservation";
 import { useState } from "react";
@@ -27,10 +28,17 @@ export const useCreateReservation = () => {
     setError(null);
 
     try {
+      const client_device_category = getClientDeviceCategory();
       const response = await fetch("/api/create-reservation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transaction_id, sacrifice_id, share_count, status }),
+        body: JSON.stringify({
+          transaction_id,
+          sacrifice_id,
+          share_count,
+          status,
+          client_device_category,
+        }),
       });
 
       if (!response.ok) {

@@ -8,9 +8,53 @@ import { useShareholderLookupByPhone } from "@/hooks/useShareholderLookupByPhone
 import { formatDateShort } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+interface ShareholderAccordionProps {
+    shareholders: shareholderSchema[];
+    phoneDigits: string;
+    securityCode: string;
+}
+
+function ShareholderAccordion({ shareholders, phoneDigits, securityCode }: ShareholderAccordionProps) {
+    return (
+        <AccordionPrimitive.Root
+            type="multiple"
+            defaultValue={[]}
+            className="w-full space-y-3"
+        >
+            {shareholders.map((info, index) => (
+                <AccordionPrimitive.Item
+                    key={info.shareholder_id}
+                    value={`shareholder-${index}`}
+                    className="rounded-xl border border-border overflow-hidden"
+                >
+                    <AccordionPrimitive.Header className="flex">
+                        <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between px-4 py-4 md:px-6 text-left font-semibold text-base md:text-lg bg-muted/40 hover:bg-muted/60 transition-colors [&[data-state=open]>svg]:rotate-180">
+                            <span className="flex items-baseline gap-2 flex-wrap">
+                                <span>{index + 1}. {info.shareholder_name}</span>
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    {formatDateShort(info.purchase_time)}
+                                </span>
+                            </span>
+                            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ml-3" />
+                        </AccordionPrimitive.Trigger>
+                    </AccordionPrimitive.Header>
+                    <AccordionPrimitive.Content className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                        <ShareholderDetails
+                            shareholderInfo={info}
+                            lookupContext={{ phoneDigits, securityCode }}
+                            inAccordion
+                        />
+                    </AccordionPrimitive.Content>
+                </AccordionPrimitive.Item>
+            ))}
+        </AccordionPrimitive.Root>
+    );
+}
 
 interface ShareholderLookupProps {
     onResultsFound?: (shareholders: shareholderSchema[]) => void;
@@ -83,6 +127,7 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
     };
 
     const resultsRef = useRef<HTMLDivElement>(null);
+    const phoneInputRef = useRef<HTMLInputElement>(null);
 
     // Scroll to results when shareholders are loaded
     useEffect(() => {
@@ -102,9 +147,31 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
     }, [shareholderInfoList, onResultsFound]);
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const formattedValue = formatPhoneNumber(e.target.value);
+        const input = e.target;
+        const sel = input.selectionStart ?? 0;
+        const digitsBefore = input.value.slice(0, sel).replace(/\D/g, "").length;
+
+        const numbers = input.value.replace(/\D/g, "").slice(0, 11);
+        const formattedValue = formatPhoneNumber(numbers);
         setPhone(formattedValue);
         setError(null);
+
+        requestAnimationFrame(() => {
+            const el = phoneInputRef.current;
+            if (!el) return;
+            let digitCount = 0;
+            let newPos = formattedValue.length;
+            for (let i = 0; i < formattedValue.length; i++) {
+                if (/\d/.test(formattedValue[i])) {
+                    digitCount += 1;
+                    if (digitCount >= digitsBefore) {
+                        newPos = i + 1;
+                        break;
+                    }
+                }
+            }
+            el.setSelectionRange(newPos, newPos);
+        });
     };
 
     const handleSearch = async () => {
@@ -187,6 +254,7 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
             {/* Search Form */}
             <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto rounded-md mb-8">
                 <Input
+                    ref={phoneInputRef}
                     id="phone"
                     type="tel"
                     placeholder="Telefon numaranızı giriniz."
@@ -235,22 +303,25 @@ export function ShareholderLookup({ onResultsFound }: ShareholderLookupProps) {
                     initial="hidden"
                     animate="show"
                 >
-                    <div className="grid grid-cols-1 gap-y-8">
-                        {shareholderInfoList.map((info, index) => (
-                            <motion.div
-                                key={info.shareholder_id}
-                                className="w-full"
-                                variants={item}
-                            >
-                                {shareholderInfoList.length > 1 && (
-                                    <h3 className="text-[16px] md:text-lg text-center font-medium mb-2 md:mb-4">
-                                        {index + 1}. Kayıt - {formatDateShort(info.purchase_time)}
-                                    </h3>
-                                )}
-                                <ShareholderDetails shareholderInfo={info} />
-                            </motion.div>
-                        ))}
-                    </div>
+                    {shareholderInfoList.length === 1 ? (
+                        <motion.div variants={item}>
+                            <ShareholderDetails
+                                shareholderInfo={shareholderInfoList[0]}
+                                lookupContext={{
+                                    phoneDigits: phone.replace(/\D/g, ""),
+                                    securityCode: securityCode.replace(/\D/g, "").slice(0, 6),
+                                }}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div variants={item}>
+                            <ShareholderAccordion
+                                shareholders={shareholderInfoList}
+                                phoneDigits={phone.replace(/\D/g, "")}
+                                securityCode={securityCode.replace(/\D/g, "").slice(0, 6)}
+                            />
+                        </motion.div>
+                    )}
                 </motion.div>
             )}
         </div>

@@ -48,6 +48,8 @@ export interface shareholderSchema {
   tenant_id: string;
   sacrifice_year: number;
   shareholder_name: string;
+  /** Kayıtlı e-posta (varsa) */
+  email?: string | null;
   phone_number: string | null;
   second_phone_number?: string | null;
   purchase_time: string;

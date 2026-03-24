@@ -11,6 +11,7 @@ export type MismatchedShareRow = {
   sacrifice_no: number;
   shareholder_count: number;
   empty_share: number;
+  notes?: string | null;
   acknowledged_by: string | null;
   acknowledged_at: string | null;
 };
@@ -102,6 +103,21 @@ export function createColumns(
       header: "Boş Hisse",
       enableSorting: true,
       cell: ({ row }) => row.getValue("empty_share"),
+    },
+    {
+      id: "sacrifice_notes",
+      accessorFn: (row) => row.notes ?? "",
+      header: "Kurbanlık Notları",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const n = row.original.notes;
+        const text = n != null && String(n).trim() !== "" ? String(n).trim() : "—";
+        return (
+          <span className="text-sm max-w-[min(280px,40vw)] inline-block align-top whitespace-pre-wrap break-words">
+            {text}
+          </span>
+        );
+      },
     },
     {
       id: "acknowledgment",

@@ -27,6 +27,8 @@ BEGIN
   END IF;
 
   PERFORM set_config('app.actor', p_actor, true);
+  -- Toplu kurban silmede hissedar satırları kaldırılırken boş hisse +1 tetikleyicisini atla (kurban satırı zaten silinecek).
+  PERFORM set_config('app.skip_empty_share_sync', 'true', true);
 
   DELETE FROM public.shareholders sh
   WHERE sh.tenant_id = p_tenant_id

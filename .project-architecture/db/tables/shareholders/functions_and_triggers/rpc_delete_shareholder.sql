@@ -10,10 +10,14 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $f$
+DECLARE
+  v_corr uuid;
 BEGIN
   IF p_actor IS NULL OR btrim(p_actor) = '' THEN
     RAISE EXCEPTION 'actor_required';
   END IF;
+  v_corr := gen_random_uuid();
+  PERFORM set_config('app.correlation_id', v_corr::text, true);
   PERFORM set_config('app.actor', p_actor, true);
 
   DELETE FROM public.shareholders

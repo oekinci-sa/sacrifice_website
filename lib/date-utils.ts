@@ -29,6 +29,15 @@ export function formatDate(
 }
 
 /**
+ * Tarih + saat + saniye (admin rezervasyonlar vb. hassas zaman gösterimi).
+ */
+export function formatDateWithSeconds(
+  date: Date | string | null | undefined
+): string {
+  return formatDate(date, { second: "2-digit" });
+}
+
+/**
  * Kısa tarih (gg.aa.yyyy)
  */
 export function formatDateShort(date: Date | string | null | undefined): string {

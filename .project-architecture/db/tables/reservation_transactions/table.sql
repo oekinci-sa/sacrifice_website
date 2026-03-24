@@ -10,7 +10,8 @@ CREATE TABLE reservation_transactions (
     completed_at TIMESTAMPTZ NULL,
     status TEXT CHECK (status IN ('active', 'completed', 'canceled', 'timed_out', 'expired', 'offline')) DEFAULT 'active',
     sacrifice_year INT2,
-    purchase_confirmation_email_sent_at TIMESTAMPTZ NULL
+    purchase_confirmation_email_sent_at TIMESTAMPTZ NULL,
+    client_device_category TEXT NOT NULL DEFAULT 'unknown' CHECK (client_device_category IN ('mobile', 'tablet', 'desktop', 'unknown'))
 );
 
 CREATE INDEX idx_reservation_transactions_tenant ON reservation_transactions (tenant_id);

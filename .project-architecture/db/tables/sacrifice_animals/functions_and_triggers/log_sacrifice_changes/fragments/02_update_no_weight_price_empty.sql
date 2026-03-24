@@ -47,7 +47,7 @@
     END IF;
 
     IF NEW.empty_share IS DISTINCT FROM OLD.empty_share THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'Kurbanlıklar',
         CAST(NEW.sacrifice_no AS TEXT),
@@ -55,10 +55,13 @@
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),
         'Güncelleme',
-        'Satılmayı bekleyen boş hisse sayısı: ' || COALESCE(OLD.empty_share::text, '—') || ' → ' || COALESCE(NEW.empty_share::text, '—') || ' (her kurbanlıkta en fazla 7 hisse).',
+        'Satılmayı bekleyen boş hisse sayısı: ' || COALESCE(OLD.empty_share::text, '—') || ' → ' || COALESCE(NEW.empty_share::text, '—') || ' (her kurbanlıkta en fazla 7 hisse).'
+          || CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN ' Bu güncelleme aynı işlemdeki hissedar silme/taşıma ile ilişkilidir (detay satırı).' ELSE '' END,
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN 'detail'::text ELSE NULL END
       );
     END IF;
 

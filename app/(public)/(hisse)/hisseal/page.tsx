@@ -1,7 +1,5 @@
 "use client";
 
-import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { showPlannedTeslimSaatiOnPublicPages } from "@/lib/delivery-options";
 import { useToast } from "@/components/ui/use-toast";
 import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
@@ -19,7 +17,6 @@ import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import { useReservationAndWarningManager } from "./hooks/useReservationAndWarningManager";
 
 const Page = () => {
-  const branding = useTenantBranding();
   const { toast } = useToast();
   const { selectedYear } = usePublicYearStore();
   const pathname = usePathname();
@@ -66,11 +63,9 @@ const Page = () => {
     [sacrifices]
   );
 
-  const showTeslimSaatiColumn = showPlannedTeslimSaatiOnPublicPages(branding.logo_slug);
-
   const tableColumns = useMemo(
-    () => buildHissealTableColumns(showAnimalTypeColumn, showTeslimSaatiColumn),
-    [showAnimalTypeColumn, showTeslimSaatiColumn]
+    () => buildHissealTableColumns(showAnimalTypeColumn, false),
+    [showAnimalTypeColumn]
   );
 
   // URL'den gelen fiyat filtresi için state
@@ -125,6 +120,12 @@ const Page = () => {
       window.removeEventListener(SACRIFICE_UPDATED_EVENT, handleDataUpdate);
     };
   }, []);
+
+  const [sessionTimerPaused, setSessionTimerPaused] = useState(false);
+
+  useEffect(() => {
+    setSessionTimerPaused(false);
+  }, [transaction_id]);
 
   const handleTimeoutRedirect = useCallback(async () => {
     const tid = useReservationIDStore.getState().transaction_id;
@@ -186,7 +187,8 @@ const Page = () => {
     shouldCheckStatus,
     createReservation,
     handleTimeoutRedirect,
-    toast
+    toast,
+    sessionTimerPaused,
   });
 
   const handleFilteredSacrificesChange = useCallback((data: sacrificeSchema[]) => {
@@ -268,6 +270,7 @@ const Page = () => {
     setCameFromTimeout,
     INACTIVITY_TIMEOUT,
     INACTIVITY_WARNING_THRESHOLD,
+    sessionTimerPaused,
     handleCustomTimeout: handleCustomTimeoutWithPromise,
     toast,
   });
@@ -361,6 +364,7 @@ const Page = () => {
         isReservationLoading={isReservationLoading}
         isLoading={isLoading}
         oneMinuteCountdown={showOneMinuteWarning ? timeLeft : undefined}
+        onSessionTimerPauseChange={setSessionTimerPaused}
       />
     </>
   );

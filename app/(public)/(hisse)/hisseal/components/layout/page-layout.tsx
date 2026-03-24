@@ -64,6 +64,7 @@ export interface PageLayoutProps {
     getRemainingMinutesText?: () => string;
     isReservationLoading?: boolean;
     oneMinuteCountdown?: number;
+    onSessionTimerPauseChange?: (paused: boolean) => void;
 }
 
 export const PageLayout = ({
@@ -112,6 +113,7 @@ export const PageLayout = ({
     getRemainingMinutesText,
     isReservationLoading,
     oneMinuteCountdown,
+    onSessionTimerPauseChange,
 }: PageLayoutProps) => {
     return (
         <div className="container flex flex-col space-y-8">
@@ -139,6 +141,7 @@ export const PageLayout = ({
                     handleApprove={handleApprove ? async () => await handleApprove() : async () => { }}
                     toast={(props) => toast?.(props) || (() => { })}
                     isLoading={isLoading || false}
+                    onSessionTimerPauseChange={onSessionTimerPauseChange}
                 />
             )}
 

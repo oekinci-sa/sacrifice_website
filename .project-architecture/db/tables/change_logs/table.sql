@@ -10,7 +10,9 @@ CREATE TABLE change_logs (
     description TEXT NOT NULL,
     change_owner TEXT NOT NULL,
     changed_at TIMESTAMPTZ DEFAULT now(),
-    sacrifice_year INT2
+    sacrifice_year INT2,
+    correlation_id UUID,
+    log_layer TEXT CHECK (log_layer IS NULL OR log_layer IN ('primary', 'detail'))
 );
 
 CREATE INDEX idx_change_logs_tenant ON change_logs (tenant_id);

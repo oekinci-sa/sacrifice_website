@@ -11,6 +11,7 @@ export interface ReservationTransactionRow {
   updated_at: string;
   completed_at?: string | null;
   last_heartbeat_at?: string | null;
+  client_device_category?: string | null;
   _displayNo?: number;
 }
 

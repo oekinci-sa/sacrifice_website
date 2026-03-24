@@ -2,6 +2,7 @@
 
 import { reminders } from "@/app/(public)/(hisse)/constants";
 import { getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { getLogoAbsoluteUrlForEmail } from "@/lib/email-logo-url";
 import { getLogoBase64ForSlug } from "@/lib/logoBase64";
 import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
 import type { TenantBranding } from "@/lib/tenant-branding";
@@ -20,7 +21,8 @@ export function buildPurchaseConfirmationHtml(params: {
 }): { html: string; text: string } {
   const { tenantName, branding, receipt } = params;
   const slug = branding.logo_slug;
-  const logoDataUrl = getLogoBase64ForSlug(slug);
+  const logoHttpsUrl = getLogoAbsoluteUrlForEmail(slug);
+  const logoSrc = logoHttpsUrl || getLogoBase64ForSlug(slug);
   const logoWidthPx = slug === "elya-hayvancilik" ? 75 : 150;
 
   const deliveryTypeLabel = getDeliveryTypeDisplayLabel(
@@ -82,7 +84,7 @@ export function buildPurchaseConfirmationHtml(params: {
       <table role="presentation" class="email-card" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;">
         <tr>
           <td style="padding:24px 20px 12px 20px;text-align:center;">
-            <img src="${logoDataUrl}" alt="" width="${logoWidthPx}" height="auto" style="display:block;margin:0 auto;max-width:100%;height:auto;width:${logoWidthPx}px;" />
+            <img src="${fmt(logoSrc)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" height="auto" style="display:block;margin:0 auto;max-width:100%;height:auto;width:${logoWidthPx}px;border:0;outline:none;" />
           </td>
         </tr>
         <tr>

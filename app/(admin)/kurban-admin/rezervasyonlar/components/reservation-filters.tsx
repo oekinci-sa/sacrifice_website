@@ -158,6 +158,13 @@ const STATUS_OPTIONS: { label: string; value: string }[] = [
   { label: "Çevrimdışı", value: "offline" },
 ];
 
+const DEVICE_OPTIONS: { label: string; value: string }[] = [
+  { label: "Mobil", value: "mobile" },
+  { label: "Tablet", value: "tablet" },
+  { label: "Masaüstü", value: "desktop" },
+  { label: "Bilinmeyen", value: "unknown" },
+];
+
 export function ReservationFilters({
   table,
   columnFilters: _columnFilters,
@@ -187,6 +194,17 @@ export function ReservationFilters({
       col.columnDef.filterFn = (row, _id, filterValues: string[] | undefined) => {
         if (!filterValues?.length) return true;
         return filterValues.includes(row.original.status);
+      };
+    }
+  }, [table]);
+
+  useEffect(() => {
+    const col = table.getColumn("client_device_category");
+    if (col) {
+      col.columnDef.filterFn = (row, _id, filterValues: string[] | undefined) => {
+        if (!filterValues?.length) return true;
+        const v = row.original.client_device_category ?? "unknown";
+        return filterValues.includes(v);
       };
     }
   }, [table]);
@@ -254,6 +272,13 @@ export function ReservationFilters({
             column={table.getColumn("status")}
             title="Durum"
             options={STATUS_OPTIONS}
+          />
+        )}
+        {table.getColumn("client_device_category") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("client_device_category")}
+            title="Cihaz"
+            options={DEVICE_OPTIONS}
           />
         )}
       </div>

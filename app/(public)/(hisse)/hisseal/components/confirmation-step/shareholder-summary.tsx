@@ -23,6 +23,7 @@ interface ShareholderSummaryProps {
   onApprove: () => void;
   setCurrentStep: (step: Step) => void;
   remainingTime: number;
+  onSessionTimerPauseChange?: (paused: boolean) => void;
 }
 
 export default function ShareholderSummary({
@@ -30,6 +31,7 @@ export default function ShareholderSummary({
   shareholders,
   onApprove,
   setCurrentStep,
+  onSessionTimerPauseChange,
 }: ShareholderSummaryProps) {
   const {
     showSecurityCodeDialog,
@@ -43,7 +45,12 @@ export default function ShareholderSummary({
     handleSecurityCodeSet,
     handleBackToSecurityCode,
     handleTermsConfirm,
-  } = useShareholderSummaryApproval(sacrifice, shareholders, onApprove);
+  } = useShareholderSummaryApproval(
+    sacrifice,
+    shareholders,
+    onApprove,
+    onSessionTimerPauseChange
+  );
 
   return (
     <div className="space-y-8">

@@ -21,6 +21,8 @@ interface UseReservationAndWarningManagerProps {
     createReservation: GenericReservationMutation;
     handleTimeoutRedirect: () => void;
     toast: ToastFunction;
+    /** Sözleşme onayı sonrası kayıt işlemi vb. — oturum süresi sayaçları durur */
+    sessionTimerPaused?: boolean;
 }
 
 export function useReservationAndWarningManager({
@@ -30,6 +32,7 @@ export function useReservationAndWarningManager({
     createReservation,
     handleTimeoutRedirect,
     toast,
+    sessionTimerPaused = false,
 }: UseReservationAndWarningManagerProps) {
     // Dialog and warning states
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -60,6 +63,9 @@ export function useReservationAndWarningManager({
         threeMinute: 0,
         oneMinute: 0
     });
+    const sessionTimerPausedRef = useRef(sessionTimerPaused);
+    sessionTimerPausedRef.current = sessionTimerPaused;
+    const wasSessionTimerPausedRef = useRef(false);
 
     // Handler for dismissing expiration warnings
     const handleDismissWarning = useCallback(
@@ -157,6 +163,7 @@ export function useReservationAndWarningManager({
 
     // New timer function that uses handleTimeLeft
     const updateTimer = useCallback(() => {
+        if (sessionTimerPausedRef.current) return;
         if (startTimeRef.current === null) return;
 
         const now = Date.now();
@@ -175,10 +182,44 @@ export function useReservationAndWarningManager({
         }
 
         // Continue animation if time remains
-        if (remainingSeconds > 0) {
+        if (remainingSeconds > 0 && !sessionTimerPausedRef.current) {
             animationFrameRef.current = requestAnimationFrame(updateTimer);
         }
     }, [handleTimeLeft]);
+
+    useEffect(() => {
+        if (sessionTimerPaused) {
+            wasSessionTimerPausedRef.current = true;
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = undefined;
+            }
+            startTimeRef.current = null;
+            return;
+        }
+        if (
+            wasSessionTimerPausedRef.current &&
+            transactionId &&
+            shouldCheckStatus &&
+            timeLeft > 0
+        ) {
+            wasSessionTimerPausedRef.current = false;
+            startTimeRef.current = Date.now();
+            timerBaseSecondsRef.current = timeLeft;
+            lastDisplayedSecondRef.current = -1;
+            animationFrameRef.current = requestAnimationFrame(updateTimer);
+        }
+    }, [
+        sessionTimerPaused,
+        transactionId,
+        shouldCheckStatus,
+        timeLeft,
+        updateTimer,
+    ]);
+
+    useEffect(() => {
+        wasSessionTimerPausedRef.current = false;
+    }, [transactionId]);
 
     useEffect(() => {
         resetSessionTimerState();
@@ -192,6 +233,7 @@ export function useReservationAndWarningManager({
         let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
         const startTimerFromExpiryData = (timeLeftSeconds: number) => {
+            if (sessionTimerPausedRef.current) return;
             startTimeRef.current = Date.now();
             timerBaseSecondsRef.current = timeLeftSeconds;
             setTimeLeft(timeLeftSeconds);
@@ -230,7 +272,9 @@ export function useReservationAndWarningManager({
                 return;
             }
 
-            startTimerFromExpiryData(expiryData.timeLeftSeconds);
+            if (!sessionTimerPausedRef.current) {
+                startTimerFromExpiryData(expiryData.timeLeftSeconds);
+            }
         };
 
         void bootstrapReservationTimer();
@@ -278,7 +322,7 @@ export function useReservationAndWarningManager({
                         return;
                     }
 
-                    if (newData.expires_at) {
+                    if (newData.expires_at && !sessionTimerPausedRef.current) {
                         const expiresAt = new Date(newData.expires_at).getTime();
                         const now = Date.now();
                         const timeLeftMs = Math.max(0, expiresAt - now);

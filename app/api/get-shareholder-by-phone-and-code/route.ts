@@ -1,3 +1,4 @@
+import { formatPhoneE164ForShareholderLookup } from "@/lib/shareholder-lookup-phone";
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { resolveSacrificeYearForTenant } from '@/lib/sacrifice-year-resolver';
@@ -43,15 +44,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Format phone number (ensure it has +90 format)
-    let formattedPhone = phone.replace(/\D/g, '');
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '+90' + formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith('90')) {
-      formattedPhone = '+90' + formattedPhone;
-    } else if (!formattedPhone.startsWith('+')) {
-      formattedPhone = '+' + formattedPhone;
-    }
+    const formattedPhone = formatPhoneE164ForShareholderLookup(phone);
 
     // Aktif yılı al - sadece bu yıla ait hisseler döner
     const activeYear = await resolveSacrificeYearForTenant(tenantId, yearParam);

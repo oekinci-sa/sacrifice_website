@@ -1,3 +1,8 @@
+import {
+  CLIENT_DEVICE_CATEGORIES,
+  isClientDeviceCategory,
+  type ClientDeviceCategory,
+} from "@/lib/client-device-category";
 import { TIMEOUT_DURATION } from "@/lib/constants/reservation-timer";
 import {
   resolveSacrificeYearForTenant,
@@ -25,7 +30,28 @@ export async function POST(request: NextRequest) {
   try {
     const tenantId = getTenantId();
     const body = await request.json();
-    const { transaction_id, sacrifice_id, share_count, status = ReservationStatus.ACTIVE, year: yearParam } = body;
+    const {
+      transaction_id,
+      sacrifice_id,
+      share_count,
+      status = ReservationStatus.ACTIVE,
+      year: yearParam,
+      client_device_category: rawDeviceCategory,
+    } = body;
+
+    let clientDeviceCategory: ClientDeviceCategory = "unknown";
+    if (rawDeviceCategory !== undefined && rawDeviceCategory !== null) {
+      if (!isClientDeviceCategory(rawDeviceCategory)) {
+        return NextResponse.json(
+          {
+            error: "Geçersiz cihaz türü",
+            allowed: CLIENT_DEVICE_CATEGORIES,
+          },
+          { status: 400 }
+        );
+      }
+      clientDeviceCategory = rawDeviceCategory;
+    }
 
     // Gerekli alanları kontrol et
     if (!transaction_id) {
@@ -119,6 +145,7 @@ export async function POST(request: NextRequest) {
           sacrifice_year: currentSacrifice.sacrifice_year,
           status: ReservationStatus.ACTIVE,
           expires_at: expiresAt,
+          client_device_category: clientDeviceCategory,
         }
       ])
       .select();

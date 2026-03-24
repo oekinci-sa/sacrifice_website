@@ -61,6 +61,7 @@ interface UsePageLifecycleProps {
     setCameFromTimeout: (timeout: boolean) => void;
     INACTIVITY_TIMEOUT: number;
     INACTIVITY_WARNING_THRESHOLD: number;
+    sessionTimerPaused: boolean;
     handleCustomTimeout: () => Promise<void>;
     toast: ToastFunction;
 }
@@ -101,6 +102,7 @@ export function usePageLifecycle({
     setCameFromTimeout,
     INACTIVITY_TIMEOUT,
     INACTIVITY_WARNING_THRESHOLD,
+    sessionTimerPaused,
     handleCustomTimeout,
     toast
 }: UsePageLifecycleProps) {
@@ -219,6 +221,7 @@ export function usePageLifecycle({
         setInactivitySecondsLeft,
         INACTIVITY_TIMEOUT,
         INACTIVITY_WARNING_THRESHOLD,
+        sessionTimerPaused,
         dialogState,
         timeoutHandlerWithPromise
     );

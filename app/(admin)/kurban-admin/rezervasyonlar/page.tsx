@@ -112,6 +112,17 @@ export default function RezervasyonlarPage() {
     return data.filter((row) => matchesReservationSearch(row, searchTerm));
   }, [data, searchTerm]);
 
+  const deviceReservationCounts = useMemo(() => {
+    let mobile = 0;
+    let desktop = 0;
+    for (const row of data) {
+      const k = row.client_device_category ?? "unknown";
+      if (k === "mobile") mobile += 1;
+      else desktop += 1;
+    }
+    return { mobile, desktop };
+  }, [data]);
+
   return (
     <div className="space-y-8">
       <div className="w-full">
@@ -120,6 +131,22 @@ export default function RezervasyonlarPage() {
           Hisse rezervasyonlarını ve durumlarını takip edebilirsiniz.
         </p>
       </div>
+      {!loading && data.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3 max-w-md">
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm px-4 py-3">
+            <p className="text-xs font-medium text-muted-foreground">Mobil</p>
+            <p className="text-2xl font-semibold tabular-nums mt-1">
+              {deviceReservationCounts.mobile}
+            </p>
+          </div>
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm px-4 py-3">
+            <p className="text-xs font-medium text-muted-foreground">Masaüstü</p>
+            <p className="text-2xl font-semibold tabular-nums mt-1">
+              {deviceReservationCounts.desktop}
+            </p>
+          </div>
+        </div>
+      ) : null}
       {loading ? (
         <div className="space-y-4">
           <Skeleton className="h-8 w-full" />
@@ -133,7 +160,13 @@ export default function RezervasyonlarPage() {
           storageKey="rezervasyonlar"
           pageSizeOptions={[10, 20, 50, 100]}
           tableSize="medium"
-          initialState={{ columnVisibility: { created_at: false } }}
+          initialState={{
+            columnVisibility: {
+              transaction_id: false,
+              created_at: false,
+              client_device_category: false,
+            },
+          }}
           filters={({
             table,
             columnFilters,

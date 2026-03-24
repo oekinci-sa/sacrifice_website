@@ -13,6 +13,7 @@ export const useHandleInteractionTimeout = (
   setInactivitySecondsLeft: (seconds: number) => void,
   TIMEOUT_DURATION: number,
   WARNING_THRESHOLD: number,
+  sessionTimerPaused: boolean,
   openDialogs?: {
     isDialogOpen?: boolean;
     setIsDialogOpen?: (open: boolean) => void;
@@ -32,6 +33,7 @@ export const useHandleInteractionTimeout = (
 
   useEffect(() => {
     if (isSuccess) return;
+    if (sessionTimerPaused) return;
     if (currentStep !== "details" && currentStep !== "confirmation") return;
     if (!selectedSacrifice || !formData.length) return;
 
@@ -76,6 +78,7 @@ export const useHandleInteractionTimeout = (
     return () => clearInterval(interval);
   }, [
     isSuccess,
+    sessionTimerPaused,
     currentStep,
     lastInteractionTime,
     TIMEOUT_DURATION,

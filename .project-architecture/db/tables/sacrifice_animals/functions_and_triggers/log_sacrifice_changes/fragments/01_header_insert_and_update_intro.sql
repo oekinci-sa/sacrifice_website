@@ -7,6 +7,7 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
   v_owner text;
+  v_corr text;
 BEGIN
   IF (TG_OP = 'INSERT') THEN
     v_owner := COALESCE(
@@ -30,4 +31,5 @@ BEGIN
       NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
       NEW.last_edited_by
     );
+    v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
 

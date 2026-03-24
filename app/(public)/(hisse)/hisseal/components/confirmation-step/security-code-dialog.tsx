@@ -8,7 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useEffect, useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
+import { useEffect, useRef, useState } from "react"
 
 interface SecurityCodeDialogProps {
   open: boolean
@@ -23,6 +24,8 @@ export default function SecurityCodeDialog({
   onSecurityCodeSet,
   initialCode = "",
 }: SecurityCodeDialogProps) {
+  const { toast } = useToast()
+  const confirmInputRef = useRef<HTMLInputElement>(null)
   const [code, setCode] = useState<string>(initialCode || "")
   const [confirmCode, setConfirmCode] = useState<string>("")
   const [error, setError] = useState("")
@@ -37,15 +40,24 @@ export default function SecurityCodeDialog({
     }
   }, [initialCode, open])
 
-  const handleCodeChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePrimaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.replace(/\D/g, "").slice(0, 6)
-    setter(v)
+    setCode(v)
+    setError("")
+    if (v.length === 6) {
+      requestAnimationFrame(() => {
+        confirmInputRef.current?.focus()
+      })
+    }
+  }
+
+  const handleConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g, "").slice(0, 6)
+    setConfirmCode(v)
     setError("")
   }
 
   const bothSix = code.length === 6 && confirmCode.length === 6
-  const codesMatch = code === confirmCode && /^\d{6}$/.test(code)
-  const canSubmit = bothSix && codesMatch && !isLoading
 
   const validateAndSubmit = () => {
     if (isLoading) return
@@ -60,6 +72,12 @@ export default function SecurityCodeDialog({
     }
     if (code !== confirmCode) {
       setError("Girdiğiniz kodlar eşleşmiyor. Lütfen kontrol ediniz.")
+      toast({
+        variant: "destructive",
+        title: "Güvenlik kodları eşleşmiyor",
+        description:
+          "Girdiğiniz güvenlik kodları birbiriyle aynı değil. Lütfen aynı 6 rakamı her iki alana da giriniz.",
+      })
       return
     }
 
@@ -109,7 +127,7 @@ export default function SecurityCodeDialog({
                 pattern="\d*"
                 maxLength={6}
                 value={code}
-                onChange={handleCodeChange(setCode)}
+                onChange={handlePrimaryChange}
                 autoComplete="one-time-code"
                 spellCheck={false}
                 className="text-center text-lg tracking-[0.35em] font-mono tabular-nums text-black caret-foreground [-webkit-text-security:disc]"
@@ -120,13 +138,14 @@ export default function SecurityCodeDialog({
                 Güvenlik kodunuzu tekrar giriniz
               </label>
               <Input
+                ref={confirmInputRef}
                 id="security-code-confirm"
                 type="text"
                 inputMode="numeric"
                 pattern="\d*"
                 maxLength={6}
                 value={confirmCode}
-                onChange={handleCodeChange(setConfirmCode)}
+                onChange={handleConfirmChange}
                 autoComplete="off"
                 spellCheck={false}
                 className="text-center text-lg tracking-[0.35em] font-mono tabular-nums text-black caret-foreground [-webkit-text-security:disc]"
@@ -143,7 +162,7 @@ export default function SecurityCodeDialog({
           <Button
             type="button"
             onClick={validateAndSubmit}
-            disabled={!canSubmit}
+            disabled={!bothSix || isLoading}
             className="h-10 md:h-12 text-base md:text-lg whitespace-nowrap mx-auto"
           >
             Onayla

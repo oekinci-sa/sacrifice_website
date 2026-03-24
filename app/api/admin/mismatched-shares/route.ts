@@ -50,6 +50,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const sacrificeIds = Array.from(
+      new Set((mismatched ?? []).map((r) => r.sacrifice_id))
+    );
+    const notesBySacrificeId = new Map<string, string | null>();
+    if (sacrificeIds.length > 0) {
+      const { data: noteRows } = await supabaseAdmin
+        .from("sacrifice_animals")
+        .select("sacrifice_id, notes")
+        .eq("tenant_id", tenantId)
+        .in("sacrifice_id", sacrificeIds);
+      for (const row of noteRows ?? []) {
+        notesBySacrificeId.set(row.sacrifice_id, row.notes ?? null);
+      }
+    }
+
     const { data: acknowledgments } = await supabaseAdmin
       .from("mismatched_share_acknowledgments")
       .select("sacrifice_id, acknowledged_by, acknowledged_at")
@@ -77,6 +92,7 @@ export async function GET(request: NextRequest) {
       const ack = ackMap.get(row.sacrifice_id);
       return {
         ...row,
+        notes: notesBySacrificeId.get(row.sacrifice_id) ?? null,
         acknowledged_by: ack?.acknowledged_by ?? null,
         acknowledged_at: ack?.acknowledged_at ?? null,
       };

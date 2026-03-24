@@ -7,6 +7,7 @@ import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 import CountdownTimer from '../common/countdown-timer';
+import { HissealLiveStats } from "../common/hisseal-live-stats";
 import ProgressBar from "../common/progress-bar";
 import ShareholderSummary from "../confirmation-step/shareholder-summary";
 import Checkout from "../shareholder-info-step/checkout";
@@ -44,6 +45,7 @@ interface FormViewProps {
   handleApprove: () => Promise<void>;
   toast: (props: Parameters<typeof ToastType>[0]) => void;
   isLoading?: boolean;
+  onSessionTimerPauseChange?: (paused: boolean) => void;
 }
 
 export const FormView = ({
@@ -59,6 +61,7 @@ export const FormView = ({
   resetStore,
   setLastInteractionTime,
   handleApprove,
+  onSessionTimerPauseChange,
 }: FormViewProps) => {
   const transaction_id = useReservationIDStore(state => state.transaction_id);
   const generateNewTransactionId = useReservationIDStore(state => state.generateNewTransactionId);
@@ -94,6 +97,7 @@ export const FormView = ({
       <Tabs value={tabValue} className="space-y-4 md:space-y-6">
         {/* Tab 1 - Hisse Seçimi */}
         <TabsContent value="tab-1" className="space-y-4">
+          {currentStep === "selection" && <HissealLiveStats />}
           <CustomDataTable
             data={data || []}
             columns={columns}
@@ -146,6 +150,7 @@ export const FormView = ({
             onApprove={handleApprove}
             setCurrentStep={goToStep}
             remainingTime={timeLeft}
+            onSessionTimerPauseChange={onSessionTimerPauseChange}
           />
         </TabsContent>
       </Tabs>

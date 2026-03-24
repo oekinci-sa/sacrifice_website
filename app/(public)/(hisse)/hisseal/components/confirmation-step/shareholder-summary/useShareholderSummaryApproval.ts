@@ -29,7 +29,8 @@ interface ShareholderInput {
 export function useShareholderSummaryApproval(
   sacrifice: sacrificeSchema | null,
   shareholders: ShareholderInput[],
-  onApprove: () => void
+  onApprove: () => void,
+  onSessionTimerPauseChange?: (paused: boolean) => void
 ) {
   const [showSecurityCodeDialog, setShowSecurityCodeDialog] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
@@ -74,6 +75,7 @@ export function useShareholderSummaryApproval(
       });
       return;
     }
+    onSessionTimerPauseChange?.(true);
     setIsProcessing(true);
 
     const purchaserName = toTitleCase(
@@ -159,6 +161,7 @@ export function useShareholderSummaryApproval(
       onApprove();
     } catch (_error) {
       setShowTermsDialog(false);
+      onSessionTimerPauseChange?.(false);
       if (_error instanceof Error) {
         toast({
           variant: "destructive",
@@ -189,6 +192,7 @@ export function useShareholderSummaryApproval(
     validateShareholdersMutation,
     createShareholdersMutation,
     completeReservationMutation,
+    onSessionTimerPauseChange,
   ]);
 
   return {

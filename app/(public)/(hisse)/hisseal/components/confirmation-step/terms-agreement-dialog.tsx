@@ -10,7 +10,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
@@ -35,8 +34,12 @@ export default function TermsAgreementDialog({
     const { toast } = useToast()
     const branding = useTenantBranding()
 
+    const handleAgreementChange = (checked: boolean) => {
+        setIsAgreed(!!checked)
+    }
+
     const handleConfirm = async () => {
-        if (isLoading) return // Prevent double submission
+        if (isLoading) return
 
         if (!isAgreed) {
             toast({
@@ -50,19 +53,9 @@ export default function TermsAgreementDialog({
         setIsLoading(true)
 
         try {
-            // Call the onConfirm callback to proceed with the approval
             await onConfirm();
-
-            // Close the dialog once confirmed successfully
             onOpenChange(false);
-
-            // Success message toast'unu kaldırıyoruz
-            // toast({
-            //    title: "Başarılı",
-            //    description: "Hisse kaydınız başarıyla oluşturuldu."
-            // })
         } catch (error) {
-            // Daha detaylı hata mesajı gösterelim
             let errorMessage = "İşlem sırasında bir hata oluştu.";
             if (error instanceof Error) {
                 errorMessage = error.message || errorMessage;
@@ -85,24 +78,19 @@ export default function TermsAgreementDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleClose}>
+        <Dialog open={open} onOpenChange={(next) => { if (!next) handleClose(); }}>
             <DialogContent
-                className="md:max-w-xl max-w-[95%] h-[80vh] flex flex-col p-0 gap-0"
-                // Make the dialog take 80% of screen height
+                className="md:max-w-xl max-w-[95%] h-[80vh] flex flex-col p-0 gap-0 min-h-0"
                 style={{ maxHeight: '80vh' }}
             >
-                {/* Header */}
-                <DialogHeader className="px-6 pt-6 pb-2">
+                <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                     <DialogTitle className="text-base md:text-lg text-center">
                         Kullanıcı Sözleşmesi
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* Main scrollable content area */}
-                <div className="flex-1 overflow-hidden px-6">
-
-                    {/* Kodu değiştir - güvenlik kodu onay sonrası gösterilmez */}
-                    <div className="flex items-center justify-start p-2 mb-4">
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-6">
+                    <div className="flex items-center justify-start p-2 mb-2 shrink-0">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -114,26 +102,22 @@ export default function TermsAgreementDialog({
                         </Button>
                     </div>
 
-                    {/* Scrollable area with visible scrollbar */}
-                    <ScrollArea className="h-[calc(100%-3rem)] pr-2 border rounded-md" type="always">
+                    <div
+                        className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2 border rounded-md scroll-smooth"
+                    >
                         <div className="flex flex-col gap-2 md:gap-4 p-4 text-sm md:text-base text-muted-foreground">
-                            {/* Enhanced agreement styling */}
                             <h3 className="text-base md:text-lg font-semibold text-primary mb:2 md:mb-4 text-center">
                                 KURBANLIK HİSSE SÖZLEŞMESİ
                             </h3>
 
-                            {/* Introduction - 1 */}
                             <p className="leading-relaxed">
                                 Bu metin, kurban hissesi almak isteyen gönüllüler ile bu organizasyonu gönüllülük esasıyla yürüten ekibimiz arasında, sürecin karşılıklı olarak şeffaf, anlaşılır ve düzenli ilerlemesini sağlamak amacıyla hazırlanmıştır. Amacımız, ibadet niyetiyle yapılan bu hizmetin sorunsuz ve güvenilir şekilde gerçekleşmesidir.
                             </p>
 
-                            {/* Introduction - 2 */}
                             <p className="leading-relaxed">
-
                                 Lütfen aşağıdaki maddeleri dikkatlice okuyunuz. Hisse kaydı ve işlemleri sırasında bu şartları kabul etmiş sayılırsınız.
                             </p>
 
-                            {/* Agreement terms - DB'den branding.agreement_terms */}
                             <div className="space-y-3">
                                 {(branding.agreement_terms ?? []).map((term, index) => {
                                     const description =
@@ -161,7 +145,6 @@ export default function TermsAgreementDialog({
                                 })}
                             </div>
 
-                            {/* Not - Elya için farklı metin */}
                             <p className="leading-relaxed">
                                 {branding.logo_slug === "elya-hayvancilik" ? (
                                     <>
@@ -178,26 +161,22 @@ export default function TermsAgreementDialog({
                                 )}
                             </p>
 
-                            {/* Add extra padding at the bottom for better scrolling experience */}
-                            <div className="h-4"></div>
-
-
+                            <div className="h-2" />
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
 
-                {/* Fixed footer with checkbox and button */}
-                <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex gap-2 items-center">
+                <DialogFooter className="px-6 py-4 border-t flex flex-col md:flex-row md:items-center gap-4 shrink-0">
+                    <div className="flex gap-2 items-start w-full md:flex-1 min-w-0">
                         <Checkbox
                             id="terms"
                             checked={isAgreed}
-                            onCheckedChange={(checked) => setIsAgreed(!!checked)}
-                            className=""
+                            onCheckedChange={(checked) => handleAgreementChange(!!checked)}
+                            className="mt-0.5 shrink-0"
                         />
                         <label
                             htmlFor="terms"
-                            className="text-sm md:text-base text-muted-foreground cursor-pointer"
+                            className="text-sm md:text-base leading-snug text-muted-foreground cursor-pointer"
                         >
                             Kullanıcı sözleşmesini okudum, kabul ediyorum.
                         </label>
@@ -214,4 +193,4 @@ export default function TermsAgreementDialog({
             </DialogContent>
         </Dialog>
     )
-} 
+}

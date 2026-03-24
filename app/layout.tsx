@@ -15,6 +15,8 @@ const DEFAULT_METADATA: Metadata = {
   title: "Ankara Kurban Hisse Organizasyonu",
   description:
     "İMH Ankara Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah’a sadece takvanız ulaşır…",
+  /** Host’a göre dinamik: app/icon/route.ts */
+  icons: { icon: "/icon" },
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,7 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Elya Hayvancılık Kurban Organizasyonu",
       description:
         "Elya Hayvancılık Kurban organizasyonu olarak, bu mukaddes ibadeti huzurla ve gönül rahatlığıyla yerine getirin. Allah'a sadece takvanız ulaşır…",
-      icons: { icon: "/logos/elya-hayvancilik/elya-hayvancilik.svg" },
     };
   }
   return DEFAULT_METADATA;

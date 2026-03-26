@@ -68,6 +68,13 @@ export async function POST(req: Request) {
 
     if (error) {
       const msg = error.message ?? "";
+      if (msg.includes("already_inserted")) {
+        // Idempotency: aynı transaction_id ile daha önce hissedar eklenmiş
+        return NextResponse.json(
+          { error: "Bu rezervasyon için hissedarlar zaten kaydedilmiş" },
+          { status: 409 }
+        );
+      }
       if (msg.includes("invalid_sacrifice_or_tenant")) {
         return NextResponse.json(
           { error: "Geçersiz kurban veya tenant eşleşmesi" },

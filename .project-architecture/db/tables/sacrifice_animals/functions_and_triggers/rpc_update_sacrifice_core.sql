@@ -1,6 +1,11 @@
 -- rpc_update_sacrifice_core: kurbanlık güncelleme + log_sacrifice_changes (app.actor)
 -- Zaman alanları (slaughter_time / butcher_time / delivery_time) burada; ayrı rpc_update_sacrifice_timing kaldırıldı.
 -- Boş hisse (empty_share) burada; rpc_update_sacrifice_share kaldırıldı.
+--
+-- empty_share güncelleme modları:
+--   - p_patch ? 'empty_share_delta' : delta (+ / -) uygular — reset-shares gibi göreli artışlar için
+--   - p_patch ? 'empty_share'       : mutlak değer yazar — admin manuel düzeltmeleri için
+--   Öncelik sırası: empty_share_delta > empty_share > mevcut değer
 
 CREATE OR REPLACE FUNCTION public.rpc_update_sacrifice_core(
   p_actor text,
@@ -27,7 +32,11 @@ BEGIN
     sacrifice_time = CASE WHEN p_patch ? 'sacrifice_time' THEN (p_patch->>'sacrifice_time')::time ELSE sa.sacrifice_time END,
     share_weight = CASE WHEN p_patch ? 'share_weight' THEN (p_patch->>'share_weight')::int2 ELSE sa.share_weight END,
     share_price = CASE WHEN p_patch ? 'share_price' THEN (p_patch->>'share_price')::numeric ELSE sa.share_price END,
-    empty_share = CASE WHEN p_patch ? 'empty_share' THEN (p_patch->>'empty_share')::int2 ELSE sa.empty_share END,
+    empty_share = CASE
+      WHEN p_patch ? 'empty_share_delta' THEN (sa.empty_share + (p_patch->>'empty_share_delta')::int2)::int2
+      WHEN p_patch ? 'empty_share'       THEN (p_patch->>'empty_share')::int2
+      ELSE sa.empty_share
+    END,
     animal_type = CASE WHEN p_patch ? 'animal_type' THEN NULLIF(trim(p_patch->>'animal_type'), '')::text ELSE sa.animal_type END,
     notes = CASE WHEN p_patch ? 'notes' THEN (p_patch->>'notes')::text ELSE sa.notes END,
     foundation = CASE

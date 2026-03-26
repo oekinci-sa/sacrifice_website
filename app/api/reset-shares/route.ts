@@ -15,27 +15,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Eksik alanlar" }, { status: 400 });
     }
 
-    const { data: sacrifice, error: fetchError } = await supabaseAdmin
-      .from("sacrifice_animals")
-      .select("empty_share")
-      .eq("tenant_id", tenantId)
-      .eq("sacrifice_id", sacrifice_id)
-      .eq("sacrifice_year", sacrificeYear)
-      .single();
-
-    if (fetchError || !sacrifice) {
-      return NextResponse.json({ error: "Kurban kaydı bulunamadı" }, { status: 404 });
-    }
-
     const now = new Date().toISOString();
     const actor = HISSE_AL_AKISI_ACTOR;
+
+    // empty_share_delta: stale read kaldırıldı; DB içinde atomik delta güncelleme.
+    // rpc_update_sacrifice_core, empty_share_delta anahtarı varsa
+    // SET empty_share = empty_share + delta kullanır (mutlak değer değil).
     const { error: updateError } = await supabaseAdmin.rpc("rpc_update_sacrifice_core", {
       p_actor: actor,
       p_tenant_id: tenantId,
       p_sacrifice_id: sacrifice_id,
       p_sacrifice_year: sacrificeYear,
       p_patch: {
-        empty_share: sacrifice.empty_share + share_count,
+        empty_share_delta: share_count,
         last_edited_by: actor,
         last_edited_time: now,
       },

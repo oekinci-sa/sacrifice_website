@@ -1,0 +1,67 @@
+---
+description: DB race condition, atomik işlemler, ACID ve güvenli API/SQL kalıpları
+globs:
+  - "**/app/api/**/*.ts"
+  - "**/.project-architecture/db/**/*.sql"
+alwaysApply: false
+---
+# DB Eşzamanlılık, Atomiklik ve Güvenli Kalıplar
+
+Yeni veya değiştirilen **API route** ve **SQL (trigger, RPC, migration)** yazarken aşağıdaki kurallara uy. Amaç: lost update, TOCTOU, client’tan güvenilmeyen tutarlar ve çok adımlı tutarsızlıklar.
+
+İlgili kurallar: [supabase-migration-run.mdc](mdc:.cursor/rules/supabase-migration-run.mdc), [db-sync.mdc](mdc:.cursor/rules/db-sync.mdc), [new-column-change-logs.mdc](mdc:.cursor/rules/new-column-change-logs.mdc).
+
+## 1. Trigger’da başka tablo güncelleniyorsa
+
+- **Yapma:** `SELECT empty_share INTO v FROM other_table WHERE ...` ardından `UPDATE other_table SET col = v - delta` (mutlak değer) — eşzamanlı işlemlerde **lost update**.
+- **Yap:** Önce `SELECT ... INTO ... FROM other_table WHERE ... FOR UPDATE` (satır kilidi), sonra mümkünse **`SET col = col ± delta`** (delta güncelleme). Gerekirse `UPDATE ... WHERE (col - delta) BETWEEN ...` ile çift kontrol.
+- **Not:** Sadece `UPDATE ... RETURNING` trigger içinde tek başına yeterli değil; **kilit (`FOR UPDATE`)** ve delta birlikte düşünülmeli.
+
+## 2. API’de aynı iş kuralı için oku → yaz (farklı round-trip)
+
+- **Yapma:** `SELECT` (kapasite, fiyat, boş hisse) sonra ayrı istekte `INSERT`/`UPDATE` — **TOCTOU**.
+- **Yap:** İlgili satırı **tek transaction** içinde kilitleyen bir **`rpc_*`** (ör. `SELECT ... FOR UPDATE` + insert/update) veya tek SQL ifadesiyle koşullu güncelleme. UX için isteğe bağlı erken `SELECT` kalabilir; **asıl doğruluk DB’de** olmalı.
+
+## 3. Finansal veya fiyat tabanlı alanlar
+
+- **Yapma:** `total_amount`, `share_price` türevi tutarları yalnızca request body’den güvenme.
+- **Yap:** Tutarı **`sacrifice_animals.share_price`** (veya ilgili kaynak tablo) + sunucunun bildiği `delivery_fee` ile **RPC veya trigger içinde** hesapla; client alanını yok say veya sadece doğrulama için kullan.
+
+## 4. Idempotency (tekrar istek / retry)
+
+- Aynı **`transaction_id`** veya iş akışı için tekrarlanan **toplu insert** duplicate üretmesin: RPC içinde **önce var mı** kontrolü, **`UNIQUE` constraint + `ON CONFLICT`**, veya anlamlı bir exception (`already_inserted`) ile **fail-fast**.
+- E-posta / tek seferlik yan etkiler: **`..._sent_at IS NULL` ile claim** (ör. `purchase_confirmation_email`) pattern’i.
+
+## 5. Çok adımlı HTTP akışı
+
+- Browser’da arka arkaya birden fazla endpoint (ör. hissedar ekle → rezervasyon tamamla) **tek atomik DB transaction’ı değildir**. Ara adımda hata olursa telafi (compensating) veya iş kuralı netliği gerekir; yeni kod yazarken bunu bilinçli bırakma.
+
+## 6. Okuma ve tenant
+
+- Kritik satır okurken **`tenant_id`** filtresi eksik bırakma (cross-tenant bilgi sızıntısı). Güncelleme ile aynı filtreyi kullan.
+- **`complete` / durum geçişi:** `UPDATE`’te **`WHERE status = 'active'`** (veya izin verilen kaynak durum) — terminal durumdan yanlış geçişi engelle.
+
+## 7. Stok / sayaç artırma (ör. `empty_share` geri ekleme)
+
+- **Yapma:** Önce `SELECT` ile okuyup bellekte toplayıp mutlak yaz.
+- **Yap:** **`empty_share_delta`** gibi **delta** patch veya `UPDATE t SET c = c + $1 WHERE ...` tek atomik ifade.
+
+## 8. Cron / toplu güncelleme fonksiyonları
+
+- Satır satır `FOR ... LOOP` + `UPDATE` yerine mümkünse **tek `UPDATE ... WHERE predicate`** (set-based).
+
+## 9. RLS ve `USING (true)`
+
+- Realtime için geniş SELECT policy bilinçli bir trade-off olabilir. Yeni hassas tablo eklerken **anon + PostgREST ile tam tablo okuma** riskini değerlendir; gerekirse [rls-and-realtime.md](mdc:.project-architecture/db/rls-and-realtime.md) çizgisine uy.
+
+## 10. PDF / Storage
+
+- PDF üretimi bu projede çoğunlukla **istemci tarafı**; Storage için public URL vs signed URL kararını bucket politikasıyla uyumlu tut. Detay: güvenlik incelemesi gerektiğinde ayrıca değerlendir.
+
+## Kontrol listesi (PR öncesi)
+
+- [ ] Aynı invariant için birden fazla ayrı DB round-trip yok mu?
+- [ ] Trigger başka tabloya dokunuyorsa `FOR UPDATE` + delta uygun mu?
+- [ ] Tutarlar DB kaynağından mı?
+- [ ] Tekrarlanan istekte duplicate veya çifte yan etki var mı?
+- [ ] `tenant_id` ve durum (`status`) filtreleri tam mı?

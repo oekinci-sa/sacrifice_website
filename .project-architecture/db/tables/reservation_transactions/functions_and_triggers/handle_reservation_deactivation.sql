@@ -4,6 +4,10 @@
 --           kadar artırır. Boş hisseyi geri serbest bırakır.
 --           Sınır (7) aşımında failed_reservation_transactions_logs'a yazar.
 -- Trigger   : trg_handle_reservation_deactivation (AFTER UPDATE)
+--
+-- Race condition koruması:
+--   SELECT ... FOR UPDATE ile sacrifice_animals satırını kilitler; eşzamanlı
+--   deactivation ve yeni rezervasyon işlemleri sıraya girer, stale read olmaz.
 -- ===============================================
 
 CREATE OR REPLACE FUNCTION public.handle_reservation_deactivation()
@@ -12,12 +16,13 @@ DECLARE
   current_empty INT;
 BEGIN
   IF OLD.status = 'active' AND NEW.status IN ('canceled', 'timed_out', 'expired', 'offline') THEN
-    -- Mevcut boş hisse sayısını al
+    -- Satırı kilitle (FOR UPDATE) — eşzamanlı işlemlerde stale read önler
     SELECT empty_share INTO current_empty
     FROM sacrifice_animals
-    WHERE sacrifice_id = NEW.sacrifice_id;
+    WHERE sacrifice_id = NEW.sacrifice_id
+    FOR UPDATE;
 
-    -- Eğer sınır aşılacaksa, logla ve işlemi yapma
+    -- Kilit sonrası taze değerle sınır kontrolü
     IF current_empty + NEW.share_count > 7 THEN
       INSERT INTO failed_reservation_transactions_logs (
         transaction_id, sacrifice_id, attempted_share_change,
@@ -30,7 +35,7 @@ BEGIN
       RETURN NEW;
     END IF;
 
-    -- Boş hisse sayısını artır
+    -- Delta güncelleme (zaten doğru pattern; kilit ile güçlendirildi)
     UPDATE sacrifice_animals
     SET empty_share = empty_share + NEW.share_count
     WHERE sacrifice_id = NEW.sacrifice_id;

@@ -37,6 +37,28 @@ Tüm tablolarda RLS **aktif**tir.
 
 ---
 
+## Güvenlik Analizi — `USING (true)` Policy Riski
+
+`USING (true)` policy'si olan tablolar (`reservation_transactions`, `sacrifice_animals`, `shareholders`, `stage_metrics`) anon anahtarıyla PostgREST üzerinden doğrudan okunabilir.
+
+**Kabul edilen risk gerekçesi:**
+- Tüm yazma işlemleri service_role üzerinden; anon INSERT/UPDATE/DELETE yapamaz.
+- `sacrifice_animals` ve `stage_metrics` zaten herkese açık veriler (fiyat, boş hisse, aşama bilgisi).
+- `reservation_transactions.transaction_id` 16 karakterlik rastgele ID; brute-force ile ulaşılması pratikte mümkün değil.
+- `shareholders` hassas personal data içeriyor — aşağıda iyileştirme önerileri var.
+
+**Riskleri azaltan faktörler:**
+- Middleware `x-tenant-id` header'ını host üzerinden set ediyor; client body'den tenant_id alınmıyor.
+- `supabaseAdmin` service_role tüm API route'larında kullanılıyor.
+
+**Uzun vadeli iyileştirme önerileri (bu dosyadaki migration/plan kapsamı dışında):**
+
+1. `shareholders` Realtime'ını kaldır, admin sayfasını polling'e geçir → anon SELECT policy'yi kaldır.
+2. Supabase Realtime filtered publication ile sadece gerekli sütunları yayınla.
+3. `reservation_transactions` için sadece kendi transaction_id'sini dinleyen client-side filter kullanmaya devam et (zaten yapılıyor).
+
+---
+
 ## Realtime Kullanımı
 
 **Realtime açık tablolar** (supabase_realtime publication): Sadece uygulamanın subscribe ettiği tablolar.

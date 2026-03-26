@@ -14,12 +14,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // status = 'active' koşulu: terminal durumdaki rezervasyon tamamlanamaz
     const { data, error } = await supabaseAdmin
       .from("reservation_transactions")
       .update({ status: "completed" })
       .eq("tenant_id", tenantId)
       .eq("transaction_id", transaction_id)
-      .select(); // Select to check if the update was successful
+      .eq("status", "active")
+      .select();
 
     if (error) {
       return NextResponse.json(
@@ -29,11 +31,10 @@ export async function POST(req: Request) {
     }
 
     if (!data || data.length === 0) {
-        // Decide if this should be an error or just a warning
-        return NextResponse.json(
-          { error: "Reservation not found or already completed" },
-          { status: 404 }
-        );
+      return NextResponse.json(
+        { error: "Reservation not found or not in active state" },
+        { status: 409 }
+      );
     }
 
     return NextResponse.json({ success: true, data }, { status: 200 });

@@ -15,16 +15,8 @@ import { NextRequest, NextResponse } from 'next/server';
 // Veritabanındaki transaction_id sütun uzunluğu
 const TRANSACTION_ID_LENGTH = 16;
 
-// Reservation_transactions tablosundaki izin verilen status değerleri
-// Veritabanı şeması değişirse, burası güncellenmelidir
-enum ReservationStatus {
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  CANCELED = 'canceled'
-}
-
 // Rezervasyon oluşturma API endpoint'i
-// Bu endpoint, empty_share değerini güncellemez - bu işlem DB tarafında tetiklenir
+// empty_share azaltması rpc_create_reservation içindeki trigger tarafından yapılır
 export async function POST(request: NextRequest) {
 
   try {
@@ -34,7 +26,6 @@ export async function POST(request: NextRequest) {
       transaction_id,
       sacrifice_id,
       share_count,
-      status = ReservationStatus.ACTIVE,
       year: yearParam,
       client_device_category: rawDeviceCategory,
     } = body;
@@ -87,86 +78,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Status değerini kontrol et (güvenlik kontrolü)
-    if (status && !Object.values(ReservationStatus).includes(status as ReservationStatus)) {
-      return NextResponse.json(
-        {
-          error: "Invalid status value",
-          provided: status,
-          allowed: Object.values(ReservationStatus)
-        },
-        { status: 400 }
-      );
-    }
-
     const sacrificeYear = await resolveSacrificeYearForTenant(
       tenantId,
       yearParam != null ? String(yearParam) : null
     );
 
-    const { data: currentSacrifice, error: checkError } = await supabaseAdmin
-      .from("sacrifice_animals")
-      .select("empty_share, sacrifice_year")
-      .eq("tenant_id", tenantId)
-      .eq("sacrifice_id", sacrifice_id)
-      .eq("sacrifice_year", sacrificeYear)
-      .single();
-
-    if (checkError) {
-      return NextResponse.json(
-        { error: "Sacrifice not found or database error" },
-        { status: 500 }
-      );
-    }
-
-    if (!currentSacrifice || currentSacrifice.empty_share < share_count) {
-      return NextResponse.json(
-        {
-          error: "Insufficient empty shares",
-          available: currentSacrifice?.empty_share || 0,
-          requested: share_count
-        },
-        { status: 400 }
-      );
-    }
-
     // expires_at: TIMEOUT_DURATION ile client ile senkron (lib/constants/reservation-timer.ts)
     const expiresAt = new Date(Date.now() + TIMEOUT_DURATION * 1000).toISOString();
 
-    // created_at: DB default (now() = UTC) kullanılır
-    const { data, error } = await supabaseAdmin
-      .from("reservation_transactions")
-      .insert([
-        {
-          tenant_id: tenantId,
-          transaction_id,
-          sacrifice_id,
-          share_count,
-          sacrifice_year: currentSacrifice.sacrifice_year,
-          status: ReservationStatus.ACTIVE,
-          expires_at: expiresAt,
-          client_device_category: clientDeviceCategory,
-        }
-      ])
-      .select();
+    // rpc_create_reservation: sacrifice_animals satırını FOR UPDATE ile kilitler,
+    // boş hisse kontrolü ve INSERT aynı DB transaction içinde — TOCTOU önlenir.
+    const { data, error } = await supabaseAdmin.rpc("rpc_create_reservation", {
+      p_tenant_id: tenantId,
+      p_transaction_id: transaction_id,
+      p_sacrifice_id: sacrifice_id,
+      p_share_count: share_count,
+      p_sacrifice_year: sacrificeYear,
+      p_expires_at: expiresAt,
+      p_client_device_category: clientDeviceCategory,
+    });
 
     if (error) {
+      const msg = error.message ?? "";
 
-      // Check constraint hatası için daha spesifik mesaj
-      let errorMessage = "Failed to create reservation";
+      if (msg.includes("sacrifice_not_found")) {
+        return NextResponse.json(
+          { error: "Sacrifice not found or database error" },
+          { status: 500 }
+        );
+      }
 
-      if (error.code === '23514') { // Check constraint violation
-        errorMessage = "Database constraint violation: Invalid status value";
-      } else if (error.code === '22001') { // Value too long
-        errorMessage = "Value too long for database field";
+      if (msg.includes("insufficient_shares")) {
+        return NextResponse.json(
+          {
+            error: "Insufficient empty shares",
+            available: 0,
+            requested: share_count
+          },
+          { status: 400 }
+        );
       }
 
       return NextResponse.json(
-        { error: errorMessage },
+        { error: "Failed to create reservation" },
         { status: 500 }
       );
     }
-
 
     // Başarılı sonuç döndür
     return NextResponse.json({

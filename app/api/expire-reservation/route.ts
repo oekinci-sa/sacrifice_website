@@ -48,9 +48,11 @@ export async function POST(request: Request) {
         }
 
         // Get current reservation to check if it exists and isn't already expired
+        // tenant_id filtresi: başka tenant'ın rezervasyonu okumasın (information disclosure)
         const { data: existingReservation, error: fetchError } = await supabaseAdmin
             .from('reservation_transactions')
             .select('*')
+            .eq('tenant_id', tenantId)
             .eq('transaction_id', transaction_id)
             .single();
 

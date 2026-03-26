@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import {
+  formatDeliveryOptionLabel,
   getDeliveryDisplayLabel,
   getDeliveryLocationFromSelection,
   getDeliveryOptions,
@@ -72,16 +73,16 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     const current = row.original.delivery_location;
 
     if (isElya) {
-      // Elya: sadece Kesimhane ve Adrese Teslim - ücret/adres metni yok
       const adreseValue = current && current !== "Gölbaşı" ? current : "-";
+      const elyaOpts = getDeliveryOptions("elya-hayvancilik");
       return [
-        { label: "Kesimhane", value: "Gölbaşı" },
-        { label: "Adrese Teslim", value: adreseValue },
+        { label: formatDeliveryOptionLabel(elyaOpts[0]), value: "Gölbaşı" },
+        { label: formatDeliveryOptionLabel(elyaOpts[1]), value: adreseValue },
       ];
     }
 
     const opts = getDeliveryOptions(branding.logo_slug).map((opt) => ({
-      label: opt.label,
+      label: formatDeliveryOptionLabel(opt),
       value: getDeliveryLocationFromSelection(branding.logo_slug, opt.value),
     }));
     if (current && !opts.some((o) => o.value === current)) {

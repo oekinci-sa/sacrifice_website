@@ -4,9 +4,17 @@
  * Ankara Kurban: Kesimhane (Kahramankazan), Teslimat Noktası Ulus 1500 TL
  */
 export interface DeliveryOption {
+  /** Birinci satır (örn. Kesimhane Teslimat, Ulus Teslimat) */
   label: string;
+  /** İkinci satır — hisse al formunda alt satırda (örn. Ücretsiz / Ücretli) */
+  labelLine2?: string;
   value: string;
   fee: number;
+}
+
+/** Filtre / tek satırlı gösterim için etiket birleştirir */
+export function formatDeliveryOptionLabel(opt: DeliveryOption): string {
+  return opt.labelLine2 ? `${opt.label} ${opt.labelLine2}` : opt.label;
 }
 
 /**
@@ -21,13 +29,33 @@ export function showPlannedTeslimSaatiOnPublicPages(logoSlug: string): boolean {
 export function getDeliveryOptions(logoSlug: string): DeliveryOption[] {
   if (logoSlug === "elya-hayvancilik") {
     return [
-      { label: "Kesimhane", value: "Kesimhane", fee: 0 },
-      { label: "Adrese Teslim (+1500 TL)", value: "Adrese teslim", fee: 1500 },
+      {
+        label: "Kesimhane Teslimat",
+        labelLine2: "(Ücretsiz)",
+        value: "Kesimhane",
+        fee: 0,
+      },
+      {
+        label: "Adrese Teslim",
+        labelLine2: "(Ücretli)",
+        value: "Adrese teslim",
+        fee: 1500,
+      },
     ];
   }
   return [
-    { label: "Kesimhane", value: "Kesimhane", fee: 0 },
-    { label: "Teslimat Noktası - Ulus (+1500 TL)", value: "Ulus", fee: 1500 },
+    {
+      label: "Kesimhane Teslimat",
+      labelLine2: "(Ücretsiz)",
+      value: "Kesimhane",
+      fee: 0,
+    },
+    {
+      label: "Ulus Teslimat",
+      labelLine2: "(Ücretli)",
+      value: "Ulus",
+      fee: 1500,
+    },
   ];
 }
 
@@ -102,6 +130,17 @@ export function getDeliveryTypeDisplayLabel(
 /** Tenant'ın Adrese teslim seçeneği var mı */
 export function hasAdreseTeslimOption(logoSlug: string): boolean {
   return getDeliveryOptions(logoSlug).some((o) => o.value === "Adrese teslim");
+}
+
+/** İkinci telefon zorunlu: Elya’da adrese teslim; Ankara Kurban’da Ulus teslimatı */
+export function requiresSecondPhoneForDelivery(
+  logoSlug: string,
+  deliveryLocation: string
+): boolean {
+  const sel = getDeliverySelectionFromLocation(logoSlug, deliveryLocation);
+  if (sel === "Adrese teslim") return true;
+  if (sel === "Ulus") return true;
+  return false;
 }
 
 /** delivery_location → Select value (form gösterimi için) */

@@ -88,7 +88,7 @@ function DesktopFaqContent() {
   return (
     <div className="flex flex-row space-x-6">
       {/* Vertical tabs */}
-      <div className="flex flex-col space-y-2 w-full md:w-1/4 pr-0 md:pr-6">
+      <div className="flex flex-col space-y-4 w-full md:w-1/4 pr-0 md:pr-6">
         {faq_categories.map((category) => (
           <button
             key={category.id}

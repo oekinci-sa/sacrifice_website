@@ -153,7 +153,13 @@ export default function TumKurbanliklarPage() {
           columns={columns}
           storageKey="kurbanliklar"
           columnHeaderLabels={kurbanliklarColumnHeaderLabels}
-          initialState={{ columnVisibility: { notes: true, foundation: false } }}
+          initialState={{
+            columnVisibility: {
+              notes: true,
+              foundation: false,
+              ear_tag: false,
+            },
+          }}
           filters={({ table, columnOrder, onColumnOrderChange, resetColumnLayout }) => (
             <ToolbarAndFilters
               table={table}

@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { triggerSacrificeRefresh } from "@/utils/data-refresh";
@@ -37,6 +38,7 @@ async function updateSacrificeApi(
     animal_type: string | null;
     foundation: string | null;
     notes: string;
+    ear_tag: string | null;
   }>
 ) {
   const body: Record<string, unknown> = {
@@ -427,6 +429,91 @@ export function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+  );
+}
+
+function effectiveEarTagLabel(s: sacrificeSchema): string {
+  return (s.ear_tag ?? "").trim() || "-";
+}
+
+export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
+  const { toast } = useToast();
+  const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const sacrifice = row.original;
+  const display = effectiveEarTagLabel(sacrifice);
+  const current = (sacrifice.ear_tag ?? "").trim();
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const t = value.trim();
+      const payload: { ear_tag: string | null } =
+        t === "" ? { ear_tag: null } : { ear_tag: t };
+      const { data } = await updateSacrificeApi(
+        sacrifice.sacrifice_id,
+        sacrifice.sacrifice_year,
+        payload
+      );
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setOpen(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, sacrifice, updateSacrifice, toast]);
+
+  return (
+    <>
+      <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
+        <span className="tabular-nums text-sm px-8 pr-9 py-1 text-center">{display}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => {
+            setValue(current);
+            setOpen(true);
+          }}
+        >
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Küpe No</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Küpe numarasını buradan girin. Boş bırakırsanız alan temizlenir.
+          </p>
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-10 font-mono tabular-nums"
+            placeholder="Örn. 2026-0042"
+            maxLength={64}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+              İptal
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

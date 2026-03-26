@@ -1,7 +1,12 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryDisplayLabel, getDeliveryLocationFromSelection, getDeliveryOptions } from "@/lib/delivery-options";
+import {
+  formatDeliveryOptionLabel,
+  getDeliveryDisplayLabel,
+  getDeliveryLocationFromSelection,
+  getDeliveryOptions,
+} from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -233,7 +238,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
   // Delivery location options: tenant bazlı + verideki benzersiz değerler
   const deliveryLocationOptions = useMemo(() => {
     const baseOpts = getDeliveryOptions(branding.logo_slug).map((opt) => ({
-      label: opt.label,
+      label: formatDeliveryOptionLabel(opt),
       value: getDeliveryLocationFromSelection(branding.logo_slug, opt.value),
     }));
     const fromData = new Set<string>();

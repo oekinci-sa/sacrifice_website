@@ -1,10 +1,25 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useMemo } from "react";
 import { features } from "../constants";
 
+const ELYA_TRUCK_DESCRIPTION =
+  "Kesimhaneden ya da Adrese Teslim (Ücret karşılığı)";
+
 const Features = () => {
+  const { logo_slug } = useTenantBranding();
+  const displayFeatures = useMemo(
+    () =>
+      features.map((f) =>
+        f.src === "truck.svg" && logo_slug === "elya-hayvancilik"
+          ? { ...f, description: ELYA_TRUCK_DESCRIPTION }
+          : f
+      ),
+    [logo_slug]
+  );
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -35,7 +50,7 @@ const Features = () => {
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
     >
-      {features.map((feature) => (
+      {displayFeatures.map((feature) => (
         <motion.div
           key={feature.src}
           className="flex items-start gap-4 w-full md:max-w-[300px]"

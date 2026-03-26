@@ -46,3 +46,19 @@
       );
     END IF;
 
+    IF NEW.ear_tag IS DISTINCT FROM OLD.ear_tag THEN
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      VALUES (
+        'Kurbanlıklar',
+        CAST(NEW.sacrifice_no AS TEXT),
+        'Küpe No',
+        COALESCE(OLD.ear_tag, ''),
+        COALESCE(NEW.ear_tag, ''),
+        'Güncelleme',
+        'Küpe numarası güncellendi: ' || COALESCE(NULLIF(trim(OLD.ear_tag), ''), '—') || ' → ' || COALESCE(NULLIF(trim(NEW.ear_tag), ''), '—') || '.',
+        v_owner,
+        NEW.tenant_id,
+        NEW.sacrifice_year
+      );
+    END IF;
+

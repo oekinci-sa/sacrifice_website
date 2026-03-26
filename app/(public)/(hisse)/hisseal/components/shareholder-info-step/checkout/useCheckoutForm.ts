@@ -1,6 +1,10 @@
 "use client";
 
-import { getDeliveryLocationFromSelection, getDeliverySelectionFromLocation } from "@/lib/delivery-options";
+import {
+  getDeliveryLocationFromSelection,
+  getDeliverySelectionFromLocation,
+  requiresSecondPhoneForDelivery,
+} from "@/lib/delivery-options";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import {
   useCancelReservation,
@@ -185,10 +189,8 @@ export function useCheckoutForm(
     setLastInteractionTime(Date.now());
     const newFormData = [...extendedFormData];
     newFormData[index] = { ...newFormData[index], [field]: value };
-    // Teslimat Adrese teslim'den başka bir seçeneğe değişirse second_phone temizle
     if (field === "delivery_location") {
-      const selection = getDeliverySelectionFromLocation(branding.logo_slug, value);
-      if (selection !== "Adrese teslim") {
+      if (!requiresSecondPhoneForDelivery(branding.logo_slug, value)) {
         newFormData[index].second_phone = "";
       }
     }
@@ -346,12 +348,13 @@ export function useCheckoutForm(
         formSchema.omit({ is_purchaser: true }).parse({ name, phone, email: email ?? "", delivery_location });
 
         const selection = getDeliverySelectionFromLocation(branding.logo_slug, delivery_location);
-        // Adrese teslim seçildiyse ikinci telefon zorunlu ve birinciden farklı olmalı
-        if (selection === "Adrese teslim") {
+        if (requiresSecondPhoneForDelivery(branding.logo_slug, delivery_location)) {
           const digitsPhone = (phone ?? "").replace(/\D/g, "");
           const digitsSecond = (second_phone ?? "").replace(/\D/g, "");
           if (!second_phone || !second_phone.trim()) {
-            newErrors[index].second_phone = ["Adrese teslim için ikinci telefon numarası zorunludur"];
+            newErrors[index].second_phone = [
+              "Bu teslimat seçeneği için ikinci telefon numarası zorunludur",
+            ];
             hasFormErrors = true;
           } else if (digitsSecond.length !== 11 || !second_phone.startsWith("05")) {
             newErrors[index].second_phone = ["Geçerli bir telefon numarası giriniz (05XX XXX XX XX)"];

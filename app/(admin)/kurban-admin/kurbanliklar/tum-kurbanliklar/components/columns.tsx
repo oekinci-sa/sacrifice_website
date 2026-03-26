@@ -17,11 +17,16 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { ActionCellContent } from "./columns/ActionCell";
 import {
   EditableAnimalTypeCell,
+  EditableEarTagCell,
   EditableEmptyShareCell,
   EditableFoundationCell,
   EditableNotesCell,
   EditableSharePriceCell,
 } from "./columns/EditableSacrificeCells";
+
+function getEffectiveEarTagSortValue(row: sacrificeSchema): string {
+  return (row.ear_tag ?? "").trim();
+}
 
 function formatPlanTimeCell(value: unknown) {
   const time = value as string | undefined;
@@ -256,15 +261,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     },
   },
   {
-    accessorKey: "ear_tag_display",
+    id: "ear_tag",
+    accessorFn: (row) => getEffectiveEarTagSortValue(row),
     minSize: 100,
     header: "Küpe No",
-    cell: ({ row }) => (
-      <div className="text-center tabular-nums text-sm">
-        {row.original.ear_tag_display ?? "-"}
-      </div>
-    ),
+    cell: ({ row }) => <EditableEarTagCell row={row} />,
     enableSorting: true,
+    enableHiding: true,
   },
   {
     accessorKey: "share_price",

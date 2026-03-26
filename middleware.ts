@@ -55,7 +55,12 @@ export default withAuth(
       return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
     }
 
-    if (token?.role !== "super_admin" && isReservationsRoute) {
+    if (
+      token?.role !== "admin" &&
+      token?.role !== "editor" &&
+      token?.role !== "super_admin" &&
+      isReservationsRoute
+    ) {
       return NextResponse.redirect(new URL("/kurban-admin/genel-bakis", req.url));
     }
 

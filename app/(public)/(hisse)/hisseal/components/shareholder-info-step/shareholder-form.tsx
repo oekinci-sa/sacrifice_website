@@ -1,7 +1,13 @@
 "use client"
 
 import { useTenantBranding } from "@/hooks/useTenantBranding"
-import { getDeliveryOptions, getDeliveryLocationFromSelection, getDeliverySelectionFromLocation, hasAdreseTeslimOption } from "@/lib/delivery-options"
+import {
+    formatDeliveryOptionLabel,
+    getDeliveryOptions,
+    getDeliveryLocationFromSelection,
+    getDeliverySelectionFromLocation,
+    requiresSecondPhoneForDelivery,
+} from "@/lib/delivery-options"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -122,8 +128,10 @@ export default function ShareholderForm({
         onInputBlur(index, "second_phone", value);
     };
 
-    const showSecondPhone = hasAdreseTeslimOption(branding.logo_slug) &&
-        getDeliverySelectionFromLocation(branding.logo_slug, data.delivery_location || "") === "Adrese teslim";
+    const showSecondPhone = requiresSecondPhoneForDelivery(
+        branding.logo_slug,
+        data.delivery_location || ""
+    );
 
     // Checkbox durumu için hesaplama
     const isCurrentPurchaser = data.is_purchaser === true;
@@ -270,8 +278,12 @@ export default function ShareholderForm({
                             </SelectTrigger>
                             <SelectContent>
                                 {deliveryOptionsData.map((opt) => (
-                                    <SelectItem key={opt.value} value={opt.value}>
-                                        {opt.label}
+                                    <SelectItem
+                                        key={opt.value}
+                                        value={opt.value}
+                                        textValue={formatDeliveryOptionLabel(opt)}
+                                    >
+                                        {formatDeliveryOptionLabel(opt)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -298,8 +310,16 @@ export default function ShareholderForm({
                                         ? data.delivery_location
                                         : ""
                                 }
-                                onChange={(e) => onInputChange(index, "delivery_location", e.target.value)}
-                                onBlur={(e) => onInputBlur(index, "delivery_location", e.target.value)}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    const next = raw.trim() === "" ? "-" : raw;
+                                    onInputChange(index, "delivery_location", next);
+                                }}
+                                onBlur={(e) => {
+                                    const raw = e.target.value;
+                                    const next = raw.trim() === "" ? "-" : raw;
+                                    onInputBlur(index, "delivery_location", next);
+                                }}
                                 className={cn(
                                     "h-10 md:h-12 text-base md:text-[18px] border border-dashed border-sac-border-light",
                                     errors?.delivery_address ? "border-destructive/50 bg-destructive/10" : ""

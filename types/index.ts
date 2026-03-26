@@ -109,8 +109,8 @@ export interface sacrificeSchema {
   foundation?: string | null;
   /** Planlı kesim saatine +1,5 saat (DB generated) */
   planned_delivery_time?: string | null;
-  /** Yıl + 4 haneli sıra (DB generated) */
-  ear_tag_display?: string | null;
+  /** Küpe numarası (yalnızca admin panelinden; boş olabilir) */
+  ear_tag?: string | null;
 
   // Düzenleme bilgileri
   last_edited_time: string | null;

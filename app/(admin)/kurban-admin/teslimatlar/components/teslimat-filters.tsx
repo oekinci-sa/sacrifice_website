@@ -1,7 +1,7 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { getDeliveryOptions } from "@/lib/delivery-options";
+import { formatDeliveryOptionLabel, getDeliveryOptions } from "@/lib/delivery-options";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -280,7 +280,7 @@ export function TeslimatFilters({ table }: TeslimatFiltersProps) {
 
   const deliveryTypeOptions = useMemo(() => {
     return getDeliveryOptions(branding.logo_slug).map((opt) => ({
-      label: opt.label,
+      label: formatDeliveryOptionLabel(opt),
       value: opt.value,
     }));
   }, [branding.logo_slug]);

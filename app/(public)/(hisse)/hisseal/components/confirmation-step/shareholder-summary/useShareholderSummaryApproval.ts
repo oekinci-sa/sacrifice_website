@@ -135,7 +135,10 @@ export function useShareholderSummaryApproval(
           total_amount: totalAmount,
           remaining_payment: remainingPayment,
         };
-        if (delivery_type === "Adrese teslim" && shareholder.second_phone) {
+        if (
+          (delivery_type === "Adrese teslim" || delivery_type === "Ulus") &&
+          shareholder.second_phone
+        ) {
           payload.second_phone_number = formatPhoneForDB(shareholder.second_phone);
         }
         return payload;

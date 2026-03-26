@@ -34,6 +34,7 @@ export async function PUT(request: Request) {
             animal_type,
             foundation,
             notes,
+            ear_tag,
             last_edited_time,
             sacrifice_year: bodyYear
         } = body;
@@ -78,6 +79,16 @@ export async function PUT(request: Request) {
             }
         }
         if (notes !== undefined) patch.notes = notes;
+        if (ear_tag !== undefined) {
+            if (ear_tag === null || ear_tag === "") {
+                patch.ear_tag = null;
+            } else if (typeof ear_tag === "string") {
+                const t = ear_tag.trim();
+                patch.ear_tag = t === "" ? null : t;
+            } else {
+                return NextResponse.json({ error: "Küpe no geçersiz." }, { status: 400 });
+            }
+        }
 
         const { data: rows, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_core', {
             p_actor: actor,

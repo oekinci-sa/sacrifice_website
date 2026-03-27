@@ -1,15 +1,12 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import type { PriceInfoItem } from "@/hooks/usePriceInfo";
 import { motion, type Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface PriceItem {
-  kg: number;
-  price: number;
-  soldOut: boolean;
-}
+type PriceItem = PriceInfoItem;
 
 function PriceCard({
   item,
@@ -71,32 +68,51 @@ function PriceCard({
 interface PricesProps {
   /** true ise kartlara tıklanınca hisseal sayfasına gidilmez (ör. takip anasayfası gömülü fiyat listesi). */
   disableHissealNavigation?: boolean;
-  /** true ise "TÜKENDİ" rozeti ve satışa kapalı görünümü gösterilmez (ör. launch_countdown önizleme). */
+  /**
+   * true: launch_countdown vb. — tükenen hisse bedelleri listelenmez (ör. 25 kg tükendiyse hiç gösterilmez).
+   * Satış aktif anasayfada bu prop verilmez; tükendi rozeti normal çalışır.
+   */
   hideSoldOutBadge?: boolean;
+  /**
+   * Dışarıdan veri (ör. `usePriceInfo` ile üst bileşende yüklenmiş) — verilirse içeride tekrar fetch edilmez.
+   */
+  prefetchedItems?: PriceItem[];
 }
 
 const Prices = ({
   disableHissealNavigation = false,
   hideSoldOutBadge = false,
+  prefetchedItems,
 }: PricesProps) => {
   const branding = useTenantBranding();
   const router = useRouter();
-  const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [internalItems, setInternalItems] = useState<PriceItem[]>([]);
+  const [loading, setLoading] = useState(prefetchedItems === undefined);
 
   useEffect(() => {
+    if (prefetchedItems !== undefined) {
+      setLoading(false);
+      return;
+    }
     fetch("/api/price-info")
       .then((res) => res.json())
       .then((data: PriceItem[]) => {
         if (Array.isArray(data)) {
-          setPriceItems(data);
+          setInternalItems(data);
         }
       })
-      .catch(() => setPriceItems([]))
+      .catch(() => setInternalItems([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [prefetchedItems]);
 
-  // Container animation for staggered children
+  const priceItems = prefetchedItems !== undefined ? prefetchedItems : internalItems;
+
+  /**
+   * Prefetch ile veri hazır: scroll beklenmez (`whileInView` yok), mount’ta `animate="show"` ile
+   * aynı parça parça (stagger + kart) animasyonu çalışır.
+   */
+  const instantReveal = prefetchedItems !== undefined;
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -135,15 +151,23 @@ const Prices = ({
     return null;
   }
 
-  const total = priceItems.length;
+  const displayItems = hideSoldOutBadge
+    ? priceItems.filter((item) => !item.soldOut)
+    : priceItems;
+
+  if (displayItems.length === 0) {
+    return null;
+  }
+
+  const total = displayItems.length;
   /** Mobil: 2 sütun; tam satırlardan sonra kalan tek/çift kart alt satırda ortalı */
   const fullRowsMobile = Math.floor(total / 2) * 2;
-  const firstPartMobile = priceItems.slice(0, fullRowsMobile);
-  const lastPartMobile = priceItems.slice(fullRowsMobile);
+  const firstPartMobile = displayItems.slice(0, fullRowsMobile);
+  const lastPartMobile = displayItems.slice(fullRowsMobile);
   /** md+: 4 sütun; son satır ortalı */
   const fullRowsDesktop = Math.floor(total / 4) * 4;
-  const firstPartDesktop = priceItems.slice(0, fullRowsDesktop);
-  const lastPartDesktop = priceItems.slice(fullRowsDesktop);
+  const firstPartDesktop = displayItems.slice(0, fullRowsDesktop);
+  const lastPartDesktop = displayItems.slice(fullRowsDesktop);
 
   const cardProps = {
     disableHissealNavigation,
@@ -159,8 +183,9 @@ const Prices = ({
         className="w-full flex flex-col gap-8 md:gap-12 items-center"
         variants={sectionVariant}
         initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
+        animate={instantReveal ? "show" : undefined}
+        whileInView={instantReveal ? undefined : "show"}
+        viewport={instantReveal ? undefined : { once: true }}
       >
         <h2 className="text-3xl md:text-4xl font-bold text-center">
           Bu Seneki Hisse Bedellerimiz
@@ -170,8 +195,9 @@ const Prices = ({
           className="w-full"
           variants={container}
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
+          animate={instantReveal ? "show" : undefined}
+          whileInView={instantReveal ? undefined : "show"}
+          viewport={instantReveal ? undefined : { once: true }}
         >
           {/* Mobil / sm: yalnızca 2 sütun; eksik son satır col-span-2 + flex ile ortalı */}
           <div className="md:hidden grid grid-cols-2 gap-4 gap-y-8 items-start justify-items-center">

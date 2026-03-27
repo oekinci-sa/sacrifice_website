@@ -77,9 +77,9 @@ export default function TakipHomeLaunchCountdown() {
         >
           <i className="bi bi-patch-check-fill text-8xl text-primary mb-6 md:mb-8" />
           <h1 className="text-2xl md:text-4xl text-center font-bold mb-4">
-            Yakında Açılıyor
+            Yakında Açılıyor...
           </h1>
-          <p className="md:w-2/3 text-muted-foreground text-center text-base md:text-xl max-w-3xl">
+          <p className="text-muted-foreground text-center text-base md:text-xl max-w-3xl">
             Hisse alım işlemlerimiz 28 Mart Cumartesi günü itibarıyla aktif olacaktır.
           </p>
         </motion.div>

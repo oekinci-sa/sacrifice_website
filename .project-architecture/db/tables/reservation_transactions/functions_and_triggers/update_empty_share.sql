@@ -3,7 +3,15 @@
 --           takip eder ve sacrifice_animals.empty_share alanını günceller.
 --           INSERT'ta boş hisseyi azaltır, UPDATE'te farkı uygular.
 --           Sınır aşımlarında failed_reservation_transactions_logs'a yazar.
--- Trigger   : trg_update_empty_share (BEFORE INSERT OR UPDATE)
+-- Trigger'lar (DB'deki gerçek adlar):
+--   decrease_empty_share_after_insert      — AFTER INSERT
+--   update_empty_share_after_update_on_share_count — AFTER UPDATE
+--
+-- NOT: Repo'daki eski tanım tek bir BEFORE INSERT OR UPDATE trigger'ı
+--      (trg_update_empty_share) öngörüyordu; DB'de ise iki ayrı AFTER
+--      trigger oluşturuldu. Fonksiyon aynı, sadece trigger sarmalayıcıları
+--      farklı. Senkronize etmek için CREATE TRIGGER satırları aşağıdaki
+--      gibi güncellenmiştir.
 --
 -- Race condition koruması:
 --   SELECT ... FOR UPDATE ile sacrifice_animals satırını kilitler; aynı anda
@@ -86,7 +94,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_empty_share
-BEFORE INSERT OR UPDATE ON reservation_transactions
+DROP TRIGGER IF EXISTS trg_update_empty_share ON reservation_transactions;
+DROP TRIGGER IF EXISTS decrease_empty_share_after_insert ON reservation_transactions;
+DROP TRIGGER IF EXISTS update_empty_share_after_update_on_share_count ON reservation_transactions;
+
+CREATE TRIGGER decrease_empty_share_after_insert
+AFTER INSERT ON reservation_transactions
+FOR EACH ROW
+EXECUTE FUNCTION update_empty_share();
+
+CREATE TRIGGER update_empty_share_after_update_on_share_count
+AFTER UPDATE ON reservation_transactions
 FOR EACH ROW
 EXECUTE FUNCTION update_empty_share();

@@ -1,4 +1,4 @@
-import { getTenantId } from "@/lib/tenant";
+import { getTenantIdFromHeaders } from "@/lib/tenant";
 import { NO_SACRIFICE_YEAR_ERROR } from "@/lib/sacrifice-year-resolver";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
@@ -16,7 +16,7 @@ export const revalidate = 0;
  */
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = getTenantId();
+    const tenantId = getTenantIdFromHeaders(request.headers);
     const { searchParams } = new URL(request.url);
     const yearParam = searchParams.get("year");
 

@@ -16,6 +16,7 @@
 | `rpc_insert_shareholders_batch` | Toplu hissedar ekleme + `app.actor` |
 | `rpc_update_shareholder` | Hissedar güncelleme (e-posta, `contacted_at` dahil) + `app.actor` |
 | `rpc_delete_shareholder` | Hissedar silme |
+| `rpc_move_shareholder_to_sacrifice` | Hissedarı başka kurbanlığa taşı (kaynak +1, hedef -1, tutar yeniden hesap) |
 | `rpc_update_stage_metrics` | Aşama metrikleri |
 | `rpc_acknowledge_mismatch` / `rpc_revoke_mismatch` | Uyuşmazlık onayı |
 | Kullanıcı / tenant RPC’leri | `rpc_create_user`, `rpc_update_user`, `rpc_delete_user`, `rpc_patch_user_tenant_status` (ilgili migration dosyalarına bakın) |
@@ -42,6 +43,16 @@ Kaynak SQL: `.project-architecture/db/tables/*/functions_and_triggers/*.sql`
 - `POST /api/create-shareholders` → `rpc_insert_shareholders_batch`.
 - `POST /api/reset-shares` → `rpc_update_sacrifice_core` (hisse al akışı aktörü ile).
 - `PATCH /api/admin/shareholders/[id]/contacted` → `rpc_update_shareholder` (`contacted_at`).
+- `POST /api/admin/shareholders/[id]/move-sacrifice` → `rpc_move_shareholder_to_sacrifice`.
+
+## Kaldırılan tetikleyiciler ve gerekçe
+
+### `trg_shareholder_delete` + `handle_shareholder_delete()`
+
+- **Ne yapıyordu:** `shareholders` tablosunda AFTER DELETE; `sacrifice_animals.empty_share` değerini `+1` artırıyordu.
+- **Neden kaldırıldı:** Aynı görevi `trg_sync_empty_share_after_shareholder_delete` tetikleyicisi (`sync_empty_share_after_shareholder_delete()` fonksiyonu) zaten yapıyor. Bu eski tetikleyici `app.skip_empty_share_sync` ayarını da dikkate almıyordu; her hissedar silmede `empty_share` **iki kez** artıyordu (+2 toplam, +1 beklenen).
+- **Kaldırılma tarihi:** 2026-03-27
+- **Migration:** `.project-architecture/db/tables/shareholders/migrations/drop_duplicate_shareholder_delete_trigger_2026_03_27.sql`
 
 ## Migration
 

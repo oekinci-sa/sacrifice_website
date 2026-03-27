@@ -10,14 +10,14 @@ import { useEffect, useMemo } from "react";
  * Toplam satılan hisse (etiket): sayı hissedar kayıt sayısı (/api/public/shareholders-count) + Realtime.
  * İşlemdeki hisse: aktif rezervasyon store.
  *
- * Yıl: Tabloda gösterilen kurbanlıklar `useSacrificeStore` ile gelir; sayımın aynı kampanya yılına
- * gitmesi için önce `sacrifices[0].sacrifice_year`, yoksa `selectedYear` kullanılır (yıl uyuşmazlığında 0 görünmesini önler).
+ * Yıl: `fetchActiveYear` ile gelen `selectedYear` (tenant kampanya yılı) öncelikli; henüz yoksa
+ * tablodaki ilk kurbanlığın `sacrifice_year` (kurbanlık listesi ile aynı filtre).
  */
 export function HissealLiveStats() {
   const selectedYear = usePublicYearStore((s) => s.selectedYear);
   const sacrifices = useSacrificeStore((s) => s.sacrifices);
   const yearForCount = useMemo(
-    () => sacrifices[0]?.sacrifice_year ?? selectedYear ?? null,
+    () => selectedYear ?? sacrifices[0]?.sacrifice_year ?? null,
     [sacrifices, selectedYear]
   );
 

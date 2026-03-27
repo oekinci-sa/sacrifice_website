@@ -25,7 +25,7 @@ Bu doküman son dönemde yapılan değişiklikleri özetler.
 - **Sorun**: Hissedar silindiğinde `fetchShareholders()` tüm veriyi yeniden çekiyordu ve tablo tamamen yeniden render ediliyordu.
 - **Çözüm**: `useDeleteShareholder` içinde `removeShareholder(shareholderId)` kullanılıyor; sadece ilgili hissedar store'dan kaldırılıyor.
 - **Dosya**: `hooks/useShareholders.ts`
-- **Not**: `empty_share` güncellemesi DB trigger (trg_shareholder_delete) ile yapılıyor; sacrifice_animals realtime ile güncelleniyor.
+- **Not**: `empty_share` güncellemesi DB trigger (`trg_sync_empty_share_after_shareholder_delete`) ile yapılıyor; sacrifice_animals realtime ile güncelleniyor. ~~`trg_shareholder_delete`~~ kaldırıldı (bkz. [changelog-2026-03-bugfix-duplicate-shareholder-delete-trigger.md](changelog-2026-03-bugfix-duplicate-shareholder-delete-trigger.md)).
 
 ---
 

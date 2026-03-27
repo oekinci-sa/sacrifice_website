@@ -2,11 +2,33 @@ import { headers } from "next/headers";
 
 import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 
-/** Vercel vb.: x-forwarded-host virgülle birden fazla değer içerebilir. */
+/**
+ * İstek hostname'i (middleware `req.headers.get("host")` ile uyumlu).
+ * Vercel'de `x-forwarded-host` virgülle birden fazla değer içerebilir ve ilk segment
+ * bazen `*.vercel.app` olur; o zaman `Host` özel alan adı iken yanlış tenant çözülür
+ * (ör. Toplam Satılan Hisse: 0). Önce `Host`, sonra forwarded parçaları; tenant map'e
+ * uyan ilk aday kullanılır.
+ */
 export function primaryHostFromHeaders(h: Headers): string {
-  const forwarded = h.get("x-forwarded-host")?.split(",")[0]?.trim();
-  if (forwarded) return forwarded;
-  return h.get("host") ?? "";
+  const directHost = h.get("host")?.trim() ?? "";
+  const forwardedRaw = h.get("x-forwarded-host");
+  const candidates: string[] = [];
+  if (directHost) candidates.push(directHost);
+  if (forwardedRaw) {
+    for (const p of forwardedRaw.split(",")) {
+      const t = p.trim();
+      if (t && !candidates.includes(t)) candidates.push(t);
+    }
+  }
+
+  for (const c of candidates) {
+    if (resolveTenantIdFromHost(c)) return c;
+  }
+
+  const nonVercel = candidates.find((c) => !c.includes(".vercel.app"));
+  if (nonVercel) return nonVercel;
+
+  return candidates[0] ?? "";
 }
 
 /**

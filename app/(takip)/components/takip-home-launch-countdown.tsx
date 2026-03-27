@@ -53,7 +53,7 @@ function TakipHomeLaunchCountdownSkeleton() {
 }
 
 /**
- * launch_countdown evresi: başlık + satış başlangıç duyurusu + fiyat listesi (TÜKENDİ gösterilmez).
+ * geri_sayim evresi: başlık + satış başlangıç duyurusu + fiyat listesi (TÜKENDİ gösterilmez).
  * Hisseal'a yönlendirme devre dışı (disableHissealNavigation).
  */
 export default function TakipHomeLaunchCountdown() {

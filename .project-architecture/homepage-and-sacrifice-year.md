@@ -6,15 +6,15 @@ Root `/` sayfası `tenant_settings.homepage_mode` değerine göre farklı içeri
 
 | Değer | Admin Etiketi | Layout | Gösterilen İçerik |
 |-------|---------------|--------|-------------------|
-| `pre_campaign` | Ön Bilgilendirme / Bana Haber Ver | Minimal (TakipLayout) | Duyuru metni + "Bana Haber Ver" formu (`TakipHomeContent`) |
-| `launch_countdown` | Yakında Açılıyor | Minimal (TakipLayout) | "Yakında Açılıyor" + kısa duyuru + `Prices` (Hisse Bedellerimiz başlığı altta); md+ grid 4 sütun, son satır ortalı; hisseal devre dışı |
+| `bana_haber_ver` | Ön Bilgilendirme / Bana Haber Ver | Minimal (TakipLayout) | Duyuru metni + "Bana Haber Ver" formu (`TakipHomeContent`) |
+| `geri_sayim` | Yakında Açılıyor | Minimal (TakipLayout) | "Yakında Açılıyor" + kısa duyuru + `Prices` (Hisse Bedellerimiz başlığı altta); md+ grid 4 sütun, son satır ortalı; hisseal devre dışı |
 | `live` | Satış Aktif | Tam (PublicLayout) | Tam anasayfa: Features, Prices, Process, FAQ (`AnasayfaContent`) |
-| `thanks` | Teşekkür | Minimal (TakipLayout) | Teşekkürler sayfası (`ThanksContent`) |
+| `tesekkur` | Teşekkür | Minimal (TakipLayout) | Teşekkürler sayfası (`ThanksContent`) |
 | `follow_up` | Takip / Kesim | Minimal (TakipLayout) | Kurbanlık takip sayfası — Queue kartları (`TakipContent`) |
 | `anasayfa` | *(geriye dönük)* | Tam (PublicLayout) | `live` ile aynı |
 | `takip` | *(geriye dönük)* | Minimal (TakipLayout) | `follow_up` ile aynı |
 
-Varsayılan: `pre_campaign`
+Varsayılan: `bana_haber_ver`
 
 ### Layout seçimi
 
@@ -60,5 +60,7 @@ Organizasyon Ayarları sayfasında (`/kurban-admin/tenant-ayarlari`) **Anasayfa 
 DB'ye dokunmadan içerik önizlemesi:
 - `/onizleme` — Liste
 - `/onizleme/anasayfa` — Anasayfa (live modu)
-- `/onizleme/thanks` — Teşekkürler
-- `/onizleme/takip` — Takip
+- `/onizleme/bana-haber-ver` — bana_haber_ver
+- `/onizleme/geri-sayim` — geri_sayim
+- `/onizleme/tesekkur` — tesekkur
+- `/onizleme/takip` — follow_up

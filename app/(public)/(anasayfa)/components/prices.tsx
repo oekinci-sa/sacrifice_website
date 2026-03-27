@@ -69,7 +69,7 @@ interface PricesProps {
   /** true ise kartlara tıklanınca hisseal sayfasına gidilmez (ör. takip anasayfası gömülü fiyat listesi). */
   disableHissealNavigation?: boolean;
   /**
-   * true: launch_countdown vb. — tükenen hisse bedelleri listelenmez (ör. 25 kg tükendiyse hiç gösterilmez).
+   * true: geri_sayim vb. — tükenen hisse bedelleri listelenmez (ör. 25 kg tükendiyse hiç gösterilmez).
    * Satış aktif anasayfada bu prop verilmez; tükendi rozeti normal çalışır.
    */
   hideSoldOutBadge?: boolean;

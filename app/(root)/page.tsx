@@ -4,7 +4,7 @@ import AnasayfaContent from "../(public)/onizleme/anasayfa/page";
 import TakipContent from "../(takip)/(takip)/page-takip";
 import TakipHomeLaunchCountdown from "../(takip)/components/takip-home-launch-countdown";
 import TakipHomeContent from "../(takip)/components/takip-home-content";
-import ThanksContent from "../(public)/onizleme/thanks/page";
+import ThanksContent from "../(takip)/onizleme/tesekkur/page";
 
 export default async function RootPage() {
   const tenantId = getTenantId();
@@ -14,15 +14,15 @@ export default async function RootPage() {
     case "live":
     case "anasayfa":
       return <AnasayfaContent />;
-    case "launch_countdown":
+    case "geri_sayim":
       return <TakipHomeLaunchCountdown />;
-    case "thanks":
+    case "tesekkur":
       return <ThanksContent />;
     case "follow_up":
     case "takip":
       return <TakipContent />;
     default:
-      // pre_campaign
+      // bana_haber_ver ve bilinmeyen değerler
       return <TakipHomeContent />;
   }
 }

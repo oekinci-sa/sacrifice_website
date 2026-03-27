@@ -7,13 +7,13 @@ Proje e-ticaret benzeri bir kurban hisse alma sitesidir. Müslüman kullanıcıl
 ## Sayfa Listesi
 
 ### /
-Ana sayfa. `tenant_settings.homepage_mode` değerine göre içerik:
-- `anasayfa`: Tam anasayfa (Features, Prices, Process, FAQ)
-- `thanks`: Teşekkürler sayfası (hisseler satıldı)
-- `takip`: Kurbanlık takip sayfası (kesim/parçalama/teslimat sırası)
+Ana sayfa. `tenant_settings.homepage_mode` değerine göre içerik (özet):
+- `live` / `anasayfa`: Tam anasayfa (Features, Prices, Process, FAQ)
+- `bana_haber_ver`, `geri_sayim`, `tesekkur`: TakipLayout üzerinden ilgili evre
+- `follow_up` / `takip`: Kurbanlık takip sayfası
 
-### /onizleme, /onizleme/anasayfa, /onizleme/thanks, /onizleme/takip
-Önizleme route'ları. DB değişikliği yapmadan sayfa içeriklerini görmek için.
+### /onizleme ve alt yollar
+Önizleme route'ları. DB değişikliği yapmadan sayfa içeriklerini görmek için: `/onizleme/anasayfa`, `/onizleme/bana-haber-ver`, `/onizleme/geri-sayim`, `/onizleme/tesekkur`, `/onizleme/takip`.
 
 ### /hakkimizda
 Organizasyonu düzenleyenlerin tanıtıldığı sayfa.

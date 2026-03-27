@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getTenantIdOptional } from "@/lib/tenant";
 import {
+  DEFAULT_AGREEMENT_COPY,
   DEFAULT_AGREEMENT_TERMS,
   DEFAULT_BRANDING,
   type AgreementTerm,
@@ -8,7 +9,7 @@ import {
 } from "@/lib/tenant-branding-defaults";
 
 export type { AgreementTerm, TenantBranding };
-export { DEFAULT_AGREEMENT_TERMS, DEFAULT_BRANDING };
+export { DEFAULT_AGREEMENT_COPY, DEFAULT_AGREEMENT_TERMS, DEFAULT_BRANDING };
 
 /**
  * Server-side: Tenant branding bilgilerini tenant_settings'tan alır.
@@ -20,7 +21,9 @@ export async function getTenantBranding(): Promise<TenantBranding> {
 
   const { data } = await supabaseAdmin
     .from("tenant_settings")
-    .select("logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms")
+    .select(
+      "logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body"
+    )
     .eq("tenant_id", tenantId)
     .single();
 
@@ -43,5 +46,29 @@ export async function getTenantBranding(): Promise<TenantBranding> {
     full_payment_deadline_month: Number(data.full_payment_deadline_month ?? DEFAULT_BRANDING.full_payment_deadline_month),
     full_payment_deadline_day: Number(data.full_payment_deadline_day ?? DEFAULT_BRANDING.full_payment_deadline_day),
     agreement_terms,
+    agreement_dialog_title:
+      (typeof data.agreement_dialog_title === "string" && data.agreement_dialog_title.trim() !== "")
+        ? data.agreement_dialog_title.trim()
+        : DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
+    agreement_main_heading:
+      (typeof data.agreement_main_heading === "string" && data.agreement_main_heading.trim() !== "")
+        ? data.agreement_main_heading.trim()
+        : DEFAULT_AGREEMENT_COPY.agreement_main_heading,
+    agreement_intro_text:
+      (typeof data.agreement_intro_text === "string" && data.agreement_intro_text.trim() !== "")
+        ? data.agreement_intro_text
+        : DEFAULT_AGREEMENT_COPY.agreement_intro_text,
+    agreement_footer_text:
+      (typeof data.agreement_footer_text === "string" && data.agreement_footer_text.trim() !== "")
+        ? data.agreement_footer_text
+        : DEFAULT_AGREEMENT_COPY.agreement_footer_text,
+    agreement_notice_after_term_title:
+      typeof data.agreement_notice_after_term_title === "string" && data.agreement_notice_after_term_title.trim() !== ""
+        ? data.agreement_notice_after_term_title.trim()
+        : null,
+    agreement_notice_after_term_body:
+      typeof data.agreement_notice_after_term_body === "string" && data.agreement_notice_after_term_body.trim() !== ""
+        ? data.agreement_notice_after_term_body
+        : null,
   };
 }

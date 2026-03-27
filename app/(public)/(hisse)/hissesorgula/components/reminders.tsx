@@ -3,12 +3,13 @@
 import React from "react";
 import { reminders } from "../../constants";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { formatIbanForDisplay } from "@/utils/formatters";
 import Image from "next/image";
 
 const Reminders = () => {
   const branding = useTenantBranding();
   const remindersWithBranding = reminders.map((r, i) =>
-    i === 1 ? { ...r, description: branding.iban } : r
+    i === 1 ? { ...r, description: formatIbanForDisplay(branding.iban) } : r
   );
 
   return (

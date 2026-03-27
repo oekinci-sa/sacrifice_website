@@ -6,6 +6,7 @@ import { getLogoAbsoluteUrlForEmail } from "@/lib/email-logo-url";
 import { getLogoBase64ForSlug } from "@/lib/logoBase64";
 import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
 import type { TenantBranding } from "@/lib/tenant-branding";
+import { formatIbanForDisplay } from "@/utils/formatters";
 
 /** E-posta konusu ve gövdede marka adı (DB `tenants.name` değil, logo_slug ile). */
 export function getPurchaseConfirmationTenantDisplayName(logoSlug: string): string {
@@ -33,7 +34,9 @@ export function buildPurchaseConfirmationHtml(params: {
   );
 
   const remindersList = reminders.map((r, i) =>
-    i === 1 && branding.iban ? { ...r, description: branding.iban } : r
+    i === 1 && branding.iban
+      ? { ...r, description: formatIbanForDisplay(branding.iban) }
+      : r
   );
 
   const websiteUrl = branding.website_url || "ankarakurban.com.tr";
@@ -109,6 +112,7 @@ export function buildPurchaseConfirmationHtml(params: {
             ["Hisse Fiyatı", formatPrice(receipt.share_price)],
             ["Teslimat Ücreti", formatPrice(receipt.delivery_fee)],
             ["Toplam Tutar", formatPrice(receipt.total_amount)],
+            ["Kapora / IBAN", formatIbanForDisplay(branding.iban)],
             ["Satın Alma Tarihi", receipt.purchase_time],
           ])
         )}
@@ -159,6 +163,7 @@ export function buildPurchaseConfirmationHtml(params: {
     remindersList,
     websiteUrl,
     contactPhone,
+    ibanDisplay: formatIbanForDisplay(branding.iban),
   });
 
   return { html, text };
@@ -206,9 +211,17 @@ function buildPlainText(params: {
   remindersList: { header: string; description: string }[];
   websiteUrl: string;
   contactPhone: string;
+  ibanDisplay: string;
 }): string {
-  const { tenantName, receipt, deliveryTypeLabel, remindersList, websiteUrl, contactPhone } =
-    params;
+  const {
+    tenantName,
+    receipt,
+    deliveryTypeLabel,
+    remindersList,
+    websiteUrl,
+    contactPhone,
+    ibanDisplay,
+  } = params;
   const lines: string[] = [
     `Merhaba ${receipt.shareholder_name},`,
     "",
@@ -244,6 +257,7 @@ function buildPlainText(params: {
     `Hisse Fiyatı: ${formatPrice(receipt.share_price)}`,
     `Teslimat Ücreti: ${formatPrice(receipt.delivery_fee)}`,
     `Toplam Tutar: ${formatPrice(receipt.total_amount)}`,
+    `Kapora / IBAN: ${ibanDisplay}`,
     `Satın Alma Tarihi: ${receipt.purchase_time}`,
     "",
     "--- Rezervasyon Takibi ve Güvenlik ---",

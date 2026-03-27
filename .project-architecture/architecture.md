@@ -24,9 +24,8 @@
 ## Anasayfa Modu (homepage_mode)
 
 - **Kaynak:** `tenant_settings.homepage_mode` (Supabase)
-- **Değerler:** `anasayfa` | `thanks` | `takip`
-- Root `/` sayfası DB'den bu değere göre ilgili bileşeni render eder
-- `homepage_layout`: Tenant bazlı layout (default | golbasi | kahramankazan)
+- **Değerler (örnek):** `bana_haber_ver`, `geri_sayim`, `live`, `tesekkur`, `follow_up`, `anasayfa`, `takip` — ayrıntı [.project-architecture/homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md)
+- Root `/` sayfası DB'den bu değere göre ilgili bileşeni render eder (`app/(root)/page.tsx`)
 
 ## Yıl Bazlı Veri (sacrifice_year)
 

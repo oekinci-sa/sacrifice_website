@@ -113,10 +113,10 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 
 | `homepage_mode` | Admin Etiketi | Layout | İçerik |
 |-----------------|---------------|--------|--------|
-| `pre_campaign` | Ön Bilgilendirme / Bana Haber Ver | Minimal | Duyuru metni + Bana Haber Ver formu |
-| `launch_countdown` | Yakında Açılıyor | Minimal | Duyuru metni + Fiyat listesi (hisseal linki devre dışı); web’de 4 sütunlu grid |
+| `bana_haber_ver` | Ön Bilgilendirme / Bana Haber Ver | Minimal | Duyuru metni + Bana Haber Ver formu |
+| `geri_sayim` | Yakında Açılıyor | Minimal | Duyuru metni + Fiyat listesi (hisseal linki devre dışı); web’de 4 sütunlu grid |
 | `live` | Satış Aktif | Tam | Tam anasayfa (Features, Prices, Process, FAQ) |
-| `thanks` | Teşekkür | Minimal | Teşekkürler sayfası |
+| `tesekkur` | Teşekkür | Minimal | Teşekkürler sayfası |
 | `follow_up` | Takip / Kesim | Minimal | Kurbanlık takip (Queue kartları) |
 
 - Layout seçimi `app/(root)/layout.tsx`'te yapılır: `live`/`anasayfa` → `PublicLayout` (tam header/footer), diğerleri → `TakipLayout` (minimal).

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { FileText, Pencil } from "lucide-react";
+import { formatIbanForDisplay } from "@/utils/formatters";
 import {
   EditableDepositCell,
   EditableHomepageModeCell,
@@ -29,6 +30,12 @@ export type TenantSettingRow = {
   full_payment_deadline_month: number | null;
   full_payment_deadline_day: number | null;
   agreement_terms: AgreementTerm[] | null;
+  agreement_dialog_title: string | null;
+  agreement_main_heading: string | null;
+  agreement_intro_text: string | null;
+  agreement_footer_text: string | null;
+  agreement_notice_after_term_title: string | null;
+  agreement_notice_after_term_body: string | null;
   tenants?: { name?: string; slug?: string } | null;
 };
 
@@ -110,7 +117,11 @@ export function createColumns(
           row={row}
           field="iban"
           onSuccess={onRefresh}
-          display={(v) => (v && v.length > 30 ? v.slice(0, 27) + "…" : v || "-")}
+          display={(v) => {
+            if (!v) return "-";
+            const f = formatIbanForDisplay(String(v));
+            return f.length > 44 ? `${f.slice(0, 41)}…` : f;
+          }}
         />
       ),
     },

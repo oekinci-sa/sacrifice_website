@@ -5,6 +5,7 @@ import { reminders } from '@/app/(public)/(hisse)/constants';
 import type { TenantBranding } from '@/lib/tenant-branding';
 import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
+import { formatIbanForDisplay } from '@/utils/formatters';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
@@ -190,7 +191,9 @@ interface ReceiptPDFProps {
 
 function getRemindersWithBranding(branding: TenantBranding | null | undefined) {
   return reminders.map((r, i) =>
-    i === 1 && branding?.iban ? { ...r, description: branding.iban } : r
+    i === 1 && branding?.iban
+      ? { ...r, description: formatIbanForDisplay(branding.iban) }
+      : r
   );
 }
 

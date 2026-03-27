@@ -69,4 +69,23 @@ export const toTitleCase = (str: string): string => {
 };
 
 /** Liste / özet ekranlarında ad-soyad gösterimi (`toTitleCase` ile aynı). */
-export const formatPersonNameForDisplay = toTitleCase; 
+export const formatPersonNameForDisplay = toTitleCase;
+
+/**
+ * IBAN’ı TR02 0001 0011 … şeklinde 4’erli gruplarla gösterir.
+ * Boşluk içeren / IBAN olmayan açıklama metinleri (ör. “Kapora için…”) aynen döner.
+ */
+export function formatIbanForDisplay(iban: string): string {
+  if (!iban || typeof iban !== "string") return "";
+  const trimmed = iban.trim();
+  const normalized = trimmed.replace(/\s+/g, "").toUpperCase();
+  // TR IBAN: 26 karakter (harf+rakam); diğer ülkeler için benzer uzunluklarda da gruplama
+  if (!/^[A-Z]{2}[0-9A-Z]+$/.test(normalized) || normalized.length < 15) {
+    return trimmed;
+  }
+  const chunks: string[] = [];
+  for (let i = 0; i < normalized.length; i += 4) {
+    chunks.push(normalized.slice(i, i + 4));
+  }
+  return chunks.join(" ");
+} 

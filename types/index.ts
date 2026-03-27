@@ -30,13 +30,13 @@ export interface TenantSchema {
 }
 
 export type HomepageMode =
-  | "pre_campaign"
-  | "launch_countdown"
+  | "bana_haber_ver"
+  | "geri_sayim"
   | "live"
-  | "thanks"
+  | "tesekkur"
   | "follow_up"
-  | "anasayfa"  // geriye dönük uyumluluk
-  | "takip";   // geriye dönük uyumluluk
+  | "anasayfa"
+  | "takip";
 
 export interface TenantSettings {
   tenant_id: string;

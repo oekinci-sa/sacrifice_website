@@ -20,7 +20,7 @@ const item: Variants = {
 };
 
 /**
- * pre_campaign evresi: duyuru metni + "Bana Haber Ver" formu.
+ * bana_haber_ver evresi: duyuru metni + "Bana Haber Ver" formu.
  */
 export default function TakipHomeContent() {
   return (

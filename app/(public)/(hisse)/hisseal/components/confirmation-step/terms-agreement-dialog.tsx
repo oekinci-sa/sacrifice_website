@@ -11,6 +11,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { interpolateAgreementPlaceholders } from "@/lib/agreement-placeholders"
 import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
 
@@ -20,6 +21,10 @@ interface TermsAgreementDialogProps {
     onConfirm: () => void
     onBackToSecurityCode: () => void
     securityCode: string
+}
+
+function splitParagraphs(text: string): string[] {
+    return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
 }
 
 export default function TermsAgreementDialog({
@@ -77,6 +82,16 @@ export default function TermsAgreementDialog({
         onOpenChange(false)
     }
 
+    const introParagraphs = splitParagraphs(
+        interpolateAgreementPlaceholders(branding.agreement_intro_text, branding)
+    )
+    const footerParagraphs = splitParagraphs(
+        interpolateAgreementPlaceholders(branding.agreement_footer_text, branding)
+    )
+
+    const noticeAnchor = branding.agreement_notice_after_term_title?.trim() ?? ""
+    const noticeBodyRaw = branding.agreement_notice_after_term_body?.trim() ?? ""
+
     return (
         <Dialog open={open} onOpenChange={(next) => { if (!next) handleClose(); }}>
             <DialogContent
@@ -85,7 +100,7 @@ export default function TermsAgreementDialog({
             >
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                     <DialogTitle className="text-base md:text-lg text-center">
-                        Kullanıcı Sözleşmesi
+                        {branding.agreement_dialog_title}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -107,23 +122,28 @@ export default function TermsAgreementDialog({
                     >
                         <div className="flex flex-col gap-2 md:gap-4 p-4 text-sm md:text-base text-muted-foreground">
                             <h3 className="text-base md:text-lg font-semibold text-primary mb:2 md:mb-4 text-center">
-                                KURBANLIK HİSSE SÖZLEŞMESİ
+                                {branding.agreement_main_heading}
                             </h3>
 
-                            <p className="leading-relaxed">
-                                Bu metin, kurban hissesi almak isteyen gönüllüler ile bu organizasyonu gönüllülük esasıyla yürüten ekibimiz arasında, sürecin karşılıklı olarak şeffaf, anlaşılır ve düzenli ilerlemesini sağlamak amacıyla hazırlanmıştır. Amacımız, ibadet niyetiyle yapılan bu hizmetin sorunsuz ve güvenilir şekilde gerçekleşmesidir.
-                            </p>
-
-                            <p className="leading-relaxed">
-                                Lütfen aşağıdaki maddeleri dikkatlice okuyunuz. Hisse kaydı ve işlemleri sırasında bu şartları kabul etmiş sayılırsınız.
-                            </p>
+                            {introParagraphs.map((paragraph, i) => (
+                                <p key={`intro-${i}`} className="leading-relaxed">
+                                    {paragraph}
+                                </p>
+                            ))}
 
                             <div className="space-y-3">
                                 {(branding.agreement_terms ?? []).map((term, index) => {
-                                    const description =
-                                        term.title === "Ödeme ve Kapora"
-                                            ? `Her hisse için hisse alımdan itibaren ${branding.deposit_deadline_days} gün içerisinde en az ${new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(branding.deposit_amount)}₺ kapora ödenmesi zorunludur. Kalan tutarın ise ${branding.full_payment_deadline_day} ${["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][branding.full_payment_deadline_month]} gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir.`
-                                            : term.description;
+                                    const description = interpolateAgreementPlaceholders(
+                                        term.description,
+                                        branding
+                                    )
+                                    const showNoticeAfterTerm =
+                                        noticeAnchor.length > 0 &&
+                                        noticeBodyRaw.length > 0 &&
+                                        term.title.trim() === noticeAnchor
+                                    const noticeText = showNoticeAfterTerm
+                                        ? interpolateAgreementPlaceholders(noticeBodyRaw, branding)
+                                        : ""
                                     return (
                                         <div key={index} className="flex flex-col gap-0">
                                             <div className="flex gap-1">
@@ -132,10 +152,10 @@ export default function TermsAgreementDialog({
                                                 </p>
                                                 <div>
                                                     <p className="font-medium ">{term.title}</p>
-                                                    <p className="leading-relaxed">{description}</p>
-                                                    {branding.logo_slug === "elya-hayvancilik" && term.title === "Bilgilendirme ve Takip" && (
-                                                        <p className="leading-relaxed mt-3 text-muted-foreground">
-                                                            Kesimden 45 dakika önce kesimhanede bulunmanız gerekmektedir.
+                                                    <p className="leading-relaxed whitespace-pre-wrap">{description}</p>
+                                                    {showNoticeAfterTerm && (
+                                                        <p className="leading-relaxed mt-3 text-muted-foreground whitespace-pre-wrap">
+                                                            {noticeText}
                                                         </p>
                                                     )}
                                                 </div>
@@ -145,21 +165,11 @@ export default function TermsAgreementDialog({
                                 })}
                             </div>
 
-                            <p className="leading-relaxed">
-                                {branding.logo_slug === "elya-hayvancilik" ? (
-                                    <>
-                                        <b>Not:</b> Bu hizmet Elya Hayvancılık tarafından kurban hissesi almak isteyenlere kolaylık sağlamak amacıyla sunulmaktadır. İbadetin paylaşılması ve kolaylaştırılması hedeflenmektedir.
-                                        <br />
-                                        Siz değerli hissedarlarımızın bu sürece katkı sağlaması bizler için kıymetlidir.
-                                    </>
-                                ) : (
-                                    <>
-                                        <b>Not:</b> Bu hizmet <b>ticari bir faaliyet değildir.</b> Gönüllülük esasıyla yürütülmekte olup, ibadetin paylaşılması ve kolaylaştırılması amacı taşımaktadır.
-                                        <br />
-                                        Siz değerli hissedarlarımızın da bu anlayışla sürece katkı sağlaması bizler için kıymetlidir.
-                                    </>
-                                )}
-                            </p>
+                            {footerParagraphs.map((paragraph, i) => (
+                                <p key={`foot-${i}`} className="leading-relaxed">
+                                    {paragraph}
+                                </p>
+                            ))}
 
                             <div className="h-2" />
                         </div>

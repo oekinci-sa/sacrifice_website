@@ -2,6 +2,7 @@
 
 import { reminders } from "@/app/(public)/(hisse)/constants";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { formatIbanForDisplay } from "@/utils/formatters";
 import Image from "next/image";
 
 export function TripleInfo() {
@@ -20,7 +21,7 @@ export function TripleInfo() {
   };
 
   const remindersWithBranding = reminders.map((r, i) =>
-    i === 1 ? { ...r, description: branding.iban } : r
+    i === 1 ? { ...r, description: formatIbanForDisplay(branding.iban) } : r
   );
 
   return (

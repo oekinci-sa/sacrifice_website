@@ -1,13 +1,13 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type HomepageMode =
-  | "pre_campaign"
-  | "launch_countdown"
+  | "bana_haber_ver"
+  | "geri_sayim"
   | "live"
-  | "thanks"
+  | "tesekkur"
   | "follow_up"
-  | "anasayfa"  // geriye dönük uyumluluk
-  | "takip";   // geriye dönük uyumluluk
+  | "anasayfa"
+  | "takip";
 
 export interface HomepageSettings {
   mode: HomepageMode;
@@ -21,6 +21,6 @@ export async function getHomepageSettings(tenantId: string): Promise<HomepageSet
     .single();
 
   return {
-    mode: (data?.homepage_mode as HomepageMode) ?? "pre_campaign",
+    mode: (data?.homepage_mode as HomepageMode) ?? "bana_haber_ver",
   };
 }

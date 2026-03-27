@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
+import { DEFAULT_AGREEMENT_COPY, DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
 import { getTenantId } from "@/lib/tenant";
 import { NextResponse } from "next/server";
 
@@ -16,7 +16,7 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("tenant_settings")
-      .select("theme_json, homepage_mode, logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms")
+      .select("theme_json, homepage_mode, logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body")
       .eq("tenant_id", tenantId)
       .single();
 
@@ -28,7 +28,7 @@ export async function GET() {
     }
 
     const theme = data?.theme_json ?? {};
-    const homepageMode = data?.homepage_mode ?? "pre_campaign";
+    const homepageMode = data?.homepage_mode ?? "bana_haber_ver";
     const rawTerms = data?.agreement_terms;
     const agreement_terms = Array.isArray(rawTerms) && rawTerms.length > 0
       ? (rawTerms as { title: string; description: string }[]).filter((t) => t && typeof t.title === "string" && typeof t.description === "string")
@@ -46,6 +46,30 @@ export async function GET() {
       full_payment_deadline_month: Number(data?.full_payment_deadline_month ?? 5),
       full_payment_deadline_day: Number(data?.full_payment_deadline_day ?? 20),
       agreement_terms,
+      agreement_dialog_title:
+        (typeof data?.agreement_dialog_title === "string" && data.agreement_dialog_title.trim() !== "")
+          ? data.agreement_dialog_title.trim()
+          : DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
+      agreement_main_heading:
+        (typeof data?.agreement_main_heading === "string" && data.agreement_main_heading.trim() !== "")
+          ? data.agreement_main_heading.trim()
+          : DEFAULT_AGREEMENT_COPY.agreement_main_heading,
+      agreement_intro_text:
+        (typeof data?.agreement_intro_text === "string" && data.agreement_intro_text.trim() !== "")
+          ? data.agreement_intro_text
+          : DEFAULT_AGREEMENT_COPY.agreement_intro_text,
+      agreement_footer_text:
+        (typeof data?.agreement_footer_text === "string" && data.agreement_footer_text.trim() !== "")
+          ? data.agreement_footer_text
+          : DEFAULT_AGREEMENT_COPY.agreement_footer_text,
+      agreement_notice_after_term_title:
+        typeof data?.agreement_notice_after_term_title === "string" && data.agreement_notice_after_term_title.trim() !== ""
+          ? data.agreement_notice_after_term_title.trim()
+          : null,
+      agreement_notice_after_term_body:
+        typeof data?.agreement_notice_after_term_body === "string" && data.agreement_notice_after_term_body.trim() !== ""
+          ? data.agreement_notice_after_term_body
+          : null,
     };
     return NextResponse.json({ theme, homepage_mode: homepageMode, branding }, {
       headers: {

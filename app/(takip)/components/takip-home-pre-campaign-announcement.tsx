@@ -13,7 +13,7 @@ const item: Variants = {
 };
 
 /**
- * pre_campaign evresi içeriği: duyuru metni + ayırıcı + "Bana Haber Ver" formu.
+ * bana_haber_ver evresi içeriği: duyuru metni + ayırıcı + "Bana Haber Ver" formu.
  * TakipHomeContent tarafından kullanılır; gerektiğinde başka yerde de mount edilebilir.
  */
 export function TakipHomePreCampaignAnnouncement() {

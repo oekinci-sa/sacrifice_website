@@ -20,12 +20,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
+import { DEFAULT_AGREEMENT_COPY, DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { TenantSettingRow } from "./columns";
 
-export type HomepageMode = "pre_campaign" | "launch_countdown" | "live" | "thanks" | "follow_up" | "anasayfa" | "takip";
+export type HomepageMode =
+  | "bana_haber_ver"
+  | "geri_sayim"
+  | "live"
+  | "tesekkur"
+  | "follow_up"
+  | "anasayfa"
+  | "takip";
 
 interface TenantSettingsEditDialogProps {
   open: boolean;
@@ -52,7 +59,7 @@ export function TenantSettingsEditDialog({
         : "[]";
       setForm({
         theme_json: JSON.stringify(row.theme_json ?? {}, null, 2),
-        homepage_mode: row.homepage_mode ?? "pre_campaign",
+        homepage_mode: row.homepage_mode ?? "bana_haber_ver",
         logo_slug: row.logo_slug ?? "",
         iban: row.iban ?? "",
         website_url: row.website_url ?? "",
@@ -64,6 +71,16 @@ export function TenantSettingsEditDialog({
         deposit_deadline_days: row.deposit_deadline_days ?? 3,
         full_payment_deadline_month: row.full_payment_deadline_month ?? 5,
         full_payment_deadline_day: row.full_payment_deadline_day ?? 20,
+        agreement_dialog_title:
+          row.agreement_dialog_title ?? DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
+        agreement_main_heading:
+          row.agreement_main_heading ?? DEFAULT_AGREEMENT_COPY.agreement_main_heading,
+        agreement_intro_text:
+          row.agreement_intro_text ?? DEFAULT_AGREEMENT_COPY.agreement_intro_text,
+        agreement_footer_text:
+          row.agreement_footer_text ?? DEFAULT_AGREEMENT_COPY.agreement_footer_text,
+        agreement_notice_after_term_title: row.agreement_notice_after_term_title ?? "",
+        agreement_notice_after_term_body: row.agreement_notice_after_term_body ?? "",
         agreement_terms: termsJson,
       });
     }
@@ -104,6 +121,11 @@ export function TenantSettingsEditDialog({
         return;
       }
 
+      const strOrNull = (v: unknown) => {
+        const s = String(v ?? "").trim();
+        return s === "" ? null : s;
+      };
+
       const body = {
         theme_json: themeJson,
         homepage_mode: form.homepage_mode,
@@ -119,6 +141,12 @@ export function TenantSettingsEditDialog({
         full_payment_deadline_month: Number(form.full_payment_deadline_month) || null,
         full_payment_deadline_day: Number(form.full_payment_deadline_day) || null,
         agreement_terms: agreementTerms,
+        agreement_dialog_title: strOrNull(form.agreement_dialog_title),
+        agreement_main_heading: strOrNull(form.agreement_main_heading),
+        agreement_intro_text: strOrNull(form.agreement_intro_text),
+        agreement_footer_text: strOrNull(form.agreement_footer_text),
+        agreement_notice_after_term_title: strOrNull(form.agreement_notice_after_term_title),
+        agreement_notice_after_term_body: strOrNull(form.agreement_notice_after_term_body),
       };
 
       const res = await fetch(`/api/admin/tenant-settings/${row.tenant_id}`, {
@@ -180,10 +208,10 @@ export function TenantSettingsEditDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pre_campaign">Ön Bilgilendirme / Bana Haber Ver</SelectItem>
-                      <SelectItem value="launch_countdown">Yakında Açılıyor</SelectItem>
+                      <SelectItem value="bana_haber_ver">Ön Bilgilendirme / Bana Haber Ver</SelectItem>
+                      <SelectItem value="geri_sayim">Yakında Açılıyor (geri sayım)</SelectItem>
                       <SelectItem value="live">Satış Aktif</SelectItem>
-                      <SelectItem value="thanks">Teşekkür</SelectItem>
+                      <SelectItem value="tesekkur">Teşekkür</SelectItem>
                       <SelectItem value="follow_up">Takip / Kesim</SelectItem>
                     </SelectContent>
                   </Select>
@@ -339,6 +367,86 @@ export function TenantSettingsEditDialog({
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="agreement_dialog_title">Bilgi notu — diyalog başlığı</Label>
+                <Input
+                  id="agreement_dialog_title"
+                  value={String(form.agreement_dialog_title ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, agreement_dialog_title: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agreement_main_heading">Bilgi notu — ana başlık</Label>
+                <Input
+                  id="agreement_main_heading"
+                  value={String(form.agreement_main_heading ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, agreement_main_heading: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agreement_intro_text">Giriş metni</Label>
+                <Textarea
+                  id="agreement_intro_text"
+                  rows={5}
+                  value={String(form.agreement_intro_text ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, agreement_intro_text: e.target.value }))
+                  }
+                  placeholder="Paragraflar arasında boş satır bırakın. {{deposit_amount}} vb. kullanılabilir."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agreement_footer_text">Alt not metni</Label>
+                <Textarea
+                  id="agreement_footer_text"
+                  rows={5}
+                  value={String(form.agreement_footer_text ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, agreement_footer_text: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agreement_notice_after_term_title">
+                  Ek uyarı — hangi madde başlığından sonra?
+                </Label>
+                <Input
+                  id="agreement_notice_after_term_title"
+                  value={String(form.agreement_notice_after_term_title ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      agreement_notice_after_term_title: e.target.value,
+                    }))
+                  }
+                  placeholder='Örn: Bilgilendirme ve Takip — JSON’daki title ile aynı olmalı'
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agreement_notice_after_term_body">Ek uyarı metni</Label>
+                <Textarea
+                  id="agreement_notice_after_term_body"
+                  rows={3}
+                  value={String(form.agreement_notice_after_term_body ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      agreement_notice_after_term_body: e.target.value,
+                    }))
+                  }
+                  placeholder="Boş bırakılırsa ek uyarı gösterilmez. {{deposit_amount}} vb. kullanılabilir."
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="agreement_terms">Sözleşme Maddeleri (JSON)</Label>
                 <Textarea
                   id="agreement_terms"
@@ -349,7 +457,7 @@ export function TenantSettingsEditDialog({
                   placeholder='[{"title": "...", "description": "..."}]'
                 />
                 <p className="text-xs text-muted-foreground">
-                  Her madde: title ve description alanlarına sahip obje. Örnek: [{`{"title": "Ödeme ve Kapora", "description": "..."}`}]
+                  Her madde: title ve description. Tutar/tarih için {"{{deposit_amount}}"}, {"{{deposit_deadline_days}}"}, {"{{full_payment_deadline_day}}"}, {"{{full_payment_month_name}}"} kullanılabilir.
                 </p>
               </div>
 

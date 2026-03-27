@@ -1,7 +1,7 @@
 CREATE TABLE tenant_settings (
   tenant_id       UUID PRIMARY KEY REFERENCES tenants(id),
   theme_json      JSONB DEFAULT '{}'::jsonb,
-  homepage_mode   TEXT DEFAULT 'pre_campaign' CHECK (homepage_mode IN ('pre_campaign', 'launch_countdown', 'live', 'thanks', 'follow_up', 'anasayfa', 'takip')),
+  homepage_mode   TEXT DEFAULT 'bana_haber_ver' CHECK (homepage_mode IN ('bana_haber_ver', 'geri_sayim', 'live', 'tesekkur', 'follow_up', 'anasayfa', 'takip')),
   logo_slug       TEXT DEFAULT 'ankara-kurban',
   iban            TEXT,
   website_url     TEXT,
@@ -14,6 +14,12 @@ CREATE TABLE tenant_settings (
   full_payment_deadline_month SMALLINT DEFAULT 5,
   full_payment_deadline_day SMALLINT DEFAULT 20,
   agreement_terms JSONB DEFAULT '[]'::jsonb,
+  agreement_dialog_title TEXT,
+  agreement_main_heading TEXT,
+  agreement_intro_text TEXT,
+  agreement_footer_text TEXT,
+  agreement_notice_after_term_title TEXT,
+  agreement_notice_after_term_body TEXT,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

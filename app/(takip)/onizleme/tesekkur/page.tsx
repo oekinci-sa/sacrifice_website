@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 
 const page = () => {
-  // Container with staggered children
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -16,7 +15,6 @@ const page = () => {
     }
   };
 
-  // Simple fade-in for each item
   const item = {
     hidden: {
       opacity: 0
@@ -39,15 +37,12 @@ const page = () => {
     >
       <div className="flex flex-col gap-8 md:gap-12">
 
-        {/* Thank you message */}
         <motion.div
           className="flex flex-col items-center justify-center"
           variants={item}
         >
-          {/* Check Icon */}
           <i className="bi bi-patch-check-fill text-8xl text-primary mb-6 md:mb-8" />
 
-          {/* Thank you message */}
           <h1 className="text-2xl md:text-4xl text-center font-bold mb-4">
             Teşekkürler...
           </h1>
@@ -57,7 +52,6 @@ const page = () => {
           </p>
         </motion.div>
 
-        {/* Separator */}
         <motion.div
           className="w-full flex justify-center"
           variants={item}
@@ -65,7 +59,6 @@ const page = () => {
           <Separator className="w-full md:w-1/2" />
         </motion.div>
 
-        {/* Shareholder Lookup */}
         <motion.div
           className="w-full max-w-6xl mb-8"
           variants={item}

@@ -20,6 +20,12 @@ const UPDATABLE_FIELDS = [
   "full_payment_deadline_month",
   "full_payment_deadline_day",
   "agreement_terms",
+  "agreement_dialog_title",
+  "agreement_main_heading",
+  "agreement_intro_text",
+  "agreement_footer_text",
+  "agreement_notice_after_term_title",
+  "agreement_notice_after_term_body",
 ] as const;
 
 /**

@@ -1,6 +1,10 @@
 "use client";
 
-import { DEFAULT_BRANDING, type TenantBranding } from "@/lib/tenant-branding-defaults";
+import {
+  DEFAULT_AGREEMENT_COPY,
+  DEFAULT_BRANDING,
+  type TenantBranding,
+} from "@/lib/tenant-branding-defaults";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface TenantBrandingContextValue {
@@ -44,6 +48,30 @@ export function TenantBrandingProvider({
             full_payment_deadline_month: Number(data.branding.full_payment_deadline_month ?? DEFAULT_BRANDING.full_payment_deadline_month),
             full_payment_deadline_day: Number(data.branding.full_payment_deadline_day ?? DEFAULT_BRANDING.full_payment_deadline_day),
             agreement_terms,
+            agreement_dialog_title:
+              (typeof data.branding.agreement_dialog_title === "string" && data.branding.agreement_dialog_title.trim() !== "")
+                ? data.branding.agreement_dialog_title.trim()
+                : DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
+            agreement_main_heading:
+              (typeof data.branding.agreement_main_heading === "string" && data.branding.agreement_main_heading.trim() !== "")
+                ? data.branding.agreement_main_heading.trim()
+                : DEFAULT_AGREEMENT_COPY.agreement_main_heading,
+            agreement_intro_text:
+              (typeof data.branding.agreement_intro_text === "string" && data.branding.agreement_intro_text.trim() !== "")
+                ? data.branding.agreement_intro_text
+                : DEFAULT_AGREEMENT_COPY.agreement_intro_text,
+            agreement_footer_text:
+              (typeof data.branding.agreement_footer_text === "string" && data.branding.agreement_footer_text.trim() !== "")
+                ? data.branding.agreement_footer_text
+                : DEFAULT_AGREEMENT_COPY.agreement_footer_text,
+            agreement_notice_after_term_title:
+              typeof data.branding.agreement_notice_after_term_title === "string" && data.branding.agreement_notice_after_term_title.trim() !== ""
+                ? data.branding.agreement_notice_after_term_title.trim()
+                : null,
+            agreement_notice_after_term_body:
+              typeof data.branding.agreement_notice_after_term_body === "string" && data.branding.agreement_notice_after_term_body.trim() !== ""
+                ? data.branding.agreement_notice_after_term_body
+                : null,
           });
         }
       })

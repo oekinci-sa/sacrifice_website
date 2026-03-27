@@ -80,7 +80,7 @@ export default function TakipHomeLaunchCountdown() {
             Yakında Açılıyor
           </h1>
           <p className="md:w-2/3 text-muted-foreground text-center text-base md:text-xl max-w-3xl">
-            Hisse alım işlemlerimiz 28 Mart Cumartesi günü saat 09.00 itibarıyla aktif olacaktır.
+            Hisse alım işlemlerimiz 28 Mart Cumartesi günü itibarıyla aktif olacaktır.
           </p>
         </motion.div>
 

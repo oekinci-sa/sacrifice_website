@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
 import { getTenantId } from "@/lib/tenant";
 import { NextResponse } from "next/server";
 
@@ -41,7 +42,7 @@ export async function GET() {
       contact_phone: data?.contact_phone ?? "0312 312 44 64 / 0552 652 90 00",
       contact_email: data?.contact_email ?? "iletisim@ankarakurban.com.tr",
       contact_address: data?.contact_address ?? "Hacı Bayram, Ulus, Adliye Sk. No:1 Altındağ/Ankara (09.00 - 18.00)",
-      deposit_amount: Number(data?.deposit_amount ?? 10000),
+      deposit_amount: Number(data?.deposit_amount ?? DEFAULT_BRANDING.deposit_amount),
       deposit_deadline_days: Number(data?.deposit_deadline_days ?? 3),
       full_payment_deadline_month: Number(data?.full_payment_deadline_month ?? 5),
       full_payment_deadline_day: Number(data?.full_payment_deadline_day ?? 20),

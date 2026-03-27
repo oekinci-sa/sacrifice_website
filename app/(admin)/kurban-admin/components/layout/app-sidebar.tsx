@@ -193,22 +193,26 @@ export function AppSidebar() {
           </Button>
         ) : (
           <>
-            <div
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Ana sayfayı yeni sekmede aç"
               className={
                 logoSlug === "elya-hayvancilik"
-                  ? "relative h-9 w-[100px] min-w-0 shrink"
-                  : "relative h-[60px] w-[min(210px,calc(100%-2.75rem))] min-w-0 shrink"
+                  ? "relative block h-9 w-[100px] min-w-0 shrink"
+                  : "relative block h-[60px] w-[min(210px,calc(100%-2.75rem))] min-w-0 shrink"
               }
             >
               <Image
                 src={`/logos/${logoSlug}/${logoSlug}.svg`}
-                alt="Organizasyon logosu"
+                alt="Ana sayfa — organizasyon logosu"
                 fill
                 className="object-contain object-left"
                 sizes={logoSlug === "elya-hayvancilik" ? "100px" : "240px"}
                 priority
               />
-            </div>
+            </Link>
             <Button
               variant="ghost"
               size="icon"

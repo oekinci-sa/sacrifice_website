@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function usePendingUserCount() {
   const [count, setCount] = useState<number | null>(null);
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/users/pending-count");
       if (!res.ok) return;
@@ -12,17 +12,19 @@ export function usePendingUserCount() {
     } catch {
       setCount(0);
     }
-  };
-
-  useEffect(() => {
-    fetchCount();
   }, []);
 
   useEffect(() => {
-    const handler = () => fetchCount();
+    void fetchCount();
+  }, [fetchCount]);
+
+  useEffect(() => {
+    const handler = () => {
+      void fetchCount();
+    };
     window.addEventListener("user-updated", handler);
     return () => window.removeEventListener("user-updated", handler);
-  }, []);
+  }, [fetchCount]);
 
   return { count: count ?? 0, isLoading: count === null, refetch: fetchCount };
 }

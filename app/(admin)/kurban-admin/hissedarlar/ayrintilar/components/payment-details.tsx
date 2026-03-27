@@ -38,7 +38,7 @@ export function PaymentDetails({
           <p className={labelClass}>Son kapora ödeme tarihi</p>
           <div className="flex items-center gap-2">
             <p className={`${valueClass} text-sm md:text-base`}>{lastDepositDate.toLocaleDateString("tr-TR")}</p>
-            {shareholderInfo.paid_amount >= 5000 && (
+            {shareholderInfo.paid_amount >= depositAmount && (
               <span className="text-sac-primary text-xs md:text-sm">• Ödeme yapıldı</span>
             )}
           </div>
@@ -86,7 +86,7 @@ export function PaymentDetails({
                   "text-sac-primary": shareholderInfo.remaining_payment <= 0,
                 }
               )}>
-                {shareholderInfo.paid_amount < 5000
+                {shareholderInfo.paid_amount < depositAmount
                   ? "Kapora Bekleniyor"
                   : shareholderInfo.remaining_payment > 0
                     ? "Tüm Ödeme Bekleniyor"

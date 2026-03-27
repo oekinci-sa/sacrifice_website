@@ -9,8 +9,6 @@ import { shareholderSchema } from "@/types";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
 import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
-import { setupRefreshListener } from "@/utils/data-refresh";
-import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
 import { columns } from "./components/columns";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
 import { ToolbarAndFilters } from "./ToolbarAndFilters";
@@ -57,12 +55,6 @@ export default function TumKurbanliklarPage() {
     shareholders.length,
     fetchShareholders
   ]);
-
-  // Refetch shareholders when sacrifice is updated (e.g. hisse bedeli) so tooltip shows correct values
-  useEffect(() => {
-    if (selectedYear == null) return () => {};
-    return setupRefreshListener(SACRIFICE_UPDATED_EVENT, () => fetchShareholders(selectedYear));
-  }, [selectedYear, fetchShareholders]);
 
   // Combine sacrifices with their shareholders
   const sacrificesWithShareholders = useMemo(() => {

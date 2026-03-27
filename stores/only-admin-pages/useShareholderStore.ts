@@ -25,6 +25,12 @@ interface ShareholderState {
   disableRealtime: () => void;
 }
 
+function notifyShareholdersCountsRefresh() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("shareholders-updated"));
+  }
+}
+
 // Create a realtime channel for shareholders table
 const setupRealtimeSubscription = (set: any, get: any) => {
   const channel = supabase
@@ -52,6 +58,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
               const exists = get().shareholders.some((s: shareholderSchema) => s.shareholder_id === data.shareholder_id);
               if (!exists) {
                 set((state: ShareholderState) => ({ shareholders: [data, ...state.shareholders] }));
+                notifyShareholdersCountsRefresh();
               }
             })
             .catch(() => {});
@@ -84,6 +91,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
                         : s
                     ),
                   });
+                  notifyShareholdersCountsRefresh();
                 } else {
                   const mergedShareholder = {
                     ...updatedShareholder,
@@ -94,6 +102,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
                       s.shareholder_id === updatedShareholder.shareholder_id ? mergedShareholder : s
                     ),
                   });
+                  notifyShareholdersCountsRefresh();
                 }
               })
               .catch(() => {
@@ -106,6 +115,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
                     s.shareholder_id === updatedShareholder.shareholder_id ? mergedShareholder : s
                   ),
                 });
+                notifyShareholdersCountsRefresh();
               });
           } else {
             // If we can't find the existing record, just use the update as is
@@ -114,6 +124,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
                 s.shareholder_id === updatedShareholder.shareholder_id ? updatedShareholder : s
               ),
             });
+            notifyShareholdersCountsRefresh();
           }
         }
 
@@ -123,6 +134,7 @@ const setupRealtimeSubscription = (set: any, get: any) => {
           set({
             shareholders: state.shareholders.filter((s: shareholderSchema) => s.shareholder_id !== deletedId),
           });
+          notifyShareholdersCountsRefresh();
         }
       }
     )

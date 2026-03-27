@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useShareholdersCount(year?: number | null) {
   const [count, setCount] = useState<number | null>(null);
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     try {
       const url = year != null
         ? `/api/admin/shareholders/count?year=${year}`
@@ -15,17 +15,19 @@ export function useShareholdersCount(year?: number | null) {
     } catch {
       setCount(0);
     }
-  };
-
-  useEffect(() => {
-    fetchCount();
   }, [year]);
 
   useEffect(() => {
-    const handler = () => fetchCount();
+    fetchCount();
+  }, [fetchCount]);
+
+  useEffect(() => {
+    const handler = () => {
+      void fetchCount();
+    };
     window.addEventListener("shareholders-updated", handler);
     return () => window.removeEventListener("shareholders-updated", handler);
-  }, []);
+  }, [fetchCount]);
 
   return { count: count ?? 0, refetch: fetchCount };
 }

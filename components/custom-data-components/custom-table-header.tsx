@@ -3,13 +3,10 @@
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Table as TableInstance, flexRender } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 
 /** Sütun seçicide ve başlık sürüklemesinde — bu sütunlar yeniden sıralanmaz */
 const HEADER_REORDER_EXCLUDED_IDS = ["security_code", "actions"] as const
-
-/** Bu kadar piksel kaydırınca sürükleme kabul edilir */
-const DRAG_SLOP_PX = 6
 
 /** Hedef sütunun sol yarısı: öncesine; sağ yarısı: sonrasına yerleştir */
 function reorderWithInsertEdge(
@@ -78,76 +75,16 @@ export function CustomTableHeader<TData>({
 
   const canReorder = Boolean(onColumnOrderChange)
 
-  const dragInProgressRef = useRef(false)
-  const pendingRef = useRef<{ columnId: string; x: number; y: number } | null>(null)
-  const slopMetRef = useRef(false)
-  const moveListenerRef = useRef<((e: PointerEvent) => void) | null>(null)
-  const upListenerRef = useRef<(() => void) | null>(null)
-
   const [draggingColumnId, setDraggingColumnId] = useState<string | null>(null)
   const [dropIndicator, setDropIndicator] = useState<DropIndicator>(null)
 
-  const removeWindowListeners = useCallback(() => {
-    if (moveListenerRef.current) {
-      window.removeEventListener("pointermove", moveListenerRef.current)
-      moveListenerRef.current = null
-    }
-    if (upListenerRef.current) {
-      window.removeEventListener("pointerup", upListenerRef.current, true)
-      window.removeEventListener("pointercancel", upListenerRef.current, true)
-      upListenerRef.current = null
-    }
-  }, [])
-
   const disarmDrag = useCallback(() => {
-    dragInProgressRef.current = false
-    pendingRef.current = null
-    slopMetRef.current = false
     setDraggingColumnId(null)
     setDropIndicator(null)
-    removeWindowListeners()
-  }, [removeWindowListeners])
-
-  const armPointerGesture = useCallback(
-    (columnId: string, clientX: number, clientY: number) => {
-      removeWindowListeners()
-      pendingRef.current = { columnId, x: clientX, y: clientY }
-      slopMetRef.current = false
-
-      const onMove = (ev: PointerEvent) => {
-        const p = pendingRef.current
-        if (!p) return
-        const dx = ev.clientX - p.x
-        const dy = ev.clientY - p.y
-        if (Math.hypot(dx, dy) >= DRAG_SLOP_PX) {
-          slopMetRef.current = true
-        }
-      }
-
-      const onUp = () => {
-        removeWindowListeners()
-        if (!dragInProgressRef.current) {
-          pendingRef.current = null
-          slopMetRef.current = false
-        }
-      }
-
-      moveListenerRef.current = onMove
-      upListenerRef.current = onUp
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp, true)
-      window.addEventListener("pointercancel", onUp, true)
-    },
-    [removeWindowListeners]
-  )
+  }, [])
 
   const handleDragStart = useCallback(
     (e: React.DragEvent, columnId: string) => {
-      if (!slopMetRef.current) {
-        e.preventDefault()
-        return
-      }
-      dragInProgressRef.current = true
       setDraggingColumnId(columnId)
       const label = resolveDragLabel(table as TableInstance<unknown>, columnId, columnHeaderLabels)
       e.dataTransfer.effectAllowed = "move"
@@ -190,10 +127,6 @@ export function CustomTableHeader<TData>({
       if (HEADER_REORDER_EXCLUDED_IDS.includes(draggedId as "actions" | "security_code")) return
       if (HEADER_REORDER_EXCLUDED_IDS.includes(targetColumnId as "actions" | "security_code")) return
 
-      const col = table.getColumn(draggedId)
-      const targetCol = table.getColumn(targetColumnId)
-      if (!col?.getCanHide() || !targetCol?.getCanHide()) return
-
       const visibleIds = table
         .getVisibleLeafColumns()
         .map((c) => c.id)
@@ -223,8 +156,7 @@ export function CustomTableHeader<TData>({
             const columnId = header.column.id
             const canReorderThis =
               canReorder &&
-              !HEADER_REORDER_EXCLUDED_IDS.includes(columnId as "actions" | "security_code") &&
-              header.column.getCanHide()
+              !HEADER_REORDER_EXCLUDED_IDS.includes(columnId as "actions" | "security_code")
 
             const minSize = (header.column.columnDef as { minSize?: number }).minSize
 
@@ -239,11 +171,6 @@ export function CustomTableHeader<TData>({
                 draggable={canReorderThis}
                 style={minSize != null ? { minWidth: `${minSize}px` } : undefined}
                 className={`relative text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass} ${draggingColumnId === columnId ? "cursor-grabbing opacity-60" : canReorderThis ? "cursor-grab" : ""}`}
-                onPointerDownCapture={
-                  canReorderThis
-                    ? (e) => armPointerGesture(columnId, e.clientX, e.clientY)
-                    : undefined
-                }
                 onDragStart={canReorderThis ? (e) => handleDragStart(e, columnId) : undefined}
                 onDragEnd={canReorderThis ? handleDragEnd : undefined}
                 onDragOver={

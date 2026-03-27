@@ -1,6 +1,7 @@
 "use client";
 
 import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { usePublicShareholderCountStore } from "@/stores/only-public-pages/usePublicShareholderCountStore";
 import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { useEffect, useMemo } from "react";
@@ -8,9 +9,18 @@ import { useEffect, useMemo } from "react";
 /**
  * Toplam satılan hisse (etiket): sayı hissedar kayıt sayısı (/api/public/shareholders-count) + Realtime.
  * İşlemdeki hisse: aktif rezervasyon store.
+ *
+ * Yıl: Tabloda gösterilen kurbanlıklar `useSacrificeStore` ile gelir; sayımın aynı kampanya yılına
+ * gitmesi için önce `sacrifices[0].sacrifice_year`, yoksa `selectedYear` kullanılır (yıl uyuşmazlığında 0 görünmesini önler).
  */
 export function HissealLiveStats() {
   const selectedYear = usePublicYearStore((s) => s.selectedYear);
+  const sacrifices = useSacrificeStore((s) => s.sacrifices);
+  const yearForCount = useMemo(
+    () => sacrifices[0]?.sacrifice_year ?? selectedYear ?? null,
+    [sacrifices, selectedYear]
+  );
+
   const totalShareholders = usePublicShareholderCountStore((s) => s.count);
   const fetchCount = usePublicShareholderCountStore((s) => s.fetchCount);
   const disableRealtime = usePublicShareholderCountStore((s) => s.disableRealtime);
@@ -18,12 +28,12 @@ export function HissealLiveStats() {
   const reservations = useActiveReservationsStore((s) => s.reservations);
 
   useEffect(() => {
-    if (selectedYear == null) return;
-    void fetchCount(selectedYear);
+    if (yearForCount == null) return;
+    void fetchCount(yearForCount);
     return () => {
       disableRealtime();
     };
-  }, [selectedYear, fetchCount, disableRealtime]);
+  }, [yearForCount, fetchCount, disableRealtime]);
 
   const inProgressShares = useMemo(() => {
     let n = 0;

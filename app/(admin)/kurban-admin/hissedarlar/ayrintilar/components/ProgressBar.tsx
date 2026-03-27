@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 interface ProgressBarProps {
   paidAmount: number;
   totalAmount: number;
-  depositAmount?: number;
+  depositAmount: number;
 }
 
-export function ProgressBar({ paidAmount, totalAmount, depositAmount = 10000 }: ProgressBarProps) {
+export function ProgressBar({ paidAmount, totalAmount, depositAmount }: ProgressBarProps) {
   // Calculate progress percentage
   const progress = Math.min(Math.round((paidAmount / totalAmount) * 100), 100);
 

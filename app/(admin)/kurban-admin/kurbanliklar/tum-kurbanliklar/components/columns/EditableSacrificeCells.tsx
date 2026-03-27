@@ -439,7 +439,7 @@ function effectiveEarTagLabel(s: sacrificeSchema): string {
 export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const sacrifice = row.original;
@@ -460,7 +460,7 @@ export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
       updateSacrifice({ ...sacrifice, ...data });
       triggerSacrificeRefresh();
       toast({ title: "Güncellendi" });
-      setOpen(false);
+      setEditing(false);
     } catch (e) {
       toast({
         title: "Hata",
@@ -472,48 +472,66 @@ export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
     }
   }, [value, sacrifice, updateSacrifice, toast]);
 
-  return (
-    <>
-      <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
-        <span className="tabular-nums text-sm px-8 pr-9 py-1 text-center">{display}</span>
+  const handleCancel = useCallback(() => {
+    setValue(current);
+    setEditing(false);
+  }, [current]);
+
+  const startEdit = useCallback(() => {
+    setValue(current);
+    setEditing(true);
+  }, [current]);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center min-w-0 px-1">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleSave();
+            if (e.key === "Escape") handleCancel();
+          }}
+          className="h-8 min-w-0 flex-1 max-w-[160px] font-mono tabular-nums text-sm"
+          placeholder="Küpe no"
+          maxLength={64}
+          autoFocus
+          disabled={saving}
+        />
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => {
-            setValue(current);
-            setOpen(true);
-          }}
+          className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50"
+          onClick={() => void handleSave()}
+          disabled={saving}
         >
-          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <X className="h-4 w-4" />
         </Button>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Küpe No</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Küpe numarasını buradan girin. Boş bırakırsanız alan temizlenir.
-          </p>
-          <Input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="h-10 font-mono tabular-nums"
-            placeholder="Örn. 2026-0042"
-            maxLength={64}
-          />
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-              İptal
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              Kaydet
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    );
+  }
+
+  return (
+    <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
+      <span className="tabular-nums text-sm px-8 pr-9 py-1 text-center">{display}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={startEdit}
+      >
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
   );
 }
 

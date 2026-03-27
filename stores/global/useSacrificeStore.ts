@@ -1,3 +1,4 @@
+import { resolveTenantIdFromHost } from '@/lib/tenant-resolver';
 import { sacrificeSchema } from '@/types';
 import RealtimeManager from '@/utils/RealtimeManager';
 import { create } from 'zustand';
@@ -5,6 +6,24 @@ import { devtools } from 'zustand/middleware';
 
 // Define the custom event name as a constant for consistency
 export const SACRIFICE_UPDATED_EVENT = "sacrifice-updated";
+
+/** Realtime (anon) tüm tenant’lardaki satır değişimlerini iletir; API ise tek tenant filtreler. Bu kapsamla yanlış tenant/yıl birleşimi engellenir. */
+function matchesSacrificeRealtimeScope(
+  row: { tenant_id?: string; sacrifice_year?: number } | null | undefined,
+  state: {
+    realtimeScopeTenantId: string | null;
+    realtimeScopeSacrificeYear: number | null;
+  }
+): boolean {
+  if (!row?.tenant_id) return false;
+  const expectedTenant =
+    state.realtimeScopeTenantId ??
+    (typeof window !== "undefined" ? resolveTenantIdFromHost(window.location.host) : null);
+  if (!expectedTenant || row.tenant_id !== expectedTenant) return false;
+  const expectedYear = state.realtimeScopeSacrificeYear;
+  if (expectedYear != null && row.sacrifice_year !== expectedYear) return false;
+  return true;
+}
 
 export interface SacrificeState {
   // State
@@ -14,6 +33,10 @@ export interface SacrificeState {
   error: Error | null;
   isInitialized: boolean;
   totalEmptyShares: number;
+  /** Son başarılı listeleme / host ile uyumlu tenant (realtime filtre) */
+  realtimeScopeTenantId: string | null;
+  /** Seçili kurban yılı (realtime filtre); API ile aynı yıl */
+  realtimeScopeSacrificeYear: number | null;
 
   // Methods
   refetchSacrifices: (year?: number | null) => Promise<sacrificeSchema[]>;
@@ -36,6 +59,8 @@ export const useSacrificeStore = create<SacrificeState>()(
       error: null,
       isInitialized: false,
       totalEmptyShares: 0,
+      realtimeScopeTenantId: null,
+      realtimeScopeSacrificeYear: null,
 
       // Methods
       refetchSacrifices: async (year?: number | null) => {
@@ -61,19 +86,29 @@ export const useSacrificeStore = create<SacrificeState>()(
 
           const data = await response.json() as sacrificeSchema[];
 
+          const prev = get();
+          const tenantScope =
+            data[0]?.tenant_id ??
+            prev.realtimeScopeTenantId ??
+            (typeof window !== "undefined" ? resolveTenantIdFromHost(window.location.host) : null);
+          const yearScope =
+            data[0]?.sacrifice_year ??
+            (year != null ? year : prev.realtimeScopeSacrificeYear);
+
+          const totalEmptyShares = data.reduce(
+            (sum, sacrifice) => sum + sacrifice.empty_share,
+            0
+          );
+
           set({
             sacrifices: data,
             isLoadingSacrifices: false,
             isRefetching: false,
             isInitialized: true,
+            totalEmptyShares,
+            realtimeScopeTenantId: tenantScope,
+            realtimeScopeSacrificeYear: yearScope ?? null,
           });
-
-          // Calculate empty shares
-          const totalEmptyShares = data.reduce(
-            (sum, sacrifice) => sum + sacrifice.empty_share,
-            0
-          );
-          set({ totalEmptyShares });
 
           return data;
         } catch (error) {
@@ -148,8 +183,12 @@ export const useSacrificeStore = create<SacrificeState>()(
           "sacrifice_animals",
           (payload) => {
             const { eventType, new: newData, old: oldData } = payload;
+            const st = get();
 
             if (eventType === "INSERT" || eventType === "UPDATE") {
+              if (!matchesSacrificeRealtimeScope(newData as sacrificeSchema, st)) {
+                return;
+              }
               get().updateSacrifice(newData as sacrificeSchema);
 
               // Otomatik veri yenilemeyi önle - her değişiklik için tüm verileri yeniden çekme
@@ -157,6 +196,9 @@ export const useSacrificeStore = create<SacrificeState>()(
               //   get().refetchSacrifices();
               // }, 300);
             } else if (eventType === "DELETE" && oldData?.sacrifice_id) {
+              if (!matchesSacrificeRealtimeScope(oldData as sacrificeSchema, st)) {
+                return;
+              }
               get().removeSacrifice(oldData.sacrifice_id);
               window.dispatchEvent(new CustomEvent(SACRIFICE_UPDATED_EVENT));
             }

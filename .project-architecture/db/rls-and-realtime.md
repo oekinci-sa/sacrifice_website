@@ -78,6 +78,20 @@ Tüm tablolarda RLS **aktif**tir.
 
 ---
 
+## Client: çok kiracılı Realtime ve Zustand (kritik)
+
+**Sorun:** `sacrifice_animals` (ve benzeri) için anon Realtime aboneliği, RLS’te `USING (true)` olduğu ve istemcide `supabase.realtime.setAuth(anon)` kullanıldığı için **tüm tenant’lardaki** INSERT/UPDATE/DELETE olaylarını iletebilir. REST API ise `tenant_id` ile filtrelenmiş veri döner.
+
+**Sonuç:** Örn. admin **Kurbanlıklar** listesinde başka tenant’a ait bir satır, store’da `updateSacrifice` ile listenin sonuna **eklenebiliyordu** (satır ID listede yoksa append).
+
+**Zorunlu koruma (uygulama tarafı):**
+- `stores/global/useSacrificeStore.ts`: Realtime payload işlenmeden önce **`tenant_id`** ve mümkünse **`sacrifice_year`** (son başarılı `refetchSacrifices` kapsamı + host’tan tenant) ile **filtrele**; uymayan olayları yok say.
+- İleride iyileştirme: Supabase kanalında `filter: 'tenant_id=eq.<uuid>'` (RealtimeManager / abonelik parametresi) ile sunucu tarafında gürültüyü azaltmak.
+
+**Tekrar oluşmaması için:** Yeni Realtime + global store birleşimlerinde aynı tenant/yıl doğrulamasını ekle veya aboneliği filtreli kur.
+
+---
+
 ## View'lar (UNRESTRICTED)
 
 Supabase'de `mismatched_shares` UNRESTRICTED; kendi RLS policy'si yok, alttaki tabloların RLS'i geçerli.

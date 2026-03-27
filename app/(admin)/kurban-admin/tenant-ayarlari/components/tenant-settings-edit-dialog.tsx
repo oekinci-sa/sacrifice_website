@@ -20,6 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { TenantSettingRow } from "./columns";
@@ -61,7 +62,7 @@ export function TenantSettingsEditDialog({
         contact_email: row.contact_email ?? "",
         contact_address: row.contact_address ?? "",
         active_sacrifice_year: row.active_sacrifice_year ?? 2025,
-        deposit_amount: row.deposit_amount ?? 10000,
+        deposit_amount: row.deposit_amount ?? DEFAULT_BRANDING.deposit_amount,
         deposit_deadline_days: row.deposit_deadline_days ?? 3,
         full_payment_deadline_month: row.full_payment_deadline_month ?? 5,
         full_payment_deadline_day: row.full_payment_deadline_day ?? 20,

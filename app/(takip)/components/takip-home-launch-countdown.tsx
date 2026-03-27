@@ -1,7 +1,7 @@
 "use client";
 
+import Prices from "@/app/(public)/(anasayfa)/components/prices";
 import { motion, type Variants } from "framer-motion";
-import { TakipHomePreCampaignAnnouncement } from "./takip-home-pre-campaign-announcement";
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -20,9 +20,10 @@ const item: Variants = {
 };
 
 /**
- * pre_campaign evresi: duyuru metni + "Bana Haber Ver" formu.
+ * launch_countdown evresi: başlık + satış başlangıç duyurusu + fiyat listesi (TÜKENDİ gösterilmez).
+ * Hisseal'a yönlendirme devre dışı (disableHissealNavigation).
  */
-export default function TakipHomeContent() {
+export default function TakipHomeLaunchCountdown() {
   return (
     <motion.div
       className="container flex flex-col items-center"
@@ -37,11 +38,16 @@ export default function TakipHomeContent() {
         >
           <i className="bi bi-patch-check-fill text-8xl text-primary mb-6 md:mb-8" />
           <h1 className="text-2xl md:text-4xl text-center font-bold mb-4">
-            2026 Kurban Satışlarımız Çok Yakında Başlıyor
+            Yakında Açılıyor
           </h1>
+          <p className="md:w-2/3 text-muted-foreground text-center text-base md:text-xl max-w-3xl">
+            Hisse alım işlemlerimiz 28 Mart Cumartesi günü saat 09.00 itibarıyla aktif olacaktır.
+          </p>
         </motion.div>
 
-        <TakipHomePreCampaignAnnouncement />
+        <motion.div className="w-full" variants={item}>
+          <Prices disableHissealNavigation hideSoldOutBadge />
+        </motion.div>
       </div>
     </motion.div>
   );

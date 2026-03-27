@@ -1,8 +1,7 @@
+import { getHomepageSettings } from "@/lib/homepage-settings";
 import { getTenantId } from "@/lib/tenant";
 import PublicLayout from "../(public)/layout";
 import TakipLayout from "../(takip)/layout";
-
-const GOLBASI_TENANT_ID = "00000000-0000-0000-0000-000000000003";
 
 export default async function RootLayout({
   children,
@@ -10,8 +9,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const tenantId = getTenantId();
+  const { mode } = await getHomepageSettings(tenantId);
 
-  if (tenantId === GOLBASI_TENANT_ID) {
+  if (mode === "live" || mode === "anasayfa") {
     return <PublicLayout>{children}</PublicLayout>;
   }
 

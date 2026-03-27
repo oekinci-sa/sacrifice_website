@@ -70,7 +70,6 @@ export default function TenantAyarlariPage() {
           initialState={{
             columnVisibility: {
               logo_slug: false,
-              homepage_mode: false,
               contact_email: false,
               contact_address: false,
             },

@@ -1,8 +1,7 @@
 CREATE TABLE tenant_settings (
   tenant_id       UUID PRIMARY KEY REFERENCES tenants(id),
   theme_json      JSONB DEFAULT '{}'::jsonb,
-  homepage_mode   TEXT DEFAULT 'thanks' CHECK (homepage_mode IN ('anasayfa', 'thanks', 'takip')),
-  homepage_layout TEXT DEFAULT 'default' CHECK (homepage_layout IN ('default', 'golbasi', 'kahramankazan')),
+  homepage_mode   TEXT DEFAULT 'pre_campaign' CHECK (homepage_mode IN ('pre_campaign', 'launch_countdown', 'live', 'thanks', 'follow_up', 'anasayfa', 'takip')),
   logo_slug       TEXT DEFAULT 'ankara-kurban',
   iban            TEXT,
   website_url     TEXT,

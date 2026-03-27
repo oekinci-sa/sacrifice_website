@@ -1,7 +1,7 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -11,7 +11,74 @@ interface PriceItem {
   soldOut: boolean;
 }
 
-const Prices = () => {
+function PriceCard({
+  item,
+  disableHissealNavigation,
+  hideSoldOutBadge,
+  router,
+  itemVariant,
+  boxVariant,
+}: {
+  item: PriceItem;
+  disableHissealNavigation: boolean;
+  hideSoldOutBadge: boolean;
+  router: ReturnType<typeof import("next/navigation").useRouter>;
+  itemVariant: Variants;
+  boxVariant: Variants;
+}) {
+  const effectiveSoldOut = item.soldOut && !hideSoldOutBadge;
+  return (
+    <motion.div
+      className={`flex flex-col items-center transition-all duration-300 ${
+        effectiveSoldOut
+          ? "cursor-not-allowed"
+          : disableHissealNavigation
+            ? "cursor-default"
+            : "cursor-pointer hover:scale-105"
+      }`}
+      onClick={() => {
+        if (disableHissealNavigation || effectiveSoldOut) return;
+        router.push(`/hisseal?price=${item.price}`);
+      }}
+      variants={itemVariant}
+    >
+      <motion.div
+        className="flex items-center justify-center bg-black text-white text-base md:text-2xl font-medium px-2 py-1 rounded-md"
+        variants={boxVariant}
+      >
+        {item.kg} KG
+      </motion.div>
+      <motion.div
+        className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${
+          effectiveSoldOut ? "rounded-t-md" : "rounded-md"
+        }`}
+        variants={boxVariant}
+      >
+        {item.price.toLocaleString("tr-TR")} TL
+      </motion.div>
+      {effectiveSoldOut && (
+        <motion.div
+          className="inline-flex items-center justify-center bg-sac-red text-white text-xs md:text-base font-semibold px-2 py-0.5 rounded-b-md -mt-px mx-auto"
+          variants={boxVariant}
+        >
+          TÜKENDİ
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
+interface PricesProps {
+  /** true ise kartlara tıklanınca hisseal sayfasına gidilmez (ör. takip anasayfası gömülü fiyat listesi). */
+  disableHissealNavigation?: boolean;
+  /** true ise "TÜKENDİ" rozeti ve satışa kapalı görünümü gösterilmez (ör. launch_countdown önizleme). */
+  hideSoldOutBadge?: boolean;
+}
+
+const Prices = ({
+  disableHissealNavigation = false,
+  hideSoldOutBadge = false,
+}: PricesProps) => {
   const branding = useTenantBranding();
   const router = useRouter();
   const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
@@ -68,6 +135,24 @@ const Prices = () => {
     return null;
   }
 
+  const total = priceItems.length;
+  /** Mobil: 2 sütun; tam satırlardan sonra kalan tek/çift kart alt satırda ortalı */
+  const fullRowsMobile = Math.floor(total / 2) * 2;
+  const firstPartMobile = priceItems.slice(0, fullRowsMobile);
+  const lastPartMobile = priceItems.slice(fullRowsMobile);
+  /** md+: 4 sütun; son satır ortalı */
+  const fullRowsDesktop = Math.floor(total / 4) * 4;
+  const firstPartDesktop = priceItems.slice(0, fullRowsDesktop);
+  const lastPartDesktop = priceItems.slice(fullRowsDesktop);
+
+  const cardProps = {
+    disableHissealNavigation,
+    hideSoldOutBadge,
+    router,
+    itemVariant,
+    boxVariant,
+  };
+
   return (
     <section className="container mx-auto">
       <motion.div
@@ -82,55 +167,55 @@ const Prices = () => {
         </h2>
 
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 md:gap-x-24 md:gap-y-12 items-start justify-items-center"
+          className="w-full"
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
         >
-          {priceItems.map((item, index) => {
-            const isLastRowPartial = priceItems.length % 4 === 2 && index >= priceItems.length - 2;
-            const gridColClass = isLastRowPartial
-              ? index === priceItems.length - 2
-                ? "md:col-start-2"
-                : "md:col-start-3"
-              : "";
-            return (
-            <motion.div
-              key={`${item.kg}-${item.price}`}
-              className={`flex flex-col items-center transition-all duration-300 ${gridColClass} ${item.soldOut ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
-                }`}
-              onClick={() => {
-                if (!item.soldOut) {
-                  router.push(`/hisseal?price=${item.price}`);
-                }
-              }}
-              variants={itemVariant}
-            >
-              <motion.div
-                className="flex items-center justify-center bg-black text-white text-base md:text-2xl font-medium px-2 py-1 rounded-md"
-                variants={boxVariant}
-              >
-                {item.kg} KG
-              </motion.div>
-              <motion.div
-                className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${item.soldOut ? "rounded-t-md" : "rounded-md"
-                  }`}
-                variants={boxVariant}
-              >
-                {item.price.toLocaleString("tr-TR")} TL
-              </motion.div>
-              {item.soldOut && (
-                <motion.div
-                  className="inline-flex items-center justify-center bg-sac-red text-white text-xs md:text-base font-semibold px-2 py-0.5 rounded-b-md -mt-px mx-auto"
-                  variants={boxVariant}
-                >
-                  TÜKENDİ
-                </motion.div>
-              )}
-            </motion.div>
-          );
-          })}
+          {/* Mobil / sm: yalnızca 2 sütun; eksik son satır col-span-2 + flex ile ortalı */}
+          <div className="md:hidden grid grid-cols-2 gap-4 gap-y-8 items-start justify-items-center">
+            {firstPartMobile.map((item) => (
+              <PriceCard
+                key={`m-${item.kg}-${item.price}`}
+                item={item}
+                {...cardProps}
+              />
+            ))}
+            {lastPartMobile.length > 0 && (
+              <div className="col-span-2 flex flex-wrap justify-center gap-4 gap-y-8">
+                {lastPartMobile.map((item) => (
+                  <PriceCard
+                    key={`m-last-${item.kg}-${item.price}`}
+                    item={item}
+                    {...cardProps}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* md+: 4 sütun */}
+          <div className="hidden md:grid md:grid-cols-4 md:gap-8 md:gap-x-24 md:gap-y-12 items-start justify-items-center">
+            {firstPartDesktop.map((item) => (
+              <PriceCard
+                key={`d-${item.kg}-${item.price}`}
+                item={item}
+                {...cardProps}
+              />
+            ))}
+            {lastPartDesktop.length > 0 && (
+              <div className="col-span-4 flex flex-wrap justify-center gap-8 gap-x-24 gap-y-12">
+                {lastPartDesktop.map((item) => (
+                  <PriceCard
+                    key={`d-last-${item.kg}-${item.price}`}
+                    item={item}
+                    {...cardProps}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </motion.div>
 
         <p className="text-sm md:text-base text-center max-w-2xl">

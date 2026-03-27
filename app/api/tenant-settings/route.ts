@@ -16,7 +16,7 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("tenant_settings")
-      .select("theme_json, homepage_mode, homepage_layout, logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms")
+      .select("theme_json, homepage_mode, logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms")
       .eq("tenant_id", tenantId)
       .single();
 
@@ -28,8 +28,7 @@ export async function GET() {
     }
 
     const theme = data?.theme_json ?? {};
-    const homepageMode = data?.homepage_mode ?? "thanks";
-    const homepageLayout = data?.homepage_layout ?? "default";
+    const homepageMode = data?.homepage_mode ?? "pre_campaign";
     const rawTerms = data?.agreement_terms;
     const agreement_terms = Array.isArray(rawTerms) && rawTerms.length > 0
       ? (rawTerms as { title: string; description: string }[]).filter((t) => t && typeof t.title === "string" && typeof t.description === "string")
@@ -48,7 +47,7 @@ export async function GET() {
       full_payment_deadline_day: Number(data?.full_payment_deadline_day ?? 20),
       agreement_terms,
     };
-    return NextResponse.json({ theme, homepage_mode: homepageMode, homepage_layout: homepageLayout, branding }, {
+    return NextResponse.json({ theme, homepage_mode: homepageMode, branding }, {
       headers: {
         "Cache-Control": "no-store, no-cache, must-revalidate",
       },

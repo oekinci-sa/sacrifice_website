@@ -2,25 +2,38 @@
 
 ## homepage_mode
 
-Root `/` sayfası `tenant_settings.homepage_mode` değerine göre farklı içerik gösterir.
+Root `/` sayfası `tenant_settings.homepage_mode` değerine göre farklı içerik ve layout gösterir.
 
-| Değer | Gösterilen içerik |
-|-------|-------------------|
-| anasayfa | Tam anasayfa (Features, Prices, Process, FAQ) |
-| thanks | Teşekkürler sayfası |
-| takip | Kurbanlık takip sayfası (Queue kartları) |
+| Değer | Admin Etiketi | Layout | Gösterilen İçerik |
+|-------|---------------|--------|-------------------|
+| `pre_campaign` | Ön Bilgilendirme / Bana Haber Ver | Minimal (TakipLayout) | Duyuru metni + "Bana Haber Ver" formu (`TakipHomeContent`) |
+| `launch_countdown` | Yakında Açılıyor | Minimal (TakipLayout) | "Yakında Açılıyor" + kısa duyuru + `Prices` (Hisse Bedellerimiz başlığı altta); md+ grid 4 sütun, son satır ortalı; hisseal devre dışı |
+| `live` | Satış Aktif | Tam (PublicLayout) | Tam anasayfa: Features, Prices, Process, FAQ (`AnasayfaContent`) |
+| `thanks` | Teşekkür | Minimal (TakipLayout) | Teşekkürler sayfası (`ThanksContent`) |
+| `follow_up` | Takip / Kesim | Minimal (TakipLayout) | Kurbanlık takip sayfası — Queue kartları (`TakipContent`) |
+| `anasayfa` | *(geriye dönük)* | Tam (PublicLayout) | `live` ile aynı |
+| `takip` | *(geriye dönük)* | Minimal (TakipLayout) | `follow_up` ile aynı |
 
-Varsayılan: `thanks`
+Varsayılan: `pre_campaign`
 
-## homepage_layout
+### Layout seçimi
 
-Tenant bazlı layout seçimi (ileride Golbaşı/Kahramankazan farklı yapı için).
+`app/(root)/layout.tsx`: `mode === "live" || mode === "anasayfa"` → `PublicLayout` (tam header/footer); diğer tüm modlar → `TakipLayout` (minimal header/footer).
 
-| Değer | Açıklama |
-|-------|----------|
-| default | Varsayılan layout |
-| golbasi | Gölbaşı'na özel layout |
-| kahramankazan | Kahramankazan'a özel layout |
+### İçerik bileşenleri
+
+| Bileşen | Dosya |
+|---------|-------|
+| `TakipHomeContent` | `app/(takip)/components/takip-home-content.tsx` |
+| `TakipHomePreCampaignAnnouncement` | `app/(takip)/components/takip-home-pre-campaign-announcement.tsx` |
+| `TakipHomeLaunchCountdown` | `app/(takip)/components/takip-home-launch-countdown.tsx` |
+| `AnasayfaContent` | `app/(public)/onizleme/anasayfa/page.tsx` |
+| `ThanksContent` | `app/(public)/onizleme/thanks/page.tsx` |
+| `TakipContent` | `app/(takip)/(takip)/page-takip.tsx` |
+
+### Admin yönetimi
+
+Organizasyon Ayarları sayfasında (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** sütunundan veya düzenleme dialogundan değiştirilebilir.
 
 ## sacrifice_year
 
@@ -46,6 +59,6 @@ Tenant bazlı layout seçimi (ileride Golbaşı/Kahramankazan farklı yapı içi
 
 DB'ye dokunmadan içerik önizlemesi:
 - `/onizleme` — Liste
-- `/onizleme/anasayfa` — Anasayfa
+- `/onizleme/anasayfa` — Anasayfa (live modu)
 - `/onizleme/thanks` — Teşekkürler
 - `/onizleme/takip` — Takip

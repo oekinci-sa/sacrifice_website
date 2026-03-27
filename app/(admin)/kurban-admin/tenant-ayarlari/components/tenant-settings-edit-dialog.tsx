@@ -25,8 +25,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { TenantSettingRow } from "./columns";
 
-export type HomepageMode = "anasayfa" | "thanks" | "takip";
-export type HomepageLayout = "default" | "golbasi" | "kahramankazan";
+export type HomepageMode = "pre_campaign" | "launch_countdown" | "live" | "thanks" | "follow_up" | "anasayfa" | "takip";
 
 interface TenantSettingsEditDialogProps {
   open: boolean;
@@ -53,8 +52,7 @@ export function TenantSettingsEditDialog({
         : "[]";
       setForm({
         theme_json: JSON.stringify(row.theme_json ?? {}, null, 2),
-        homepage_mode: row.homepage_mode ?? "thanks",
-        homepage_layout: row.homepage_layout ?? "default",
+        homepage_mode: row.homepage_mode ?? "pre_campaign",
         logo_slug: row.logo_slug ?? "",
         iban: row.iban ?? "",
         website_url: row.website_url ?? "",
@@ -109,7 +107,6 @@ export function TenantSettingsEditDialog({
       const body = {
         theme_json: themeJson,
         homepage_mode: form.homepage_mode,
-        homepage_layout: form.homepage_layout,
         logo_slug: form.logo_slug || null,
         iban: form.iban || null,
         website_url: form.website_url || null,
@@ -183,25 +180,11 @@ export function TenantSettingsEditDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="anasayfa">Anasayfa</SelectItem>
+                      <SelectItem value="pre_campaign">Ön Bilgilendirme / Bana Haber Ver</SelectItem>
+                      <SelectItem value="launch_countdown">Yakında Açılıyor</SelectItem>
+                      <SelectItem value="live">Satış Aktif</SelectItem>
                       <SelectItem value="thanks">Teşekkür</SelectItem>
-                      <SelectItem value="takip">Takip</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="homepage_layout">Anasayfa Düzeni</Label>
-                  <Select
-                    value={String(form.homepage_layout)}
-                    onValueChange={(v) => setForm((f) => ({ ...f, homepage_layout: v }))}
-                  >
-                    <SelectTrigger id="homepage_layout">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Varsayılan</SelectItem>
-                      <SelectItem value="golbasi">Gölbaşı</SelectItem>
-                      <SelectItem value="kahramankazan">Kahramankazan</SelectItem>
+                      <SelectItem value="follow_up">Takip / Kesim</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

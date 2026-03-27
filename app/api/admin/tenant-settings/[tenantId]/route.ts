@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 const UPDATABLE_FIELDS = [
   "theme_json",
   "homepage_mode",
-  "homepage_layout",
   "logo_slug",
   "iban",
   "website_url",

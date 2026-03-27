@@ -17,7 +17,6 @@ export type TenantSettingRow = {
   tenant_id: string;
   theme_json: Record<string, unknown> | null;
   homepage_mode: string | null;
-  homepage_layout: string | null;
   logo_slug: string | null;
   iban: string | null;
   website_url: string | null;
@@ -42,21 +41,12 @@ export function createColumns(
     {
       accessorKey: "tenants",
       id: "tenants",
-      header: "Tenant",
+      header: "Organizasyon",
       cell: ({ row }) => {
         const t = row.original.tenants;
         const name =
           t && typeof t === "object" && "name" in t ? String(t.name ?? "-") : "-";
-        const slug =
-          t && typeof t === "object" && "slug" in t ? String(t.slug ?? "") : "";
-        return (
-          <div>
-            <span className="font-medium">{name}</span>
-            {slug && (
-              <span className="ml-2 text-muted-foreground text-sm">({slug})</span>
-            )}
-          </div>
-        );
+        return <span className="font-medium">{name}</span>;
       },
     },
     {
@@ -73,14 +63,6 @@ export function createColumns(
       header: "Anasayfa Modu",
       cell: ({ row }) => (
         <EditableHomepageModeCell row={row} onSuccess={onRefresh} />
-      ),
-    },
-    {
-      accessorKey: "homepage_layout",
-      id: "homepage_layout",
-      header: "Anasayfa Düzeni",
-      cell: ({ row }) => (
-        <EditableTextCell row={row} field="homepage_layout" onSuccess={onRefresh} />
       ),
     },
     {

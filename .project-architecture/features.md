@@ -107,7 +107,24 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Ödeme durumu çubuklarına hover: 2 sütunlu popup, her hissedar adı önünde sıra numarası (1. 2. 3. 4.).
 - Hissedarı olmayan hayvanda popup açılmaz.
 
+## Homepage Evre Yönetimi
+
+Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değiştirilerek anasayfa içeriği ve layout'u dinamik olarak yönetilir.
+
+| `homepage_mode` | Admin Etiketi | Layout | İçerik |
+|-----------------|---------------|--------|--------|
+| `pre_campaign` | Ön Bilgilendirme / Bana Haber Ver | Minimal | Duyuru metni + Bana Haber Ver formu |
+| `launch_countdown` | Yakında Açılıyor | Minimal | Duyuru metni + Fiyat listesi (hisseal linki devre dışı); web’de 4 sütunlu grid |
+| `live` | Satış Aktif | Tam | Tam anasayfa (Features, Prices, Process, FAQ) |
+| `thanks` | Teşekkür | Minimal | Teşekkürler sayfası |
+| `follow_up` | Takip / Kesim | Minimal | Kurbanlık takip (Queue kartları) |
+
+- Layout seçimi `app/(root)/layout.tsx`'te yapılır: `live`/`anasayfa` → `PublicLayout` (tam header/footer), diğerleri → `TakipLayout` (minimal).
+- İçerik bileşenleri: `TakipHomeContent`, `TakipHomePreCampaignAnnouncement`, `TakipHomeLaunchCountdown`, `AnasayfaContent`, `ThanksContent`, `TakipContent`.
+- Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
+
 ## Changelog
+- **2026-03 Homepage evre yönetimi**: [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 - **2026-03 Admin audit RPC (Faz 6–7)**: [changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md](changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md)
 - **2025-03 UI iyileştirmeleri**: [changelogs/changelog-2025-03-ui-improvements.md](changelogs/changelog-2025-03-ui-improvements.md)
 - **2025-03 Admin realtime, tema, UI**: [changelogs/changelog-2025-03-admin-realtime-theme.md](changelogs/changelog-2025-03-admin-realtime-theme.md)

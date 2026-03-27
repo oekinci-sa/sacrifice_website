@@ -324,9 +324,11 @@ export function EditablePhoneCell({
 }
 
 const HOMEPAGE_MODE_OPTIONS = [
-  { value: "anasayfa", label: "Anasayfa" },
+  { value: "pre_campaign", label: "Ön Bilgilendirme / Bana Haber Ver" },
+  { value: "launch_countdown", label: "Yakında Açılıyor" },
+  { value: "live", label: "Satış Aktif" },
   { value: "thanks", label: "Teşekkür" },
-  { value: "takip", label: "Takip" },
+  { value: "follow_up", label: "Takip / Kesim" },
 ] as const;
 
 export function EditableHomepageModeCell({
@@ -339,7 +341,7 @@ export function EditableHomepageModeCell({
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [value, setValue] = useState(row.original.homepage_mode ?? "thanks");
+  const [value, setValue] = useState(row.original.homepage_mode ?? "pre_campaign");
 
   const save = useCallback(async () => {
     if (value === (row.original.homepage_mode ?? null)) {
@@ -364,11 +366,11 @@ export function EditableHomepageModeCell({
   }, [row, value, onSuccess, toast]);
 
   const cancel = useCallback(() => {
-    setValue(row.original.homepage_mode ?? "thanks");
+    setValue(row.original.homepage_mode ?? "pre_campaign");
     setEditing(false);
   }, [row.original.homepage_mode]);
 
-  const current = row.original.homepage_mode ?? "thanks";
+  const current = row.original.homepage_mode ?? "pre_campaign";
   const display = HOMEPAGE_MODE_OPTIONS.find((o) => o.value === current)?.label ?? current;
 
   if (editing) {

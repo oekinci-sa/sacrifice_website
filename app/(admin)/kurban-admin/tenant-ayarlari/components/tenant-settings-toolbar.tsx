@@ -5,10 +5,9 @@ import { Table } from "@tanstack/react-table";
 import type { TenantSettingRow } from "./columns";
 
 export const TENANT_COLUMN_HEADER_MAP: Record<string, string> = {
-  tenants: "Tenant",
+  tenants: "Organizasyon",
   logo_slug: "Logo",
   homepage_mode: "Anasayfa Modu",
-  homepage_layout: "Anasayfa Düzeni",
   active_sacrifice_year: "Yıl",
   deposit_amount: "Kapora (₺)",
   deposit_deadline_days: "Kapora Gün",

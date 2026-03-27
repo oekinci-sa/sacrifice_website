@@ -29,14 +29,19 @@ export interface TenantSchema {
   created_at?: string;
 }
 
-export type HomepageMode = "anasayfa" | "thanks" | "takip";
-export type HomepageLayout = "default" | "golbasi" | "kahramankazan";
+export type HomepageMode =
+  | "pre_campaign"
+  | "launch_countdown"
+  | "live"
+  | "thanks"
+  | "follow_up"
+  | "anasayfa"  // geriye dönük uyumluluk
+  | "takip";   // geriye dönük uyumluluk
 
 export interface TenantSettings {
   tenant_id: string;
   theme_json: Record<string, unknown> | null;
   homepage_mode?: HomepageMode | null;
-  homepage_layout?: HomepageLayout | null;
   active_sacrifice_year?: number | null;
   created_at?: string;
   updated_at?: string;

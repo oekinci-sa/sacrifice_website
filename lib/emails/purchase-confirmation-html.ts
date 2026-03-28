@@ -26,7 +26,7 @@ export function buildPurchaseConfirmationHtml(params: {
 }): { html: string; text: string } {
   const { tenantName, branding, receipt } = params;
   const slug = branding.logo_slug;
-  const logoHttpsUrl = getLogoAbsoluteUrlForEmail(slug);
+  const logoHttpsUrl = getLogoAbsoluteUrlForEmail(slug, branding.website_url);
   const logoSrc = logoHttpsUrl || getLogoBase64ForSlug(slug);
   const logoWidthPx = slug === "elya-hayvancilik" ? 75 : 150;
 
@@ -90,7 +90,7 @@ export function buildPurchaseConfirmationHtml(params: {
       <table role="presentation" class="email-card" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;">
         <tr>
           <td style="padding:24px 20px 12px 20px;text-align:center;">
-            <img src="${fmt(logoSrc)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" height="auto" style="display:block;margin:0 auto;max-width:100%;height:auto;width:${logoWidthPx}px;border:0;outline:none;" />
+            <img src="${fmt(logoSrc)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;width:${logoWidthPx}px;border:0;outline:none;" />
           </td>
         </tr>
         <tr>

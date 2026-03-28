@@ -1,0 +1,29 @@
+---
+description: Admin mail HTML sanitize (sanitize-html) + transactional e-posta logoları
+globs: lib/mail-rich-text.ts,lib/email-logo-url.ts,lib/emails/**,app/api/admin/send-email/**,scripts/write-email-logo-pngs.cjs
+---
+
+# Admin panelden gönderilen mail (`/api/admin/send-email`)
+
+## Sorun (Vercel)
+
+`isomorphic-dompurify` → içeride `dompurify` (ESM-only) kullanır. Next.js server bundle’ında **CJS `require()`** ile yüklenince production’da **`ERR_REQUIRE_ESM`** ile mail gönderimi 500 olur; localhost’ta farklı davranabilir.
+
+## Kural
+
+1. **`isomorphic-dompurify` kullanma** — admin mesaj gövdesi sanitize için **`sanitize-html`** kullan (`lib/mail-rich-text.ts`).
+2. **`serverExternalPackages` ile “yamamaya” çalışma** — kalıcı çözüm paket değişimi; external liste ile ESM sorununu garanti etmez.
+
+---
+
+# Transactional e-posta logoları (işlem özeti, hisse sorgula vb.)
+
+## Sorun (Gmail vb.)
+
+`<img src="data:image/png;base64,...">` pek çok istemcide **engellenir**; kırık görsel + `alt` metni görünür. SVG URL’leri de çoğu istemicide desteklenmez.
+
+## Kural
+
+1. **Üretimde logo kaynağı:** Tenant’ın public sitesi üzerinden **HTTPS statik PNG**: `getLogoAbsoluteUrlForEmail(logo_slug, website_url)` → `https://www.<tenant>/logos/<slug>/email-logo.png`.
+2. **`logoBase64.ts`** yalnızca **fallback** (ör. yerel); Gmail uyumluluğu için tek başına güvenme.
+3. Yeni tenant / logo güncellemesi: `public/logos/<slug>/email-logo.png` ekle veya `node scripts/write-email-logo-pngs.cjs` ile `logoBase64.ts` ile senkron üret; `lib/email-logo-url.ts` içindeki path haritasını güncelle.

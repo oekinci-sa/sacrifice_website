@@ -26,6 +26,7 @@ React 18, Next.js 14, TypeScript, Shadcn, Shadcn Charts, TailwindCSS
 ## Backend
 Supabase
 
+- E-posta (Resend, HTML sanitize, transactional logo kuralları): `email-and-resend.md`.
 - `utils/supabaseClient.ts` veya `lib/supabaseAdmin` kullan.
 - Realtime database özelliğini kullan; subscription oluştur.
 - DB işlemleri sonrası shadcn toast ile sonucu bildir.

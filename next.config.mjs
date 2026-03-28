@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["isomorphic-dompurify"],
   images: {
     domains: ["picsum.photos"],
   },

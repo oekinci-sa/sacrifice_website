@@ -1,42 +1,23 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
-const PURIFY_CONFIG: Parameters<typeof DOMPurify.sanitize>[1] = {
-  ALLOWED_TAGS: [
-    "p",
-    "br",
-    "strong",
-    "em",
-    "b",
-    "i",
-    "u",
-    "s",
-    "del",
-    "strike",
-    "ul",
-    "ol",
-    "li",
-    "blockquote",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "a",
-    "hr",
-    "pre",
-    "code",
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "p", "br", "strong", "em", "b", "i", "u", "s", "del", "strike",
+    "ul", "ol", "li", "blockquote", "h1", "h2", "h3", "h4",
+    "a", "hr", "pre", "code",
   ],
-  ALLOWED_ATTR: ["href", "target", "rel"],
+  allowedAttributes: { a: ["href", "target", "rel"] },
 };
 
 /**
- * TipTap / WYSIWYG çıktısını e-posta HTML’ine sarar ve temizler.
+ * TipTap / WYSIWYG çıktısını e-posta HTML'ine sarar ve temizler.
  */
 export function mailBodyEditorHtmlToEmailHtml(html: string): string {
   const trimmed = html.trim();
   if (!trimmed || trimmed === "<p></p>") {
     return "<p></p>";
   }
-  const safe = DOMPurify.sanitize(trimmed, PURIFY_CONFIG);
+  const safe = sanitizeHtml(trimmed, SANITIZE_OPTIONS);
   return `<div style="font-family:system-ui,Segoe UI,sans-serif;line-height:1.5">${safe}</div>`;
 }
 

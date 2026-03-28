@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("shareholders")
-      .select("*", { count: "exact", head: true })
+      .select("*", { count: "exact" })
       .eq("tenant_id", tenantId)
       .is("contacted_at", null);
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       query = query.eq("sacrifice_year", year);
     }
 
-    const { count, error } = await query;
+    const { count, error } = await query.limit(0);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

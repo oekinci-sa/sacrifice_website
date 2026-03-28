@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("reservation_transactions")
-      .select("transaction_id", { count: "exact", head: true })
+      .select("transaction_id", { count: "exact" })
       .eq("tenant_id", tenantId)
       .eq("status", "active");
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       query = query.eq("sacrifice_year", year);
     }
 
-    const { count, error } = await query;
+    const { count, error } = await query.limit(0);
 
     if (error) {
       return NextResponse.json({ error: "Failed to fetch count" }, { status: 500 });

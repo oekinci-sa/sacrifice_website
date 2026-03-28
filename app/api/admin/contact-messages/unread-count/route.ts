@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("contact_messages")
-      .select("*", { count: "exact", head: true })
+      .select("*", { count: "exact" })
       .eq("tenant_id", tenantId)
       .is("read_at", null);
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       query = query.eq("message_year", year);
     }
 
-    const { count, error } = await query;
+    const { count, error } = await query.limit(0);
 
     if (error) {
       return NextResponse.json(

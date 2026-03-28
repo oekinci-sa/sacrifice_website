@@ -18,19 +18,19 @@ export async function GET() {
 
     const tenantId = getTenantId();
 
-    const { data: userTenants, error: utError } = await supabaseAdmin
+    const { count: pendingCount, error: utError } = await supabaseAdmin
       .from("user_tenants")
-      .select("user_id, approved_at")
-      .eq("tenant_id", tenantId);
+      .select("user_id", { count: "exact" })
+      .eq("tenant_id", tenantId)
+      .is("approved_at", null)
+      .limit(0);
 
     if (utError) {
       return NextResponse.json({ error: utError.message }, { status: 500 });
     }
 
-    const pendingCount = (userTenants ?? []).filter((ut) => ut.approved_at == null).length;
-
     return NextResponse.json(
-      { count: pendingCount },
+      { count: pendingCount ?? 0 },
       { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
     );
   } catch {

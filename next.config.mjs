@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["isomorphic-dompurify"],
   images: {
-    domains: ["picsum.photos"], // Harici resim URL'sine izin ver
+    domains: ["picsum.photos"],
   },
   async redirects() {
     return [

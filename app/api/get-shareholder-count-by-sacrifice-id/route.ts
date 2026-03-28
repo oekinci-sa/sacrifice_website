@@ -25,12 +25,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Query total shareholders for the given sacrifice_id
+    // Exact count, satır taşımadan: bkz. supabase-postgrest-count-exact
     const { count, error } = await supabaseAdmin
       .from("shareholders")
       .select("*", { count: "exact" })
       .eq("tenant_id", tenantId)
-      .eq("sacrifice_id", sacrifice_id);
+      .eq("sacrifice_id", sacrifice_id)
+      .limit(0);
 
     if (error) {
       return NextResponse.json(

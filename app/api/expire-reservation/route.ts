@@ -33,7 +33,10 @@ export async function POST(request: Request) {
 
         // Test the database connection first
         try {
-            const { error: pingError } = await supabaseAdmin.from('reservation_transactions').select('count').limit(1);
+            const { error: pingError } = await supabaseAdmin
+                .from('reservation_transactions')
+                .select('transaction_id')
+                .limit(1);
             if (pingError) {
                 return NextResponse.json(
                     { error: `Database connection failed: ${pingError.message}` },

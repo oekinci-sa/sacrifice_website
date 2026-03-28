@@ -1,0 +1,32 @@
+---
+description: Supabase/PostgREST exact count — head:true yasak; limit(0) kullan
+alwaysApply: true
+---
+
+# Supabase `count: "exact"` ve `head: true`
+
+## Sorun
+
+`@supabase/supabase-js` içinde `.select(..., { count: "exact", head: true })` kullanımı PostgREST’e **HTTP HEAD** isteği gönderir. **Production (ör. Vercel)** ortamında bu kombinasyon, filtreli sorgularda **yanlış `count`** döndürebilir; veritabanı ve doğrudan REST ile yapılan kontroller doğruyken API sayısı sapabilir.
+
+## Kural
+
+1. **`head: true` kullanma** — exact count ihtiyacında bu seçeneği ekleme.
+2. **Yerine:** `count: "exact"` ile normal SELECT zinciri kur; satır taşımak istemiyorsan sorgunun sonuna **`.limit(0)`** ekle:
+   - PostgREST `Content-Range` üzerinden toplam sayıyı doğru verir; gövde boş kalır.
+3. **Örnek (doğru kalıp):**
+
+```ts
+const { count, error } = await supabaseAdmin
+  .from("shareholders")
+  .select("*", { count: "exact" })
+  .eq("tenant_id", tenantId)
+  .eq("sacrifice_year", year)
+  .limit(0);
+```
+
+4. **Bağlantı / canlılık testi** için var olmayan kolon (`select('count')` gibi) kullanma; gerçek bir kolon seç (örn. `transaction_id`) ve `limit(1)`.
+
+## İlgili
+
+- Düzeltilmiş örnek route’lar: `app/api/public/shareholders-count`, admin `*-count` route’ları.

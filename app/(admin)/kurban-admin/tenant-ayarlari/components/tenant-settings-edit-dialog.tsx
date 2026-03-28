@@ -62,6 +62,7 @@ export function TenantSettingsEditDialog({
         homepage_mode: row.homepage_mode ?? "bana_haber_ver",
         logo_slug: row.logo_slug ?? "",
         iban: row.iban ?? "",
+        iban_account_holder: row.iban_account_holder ?? "",
         website_url: row.website_url ?? "",
         contact_phone: row.contact_phone ?? "",
         contact_email: row.contact_email ?? "",
@@ -131,6 +132,7 @@ export function TenantSettingsEditDialog({
         homepage_mode: form.homepage_mode,
         logo_slug: form.logo_slug || null,
         iban: form.iban || null,
+        iban_account_holder: strOrNull(form.iban_account_holder),
         website_url: form.website_url || null,
         contact_phone: form.contact_phone || null,
         contact_email: form.contact_email || null,
@@ -236,6 +238,21 @@ export function TenantSettingsEditDialog({
                   onChange={(e) => setForm((f) => ({ ...f, iban: e.target.value }))}
                   placeholder="Kapora için IBAN bilgisi..."
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="iban_account_holder">IBAN Sahibi Ad Soyad</Label>
+                <Input
+                  id="iban_account_holder"
+                  value={String(form.iban_account_holder ?? "")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, iban_account_holder: e.target.value }))
+                  }
+                  placeholder="Boş bırakılırsa bu organizasyonda gösterilmez"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Doluysa üçlü bilgi kutuları, PDF ve e-postada &quot;IBAN Sahibi Ad Soyad&quot; olarak görünür.
+                </p>
               </div>
 
               <div className="space-y-2">

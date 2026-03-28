@@ -4,6 +4,8 @@ CREATE TABLE tenant_settings (
   homepage_mode   TEXT DEFAULT 'bana_haber_ver' CHECK (homepage_mode IN ('bana_haber_ver', 'geri_sayim', 'live', 'tesekkur', 'follow_up', 'anasayfa', 'takip')),
   logo_slug       TEXT DEFAULT 'ankara-kurban',
   iban            TEXT,
+  -- IBAN hesap sahibi; doluysa UI/PDF/e-postada gösterilir.
+  iban_account_holder TEXT,
   website_url     TEXT,
   contact_phone   TEXT,
   contact_email   TEXT,

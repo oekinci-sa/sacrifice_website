@@ -1,23 +1,4 @@
-export const reminders = [
-  {
-    src: "info.svg",
-    header: "Kapora Ödeme Süresi",
-    description:
-      "7 gün içerisinde kaporası<br/>ödenmeyen hisseler iptal edilir.",
-  },
-  {
-    src: "wallet-fill.svg",
-    header: "Kapora IBAN Bilgisi (10.000 TL)",
-    description: "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
-    // description: "TR12 3456 7890 1234 5678 9012 34 - Ahmet oğlu Mehmet (Açıklama: Kurban 2025)",
-  },
-  {
-    src: "exclamation.svg",
-    header: "Tüm Ödemeler",
-    description:
-      "Tüm ödemeler 20 Mayıs Çarşamba<br/>gününe kadar tamamlanmalıdır.",
-  },
-];
+/** Kapora / ödeme hatırlatmaları: `lib/receipt-reminders.ts` → `buildReceiptReminders` (tenant_settings). */
 
 export const agreementTerms = [
   {

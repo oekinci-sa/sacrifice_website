@@ -16,6 +16,39 @@ const TR_MONTH_NAMES = [
   "Aralık",
 ] as const;
 
+/** Tam ödeme ayı (1–12) için Türkçe ay adı; geçersiz indeks için boş string. */
+export function getFullPaymentMonthName(monthIndex: number): string {
+  return TR_MONTH_NAMES[monthIndex] ?? "";
+}
+
+/**
+ * Takvim gününün haftanın günü adı (Türkçe, uzun).
+ * `Europe/Istanbul` ile yerel takvime göre (örn. 20 Mayıs 2026 → Çarşamba).
+ */
+export function getFullPaymentWeekdayName(
+  year: number,
+  month1to12: number,
+  day: number
+): string {
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month1to12) ||
+    !Number.isFinite(day) ||
+    month1to12 < 1 ||
+    month1to12 > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return "";
+  }
+  const d = new Date(Date.UTC(year, month1to12 - 1, day, 12, 0, 0));
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("tr-TR", {
+    weekday: "long",
+    timeZone: "Europe/Istanbul",
+  });
+}
+
 /**
  * Sözleşme metinlerindeki yer tutucuları tenant_settings sayılarıyla doldurur.
  * Desteklenen: {{deposit_amount}}, {{deposit_deadline_days}}, {{full_payment_deadline_day}},
@@ -35,7 +68,7 @@ export function interpolateAgreementPlaceholders(
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(branding.deposit_amount);
-  const monthName = TR_MONTH_NAMES[branding.full_payment_deadline_month] ?? "";
+  const monthName = getFullPaymentMonthName(branding.full_payment_deadline_month);
 
   return text
     .replace(/\{\{deposit_amount\}\}/g, depositFormatted)

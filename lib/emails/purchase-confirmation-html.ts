@@ -1,12 +1,16 @@
 /** Hisse tamamlandıktan sonra otomatik gönderilen e-posta — PDF (ReceiptPDF) ile aynı içerik düzeni. */
 
-import { reminders } from "@/app/(public)/(hisse)/constants";
 import { getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { getLogoAbsoluteUrlForEmail } from "@/lib/email-logo-url";
 import { getLogoBase64ForSlug } from "@/lib/logoBase64";
 import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
+import {
+  buildReceiptReminders,
+  formatKaporaIbanLineForReceipt,
+  getIbanAccountHolderDisplay,
+  IBAN_ACCOUNT_HOLDER_FIELD_LABEL,
+} from "@/lib/receipt-reminders";
 import type { TenantBranding } from "@/lib/tenant-branding";
-import { formatIbanForDisplay } from "@/utils/formatters";
 
 /** E-posta konusu ve gövdede marka adı (DB `tenants.name` değil, logo_slug ile). */
 export function getPurchaseConfirmationTenantDisplayName(logoSlug: string): string {
@@ -33,11 +37,10 @@ export function buildPurchaseConfirmationHtml(params: {
     false
   );
 
-  const remindersList = reminders.map((r, i) =>
-    i === 1 && branding.iban
-      ? { ...r, description: formatIbanForDisplay(branding.iban) }
-      : r
-  );
+  const remindersList = buildReceiptReminders(branding, {
+    includeKaporaIbanReminder: false,
+  });
+  const ibanAccountHolderName = getIbanAccountHolderDisplay(branding);
 
   const websiteUrl = branding.website_url || "ankarakurban.com.tr";
   const contactPhone = branding.contact_phone || "";
@@ -112,7 +115,10 @@ export function buildPurchaseConfirmationHtml(params: {
             ["Hisse Fiyatı", formatPrice(receipt.share_price)],
             ["Teslimat Ücreti", formatPrice(receipt.delivery_fee)],
             ["Toplam Tutar", formatPrice(receipt.total_amount)],
-            ["Kapora / IBAN", formatIbanForDisplay(branding.iban)],
+            ["Kapora / IBAN", formatKaporaIbanLineForReceipt(branding)],
+            ...(ibanAccountHolderName
+              ? ([["Ad Soyad", ibanAccountHolderName]] as [string, string][])
+              : []),
             ["Satın Alma Tarihi", receipt.purchase_time],
           ])
         )}
@@ -163,7 +169,8 @@ export function buildPurchaseConfirmationHtml(params: {
     remindersList,
     websiteUrl,
     contactPhone,
-    ibanDisplay: formatIbanForDisplay(branding.iban),
+    ibanDisplay: formatKaporaIbanLineForReceipt(branding),
+    ibanAccountHolderName,
   });
 
   return { html, text };
@@ -212,6 +219,7 @@ function buildPlainText(params: {
   websiteUrl: string;
   contactPhone: string;
   ibanDisplay: string;
+  ibanAccountHolderName: string | null;
 }): string {
   const {
     tenantName,
@@ -221,6 +229,7 @@ function buildPlainText(params: {
     websiteUrl,
     contactPhone,
     ibanDisplay,
+    ibanAccountHolderName,
   } = params;
   const lines: string[] = [
     `Merhaba ${receipt.shareholder_name},`,
@@ -258,6 +267,9 @@ function buildPlainText(params: {
     `Teslimat Ücreti: ${formatPrice(receipt.delivery_fee)}`,
     `Toplam Tutar: ${formatPrice(receipt.total_amount)}`,
     `Kapora / IBAN: ${ibanDisplay}`,
+    ...(ibanAccountHolderName
+      ? [`${IBAN_ACCOUNT_HOLDER_FIELD_LABEL}: ${ibanAccountHolderName}`]
+      : []),
     `Satın Alma Tarihi: ${receipt.purchase_time}`,
     "",
     "--- Rezervasyon Takibi ve Güvenlik ---",

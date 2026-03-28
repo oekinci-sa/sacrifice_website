@@ -35,6 +35,7 @@ export async function PUT(request: Request) {
             foundation,
             notes,
             ear_tag,
+            barn_stall_order_no,
             last_edited_time,
             sacrifice_year: bodyYear
         } = body;
@@ -87,6 +88,16 @@ export async function PUT(request: Request) {
                 patch.ear_tag = t === "" ? null : t;
             } else {
                 return NextResponse.json({ error: "Küpe no geçersiz." }, { status: 400 });
+            }
+        }
+        if (barn_stall_order_no !== undefined) {
+            if (barn_stall_order_no === null || barn_stall_order_no === "") {
+                patch.barn_stall_order_no = null;
+            } else if (typeof barn_stall_order_no === "string") {
+                const t = barn_stall_order_no.trim();
+                patch.barn_stall_order_no = t === "" ? null : t;
+            } else {
+                return NextResponse.json({ error: "Ahır sıra no geçersiz." }, { status: 400 });
             }
         }
 

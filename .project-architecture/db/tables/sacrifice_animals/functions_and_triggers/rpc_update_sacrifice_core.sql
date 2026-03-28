@@ -49,6 +49,11 @@ BEGIN
       WHEN p_patch->'ear_tag' IS NULL OR jsonb_typeof(p_patch->'ear_tag') = 'null' THEN NULL
       ELSE NULLIF(trim(p_patch->>'ear_tag'), '')
     END,
+    barn_stall_order_no = CASE
+      WHEN NOT (p_patch ? 'barn_stall_order_no') THEN sa.barn_stall_order_no
+      WHEN p_patch->'barn_stall_order_no' IS NULL OR jsonb_typeof(p_patch->'barn_stall_order_no') = 'null' THEN NULL
+      ELSE NULLIF(trim(p_patch->>'barn_stall_order_no'), '')
+    END,
     slaughter_time = CASE
       WHEN NOT (p_patch ? 'slaughter_time') THEN sa.slaughter_time
       WHEN p_patch->'slaughter_time' IS NULL OR jsonb_typeof(p_patch->'slaughter_time') = 'null' THEN NULL

@@ -88,4 +88,20 @@ export function formatIbanForDisplay(iban: string): string {
     chunks.push(normalized.slice(i, i + 4));
   }
   return chunks.join(" ");
+}
+
+const BR_PLACEHOLDER = "\uE000_IBAN_BR_\uE001";
+
+/**
+ * Metindeki `<br/>` / `<br>` korunarak HTML kaçışı (XSS için; dangerouslySetInnerHTML öncesi).
+ */
+export function escapeHtmlPreserveLineBreaks(html: string): string {
+  if (!html) return "";
+  const withPh = html.replace(/<br\s*\/?>/gi, BR_PLACEHOLDER);
+  return withPh
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(new RegExp(BR_PLACEHOLDER, "g"), "<br/>");
 } 

@@ -39,6 +39,7 @@ async function updateSacrificeApi(
     foundation: string | null;
     notes: string;
     ear_tag: string | null;
+    barn_stall_order_no: string | null;
   }>
 ) {
   const body: Record<string, unknown> = {
@@ -434,6 +435,109 @@ export function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
 
 function effectiveEarTagLabel(s: sacrificeSchema): string {
   return (s.ear_tag ?? "").trim() || "-";
+}
+
+function effectiveBarnStallOrderLabel(s: sacrificeSchema): string {
+  return (s.barn_stall_order_no ?? "").trim() || "-";
+}
+
+export function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> }) {
+  const { toast } = useToast();
+  const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const sacrifice = row.original;
+  const display = effectiveBarnStallOrderLabel(sacrifice);
+  const current = (sacrifice.barn_stall_order_no ?? "").trim();
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const t = value.trim();
+      const payload: { barn_stall_order_no: string | null } =
+        t === "" ? { barn_stall_order_no: null } : { barn_stall_order_no: t };
+      const { data } = await updateSacrificeApi(
+        sacrifice.sacrifice_id,
+        sacrifice.sacrifice_year,
+        payload
+      );
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setEditing(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, sacrifice, updateSacrifice, toast]);
+
+  const handleCancel = useCallback(() => {
+    setValue(current);
+    setEditing(false);
+  }, [current]);
+
+  const startEdit = useCallback(() => {
+    setValue(current);
+    setEditing(true);
+  }, [current]);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center min-w-0 px-1">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleSave();
+            if (e.key === "Escape") handleCancel();
+          }}
+          className="h-8 min-w-0 flex-1 max-w-[160px] text-sm"
+          placeholder="Ahır sıra no"
+          maxLength={128}
+          autoFocus
+          disabled={saving}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50"
+          onClick={() => void handleSave()}
+          disabled={saving}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
+      <span className="text-sm px-8 pr-9 py-1 text-center">{display}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={startEdit}
+      >
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
+  );
 }
 
 export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {

@@ -1,8 +1,8 @@
 "use client";
 
-import { reminders } from "@/app/(public)/(hisse)/constants";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { formatIbanForDisplay } from "@/utils/formatters";
+import { buildReceiptReminders } from "@/lib/receipt-reminders";
+import { escapeHtmlPreserveLineBreaks } from "@/utils/formatters";
 import Image from "next/image";
 
 export function TripleInfo() {
@@ -20,9 +20,7 @@ export function TripleInfo() {
     return html;
   };
 
-  const remindersWithBranding = reminders.map((r, i) =>
-    i === 1 ? { ...r, description: formatIbanForDisplay(branding.iban) } : r
-  );
+  const remindersWithBranding = buildReceiptReminders(branding);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-32 mt-8 md:mt-12">
@@ -40,7 +38,9 @@ export function TripleInfo() {
           <h3 className="font-semibold text-base md:text-lg">{reminder.header}</h3>
           <p
             className="text-muted-foreground text-sm md:text-base"
-            dangerouslySetInnerHTML={{ __html: processHtml(reminder.description) }}
+            dangerouslySetInnerHTML={{
+              __html: processHtml(escapeHtmlPreserveLineBreaks(reminder.description)),
+            }}
           />
         </div>
       ))}

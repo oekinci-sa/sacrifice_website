@@ -19,7 +19,9 @@ CREATE TABLE "public"."sacrifice_animals" (
   "foundation" TEXT,
   "planned_delivery_time" TIME GENERATED ALWAYS AS (((sacrifice_time + interval '90 minutes')::time)) STORED,
   -- Admin panelinden girilen küpe numarası (otomatik doldurulmaz)
-  "ear_tag" TEXT
+  "ear_tag" TEXT,
+  -- Ahır / sıra numarası (serbest metin)
+  "barn_stall_order_no" TEXT
 );
 
 ALTER TABLE sacrifice_animals ADD CONSTRAINT sacrifice_animals_foundation_check

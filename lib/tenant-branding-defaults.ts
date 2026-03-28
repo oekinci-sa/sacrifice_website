@@ -12,6 +12,8 @@ export interface TenantBranding {
   tenant_id?: string | null;
   logo_slug: string;
   iban: string;
+  /** IBAN sahibi; doluysa sitede/PDF/e-postada gösterilir. */
+  iban_account_holder: string | null;
   website_url: string;
   contact_phone: string;
   contact_email: string;
@@ -20,6 +22,8 @@ export interface TenantBranding {
   deposit_deadline_days: number;
   full_payment_deadline_month: number;
   full_payment_deadline_day: number;
+  /** Tam ödeme tarihinde haftanın günü için yıl (tenant_settings.active_sacrifice_year). */
+  active_sacrifice_year: number | null;
   agreement_terms: AgreementTerm[];
   /** tenant_settings; boşsa DEFAULT_AGREEMENT_COPY kullanılır */
   agreement_dialog_title: string;
@@ -88,6 +92,7 @@ export const DEFAULT_AGREEMENT_TERMS: AgreementTerm[] = [
 export const DEFAULT_BRANDING: TenantBranding = {
   logo_slug: "ankara-kurban",
   iban: "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
+  iban_account_holder: null,
   website_url: "ankarakurban.com.tr",
   contact_phone: "0312 312 44 64 / 0552 652 90 00",
   contact_email: "iletisim@ankarakurban.com.tr",
@@ -96,6 +101,7 @@ export const DEFAULT_BRANDING: TenantBranding = {
   deposit_deadline_days: 3,
   full_payment_deadline_month: 5,
   full_payment_deadline_day: 20,
+  active_sacrifice_year: 2026,
   agreement_terms: DEFAULT_AGREEMENT_TERMS,
   agreement_dialog_title: DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
   agreement_main_heading: DEFAULT_AGREEMENT_COPY.agreement_main_heading,

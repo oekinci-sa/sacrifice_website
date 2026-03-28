@@ -22,7 +22,7 @@ export async function getTenantBranding(): Promise<TenantBranding> {
   const { data } = await supabaseAdmin
     .from("tenant_settings")
     .select(
-      "logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body"
+      "logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body"
     )
     .eq("tenant_id", tenantId)
     .single();
@@ -37,6 +37,10 @@ export async function getTenantBranding(): Promise<TenantBranding> {
   return {
     logo_slug: data.logo_slug ?? DEFAULT_BRANDING.logo_slug,
     iban: data.iban ?? DEFAULT_BRANDING.iban,
+    iban_account_holder:
+      typeof data.iban_account_holder === "string" && data.iban_account_holder.trim() !== ""
+        ? data.iban_account_holder.trim()
+        : null,
     website_url: data.website_url ?? DEFAULT_BRANDING.website_url,
     contact_phone: data.contact_phone ?? DEFAULT_BRANDING.contact_phone,
     contact_email: data.contact_email ?? DEFAULT_BRANDING.contact_email,
@@ -45,6 +49,10 @@ export async function getTenantBranding(): Promise<TenantBranding> {
     deposit_deadline_days: Number(data.deposit_deadline_days ?? DEFAULT_BRANDING.deposit_deadline_days),
     full_payment_deadline_month: Number(data.full_payment_deadline_month ?? DEFAULT_BRANDING.full_payment_deadline_month),
     full_payment_deadline_day: Number(data.full_payment_deadline_day ?? DEFAULT_BRANDING.full_payment_deadline_day),
+    active_sacrifice_year:
+      data.active_sacrifice_year != null && !Number.isNaN(Number(data.active_sacrifice_year))
+        ? Number(data.active_sacrifice_year)
+        : null,
     agreement_terms,
     agreement_dialog_title:
       (typeof data.agreement_dialog_title === "string" && data.agreement_dialog_title.trim() !== "")

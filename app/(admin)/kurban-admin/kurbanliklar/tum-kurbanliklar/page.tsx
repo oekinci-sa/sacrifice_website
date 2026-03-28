@@ -149,7 +149,7 @@ export default function TumKurbanliklarPage() {
             columnVisibility: {
               notes: true,
               foundation: false,
-              ear_tag: false,
+              ear_tag: true,
             },
           }}
           filters={({ table, columnOrder, onColumnOrderChange, resetColumnLayout }) => (

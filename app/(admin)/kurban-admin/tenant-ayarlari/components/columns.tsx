@@ -20,6 +20,7 @@ export type TenantSettingRow = {
   homepage_mode: string | null;
   logo_slug: string | null;
   iban: string | null;
+  iban_account_holder: string | null;
   website_url: string | null;
   contact_phone: string | null;
   contact_email: string | null;

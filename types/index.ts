@@ -116,6 +116,8 @@ export interface sacrificeSchema {
   planned_delivery_time?: string | null;
   /** Küpe numarası (yalnızca admin panelinden; boş olabilir) */
   ear_tag?: string | null;
+  /** Ahır sıra no (serbest metin) */
+  barn_stall_order_no?: string | null;
 
   // Düzenleme bilgileri
   last_edited_time: string | null;

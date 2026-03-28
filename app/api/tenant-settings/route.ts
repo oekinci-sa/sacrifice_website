@@ -16,7 +16,7 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("tenant_settings")
-      .select("theme_json, homepage_mode, logo_slug, iban, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body")
+      .select("theme_json, homepage_mode, logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body")
       .eq("tenant_id", tenantId)
       .single();
 
@@ -37,6 +37,10 @@ export async function GET() {
       tenant_id: tenantId,
       logo_slug: data?.logo_slug ?? "ankara-kurban",
       iban: data?.iban ?? "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
+      iban_account_holder:
+        typeof data?.iban_account_holder === "string" && data.iban_account_holder.trim() !== ""
+          ? data.iban_account_holder.trim()
+          : null,
       website_url: data?.website_url ?? "ankarakurban.com.tr",
       contact_phone: data?.contact_phone ?? "0312 312 44 64 / 0552 652 90 00",
       contact_email: data?.contact_email ?? "iletisim@ankarakurban.com.tr",
@@ -45,6 +49,10 @@ export async function GET() {
       deposit_deadline_days: Number(data?.deposit_deadline_days ?? 3),
       full_payment_deadline_month: Number(data?.full_payment_deadline_month ?? 5),
       full_payment_deadline_day: Number(data?.full_payment_deadline_day ?? 20),
+      active_sacrifice_year:
+        data?.active_sacrifice_year != null && !Number.isNaN(Number(data.active_sacrifice_year))
+          ? Number(data.active_sacrifice_year)
+          : null,
       agreement_terms,
       agreement_dialog_title:
         (typeof data?.agreement_dialog_title === "string" && data.agreement_dialog_title.trim() !== "")

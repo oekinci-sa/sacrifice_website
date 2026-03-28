@@ -10,6 +10,7 @@ const UPDATABLE_FIELDS = [
   "homepage_mode",
   "logo_slug",
   "iban",
+  "iban_account_holder",
   "website_url",
   "contact_phone",
   "contact_email",

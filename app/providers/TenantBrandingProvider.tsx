@@ -39,6 +39,11 @@ export function TenantBrandingProvider({
             tenant_id: data.branding.tenant_id ?? null,
             logo_slug: data.branding.logo_slug ?? DEFAULT_BRANDING.logo_slug,
             iban: data.branding.iban ?? DEFAULT_BRANDING.iban,
+            iban_account_holder:
+              typeof data.branding.iban_account_holder === "string" &&
+              data.branding.iban_account_holder.trim() !== ""
+                ? data.branding.iban_account_holder.trim()
+                : null,
             website_url: data.branding.website_url ?? DEFAULT_BRANDING.website_url,
             contact_phone: data.branding.contact_phone ?? DEFAULT_BRANDING.contact_phone,
             contact_email: data.branding.contact_email ?? DEFAULT_BRANDING.contact_email,
@@ -47,6 +52,11 @@ export function TenantBrandingProvider({
             deposit_deadline_days: Number(data.branding.deposit_deadline_days ?? DEFAULT_BRANDING.deposit_deadline_days),
             full_payment_deadline_month: Number(data.branding.full_payment_deadline_month ?? DEFAULT_BRANDING.full_payment_deadline_month),
             full_payment_deadline_day: Number(data.branding.full_payment_deadline_day ?? DEFAULT_BRANDING.full_payment_deadline_day),
+            active_sacrifice_year:
+              data.branding.active_sacrifice_year != null &&
+              !Number.isNaN(Number(data.branding.active_sacrifice_year))
+                ? Number(data.branding.active_sacrifice_year)
+                : null,
             agreement_terms,
             agreement_dialog_title:
               (typeof data.branding.agreement_dialog_title === "string" && data.branding.agreement_dialog_title.trim() !== "")

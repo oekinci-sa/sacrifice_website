@@ -1,11 +1,15 @@
 /* eslint-disable jsx-a11y/alt-text */
 // This file uses react-pdf's Image component which doesn't support alt attributes
 
-import { reminders } from '@/app/(public)/(hisse)/constants';
 import type { TenantBranding } from '@/lib/tenant-branding';
 import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
-import { formatIbanForDisplay } from '@/utils/formatters';
+import {
+  buildReceiptReminders,
+  formatKaporaIbanLineForReceipt,
+  getIbanAccountHolderDisplay,
+  IBAN_ACCOUNT_HOLDER_FIELD_LABEL,
+} from '@/lib/receipt-reminders';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
@@ -189,20 +193,15 @@ interface ReceiptPDFProps {
   };
 }
 
-function getRemindersWithBranding(branding: TenantBranding | null | undefined) {
-  return reminders.map((r, i) =>
-    i === 1 && branding?.iban
-      ? { ...r, description: formatIbanForDisplay(branding.iban) }
-      : r
-  );
-}
-
 export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
   const logoSlug = branding?.logo_slug ?? "ankara-kurban";
   const logoBase64 = getLogoBase64ForSlug(logoSlug);
   const logoStyle =
     logoSlug === "elya-hayvancilik" ? styles.logoElya : styles.logo;
-  const remindersList = getRemindersWithBranding(branding);
+  const remindersList = buildReceiptReminders(branding, {
+    includeKaporaIbanReminder: false,
+  });
+  const ibanAccountHolderName = getIbanAccountHolderDisplay(branding);
   const websiteUrl = branding?.website_url ?? "ankarakurban.com.tr";
   const contactPhone = branding?.contact_phone ?? "0552 652 90 00 / 0312 312 44 64";
 
@@ -293,6 +292,16 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
             <Text style={styles.label}>Toplam Tutar:</Text>
             <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
           </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Kapora / IBAN:</Text>
+            <Text style={styles.value}>{formatKaporaIbanLineForReceipt(branding)}</Text>
+          </View>
+          {ibanAccountHolderName ? (
+            <View style={styles.row}>
+              <Text style={styles.label}>{IBAN_ACCOUNT_HOLDER_FIELD_LABEL}:</Text>
+              <Text style={styles.value}>{ibanAccountHolderName}</Text>
+            </View>
+          ) : null}
           <View style={styles.row}>
             <Text style={styles.label}>Satın Alma Tarihi:</Text>
             <Text style={styles.value}>{data.purchase_time}</Text>

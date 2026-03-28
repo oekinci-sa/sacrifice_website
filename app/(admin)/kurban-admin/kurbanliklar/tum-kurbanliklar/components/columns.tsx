@@ -17,6 +17,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { ActionCellContent } from "./columns/ActionCell";
 import {
   EditableAnimalTypeCell,
+  EditableBarnStallOrderCell,
   EditableEarTagCell,
   EditableEmptyShareCell,
   EditableFoundationCell,
@@ -26,6 +27,10 @@ import {
 
 function getEffectiveEarTagSortValue(row: sacrificeSchema): string {
   return (row.ear_tag ?? "").trim();
+}
+
+function getEffectiveBarnStallOrderSortValue(row: sacrificeSchema): string {
+  return (row.barn_stall_order_no ?? "").trim();
 }
 
 function formatPlanTimeCell(value: unknown) {
@@ -190,6 +195,24 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     }
   },
   {
+    id: "ear_tag",
+    accessorFn: (row) => getEffectiveEarTagSortValue(row),
+    minSize: 100,
+    header: "Küpe No",
+    cell: ({ row }) => <EditableEarTagCell row={row} />,
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
+    id: "barn_stall_order_no",
+    accessorFn: (row) => getEffectiveBarnStallOrderSortValue(row),
+    minSize: 110,
+    header: "Ahır Sıra No",
+    cell: ({ row }) => <EditableBarnStallOrderCell row={row} />,
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
     accessorKey: "sacrifice_time",
     minSize: 90,
     header: ({ column }) => (
@@ -259,15 +282,6 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       if (!b) return -1;
       return a.localeCompare(b);
     },
-  },
-  {
-    id: "ear_tag",
-    accessorFn: (row) => getEffectiveEarTagSortValue(row),
-    minSize: 100,
-    header: "Küpe No",
-    cell: ({ row }) => <EditableEarTagCell row={row} />,
-    enableSorting: true,
-    enableHiding: true,
   },
   {
     accessorKey: "share_price",

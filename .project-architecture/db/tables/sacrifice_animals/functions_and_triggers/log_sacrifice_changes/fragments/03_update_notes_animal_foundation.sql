@@ -62,3 +62,19 @@
       );
     END IF;
 
+    IF NEW.barn_stall_order_no IS DISTINCT FROM OLD.barn_stall_order_no THEN
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      VALUES (
+        'Kurbanlıklar',
+        CAST(NEW.sacrifice_no AS TEXT),
+        'Ahır Sıra No',
+        COALESCE(OLD.barn_stall_order_no, ''),
+        COALESCE(NEW.barn_stall_order_no, ''),
+        'Güncelleme',
+        'Ahır sıra numarası güncellendi: ' || COALESCE(NULLIF(trim(OLD.barn_stall_order_no), ''), '—') || ' → ' || COALESCE(NULLIF(trim(NEW.barn_stall_order_no), ''), '—') || '.',
+        v_owner,
+        NEW.tenant_id,
+        NEW.sacrifice_year
+      );
+    END IF;
+

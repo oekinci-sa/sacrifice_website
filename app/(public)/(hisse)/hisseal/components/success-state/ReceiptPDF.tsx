@@ -6,10 +6,14 @@ import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
 import {
   buildReceiptReminders,
-  formatKaporaIbanLineForReceipt,
+  formatKaporaTlForReceipt,
   getIbanAccountHolderDisplay,
-  IBAN_ACCOUNT_HOLDER_FIELD_LABEL,
+  IBAN_HOLDER_PAYMENT_ROW_LABEL,
+  IBAN_PAYMENT_ROW_LABEL,
+  KAPORA_PAYMENT_ROW_LABEL,
 } from '@/lib/receipt-reminders';
+import { DEFAULT_BRANDING } from '@/lib/tenant-branding-defaults';
+import { formatIbanForDisplay } from '@/utils/formatters';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 // Register OpenSans font from local files
@@ -202,6 +206,7 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
     includeKaporaIbanReminder: false,
   });
   const ibanAccountHolderName = getIbanAccountHolderDisplay(branding);
+  const brandingForIban = branding ?? DEFAULT_BRANDING;
   const websiteUrl = branding?.website_url ?? "ankarakurban.com.tr";
   const contactPhone = branding?.contact_phone ?? "0552 652 90 00 / 0312 312 44 64";
 
@@ -293,12 +298,16 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
             <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Kapora / IBAN:</Text>
-            <Text style={styles.value}>{formatKaporaIbanLineForReceipt(branding)}</Text>
+            <Text style={styles.label}>{KAPORA_PAYMENT_ROW_LABEL}:</Text>
+            <Text style={styles.value}>{formatKaporaTlForReceipt(branding)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>{IBAN_PAYMENT_ROW_LABEL}:</Text>
+            <Text style={styles.value}>{formatIbanForDisplay(brandingForIban.iban)}</Text>
           </View>
           {ibanAccountHolderName ? (
             <View style={styles.row}>
-              <Text style={styles.label}>{IBAN_ACCOUNT_HOLDER_FIELD_LABEL}:</Text>
+              <Text style={styles.label}>{IBAN_HOLDER_PAYMENT_ROW_LABEL}:</Text>
               <Text style={styles.value}>{ibanAccountHolderName}</Text>
             </View>
           ) : null}

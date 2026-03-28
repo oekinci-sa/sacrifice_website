@@ -212,8 +212,9 @@ export const faq_categories = [
       {
         id: "7",
         title: "Kapora ücreti var mı, hisse bedelini taksitle ödeyebilir miyim?",
+        // Arayüzde faq.tsx içinde tenant_settings ile dinamik metin (FaqKaporaPaymentAnswer).
         content:
-          "İlk etapta minimum 5.000 TL kapora yatırmanız gerekmektedir. Kalan ödemeyi ise 20 Mayıs Çarşamba gününe kadar tamamlamanız gerekmektedir.",
+          "İlk etapta minimum kapora ve tam ödeme son tarihi tenant ayarlarına göre belirlenir.",
       },
       {
         id: "14",

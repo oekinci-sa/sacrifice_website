@@ -1,16 +1,22 @@
 /** Hisse tamamlandıktan sonra otomatik gönderilen e-posta — PDF (ReceiptPDF) ile aynı içerik düzeni. */
 
 import { getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
-import { getLogoAbsoluteUrlForEmail } from "@/lib/email-logo-url";
+import {
+  getAnkaraDarkModeLogoUrlForEmail,
+  getLogoAbsoluteUrlForEmail,
+} from "@/lib/email-logo-url";
 import { getLogoBase64ForSlug } from "@/lib/logoBase64";
 import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
 import {
   buildReceiptReminders,
-  formatKaporaIbanLineForReceipt,
+  formatKaporaTlForReceipt,
   getIbanAccountHolderDisplay,
-  IBAN_ACCOUNT_HOLDER_FIELD_LABEL,
+  IBAN_HOLDER_PAYMENT_ROW_LABEL,
+  IBAN_PAYMENT_ROW_LABEL,
+  KAPORA_PAYMENT_ROW_LABEL,
 } from "@/lib/receipt-reminders";
 import type { TenantBranding } from "@/lib/tenant-branding";
+import { formatIbanForDisplay } from "@/utils/formatters";
 
 /** E-posta konusu ve gövdede marka adı (DB `tenants.name` değil, logo_slug ile). */
 export function getPurchaseConfirmationTenantDisplayName(logoSlug: string): string {
@@ -26,9 +32,14 @@ export function buildPurchaseConfirmationHtml(params: {
 }): { html: string; text: string } {
   const { tenantName, branding, receipt } = params;
   const slug = branding.logo_slug;
-  const logoHttpsUrl = getLogoAbsoluteUrlForEmail(slug, branding.website_url);
-  const logoSrc = logoHttpsUrl || getLogoBase64ForSlug(slug);
+  const logoLightHttps = getLogoAbsoluteUrlForEmail(slug, branding.website_url);
+  const logoDarkHttps =
+    slug === "ankara-kurban"
+      ? getAnkaraDarkModeLogoUrlForEmail(branding.website_url)
+      : "";
+  const logoFallback = getLogoBase64ForSlug(slug);
   const logoWidthPx = slug === "elya-hayvancilik" ? 75 : 150;
+  const elyaClass = slug === "elya-hayvancilik" ? " email-logo-elya" : "";
 
   const deliveryTypeLabel = getDeliveryTypeDisplayLabel(
     slug,
@@ -46,6 +57,28 @@ export function buildPurchaseConfirmationHtml(params: {
   const contactPhone = branding.contact_phone || "";
 
   const fmt = (s: string) => escapeHtml(s);
+
+  const logoTd =
+    logoLightHttps && slug === "ankara-kurban" && logoDarkHttps
+      ? `<td style="padding:24px 20px 12px 20px;text-align:center;">
+            <img class="email-logo-img email-logo-light${elyaClass}" src="${fmt(logoLightHttps)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
+            <img class="email-logo-img email-logo-dark${elyaClass}" src="${fmt(logoDarkHttps)}" alt="" width="${logoWidthPx}" style="display:none;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
+          </td>`
+      : `<td style="padding:24px 20px 12px 20px;text-align:center;">
+            <img class="email-logo-img${elyaClass}" src="${fmt(logoLightHttps || logoFallback)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
+          </td>`;
+
+  const odemeRows: [string, string][] = [
+    ["Hisse Fiyatı", formatPrice(receipt.share_price)],
+    ["Teslimat Ücreti", formatPrice(receipt.delivery_fee)],
+    ["Toplam Tutar", formatPrice(receipt.total_amount)],
+    [KAPORA_PAYMENT_ROW_LABEL, formatKaporaTlForReceipt(branding)],
+    [IBAN_PAYMENT_ROW_LABEL, formatIbanForDisplay(branding.iban)],
+    ...(ibanAccountHolderName
+      ? ([[IBAN_HOLDER_PAYMENT_ROW_LABEL, ibanAccountHolderName]] as [string, string][])
+      : []),
+    ["Satın Alma Tarihi", receipt.purchase_time],
+  ];
 
   const hisseSahibiRows: [string, string][] = [
     ["Ad Soyad", receipt.shareholder_name],
@@ -75,6 +108,16 @@ export function buildPurchaseConfirmationHtml(params: {
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <title>${fmt(tenantName)} — İşlem özeti</title>
 <style type="text/css">
+  .email-logo-img { width: 150px; max-width: 100%; height: auto; }
+  .email-logo-img.email-logo-elya { width: 75px; }
+  @media only screen and (min-width: 600px) {
+    .email-logo-img { width: 300px !important; }
+    .email-logo-img.email-logo-elya { width: 150px !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .email-logo-light { display: none !important; }
+    .email-logo-dark { display: block !important; }
+  }
   @media only screen and (max-width: 600px) {
     .email-outer { padding: 16px 8px !important; }
     .email-card { border-radius: 0 !important; }
@@ -89,13 +132,11 @@ export function buildPurchaseConfirmationHtml(params: {
     <td class="email-outer" align="center" style="padding:24px 12px;">
       <table role="presentation" class="email-card" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;">
         <tr>
-          <td style="padding:24px 20px 12px 20px;text-align:center;">
-            <img src="${fmt(logoSrc)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;width:${logoWidthPx}px;border:0;outline:none;" />
-          </td>
+          ${logoTd}
         </tr>
         <tr>
           <td class="email-pad" style="padding:0 20px 8px 20px;">
-            <p style="margin:0 0 8px 0;font-size:15px;color:#374151;">Merhaba ${fmt(receipt.shareholder_name)},</p>
+            <p style="margin:0 0 8px 0;font-size:15px;color:#374151;">Kıymetli hissedarımız ${fmt(receipt.shareholder_name)},</p>
             <p class="email-title" style="margin:0 0 12px 0;font-size:20px;font-weight:700;text-align:center;color:#111827;">Kurban Hisse Seçimi İşlem Özeti</p>
             <p style="margin:0 0 20px 0;font-size:13px;color:#6b7280;text-align:center;">Bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.<br />Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.</p>
           </td>
@@ -109,19 +150,7 @@ export function buildPurchaseConfirmationHtml(params: {
             ["Kilogram", receipt.share_weight ? `${receipt.share_weight} ±3 kg` : "-"],
           ])
         )}
-        ${sectionBlock(
-          "Ödeme Bilgileri",
-          rowsHtml([
-            ["Hisse Fiyatı", formatPrice(receipt.share_price)],
-            ["Teslimat Ücreti", formatPrice(receipt.delivery_fee)],
-            ["Toplam Tutar", formatPrice(receipt.total_amount)],
-            ["Kapora / IBAN", formatKaporaIbanLineForReceipt(branding)],
-            ...(ibanAccountHolderName
-              ? ([["Ad Soyad", ibanAccountHolderName]] as [string, string][])
-              : []),
-            ["Satın Alma Tarihi", receipt.purchase_time],
-          ])
-        )}
+        ${sectionBlock("Ödeme Bilgileri", rowsHtml(odemeRows))}
         ${sectionBlock(
           "Rezervasyon Takibi ve Güvenlik",
           rowsHtml([
@@ -164,13 +193,12 @@ export function buildPurchaseConfirmationHtml(params: {
 
   const text = buildPlainText({
     tenantName,
+    branding,
     receipt,
     deliveryTypeLabel,
     remindersList,
     websiteUrl,
     contactPhone,
-    ibanDisplay: formatKaporaIbanLineForReceipt(branding),
-    ibanAccountHolderName,
   });
 
   return { html, text };
@@ -213,26 +241,25 @@ function escapeHtml(s: string): string {
 
 function buildPlainText(params: {
   tenantName: string;
+  branding: TenantBranding;
   receipt: PurchaseReceiptPdfLikeData;
   deliveryTypeLabel: string;
   remindersList: { header: string; description: string }[];
   websiteUrl: string;
   contactPhone: string;
-  ibanDisplay: string;
-  ibanAccountHolderName: string | null;
 }): string {
   const {
     tenantName,
+    branding,
     receipt,
     deliveryTypeLabel,
     remindersList,
     websiteUrl,
     contactPhone,
-    ibanDisplay,
-    ibanAccountHolderName,
   } = params;
+  const holder = getIbanAccountHolderDisplay(branding);
   const lines: string[] = [
-    `Merhaba ${receipt.shareholder_name},`,
+    `Kıymetli hissedarımız ${receipt.shareholder_name},`,
     "",
     `${tenantName} — Kurban Hisse Seçimi İşlem Özeti`,
     "",
@@ -266,10 +293,9 @@ function buildPlainText(params: {
     `Hisse Fiyatı: ${formatPrice(receipt.share_price)}`,
     `Teslimat Ücreti: ${formatPrice(receipt.delivery_fee)}`,
     `Toplam Tutar: ${formatPrice(receipt.total_amount)}`,
-    `Kapora / IBAN: ${ibanDisplay}`,
-    ...(ibanAccountHolderName
-      ? [`${IBAN_ACCOUNT_HOLDER_FIELD_LABEL}: ${ibanAccountHolderName}`]
-      : []),
+    `Kapora: ${formatKaporaTlForReceipt(branding)}`,
+    `IBAN: ${formatIbanForDisplay(branding.iban)}`,
+    ...(holder ? [`${IBAN_HOLDER_PAYMENT_ROW_LABEL}: ${holder}`] : []),
     `Satın Alma Tarihi: ${receipt.purchase_time}`,
     "",
     "--- Rezervasyon Takibi ve Güvenlik ---",

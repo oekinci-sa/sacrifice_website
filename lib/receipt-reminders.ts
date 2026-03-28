@@ -50,16 +50,34 @@ export type BuildReceiptRemindersOptions = {
   includeKaporaPaymentDeadlineReminder?: boolean;
 };
 
-/** Ödeme tablosu satırı: kapora tutarı + IBAN (tenant ayarlarına göre). */
+/** Ödeme tablosu: "Kapora" satırı değeri — örn. `5.000 TL` (DB `deposit_amount`). */
+export function formatKaporaTlForReceipt(
+  branding: BrandingDepositFields | null | undefined
+): string {
+  const b = branding ?? DEFAULT_BRANDING;
+  return (
+    new Intl.NumberFormat("tr-TR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(b.deposit_amount) + " TL"
+  );
+}
+
+/** PDF/e-posta ödeme tablosu satır etiketleri (ayrı satırlar). */
+export const KAPORA_PAYMENT_ROW_LABEL = "Kapora";
+export const IBAN_PAYMENT_ROW_LABEL = "IBAN";
+/** Kullanıcı örneğindeki gibi kısa etiket ("IBAN Sahibi Ad Soyad" değil). */
+export const IBAN_HOLDER_PAYMENT_ROW_LABEL = "IBAN Sahibi";
+
+/**
+ * @deprecated Birleşik tek satır; yeni şablonlarda `formatKaporaTlForReceipt` +
+ * `formatIbanForDisplay(iban)` ayrı satırlarda kullanılır.
+ */
 export function formatKaporaIbanLineForReceipt(
   branding: BrandingDepositFields | null | undefined
 ): string {
   const b = branding ?? DEFAULT_BRANDING;
-  const depositFormatted = new Intl.NumberFormat("tr-TR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(b.deposit_amount);
-  return `${depositFormatted} TL — ${formatIbanForDisplay(b.iban)}`;
+  return `${formatKaporaTlForReceipt(b)} — ${formatIbanForDisplay(b.iban)}`;
 }
 
 export function buildReceiptReminders(

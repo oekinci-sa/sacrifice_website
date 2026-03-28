@@ -34,3 +34,13 @@ export function getLogoAbsoluteUrlForEmail(
   if (!origin) return "";
   return `${origin}${path}`;
 }
+
+/**
+ * Ankara Kurban: `prefers-color-scheme: dark` için beyaz logo (SVG, HTTPS).
+ * E-posta istemcilerinde destek sınırlı; desteklemeyenler açık tema PNG’yi gösterir.
+ */
+export function getAnkaraDarkModeLogoUrlForEmail(websiteUrl?: string | null): string {
+  const origin = publicSiteOriginFromWebsiteUrl(websiteUrl);
+  if (!origin) return "";
+  return `${origin}/logos/ankara-kurban/ankara-kurban-white.svg`;
+}

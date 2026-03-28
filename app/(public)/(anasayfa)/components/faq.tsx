@@ -5,6 +5,11 @@ import {
   AccordionContent,
   AccordionItem,
 } from "@/components/ui/accordion";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import {
+  getFullPaymentMonthName,
+  getFullPaymentWeekdayName,
+} from "@/lib/agreement-placeholders";
 import { useRef, useState } from "react";
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
@@ -13,6 +18,44 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
 import { faq_categories } from "../constants";
+
+/** id=7: Kapora tutarı ve tam ödeme tarihi tenant_settings’tan (sabit 5000 TL yok). */
+function FaqKaporaPaymentAnswer() {
+  const branding = useTenantBranding();
+  const depositFormatted = new Intl.NumberFormat("tr-TR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(branding.deposit_amount);
+  const monthName = getFullPaymentMonthName(branding.full_payment_deadline_month);
+  const calendarYear =
+    branding.active_sacrifice_year != null &&
+    !Number.isNaN(Number(branding.active_sacrifice_year))
+      ? Number(branding.active_sacrifice_year)
+      : new Date().getFullYear();
+  const weekday = getFullPaymentWeekdayName(
+    calendarYear,
+    branding.full_payment_deadline_month,
+    branding.full_payment_deadline_day
+  );
+  const day = branding.full_payment_deadline_day;
+  return (
+    <>
+      İlk etapta minimum {depositFormatted} TL kapora yatırmanız gerekmektedir. Kalan
+      ödemeyi ise {day} {monthName} {weekday} gününe kadar tamamlamanız gerekmektedir.
+    </>
+  );
+}
+
+function FaqItemContent({
+  item,
+}: {
+  item: (typeof faq_categories)[0]["items"][0];
+}) {
+  if (item.id === "7") {
+    return <FaqKaporaPaymentAnswer />;
+  }
+  return <>{item.content}</>;
+}
 
 // Accordion içeriği
 function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categories[0]['items'], categoryId: string }) {
@@ -69,7 +112,7 @@ function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categori
                   </AccordionPrimitive.Trigger>
                 </AccordionPrimitive.Header>
                 <AccordionContent className="text-base md:text-lg text-muted-foreground">
-                  {faqItem.content}
+                  <FaqItemContent item={faqItem} />
                 </AccordionContent>
               </AccordionItem>
             </motion.div>

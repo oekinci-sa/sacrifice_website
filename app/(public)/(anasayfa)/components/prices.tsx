@@ -186,7 +186,7 @@ const Prices = ({
         </h2>
 
         <motion.div
-          className="w-full md:w-1/2 md:mx-auto"
+          className="w-full md:w-2/3 md:mx-auto"
           variants={container}
           initial="hidden"
           animate={instantReveal ? "show" : undefined}
@@ -216,7 +216,7 @@ const Prices = ({
           </div>
 
           {/* md+: kartlar gruplu ortada, tam genişliğe yayılmaz */}
-          <div className="hidden md:flex md:flex-wrap md:justify-center md:gap-x-10 md:gap-y-12 items-start w-full">
+          <div className="hidden md:flex md:flex-wrap md:justify-center md:gap-x-20 md:gap-y-12 items-start w-full">
             {displayItems.map((item) => (
               <PriceCard
                 key={`d-${item.kg}-${item.price}`}

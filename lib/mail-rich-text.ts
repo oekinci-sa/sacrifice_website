@@ -1,3 +1,4 @@
+import { buildInstrumentSansEmailDocument } from "@/lib/email-font-stack";
 import sanitizeHtml from "sanitize-html";
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
@@ -15,10 +16,10 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 export function mailBodyEditorHtmlToEmailHtml(html: string): string {
   const trimmed = html.trim();
   if (!trimmed || trimmed === "<p></p>") {
-    return "<p></p>";
+    return buildInstrumentSansEmailDocument("<p></p>");
   }
   const safe = sanitizeHtml(trimmed, SANITIZE_OPTIONS);
-  return `<div style="font-family:system-ui,Segoe UI,sans-serif;line-height:1.5">${safe}</div>`;
+  return buildInstrumentSansEmailDocument(`<div>${safe}</div>`);
 }
 
 /** E-postanın düz metin alternatifi (HTML etiketleri gösterilmez). */

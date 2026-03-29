@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
-import Image from "next/image";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 
 export default function LoginPage() {
   return (

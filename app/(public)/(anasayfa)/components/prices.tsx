@@ -1,7 +1,7 @@
 "use client";
 
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 import type { PriceInfoItem } from "@/hooks/usePriceInfo";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { motion, type Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,13 +26,12 @@ function PriceCard({
   const effectiveSoldOut = item.soldOut && !hideSoldOutBadge;
   return (
     <motion.div
-      className={`flex flex-col items-center transition-all duration-300 ${
-        effectiveSoldOut
+      className={`flex flex-col items-center transition-all duration-300 ${effectiveSoldOut
           ? "cursor-not-allowed"
           : disableHissealNavigation
             ? "cursor-default"
             : "cursor-pointer hover:scale-105"
-      }`}
+        }`}
       onClick={() => {
         if (disableHissealNavigation || effectiveSoldOut) return;
         router.push(`/hisseal?price=${item.price}`);
@@ -46,9 +45,8 @@ function PriceCard({
         {item.kg} KG
       </motion.div>
       <motion.div
-        className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${
-          effectiveSoldOut ? "rounded-t-md" : "rounded-md"
-        }`}
+        className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${effectiveSoldOut ? "rounded-t-md" : "rounded-md"
+          }`}
         variants={boxVariant}
       >
         {item.price.toLocaleString("tr-TR")} TL
@@ -164,10 +162,6 @@ const Prices = ({
   const fullRowsMobile = Math.floor(total / 2) * 2;
   const firstPartMobile = displayItems.slice(0, fullRowsMobile);
   const lastPartMobile = displayItems.slice(fullRowsMobile);
-  /** md+: 4 sütun; son satır ortalı */
-  const fullRowsDesktop = Math.floor(total / 4) * 4;
-  const firstPartDesktop = displayItems.slice(0, fullRowsDesktop);
-  const lastPartDesktop = displayItems.slice(fullRowsDesktop);
 
   const cardProps = {
     disableHissealNavigation,
@@ -192,7 +186,7 @@ const Prices = ({
         </h2>
 
         <motion.div
-          className="w-full"
+          className="w-full md:w-1/2 md:mx-auto"
           variants={container}
           initial="hidden"
           animate={instantReveal ? "show" : undefined}
@@ -221,26 +215,15 @@ const Prices = ({
             )}
           </div>
 
-          {/* md+: 4 sütun */}
-          <div className="hidden md:grid md:grid-cols-4 md:gap-8 md:gap-x-24 md:gap-y-12 items-start justify-items-center">
-            {firstPartDesktop.map((item) => (
+          {/* md+: kartlar gruplu ortada, tam genişliğe yayılmaz */}
+          <div className="hidden md:flex md:flex-wrap md:justify-center md:gap-x-10 md:gap-y-12 items-start w-full">
+            {displayItems.map((item) => (
               <PriceCard
                 key={`d-${item.kg}-${item.price}`}
                 item={item}
                 {...cardProps}
               />
             ))}
-            {lastPartDesktop.length > 0 && (
-              <div className="col-span-4 flex flex-wrap justify-center gap-8 gap-x-24 gap-y-12">
-                {lastPartDesktop.map((item) => (
-                  <PriceCard
-                    key={`d-last-${item.kg}-${item.price}`}
-                    item={item}
-                    {...cardProps}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </motion.div>
 

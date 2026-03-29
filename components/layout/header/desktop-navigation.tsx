@@ -4,7 +4,6 @@ import EmptySharesBadge from '@/components/common/empty-shares-badge';
 import CustomLink from '@/components/custom-data-components/custom-link';
 
 const DesktopNavigation = () => {
-
   return (
     <nav className="flex gap-10 items-center justify-between">
       <CustomLink href="/">

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import AnimatedCounter from "./components/AnimatedCounter";
+import { ElyaAboutLanding } from "./components/elya-about-landing";
 
 const item = {
   hidden: { opacity: 0, y: 50 },
@@ -17,17 +18,17 @@ const item = {
   },
 };
 
-const ELYA_ABOUT_CONTENT = [
-  "Kurban hizmetleri alanında güven, şeffaflık ve kaliteyi esas alan bir anlayışla faaliyet gösteriyoruz. Amacımız; kurban ibadetini, hem dini hassasiyetlere uygun hem de modern hizmet standartlarıyla buluşturarak en doğru şekilde yerine getirilmesini sağlamaktır.",
-  "Uzun yıllardır sektörde edinilmiş tecrübe ile güçlü altyapıyı bir araya getirerek, sürecin her aşamasını planlı, düzenli ve güvenilir bir şekilde yürütüyoruz. Bölgesinde örnek gösterilen modern tesisimiz ve disiplinli çalışma sistemimizle, hizmet kalitemizi her geçen gün daha ileriye taşıyoruz.",
-  "Geçtiğimiz yıllarda elde ettiğimiz tecrübe ve müşteri memnuniyetinin verdiği güçle, her geçen yıl hizmet kapasitemizi artırıyor; bu yıl itibarıyla organizasyonumuzu büyüterek kapasitemizi iki katına çıkarıyoruz.",
-  "Amacımız; kurban ibadetinin güven içinde, huzurla ve usulüne uygun şekilde yerine getirilmesine vesile olmaktır.",
-  "Modern tesisimiz, tecrübeli ekibimiz ve dürüst hizmet anlayışımızla her yıl daha fazla aileye güvenilir kurban hizmeti sunmayı hedefliyoruz.",
-];
-
 const AboutPage = () => {
   const { logo_slug } = useTenantBranding();
   const isElya = logo_slug === "elya-hayvancilik";
+
+  if (isElya) {
+    return (
+      <div className="overflow-x-hidden">
+        <ElyaAboutLanding />
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -40,35 +41,29 @@ const AboutPage = () => {
       {/* About Us Content */}
       <div className="flex flex-col md:flex-row gap-8 md:gap-32 text-black/80">
         <div className="w-full md:w-2/3 flex flex-col gap-4 md:gap-6 text-base md:text-xl">
-          {isElya ? (
-            ELYA_ABOUT_CONTENT.map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
-            ))
-          ) : (
-            <>
-              <p>
-                2019 yılından bu yana, kurban organizasyonumuz ile binlerce
-                hissedarımıza güvenilir ve şeffaf bir hizmet sunmaktayız.
-                Amacımız, kurban ibadetinin İslami usullere uygun şekilde
-                gerçekleştirilmesini sağlamak ve bu süreçte hissedarlarımıza en
-                iyi deneyimi yaşatmaktır.
-              </p>
-              <p>
-                Organizasyonumuz, alanında uzman kasaplar ve veterinerler
-                eşliğinde, modern kesimhane ortamında gerçekleştirilmektedir.
-                Kurbanlıklarımız, dini vecibelere uygunluk açısından titizlikle
-                seçilmekte ve sağlık kontrolleri düzenli olarak yapılmaktadır.
-              </p>
+          <>
+            <p>
+              2019 yılından bu yana, kurban organizasyonumuz ile binlerce
+              hissedarımıza güvenilir ve şeffaf bir hizmet sunmaktayız.
+              Amacımız, kurban ibadetinin İslami usullere uygun şekilde
+              gerçekleştirilmesini sağlamak ve bu süreçte hissedarlarımıza en
+              iyi deneyimi yaşatmaktır.
+            </p>
+            <p>
+              Organizasyonumuz, alanında uzman kasaplar ve veterinerler
+              eşliğinde, modern kesimhane ortamında gerçekleştirilmektedir.
+              Kurbanlıklarımız, dini vecibelere uygunluk açısından titizlikle
+              seçilmekte ve sağlık kontrolleri düzenli olarak yapılmaktadır.
+            </p>
 
-              <AnimatedCounter />
+            <AnimatedCounter />
 
-              <p>
-                Her yıl büyüyen ailemizle birlikte, kurban organizasyonumuzu daha da
-                geliştiriyor ve hizmet kalitemizi artırıyoruz. Hissedarlarımızın
-                güveni ve memnuniyeti, bizim için en büyük motivasyon kaynağıdır.
-              </p>
-            </>
-          )}
+            <p>
+              Her yıl büyüyen ailemizle birlikte, kurban organizasyonumuzu daha da
+              geliştiriyor ve hizmet kalitemizi artırıyoruz. Hissedarlarımızın
+              güveni ve memnuniyeti, bizim için en büyük motivasyon kaynağıdır.
+            </p>
+          </>
         </div>
 
         {/* Image */}

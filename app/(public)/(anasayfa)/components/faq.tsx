@@ -10,7 +10,29 @@ import {
   getFullPaymentMonthName,
   getFullPaymentWeekdayName,
 } from "@/lib/agreement-placeholders";
-import { useRef, useState } from "react";
+import { mergeElyaFaqExtrasIntoCategories } from "@/lib/elya-faq-extra-items";
+import { useMemo, useRef, useState } from "react";
+
+/** Yalnızca Ankara Kurban (`ankara-kurban`) tenant’ında gösterilen SSS maddeleri */
+const ANKARA_ONLY_FAQ_ITEM_IDS = new Set(["18"]);
+
+function filterFaqItemsByTenant<
+  T extends {
+    id: string;
+    title: string;
+    items: Array<{ id: string; title: string; content: string }>;
+  },
+>(categories: T[], logoSlug: string | null | undefined): T[] {
+  return categories.map((cat) => ({
+    ...cat,
+    items: cat.items.filter((item) => {
+      if (ANKARA_ONLY_FAQ_ITEM_IDS.has(item.id)) {
+        return logoSlug === "ankara-kurban";
+      }
+      return true;
+    }),
+  }));
+}
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
@@ -29,7 +51,7 @@ function FaqKaporaPaymentAnswer() {
   const monthName = getFullPaymentMonthName(branding.full_payment_deadline_month);
   const calendarYear =
     branding.active_sacrifice_year != null &&
-    !Number.isNaN(Number(branding.active_sacrifice_year))
+      !Number.isNaN(Number(branding.active_sacrifice_year))
       ? Number(branding.active_sacrifice_year)
       : new Date().getFullYear();
   const weekday = getFullPaymentWeekdayName(
@@ -40,8 +62,14 @@ function FaqKaporaPaymentAnswer() {
   const day = branding.full_payment_deadline_day;
   return (
     <>
-      İlk etapta minimum {depositFormatted} TL kapora yatırmanız gerekmektedir. Kalan
-      ödemeyi ise {day} {monthName} {weekday} gününe kadar tamamlamanız gerekmektedir.
+      <p>
+        İlk etapta minimum {depositFormatted} TL kapora yatırmanız gerekmektedir. Kalan
+        ödemeyi ise {day} {monthName} {weekday} gününe kadar tamamlamanız gerekmektedir.
+      </p>
+      <p className="mt-3">
+        Ancak kaporasını yatırmış ve durumunu önceden bildirmiş hissedarlarımız, kalan tutarı
+        kesim günü elden de teslim edebilirler.
+      </p>
     </>
   );
 }
@@ -124,15 +152,20 @@ function FaqAccordionContent({ items, categoryId }: { items: typeof faq_categori
 }
 
 // Desktop view: Vertical tabs
-function DesktopFaqContent() {
-  const [activeCategory, setActiveCategory] = useState(faq_categories[0].id);
-  const activeCategoryItems = faq_categories.find(cat => cat.id === activeCategory)?.items || [];
+function DesktopFaqContent({
+  categories,
+}: {
+  categories: typeof faq_categories;
+}) {
+  const [activeCategory, setActiveCategory] = useState(categories[0].id);
+  const activeCategoryItems =
+    categories.find((cat) => cat.id === activeCategory)?.items || [];
 
   return (
     <div className="flex flex-row space-x-6">
       {/* Vertical tabs */}
       <div className="flex flex-col space-y-4 w-full md:w-1/4 pr-0 md:pr-6">
-        {faq_categories.map((category) => (
+        {categories.map((category) => (
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
@@ -151,11 +184,15 @@ function DesktopFaqContent() {
 }
 
 // Mobile view: Expandable category sections
-function MobileFaqContent() {
-  const [activeCategory, setActiveCategory] = useState(faq_categories[0].id);
+function MobileFaqContent({
+  categories,
+}: {
+  categories: typeof faq_categories;
+}) {
+  const [activeCategory, setActiveCategory] = useState(categories[0].id);
 
   const toggleCategory = (categoryId: string) => {
-    setActiveCategory(prev => prev === categoryId ? "" : categoryId);
+    setActiveCategory((prev) => (prev === categoryId ? "" : categoryId));
   };
 
   // Animation for expandable sections
@@ -181,7 +218,7 @@ function MobileFaqContent() {
 
   return (
     <div className="space-y-4">
-      {faq_categories.map(category => (
+      {categories.map((category) => (
         <div key={category.id} className="w-full">
           <button
             onClick={() => toggleCategory(category.id)}
@@ -214,6 +251,15 @@ function MobileFaqContent() {
 
 // Main FAQ component
 const Faq = () => {
+  const { logo_slug } = useTenantBranding();
+  const categories = useMemo(() => {
+    const merged = mergeElyaFaqExtrasIntoCategories(
+      faq_categories,
+      logo_slug === "elya-hayvancilik"
+    );
+    return filterFaqItemsByTenant(merged, logo_slug);
+  }, [logo_slug]);
+
   return (
     <div id="faq" className="container w-full space-y-8 md:space-y-12">
       <h2 className="font-bold text-3xl md:hidden text-center">
@@ -222,10 +268,10 @@ const Faq = () => {
 
       {/* Responsive content switching */}
       <div className="block md:hidden">
-        <MobileFaqContent />
+        <MobileFaqContent categories={categories} />
       </div>
       <div className="hidden md:block">
-        <DesktopFaqContent />
+        <DesktopFaqContent categories={categories} />
       </div>
     </div>
   );

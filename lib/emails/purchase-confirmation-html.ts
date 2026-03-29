@@ -15,6 +15,10 @@ import {
   IBAN_PAYMENT_ROW_LABEL,
   KAPORA_PAYMENT_ROW_LABEL,
 } from "@/lib/receipt-reminders";
+import {
+  EMAIL_FONT_FAMILY_INSTRUMENT_STACK,
+  EMAIL_INSTRUMENT_SANS_HEAD_LINKS,
+} from "@/lib/email-font-stack";
 import type { TenantBranding } from "@/lib/tenant-branding";
 import { formatIbanForDisplay } from "@/utils/formatters";
 
@@ -106,8 +110,12 @@ export function buildPurchaseConfirmationHtml(params: {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
 <title>${fmt(tenantName)} — İşlem özeti</title>
 <style type="text/css">
+  body, table, td, p, a, li, span, strong {
+    font-family: ${EMAIL_FONT_FAMILY_INSTRUMENT_STACK};
+  }
   .email-logo-img { width: 150px; max-width: 100%; height: auto; }
   .email-logo-img.email-logo-elya { width: 75px; }
   @media only screen and (min-width: 600px) {
@@ -126,7 +134,7 @@ export function buildPurchaseConfirmationHtml(params: {
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.5;color:#111827;">
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:${EMAIL_FONT_FAMILY_INSTRUMENT_STACK};line-height:1.5;color:#111827;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;">
   <tr>
     <td class="email-outer" align="center" style="padding:24px 12px;">

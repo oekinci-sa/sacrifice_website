@@ -11,6 +11,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { ElyaHisseAgreementTermsBody } from "@/components/hisse/elya-hisse-agreement-terms-body"
 import { interpolateAgreementPlaceholders } from "@/lib/agreement-placeholders"
 import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
@@ -82,6 +83,8 @@ export default function TermsAgreementDialog({
         onOpenChange(false)
     }
 
+    const isElya = branding.logo_slug === "elya-hayvancilik"
+
     const introParagraphs = splitParagraphs(
         interpolateAgreementPlaceholders(branding.agreement_intro_text, branding)
     )
@@ -100,7 +103,7 @@ export default function TermsAgreementDialog({
             >
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                     <DialogTitle className="text-base md:text-lg text-center">
-                        {branding.agreement_dialog_title}
+                        {isElya ? "Sözleşme" : branding.agreement_dialog_title}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -121,57 +124,66 @@ export default function TermsAgreementDialog({
                         className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2 border rounded-md scroll-smooth"
                     >
                         <div className="flex flex-col gap-2 md:gap-4 p-4 text-sm md:text-base text-muted-foreground">
-                            <h3 className="text-base md:text-lg font-semibold text-primary mb:2 md:mb-4 text-center">
-                                {branding.agreement_main_heading}
-                            </h3>
+                            {isElya ? (
+                                <>
+                                    <ElyaHisseAgreementTermsBody />
+                                    <div className="h-2" />
+                                </>
+                            ) : (
+                                <>
+                                    <h3 className="text-base md:text-lg font-semibold text-primary mb:2 md:mb-4 text-center">
+                                        {branding.agreement_main_heading}
+                                    </h3>
 
-                            {introParagraphs.map((paragraph, i) => (
-                                <p key={`intro-${i}`} className="leading-relaxed">
-                                    {paragraph}
-                                </p>
-                            ))}
+                                    {introParagraphs.map((paragraph, i) => (
+                                        <p key={`intro-${i}`} className="leading-relaxed">
+                                            {paragraph}
+                                        </p>
+                                    ))}
 
-                            <div className="space-y-3">
-                                {(branding.agreement_terms ?? []).map((term, index) => {
-                                    const description = interpolateAgreementPlaceholders(
-                                        term.description,
-                                        branding
-                                    )
-                                    const showNoticeAfterTerm =
-                                        noticeAnchor.length > 0 &&
-                                        noticeBodyRaw.length > 0 &&
-                                        term.title.trim() === noticeAnchor
-                                    const noticeText = showNoticeAfterTerm
-                                        ? interpolateAgreementPlaceholders(noticeBodyRaw, branding)
-                                        : ""
-                                    return (
-                                        <div key={index} className="flex flex-col gap-0">
-                                            <div className="flex gap-1">
-                                                <p className="flex-shrink-0 justify-center font-medium ">
-                                                    {index + 1}.
-                                                </p>
-                                                <div>
-                                                    <p className="font-medium ">{term.title}</p>
-                                                    <p className="leading-relaxed whitespace-pre-wrap">{description}</p>
-                                                    {showNoticeAfterTerm && (
-                                                        <p className="leading-relaxed mt-3 text-muted-foreground whitespace-pre-wrap">
-                                                            {noticeText}
+                                    <div className="space-y-3">
+                                        {(branding.agreement_terms ?? []).map((term, index) => {
+                                            const description = interpolateAgreementPlaceholders(
+                                                term.description,
+                                                branding
+                                            )
+                                            const showNoticeAfterTerm =
+                                                noticeAnchor.length > 0 &&
+                                                noticeBodyRaw.length > 0 &&
+                                                term.title.trim() === noticeAnchor
+                                            const noticeText = showNoticeAfterTerm
+                                                ? interpolateAgreementPlaceholders(noticeBodyRaw, branding)
+                                                : ""
+                                            return (
+                                                <div key={index} className="flex flex-col gap-0">
+                                                    <div className="flex gap-1">
+                                                        <p className="flex-shrink-0 justify-center font-medium ">
+                                                            {index + 1}.
                                                         </p>
-                                                    )}
+                                                        <div>
+                                                            <p className="font-medium ">{term.title}</p>
+                                                            <p className="leading-relaxed whitespace-pre-wrap">{description}</p>
+                                                            {showNoticeAfterTerm && (
+                                                                <p className="leading-relaxed mt-3 text-muted-foreground whitespace-pre-wrap">
+                                                                    {noticeText}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                            );
+                                        })}
+                                    </div>
 
-                            {footerParagraphs.map((paragraph, i) => (
-                                <p key={`foot-${i}`} className="leading-relaxed">
-                                    {paragraph}
-                                </p>
-                            ))}
+                                    {footerParagraphs.map((paragraph, i) => (
+                                        <p key={`foot-${i}`} className="leading-relaxed">
+                                            {paragraph}
+                                        </p>
+                                    ))}
 
-                            <div className="h-2" />
+                                    <div className="h-2" />
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

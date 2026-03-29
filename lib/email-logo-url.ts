@@ -16,7 +16,7 @@ const LOGO_EMAIL_PATH_BY_SLUG: Record<string, string> = {
 };
 
 /** `tenant_settings.website_url` → `https://www.örnek.com.tr` (pathsız). */
-function publicSiteOriginFromWebsiteUrl(websiteUrl: string | null | undefined): string | null {
+export function publicSiteOriginFromWebsiteUrl(websiteUrl: string | null | undefined): string | null {
   const raw = websiteUrl?.trim();
   if (!raw) return null;
   let host = raw.replace(/^https?:\/\//i, "").split("/")[0] ?? "";

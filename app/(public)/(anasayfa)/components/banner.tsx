@@ -1,8 +1,8 @@
 "use client";
 
 import EmptySharesBadge from "@/components/common/empty-shares-badge";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Button } from "@/components/ui/button";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";

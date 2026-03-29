@@ -14,6 +14,12 @@ const FAVICON_HEADERS = {
   Vary: "Host",
 } as const;
 
+const FAVICON_PNG_HEADERS = {
+  "Content-Type": "image/png",
+  "Cache-Control": "public, max-age=3600, s-maxage=3600",
+  Vary: "Host",
+} as const;
+
 export function resolveTenantIdForFavicon(request: NextRequest): string | null {
   const fromMiddleware = request.headers.get("x-tenant-id");
   if (fromMiddleware) return fromMiddleware;
@@ -21,36 +27,45 @@ export function resolveTenantIdForFavicon(request: NextRequest): string | null {
   return resolveTenantIdFromHost(host);
 }
 
-function publicSvgPathForTenant(tenantId: string | null): string {
+function publicFaviconFileForTenant(tenantId: string | null): {
+  filePath: string;
+  headers: typeof FAVICON_HEADERS | typeof FAVICON_PNG_HEADERS;
+} {
   if (tenantId === GOLBASI_TENANT_ID) {
-    return path.join(
+    return {
+      filePath: path.join(
+        process.cwd(),
+        "public",
+        "logos",
+        "elya-hayvancilik",
+        "elya-hayvancilik-circular.png"
+      ),
+      headers: FAVICON_PNG_HEADERS,
+    };
+  }
+  return {
+    filePath: path.join(
       process.cwd(),
       "public",
       "logos",
-      "elya-hayvancilik",
-      "elya-hayvancilik.svg"
-    );
-  }
-  return path.join(
-    process.cwd(),
-    "public",
-    "logos",
-    "ankara-kurban",
-    "ankara-kurban-circular.svg"
-  );
+      "ankara-kurban",
+      "ankara-kurban-circular.svg"
+    ),
+    headers: FAVICON_HEADERS,
+  };
 }
 
-/** `/icon` ve `/favicon.ico` ortak: tenant’a göre SVG gövdesi. */
+/** `/icon` ve `/favicon.ico` ortak: tenant’a göre dosya (Elya: PNG dairesel; diğer: SVG). */
 export async function getTenantFaviconResponse(
   request: NextRequest
 ): Promise<NextResponse> {
   try {
     const tenantId = resolveTenantIdForFavicon(request);
-    const filePath = publicSvgPathForTenant(tenantId);
-    const body = await readFile(filePath);
-    return new NextResponse(body, {
+    const { filePath, headers } = publicFaviconFileForTenant(tenantId);
+    const buf = await readFile(filePath);
+    return new NextResponse(new Uint8Array(buf), {
       status: 200,
-      headers: FAVICON_HEADERS,
+      headers,
     });
   } catch {
     return new NextResponse(null, { status: 404 });

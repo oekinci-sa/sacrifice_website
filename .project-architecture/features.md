@@ -37,6 +37,20 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 
 - 2026 production reseed: [db/operational_scripts/elya_2026_production_reseed.sql](db/operational_scripts/elya_2026_production_reseed.sql)
 
+### Hisse Al — Elya sözleşme metni
+- Onay diyaloğu: `app/(public)/(hisse)/hisseal/components/confirmation-step/terms-agreement-dialog.tsx` — `logo_slug === "elya-hayvancilik"` iken içerik `components/hisse/elya-hisse-agreement-terms-body.tsx` (statik). Diğer tenant’lar `tenant_settings` sözleşme alanları + `interpolateAgreementPlaceholders` ile.
+
+### Anasayfa SSS – Elya ek soruları
+- Ortak `faq_categories` korunur; Elya’ya özel soru/cevaplar `lib/elya-faq-extra-items.ts` içinde kategori `id`’lerine göre tanımlıdır. `app/(public)/(anasayfa)/components/faq.tsx` içinde `logo_slug === "elya-hayvancilik"` iken `mergeElyaFaqExtrasIntoCategories` ile mevcut maddelerin **sonuna** eklenir.
+- **Kapora sorusu (id `7`):** İlk paragraf tenant ayarlarından dinamik; ikinci paragraf (20 Mayıs / kesim günü elden bakiye) tüm tenant’larda `FaqKaporaPaymentAnswer` ile gösterilir.
+- **Toplama noktaları sorusu (id `18`):** Yalnızca `logo_slug === "ankara-kurban"` iken listelenir (`filterFaqItemsByTenant`).
+
+### Bizden Kareler (Elya-only public)
+- Sayfa: `/bizden-kareler` — YouTube galeri (opsiyonel doğrudan URL); video verisi `lib/elya-gallery-videos.ts`. Nav menüde link yok; içerik Hakkımızda’da da kullanılıyor.
+
+### Hakkımızda (Elya tenant)
+- `/hakkimizda`: tam metin, görseller, **Bizden Kareler** başlığı (iki satır), aynı genişlikte 3’lü görünümlü carousel (transform + oklar / klavye okları; bir adımda bir video kayar), müşteri yorumları. `ELYA_GALLERY_VIDEOS`. Bileşen: `app/(public)/hakkimizda/components/elya-about-landing.tsx`. Diğer tenant: Ankara Kurban düzeni.
+
 ## Tema Davranışı
 - 3001 (kahramankazan): yeşil tema.
 - 3002 (golbasi): mavi tema.

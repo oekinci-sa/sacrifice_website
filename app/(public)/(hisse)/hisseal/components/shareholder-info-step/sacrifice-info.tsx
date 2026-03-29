@@ -1,5 +1,6 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 
@@ -36,6 +37,9 @@ const formatPrice = (price: number | null) => {
 export default function SacrificeInfo({
   sacrifice,
 }: SacrificeInfoProps) {
+  const { logo_slug } = useTenantBranding();
+  const showAnkaraDeliveryTime = logo_slug === "ankara-kurban";
+
   // Get sacrifices from Zustand store
   const { sacrifices } = useSacrificeStore();
 
@@ -73,6 +77,21 @@ export default function SacrificeInfo({
           {formatTime(displaySacrifice.sacrifice_time)}
         </span>
       </div>
+
+      {/* Ankara Kurban: kesim sonrası teslimat saati (planlı kesim + süre — tablo ile uyumlu) */}
+      {showAnkaraDeliveryTime && (
+        <>
+          <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
+          <div className="flex items-center flex-shrink-0">
+            <span className="text-muted-foreground text-base md:text-xl">
+              Teslimat Saati:
+            </span>
+            <span className="ml-2 font-medium text-base md:text-xl">
+              {formatTime(displaySacrifice.planned_delivery_time ?? null)}
+            </span>
+          </div>
+        </>
+      )}
 
       {/* Dik çubuk */}
       <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />

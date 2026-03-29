@@ -150,7 +150,7 @@ export const processes = [
     number: "05",
     header: "Ödeme",
     description:
-      "Kaydınızın kalıcı olması için 3 gün içinde kaporanızı, 20 Mayıs Çarşamba gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
+      "Kaydınızın kalıcı olması için 10 gün içinde kaporanızı, 20 Mayıs Çarşamba gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
   },
   {
     number: "06",
@@ -183,7 +183,7 @@ export const faq_categories = [
         title:
           "Hisse seçimi yaptıktan sonra ne kadar süre içinde işlemi tamamlamalıyım?",
         content:
-          "3 dakika boyunca hiçbir işlem yapılmazsa, işleminiz zaman aşımına uğrar ve otomatik olarak yeniden hisse seçim ekranına döndürülürsünüz. Ayrıca 15 dakika içinde işleminizi tamamlamazsanız, süre dolduğu için sistem sizi otomatik olarak başa döndürür ve işleminiz iptal edilir.",
+          "2 dakika boyunca hiçbir işlem yapılmazsa, işleminiz zaman aşımına uğrar ve otomatik olarak yeniden hisse seçim ekranına döndürülürsünüz. Ayrıca 15 dakika içinde işleminizi tamamlamazsanız, süre dolduğu için sistem sizi otomatik olarak başa döndürür ve işleminiz iptal edilir.",
       },
       {
         id: "9",

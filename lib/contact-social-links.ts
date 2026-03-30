@@ -8,6 +8,34 @@ export type ContactSocialLink = {
   color?: string;
 };
 
+/**
+ * DB'de `color` yoksa platforma göre hex renk kodu döner.
+ * Tailwind arbitrary class yerine inline style ile kullanılır.
+ */
+export function resolveContactSocialLinkColor(
+  link: Pick<ContactSocialLink, "href" | "icon_name"> & { color?: string }
+): string {
+  const h = link.href.toLowerCase();
+  const icon = link.icon_name.toLowerCase();
+
+  if (h.includes("facebook") || icon.includes("facebook")) return "#1877F2";
+  if (h.includes("instagram") || icon.includes("instagram")) return "#C13584";
+  if (
+    h.includes("twitter") ||
+    h.includes("x.com") ||
+    icon.includes("twitter") ||
+    icon.includes("twitter-x")
+  ) {
+    return "#000000";
+  }
+  if (h.includes("youtube") || icon.includes("youtube")) return "#FF0000";
+  if (h.includes("linkedin") || icon.includes("linkedin")) return "#0A66C2";
+  if (h.includes("tiktok") || icon.includes("tiktok")) return "#000000";
+  if (icon.includes("globe") || icon.includes("link-45")) return "#1877F2";
+
+  return "inherit";
+}
+
 export function parseContactSocialLinks(raw: unknown): ContactSocialLink[] {
   if (!Array.isArray(raw)) return [];
   const out: ContactSocialLink[] = [];

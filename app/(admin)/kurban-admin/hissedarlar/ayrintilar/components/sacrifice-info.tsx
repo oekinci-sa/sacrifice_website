@@ -56,7 +56,7 @@ export function SacrificeInfo({
         <div className="space-y-1">
           <p className={labelClass}>Hisse Bedeli</p>
           <div className={valueClass}>
-            <AdminSacrificeHisseBedeliCell sacrifice={sac} />
+            <AdminSacrificeHisseBedeliCell sacrifice={sac} align="left" />
           </div>
         </div>
         <div className="space-y-1">

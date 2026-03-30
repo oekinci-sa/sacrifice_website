@@ -98,11 +98,6 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
 
   const sacrifice = row.original;
 
-  const fixedDisplayText =
-    sacrifice.share_weight != null && sacrifice.share_price != null
-      ? `${sacrifice.share_weight} kg. - ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(sacrifice.share_price)} TL`
-      : "-";
-
   const getKg = (o: PriceOption) => typeof o.kg === "number" ? o.kg : parseFloat(String(o.kg).replace(/[^\d.]/g, ""));
   const getPrice = (o: PriceOption) => typeof o.price === "number" ? o.price : parseInt(String(o.price).replace(/\./g, ""), 10);
 
@@ -277,15 +272,8 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   return (
     <>
       <div className="group relative w-full min-h-[2.5rem] flex items-center justify-center px-1">
-        <div className="text-center text-xs sm:text-sm leading-snug px-7 pr-9 max-w-full whitespace-normal">
-          {isLiveScaleSacrifice(sacrifice) ? (
-            <AdminSacrificeHisseBedeliCell
-              sacrifice={sacrifice}
-              className="items-center text-center w-full sm:text-sm"
-            />
-          ) : (
-            <span className="tabular-nums">{fixedDisplayText}</span>
-          )}
+        <div className="text-center px-7 pr-9 max-w-full whitespace-normal w-full">
+          <AdminSacrificeHisseBedeliCell sacrifice={sacrifice} />
         </div>
         <Button
           variant="ghost"

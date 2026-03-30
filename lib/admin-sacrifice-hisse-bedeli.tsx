@@ -12,16 +12,31 @@ export type AdminSacrificeHisseBedeliFields = {
   live_scale_total_price?: number | null;
 };
 
-/** Admin tablolarında (kurbanlıklar, hissedarlar, ödemeler) hisse bedeli sütunu — kurbanlıklar sayfasıyla aynı mantık */
+/** Kurbanlıklar tablosu hisse bedeli hücresi ile aynı tipografi (içerik) */
+const cellTextBase = "text-xs sm:text-sm leading-snug tabular-nums";
+
+/** Tablo sütunları: ortalı; detay kartı: `align="left"` */
 export function AdminSacrificeHisseBedeliCell({
   sacrifice,
   className,
+  align = "center",
 }: {
   sacrifice?: AdminSacrificeHisseBedeliFields | null;
   className?: string;
+  align?: "center" | "left";
 }) {
+  const alignFixed = align === "left" ? "text-left" : "text-center";
+  const alignLive =
+    align === "left"
+      ? "items-start text-left"
+      : "items-center text-center";
+
   if (!sacrifice) {
-    return <span className={cn("tabular-nums", className)}>-</span>;
+    return (
+      <span className={cn(cellTextBase, alignFixed, "block w-full", className)}>
+        -
+      </span>
+    );
   }
   if (isLiveScaleSacrifice(sacrifice)) {
     const kg = sacrifice.live_scale_total_kg;
@@ -35,7 +50,10 @@ export function AdminSacrificeHisseBedeliCell({
     return (
       <div
         className={cn(
-          "flex flex-col gap-0.5 text-xs leading-snug max-w-[min(100%,22rem)] items-start",
+          "flex flex-col gap-0.5 max-w-[min(100%,22rem)] w-full",
+          align === "center" && "mx-auto",
+          cellTextBase,
+          alignLive,
           className
         )}
       >
@@ -52,7 +70,11 @@ export function AdminSacrificeHisseBedeliCell({
   const w = sacrifice.share_weight;
   const p = sacrifice.share_price;
   if (w == null && p == null) {
-    return <span className={cn("tabular-nums", className)}>-</span>;
+    return (
+      <span className={cn(cellTextBase, alignFixed, "block w-full", className)}>
+        -
+      </span>
+    );
   }
   const weightStr = w != null ? `${w} kg.` : "";
   const priceStr =
@@ -60,8 +82,26 @@ export function AdminSacrificeHisseBedeliCell({
       ? `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(p)} TL`
       : "";
   return (
-    <span className={cn("tabular-nums", className)}>
+    <span className={cn(cellTextBase, alignFixed, "block w-full", className)}>
       {[weightStr, priceStr].filter(Boolean).join(" - ")}
     </span>
+  );
+}
+
+/**
+ * Tablo sütunları: kurbanlıklar sayfasındaki hisse bedeli hücresi ile aynı dikey hizalama ve ortalama.
+ * (Düzenleme kalemi yok; px-7 pr-9 yok.)
+ */
+export function AdminSacrificeHisseBedeliTableCell({
+  sacrifice,
+}: {
+  sacrifice?: AdminSacrificeHisseBedeliFields | null;
+}) {
+  return (
+    <div className="w-full min-h-[2.5rem] flex items-center justify-center px-1">
+      <div className="w-full max-w-full whitespace-normal">
+        <AdminSacrificeHisseBedeliCell sacrifice={sacrifice} align="center" />
+      </div>
+    </div>
   );
 }

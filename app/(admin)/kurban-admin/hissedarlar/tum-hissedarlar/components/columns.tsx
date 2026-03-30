@@ -30,7 +30,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
-import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
@@ -622,7 +622,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     minSize: 110,
     enableSorting: false,
     cell: ({ row }) => (
-      <AdminSacrificeHisseBedeliCell sacrifice={row.original.sacrifice} />
+      <AdminSacrificeHisseBedeliTableCell sacrifice={row.original.sacrifice} />
     ),
   },
   {

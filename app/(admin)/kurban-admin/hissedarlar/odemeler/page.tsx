@@ -19,7 +19,7 @@ import { exportTableToExcel } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
 import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
-import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 
 const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
   sacrifice_no: "Kur. Sır.",
@@ -89,7 +89,7 @@ export default function OdemelerPage() {
         accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
         header: "Hisse Bedeli",
         cell: ({ row }) => (
-          <AdminSacrificeHisseBedeliCell sacrifice={row.original.sacrifice} />
+          <AdminSacrificeHisseBedeliTableCell sacrifice={row.original.sacrifice} />
         ),
       },
       {

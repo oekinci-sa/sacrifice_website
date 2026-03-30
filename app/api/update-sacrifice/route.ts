@@ -30,6 +30,9 @@ export async function PUT(request: Request) {
             sacrifice_time,
             share_weight,
             share_price,
+            pricing_mode,
+            live_scale_total_kg,
+            live_scale_total_price,
             empty_share,
             animal_type,
             foundation,
@@ -55,6 +58,9 @@ export async function PUT(request: Request) {
         if (sacrifice_time !== undefined) patch.sacrifice_time = sacrifice_time;
         if (share_weight !== undefined) patch.share_weight = share_weight;
         if (share_price !== undefined) patch.share_price = share_price;
+        if (pricing_mode !== undefined) patch.pricing_mode = pricing_mode;
+        if (live_scale_total_kg !== undefined) patch.live_scale_total_kg = live_scale_total_kg;
+        if (live_scale_total_price !== undefined) patch.live_scale_total_price = live_scale_total_price;
         if (empty_share !== undefined) patch.empty_share = empty_share;
         if (animal_type !== undefined) patch.animal_type = animal_type === "" ? null : animal_type;
         if (foundation !== undefined) {

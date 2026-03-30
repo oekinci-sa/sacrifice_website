@@ -304,7 +304,8 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       );
     },
     cell: ({ row }) => <EditableSharePriceCell row={row} />,
-    minSize: 165,
+    minSize: 268,
+    size: 268,
     enableSorting: true,
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;

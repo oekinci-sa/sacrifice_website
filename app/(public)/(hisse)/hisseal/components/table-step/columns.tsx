@@ -1,5 +1,6 @@
 "use client";
 
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -124,8 +125,26 @@ const baseColumnsAfterKesim: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "share_price",
     header: "Hisse Bedeli",
+    sortingFn: (rowA, rowB) => {
+      const a = isLiveScaleSacrifice(rowA.original)
+        ? Number(rowA.original.live_scale_total_price ?? 0)
+        : Number(rowA.original.share_price ?? 0);
+      const b = isLiveScaleSacrifice(rowB.original)
+        ? Number(rowB.original.live_scale_total_price ?? 0)
+        : Number(rowB.original.share_price ?? 0);
+      return a - b;
+    },
     cell: ({ row }) => {
-      const share_price = row.getValue("share_price") as number;
+      const s = row.original;
+      if (isLiveScaleSacrifice(s)) {
+        return (
+          <div className="text-center py-0.5 md:py-1">
+            Canlı Baskül
+          </div>
+        );
+      }
+
+      const share_price = row.getValue("share_price") as number | null;
       const share_weight = row.original.share_weight;
 
       return (
@@ -134,7 +153,7 @@ const baseColumnsAfterKesim: ColumnDef<sacrificeSchema>[] = [
           {new Intl.NumberFormat("tr-TR", {
             style: "decimal",
             maximumFractionDigits: 0,
-          }).format(share_price)}{" "}
+          }).format(share_price ?? 0)}{" "}
           TL
         </div>
       );
@@ -142,14 +161,17 @@ const baseColumnsAfterKesim: ColumnDef<sacrificeSchema>[] = [
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
 
-      const rowValue = row.getValue(id) as number;
+      const s = row.original;
 
       return filterValues.some((filterValue: string | number) => {
+        const key = String(filterValue);
+        if (key === "live_scale") return isLiveScaleSacrifice(s);
         const numericFilterValue =
           typeof filterValue === "string"
             ? parseFloat(filterValue)
             : filterValue;
-        return rowValue === numericFilterValue;
+        if (isLiveScaleSacrifice(s)) return false;
+        return Number(s.share_price) === numericFilterValue;
       });
     },
     enableSorting: true,

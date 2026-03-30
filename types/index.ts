@@ -91,8 +91,11 @@ export interface shareholderSchema {
     sacrifice_time?: string;
     /** Planlı kesim + 1,5 saat (DB generated) */
     planned_delivery_time?: string | null;
-    share_price?: number;
+    share_price?: number | null;
     share_weight?: number | string;
+    pricing_mode?: string | null;
+    live_scale_total_kg?: number | null;
+    live_scale_total_price?: number | null;
   };
 }
 
@@ -105,9 +108,15 @@ export interface sacrificeSchema {
   sacrifice_year: number;
 
   // Hisse bilgileri
-  share_price: number;
-  share_weight: number;
+  /** Sabit modda zorunlu; canlı baskülde null */
+  share_price: number | null;
+  /** Sabit modda zorunlu; canlı baskülde null */
+  share_weight: number | null;
   empty_share: number;
+  /** fixed | live_scale */
+  pricing_mode?: string;
+  live_scale_total_kg?: number | null;
+  live_scale_total_price?: number | null;
   /** Hayvan cinsi (DANA, DÜVE vb.) */
   animal_type: string | null;
   /** Vakıf kodu (AKV, İMH, AGD) veya boş */

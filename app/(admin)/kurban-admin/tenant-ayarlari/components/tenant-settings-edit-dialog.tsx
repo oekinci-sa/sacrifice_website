@@ -67,6 +67,16 @@ export function TenantSettingsEditDialog({
         contact_phone: row.contact_phone ?? "",
         contact_email: row.contact_email ?? "",
         contact_address: row.contact_address ?? "",
+        contact_address_label: row.contact_address_label ?? "",
+        contact_email_label: row.contact_email_label ?? "",
+        contact_phone_label: row.contact_phone_label ?? "",
+        contact_social_links: (() => {
+          const raw = row.contact_social_links;
+          if (Array.isArray(raw) && raw.length > 0) {
+            return JSON.stringify(raw, null, 2);
+          }
+          return "[]";
+        })(),
         active_sacrifice_year: row.active_sacrifice_year ?? 2025,
         deposit_amount: row.deposit_amount ?? DEFAULT_BRANDING.deposit_amount,
         deposit_deadline_days: row.deposit_deadline_days ?? 3,
@@ -122,6 +132,20 @@ export function TenantSettingsEditDialog({
         return;
       }
 
+      let contactSocialLinks: unknown[] = [];
+      try {
+        const raw = JSON.parse(String(form.contact_social_links ?? "[]"));
+        contactSocialLinks = Array.isArray(raw) ? raw : [];
+      } catch {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Sosyal medya bağlantıları geçerli bir JSON dizisi olmalıdır.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const strOrNull = (v: unknown) => {
         const s = String(v ?? "").trim();
         return s === "" ? null : s;
@@ -137,6 +161,10 @@ export function TenantSettingsEditDialog({
         contact_phone: form.contact_phone || null,
         contact_email: form.contact_email || null,
         contact_address: form.contact_address || null,
+        contact_address_label: strOrNull(form.contact_address_label),
+        contact_email_label: strOrNull(form.contact_email_label),
+        contact_phone_label: strOrNull(form.contact_phone_label),
+        contact_social_links: contactSocialLinks,
         active_sacrifice_year: Number(form.active_sacrifice_year) || null,
         deposit_amount: Number(form.deposit_amount) || null,
         deposit_deadline_days: Number(form.deposit_deadline_days) || null,
@@ -299,6 +327,60 @@ export function TenantSettingsEditDialog({
                   }
                   placeholder="Adres bilgisi..."
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact_address_label">İletişim — Adres başlığı</Label>
+                  <Input
+                    id="contact_address_label"
+                    value={String(form.contact_address_label ?? "")}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, contact_address_label: e.target.value }))
+                    }
+                    placeholder="Örn. Adres"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact_email_label">İletişim — E-posta başlığı</Label>
+                  <Input
+                    id="contact_email_label"
+                    value={String(form.contact_email_label ?? "")}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, contact_email_label: e.target.value }))
+                    }
+                    placeholder="Örn. E-posta"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact_phone_label">İletişim — Telefon başlığı</Label>
+                  <Input
+                    id="contact_phone_label"
+                    value={String(form.contact_phone_label ?? "")}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, contact_phone_label: e.target.value }))
+                    }
+                    placeholder="Örn. Telefon"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_social_links">Sosyal medya (JSON dizi)</Label>
+                <Textarea
+                  id="contact_social_links"
+                  rows={8}
+                  className="font-mono text-xs"
+                  value={String(form.contact_social_links ?? "[]")}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, contact_social_links: e.target.value }))
+                  }
+                  placeholder={`[\n  { "href": "https://...", "icon_name": "bi bi-instagram", "color": "text-pink-600" }\n]`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Her öğe: href, icon_name (Bootstrap Icons), isteğe bağlı color (Tailwind). Boş dizi
+                  [] ise iletişim ve footer’da sosyal ikon gösterilmez.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

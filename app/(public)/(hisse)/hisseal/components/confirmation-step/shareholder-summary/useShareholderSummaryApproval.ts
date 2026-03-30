@@ -11,6 +11,7 @@ import {
   getDeliveryLocationFromSelection,
   getDeliverySelectionFromLocation,
 } from "@/lib/delivery-options";
+import { isLiveScaleSacrifice, perShareFromLiveTotal } from "@/lib/live-scale-share";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { sacrificeSchema } from "@/types";
 import { formatPhoneForDB, toTitleCase } from "@/utils/formatters";
@@ -96,10 +97,20 @@ export function useShareholderSummaryApproval(
         throw new Error("Hissedar doğrulama fonksiyonu bulunamadı!");
       }
 
-      await validateMethod({
+      const validationResult = await validateMethod({
         sacrificeId: sacrifice.sacrifice_id,
         newShareholderCount: shareholders.length,
       });
+
+      const totalAfterPurchase = validationResult.totalCount;
+
+      const shareBase =
+        sacrifice && isLiveScaleSacrifice(sacrifice)
+          ? perShareFromLiveTotal(
+              sacrifice.live_scale_total_price,
+              totalAfterPurchase
+            ) ?? 0
+          : Number(sacrifice?.share_price ?? 0);
 
       const shareholderDataForApi = shareholders.map((shareholder) => {
         const deliveryLocation =
@@ -114,8 +125,7 @@ export function useShareholderSummaryApproval(
           branding.logo_slug,
           deliveryLocation
         );
-        const share_price = sacrifice?.share_price || 0;
-        const totalAmount = share_price + delivery_fee;
+        const totalAmount = shareBase + delivery_fee;
         const paidAmount =
           shareholder.paid_amount !== undefined ? shareholder.paid_amount : 0;
         const remainingPayment = totalAmount - paidAmount;

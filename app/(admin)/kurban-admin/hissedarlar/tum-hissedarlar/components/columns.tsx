@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
@@ -620,17 +621,9 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     header: "Hisse Bedeli",
     minSize: 110,
     enableSorting: false,
-    cell: ({ row }) => {
-      const s = row.original.sacrifice;
-      const w = s?.share_weight;
-      const p = s?.share_price;
-      if (w == null && p == null) return "-";
-      const weightStr = w != null ? `${w} kg.` : "";
-      const priceStr = p != null
-        ? new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(p) + " TL"
-        : "";
-      return <span className="tabular-nums">{[weightStr, priceStr].filter(Boolean).join(" - ")}</span>;
-    },
+    cell: ({ row }) => (
+      <AdminSacrificeHisseBedeliCell sacrifice={row.original.sacrifice} />
+    ),
   },
   {
     accessorKey: "delivery_location",

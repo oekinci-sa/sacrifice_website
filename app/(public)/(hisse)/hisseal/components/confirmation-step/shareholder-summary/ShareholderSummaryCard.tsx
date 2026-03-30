@@ -6,6 +6,7 @@ import {
   getDeliverySelectionFromLocation,
   getDeliveryTypeDisplayLabel,
 } from "@/lib/delivery-options";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -22,6 +23,8 @@ interface ShareholderSummaryCardProps {
     paid_amount?: number;
   };
   sacrifice: sacrificeSchema | null;
+  /** Sabit modda share_price; canlı baskülde toplam tutar / (mevcut + bu işlemdeki hissedar sayısı) */
+  shareBaseAmount: number;
   index: number;
   isPurchaser: boolean;
   totalShareholders: number;
@@ -30,6 +33,7 @@ interface ShareholderSummaryCardProps {
 export function ShareholderSummaryCard({
   shareholder,
   sacrifice,
+  shareBaseAmount,
   index,
   isPurchaser,
   totalShareholders,
@@ -161,7 +165,9 @@ export function ShareholderSummaryCard({
               Hisse Bedeli
             </span>
             <span className="text-black font-medium text-[16px] md:text-lg">
-              {new Intl.NumberFormat("tr-TR").format(sacrifice?.share_price ?? 0)} TL
+              {sacrifice && isLiveScaleSacrifice(sacrifice) && shareBaseAmount === 0
+                ? "Kesim sonrası netleşecek (toplam tutar / hissedar sayısı)"
+                : `${new Intl.NumberFormat("tr-TR").format(shareBaseAmount)} TL`}
             </span>
           </div>
           <div>
@@ -169,10 +175,9 @@ export function ShareholderSummaryCard({
               Toplam Ücret
             </span>
             <span className="text-black font-medium text-[16px] md:text-lg">
-              {new Intl.NumberFormat("tr-TR").format(
-                (sacrifice?.share_price || 0) + deliveryFee
-              )}{" "}
-              TL
+              {sacrifice && isLiveScaleSacrifice(sacrifice) && shareBaseAmount === 0
+                ? "—"
+                : `${new Intl.NumberFormat("tr-TR").format(shareBaseAmount + deliveryFee)} TL`}
             </span>
           </div>
         </div>

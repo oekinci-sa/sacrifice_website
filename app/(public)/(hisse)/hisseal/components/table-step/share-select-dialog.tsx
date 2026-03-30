@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { cn } from "@/lib/utils";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
@@ -210,11 +211,37 @@ export function ShareSelectDialog({
           ) : (
             <>
               <p className="text-center text-muted-foreground font-medium text-base md:text-lg">
-                Seçmiş olduğunuz{" "}
-                <span className="text-primary font-bold">
-                  {currentSacrifice.share_price.toLocaleString("tr-TR")} TL
-                </span>
-                &apos;lik kurbanlıktan<br />kaç adet hisse almak istersiniz?
+                {isLiveScaleSacrifice(currentSacrifice) ? (
+                  <>
+                    Bu kurbanlık{" "}
+                    <span className="text-primary font-bold">canlı baskül</span>
+                    {currentSacrifice.live_scale_total_price != null ? (
+                      <>
+                        {" "}
+                        (toplam{" "}
+                        <span className="text-primary font-bold tabular-nums">
+                          {Number(currentSacrifice.live_scale_total_price).toLocaleString("tr-TR")}{" "}
+                          TL
+                        </span>
+                        , hissedar sayısına bölünür)
+                      </>
+                    ) : (
+                      <> (hisse tutarı kesim sonrası netleşir)</>
+                    )}
+                    <br />
+                    Kaç adet hisse almak istersiniz?
+                  </>
+                ) : (
+                  <>
+                    Seçmiş olduğunuz{" "}
+                    <span className="text-primary font-bold tabular-nums">
+                      {(currentSacrifice.share_price ?? 0).toLocaleString("tr-TR")} TL
+                    </span>
+                    &apos;lik kurbanlıktan
+                    <br />
+                    kaç adet hisse almak istersiniz?
+                  </>
+                )}
               </p>
               <div className="flex flex-wrap gap-2 md:gap-4 justify-center items-center max-w-[500px] mx-auto">
                 {shareOptions.map((count) => (

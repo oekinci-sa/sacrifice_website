@@ -1,6 +1,8 @@
 "use client";
 
 import { SacrificeMoveControl } from "../../components/sacrifice-move-control";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
+import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 import { shareholderSchema } from "@/types";
 
 interface SacrificeInfoProps {
@@ -27,6 +29,9 @@ export function SacrificeInfo({
     }
   };
 
+  const sac = shareholderInfo.sacrifice;
+  const isLive = isLiveScaleSacrifice(sac);
+
   return (
     <div className={sectionClass}>
       <h3 className="text-lg md:text-xl font-semibold mb-4">Kurbanlık Bilgileri</h3>
@@ -50,16 +55,26 @@ export function SacrificeInfo({
         </div>
         <div className="space-y-1">
           <p className={labelClass}>Hisse Bedeli</p>
-          <p className={valueClass}>
-            {new Intl.NumberFormat('tr-TR').format(shareholderInfo.sacrifice?.share_price || 0)} TL
-          </p>
+          <div className={valueClass}>
+            <AdminSacrificeHisseBedeliCell sacrifice={sac} />
+          </div>
         </div>
         <div className="space-y-1">
-          <p className={labelClass}>Tahmini Et Ağırlığı</p>
+          <p className={labelClass}>
+            {isLive ? "Toplam kilogram (baskül)" : "Tahmini Et Ağırlığı"}
+          </p>
           <p className={valueClass}>
-            {shareholderInfo.sacrifice?.share_weight
-              ? `${shareholderInfo.sacrifice.share_weight} kg`
-              : "-"}
+            {isLive ? (
+              sac?.live_scale_total_kg != null ? (
+                `${Number(sac.live_scale_total_kg)} kg`
+              ) : (
+                <span className="text-muted-foreground">Toplam kg henüz girilmedi.</span>
+              )
+            ) : sac?.share_weight != null ? (
+              `${sac.share_weight} kg`
+            ) : (
+              "-"
+            )}
           </p>
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { parseContactSocialLinks } from "@/lib/contact-social-links";
 import {
   DEFAULT_AGREEMENT_COPY,
   DEFAULT_BRANDING,
@@ -35,6 +36,8 @@ export function TenantBrandingProvider({
           const agreement_terms = Array.isArray(rawTerms) && rawTerms.length > 0
             ? rawTerms.filter((t: unknown) => t && typeof t === "object" && "title" in t && "description" in t) as { title: string; description: string }[]
             : DEFAULT_BRANDING.agreement_terms;
+          const labelOr = (v: unknown, fallback: string) =>
+            typeof v === "string" && v.trim() !== "" ? v.trim() : fallback;
           setBranding({
             tenant_id: data.branding.tenant_id ?? null,
             logo_slug: data.branding.logo_slug ?? DEFAULT_BRANDING.logo_slug,
@@ -44,10 +47,25 @@ export function TenantBrandingProvider({
               data.branding.iban_account_holder.trim() !== ""
                 ? data.branding.iban_account_holder.trim()
                 : null,
-            website_url: data.branding.website_url ?? DEFAULT_BRANDING.website_url,
-            contact_phone: data.branding.contact_phone ?? DEFAULT_BRANDING.contact_phone,
-            contact_email: data.branding.contact_email ?? DEFAULT_BRANDING.contact_email,
-            contact_address: data.branding.contact_address ?? DEFAULT_BRANDING.contact_address,
+            website_url: data.branding.website_url ?? "",
+            contact_phone: data.branding.contact_phone ?? "",
+            contact_email: data.branding.contact_email ?? "",
+            contact_address: data.branding.contact_address ?? "",
+            contact_address_label: labelOr(
+              data.branding.contact_address_label,
+              DEFAULT_BRANDING.contact_address_label
+            ),
+            contact_email_label: labelOr(
+              data.branding.contact_email_label,
+              DEFAULT_BRANDING.contact_email_label
+            ),
+            contact_phone_label: labelOr(
+              data.branding.contact_phone_label,
+              DEFAULT_BRANDING.contact_phone_label
+            ),
+            contact_social_links: parseContactSocialLinks(
+              data.branding.contact_social_links
+            ),
             deposit_amount: Number(data.branding.deposit_amount ?? DEFAULT_BRANDING.deposit_amount),
             deposit_deadline_days: Number(data.branding.deposit_deadline_days ?? DEFAULT_BRANDING.deposit_deadline_days),
             full_payment_deadline_month: Number(data.branding.full_payment_deadline_month ?? DEFAULT_BRANDING.full_payment_deadline_month),

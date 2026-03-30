@@ -1,11 +1,5 @@
--- ===============================================
--- Açıklama: sacrifice_animals fiyatlama alanları değiştiğinde (share_price,
---           pricing_mode, live_scale_total_price) aynı kurbanlığa bağlı
---           hissedarların total_amount / remaining_payment güncellenir.
---           Canlı baskülde share_price NULL olduğu için eski mantık
---           (fee + NULL) total_amount'u NULL yapıyordu — düzeltildi.
--- Trigger   : update_shareholder_amounts_on_sacrifice_price_change (AFTER UPDATE)
--- ===============================================
+-- Canlı basküle geçişte share_price NULL olunca hissedar total_amount NULL oluyordu (23502).
+-- Kaynak: update_shareholder_amounts_on_sacrifice_price_change.sql
 
 CREATE OR REPLACE FUNCTION update_shareholder_amounts_on_sacrifice_price_change()
 RETURNS TRIGGER AS $$

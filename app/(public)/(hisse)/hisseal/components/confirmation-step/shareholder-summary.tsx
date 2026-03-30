@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { isLiveScaleSacrifice, perShareFromLiveTotal } from "@/lib/live-scale-share";
 import { sacrificeSchema } from "@/types";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import SecurityCodeDialog from "./security-code-dialog";
 import TermsAgreementDialog from "./terms-agreement-dialog";
 import { ShareholderSummaryCard } from "./shareholder-summary/ShareholderSummaryCard";
@@ -33,6 +35,42 @@ export default function ShareholderSummary({
   setCurrentStep,
   onSessionTimerPauseChange,
 }: ShareholderSummaryProps) {
+  const [existingShareholderCount, setExistingShareholderCount] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (!sacrifice?.sacrifice_id) {
+      setExistingShareholderCount(null);
+      return;
+    }
+    let cancelled = false;
+    void fetch(
+      `/api/get-shareholder-count-by-sacrifice-id?sacrifice_id=${encodeURIComponent(sacrifice.sacrifice_id)}`
+    )
+      .then((r) => r.json())
+      .then((d: { count?: number }) => {
+        if (!cancelled) setExistingShareholderCount(typeof d.count === "number" ? d.count : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setExistingShareholderCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sacrifice?.sacrifice_id]);
+
+  const totalAfterPurchase =
+    (existingShareholderCount ?? 0) + shareholders.length;
+
+  const shareBaseAmount =
+    sacrifice && isLiveScaleSacrifice(sacrifice)
+      ? perShareFromLiveTotal(
+          sacrifice.live_scale_total_price,
+          totalAfterPurchase
+        ) ?? 0
+      : Number(sacrifice?.share_price ?? 0);
+
   const {
     showSecurityCodeDialog,
     setShowSecurityCodeDialog,
@@ -60,6 +98,7 @@ export default function ShareholderSummary({
             key={index}
             shareholder={shareholder}
             sacrifice={sacrifice}
+            shareBaseAmount={shareBaseAmount}
             index={index}
             isPurchaser={index === effectivePurchaserIndex}
             totalShareholders={shareholders.length}

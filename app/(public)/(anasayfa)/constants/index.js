@@ -35,34 +35,6 @@ export const navigationItems = [
   },
 ];
 
-export const mediaLinks = [
-  {
-    href: "https://www.facebook.com/imhankara06",
-    iconName: "bi bi-facebook",
-    color: "text-blue-600",
-  },
-  {
-    href: "https://twitter.com/imhankara",
-    iconName: "bi bi-twitter-x",
-    color: "text-black",
-  },
-  {
-    href: "https://www.instagram.com/imhankara06/",
-    iconName: "bi bi-instagram",
-    color: "text-pink-600",
-  },
-  {
-    href: "https://www.youtube.com/@insanvemedeniyethareketiankara",
-    iconName: "bi bi-youtube",
-    color: "text-red-600",
-  },
-  {
-    href: "http://www.imhankara.org.tr/",
-    iconName: "bi bi-globe",
-    color: "text-sky-500",
-  },
-];
-
 export const features = [
   {
     src: "calendar.svg",
@@ -300,21 +272,3 @@ export const faq_categories = [
 
 // Eski faq_items listesini de tutalım (geriye dönük uyumluluk için)
 export const faq_items = faq_categories.flatMap(category => category.items);
-
-export const contact_infos = [
-  {
-    icon: "location.svg",
-    header: "İMH Ankara Merkez",
-    info: "Hacıbayram Mah. Adliye Sok. No:1 Ulus/Ankara",
-  },
-  {
-    icon: "mail.svg",
-    header: "E-maillerinize 24 saat içerisinde dönüş sağlıyoruz.",
-    info: "iletisim@ankarakurban.com.tr",
-  },
-  {
-    icon: "phone.svg",
-    header: "Bizi arayın.",
-    info: "0312 312 44 64 - 0552 652 90 00",
-  },
-];

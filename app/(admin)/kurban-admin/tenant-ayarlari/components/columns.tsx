@@ -25,6 +25,10 @@ export type TenantSettingRow = {
   contact_phone: string | null;
   contact_email: string | null;
   contact_address: string | null;
+  contact_address_label: string | null;
+  contact_email_label: string | null;
+  contact_phone_label: string | null;
+  contact_social_links: unknown;
   active_sacrifice_year: number | null;
   deposit_amount: number | null;
   deposit_deadline_days: number | null;

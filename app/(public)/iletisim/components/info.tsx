@@ -4,13 +4,26 @@ import Image from "next/image";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 
 const contactItems = [
-  { icon: "location.svg", header: "Adres", key: "address" as const },
-  { icon: "mail.svg", header: "E-maillerinize 24 saat içerisinde dönüş sağlıyoruz.", key: "email" as const },
-  { icon: "phone.svg", header: "Bizi arayın.", key: "phone" as const },
+  { icon: "location.svg", key: "address" as const },
+  { icon: "mail.svg", key: "email" as const },
+  { icon: "phone.svg", key: "phone" as const },
 ];
 
 const Info = () => {
   const branding = useTenantBranding();
+
+  const getHeader = (key: "address" | "email" | "phone") => {
+    switch (key) {
+      case "address":
+        return branding.contact_address_label;
+      case "email":
+        return branding.contact_email_label;
+      case "phone":
+        return branding.contact_phone_label;
+      default:
+        return "";
+    }
+  };
 
   const getInfo = (key: "address" | "email" | "phone") => {
     switch (key) {
@@ -37,7 +50,7 @@ const Info = () => {
             className="w-6 h-6 mt-1 lg:w-6 lg:h-6"
           />
           <div className="flex flex-col gap-1">
-            <p className="font-bold text-lg lg:text-xl">{item.header}</p>
+            <p className="font-bold text-lg lg:text-xl">{getHeader(item.key)}</p>
             <p
               className={`font text-sm lg:text-base text-black/75 leading-relaxed ${
                 item.key === "address"

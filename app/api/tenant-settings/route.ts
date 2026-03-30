@@ -1,3 +1,4 @@
+import { parseContactSocialLinks } from "@/lib/contact-social-links";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { DEFAULT_AGREEMENT_COPY, DEFAULT_BRANDING } from "@/lib/tenant-branding-defaults";
 import { getTenantId } from "@/lib/tenant";
@@ -16,7 +17,9 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("tenant_settings")
-      .select("theme_json, homepage_mode, logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body")
+      .select(
+        "theme_json, homepage_mode, logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, contact_address_label, contact_email_label, contact_phone_label, contact_social_links, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body"
+      )
       .eq("tenant_id", tenantId)
       .single();
 
@@ -33,6 +36,9 @@ export async function GET() {
     const agreement_terms = Array.isArray(rawTerms) && rawTerms.length > 0
       ? (rawTerms as { title: string; description: string }[]).filter((t) => t && typeof t.title === "string" && typeof t.description === "string")
       : [];
+    const labelOr = (v: unknown, fallback: string) =>
+      typeof v === "string" && v.trim() !== "" ? v.trim() : fallback;
+
     const branding = {
       tenant_id: tenantId,
       logo_slug: data?.logo_slug ?? "ankara-kurban",
@@ -41,10 +47,14 @@ export async function GET() {
         typeof data?.iban_account_holder === "string" && data.iban_account_holder.trim() !== ""
           ? data.iban_account_holder.trim()
           : null,
-      website_url: data?.website_url ?? "ankarakurban.com.tr",
-      contact_phone: data?.contact_phone ?? "0312 312 44 64 / 0552 652 90 00",
-      contact_email: data?.contact_email ?? "iletisim@ankarakurban.com.tr",
-      contact_address: data?.contact_address ?? "Hacı Bayram, Ulus, Adliye Sk. No:1 Altındağ/Ankara (09.00 - 18.00)",
+      website_url: data?.website_url ?? "",
+      contact_phone: data?.contact_phone ?? "",
+      contact_email: data?.contact_email ?? "",
+      contact_address: data?.contact_address ?? "",
+      contact_address_label: labelOr(data?.contact_address_label, DEFAULT_BRANDING.contact_address_label),
+      contact_email_label: labelOr(data?.contact_email_label, DEFAULT_BRANDING.contact_email_label),
+      contact_phone_label: labelOr(data?.contact_phone_label, DEFAULT_BRANDING.contact_phone_label),
+      contact_social_links: parseContactSocialLinks(data?.contact_social_links),
       deposit_amount: Number(data?.deposit_amount ?? DEFAULT_BRANDING.deposit_amount),
       deposit_deadline_days: Number(data?.deposit_deadline_days ?? 3),
       full_payment_deadline_month: Number(data?.full_payment_deadline_month ?? 5),

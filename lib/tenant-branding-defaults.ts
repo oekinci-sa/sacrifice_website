@@ -3,6 +3,8 @@
  * Gerçek değerler tenant_settings üzerinden gelir; burası yalnızca fallback.
  */
 
+import type { ContactSocialLink } from "./contact-social-links";
+
 export interface AgreementTerm {
   title: string;
   description: string;
@@ -18,6 +20,12 @@ export interface TenantBranding {
   contact_phone: string;
   contact_email: string;
   contact_address: string;
+  /** İletişim sayfası blok başlıkları (tenant_settings) */
+  contact_address_label: string;
+  contact_email_label: string;
+  contact_phone_label: string;
+  /** Sosyal medya; boşsa bölüm gösterilmez */
+  contact_social_links: ContactSocialLink[];
   deposit_amount: number;
   deposit_deadline_days: number;
   full_payment_deadline_month: number;
@@ -88,15 +96,19 @@ export const DEFAULT_AGREEMENT_TERMS: AgreementTerm[] = [
   },
 ];
 
-/** ankara-kurban temalı fallback; kapora tutarı DB ile uyumlu (5000). */
+/** Kod yedeği; iletişim metinleri tenant_settings’tan gelmeli (boş fallback). */
 export const DEFAULT_BRANDING: TenantBranding = {
   logo_slug: "ankara-kurban",
   iban: "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
   iban_account_holder: null,
-  website_url: "ankarakurban.com.tr",
-  contact_phone: "0312 312 44 64 / 0552 652 90 00",
-  contact_email: "iletisim@ankarakurban.com.tr",
-  contact_address: "Hacı Bayram, Ulus, Adliye Sk. No:1 Altındağ/Ankara (09.00 - 18.00)",
+  website_url: "",
+  contact_phone: "",
+  contact_email: "",
+  contact_address: "",
+  contact_address_label: "Adres",
+  contact_email_label: "E-posta",
+  contact_phone_label: "Telefon",
+  contact_social_links: [],
   deposit_amount: 5000,
   deposit_deadline_days: 3,
   full_payment_deadline_month: 5,

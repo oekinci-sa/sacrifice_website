@@ -1,12 +1,16 @@
 ---
-description: Supabase migration ve SQL komutlarını doğrudan çalıştır
+description: Kısa/basit Supabase migration ve SQL’i MCP ile çalıştır; uzun/karmaşık için supabase-sql-execution-mcp.mdc
 globs: 
 alwaysApply: true
 ---
 # Supabase Migration / SQL Çalıştırma
 
+## MCP kapsamı (önce oku)
+- **Uzun veya karmaşık SQL** için sınırlar: `.cursor/rules/supabase-sql-execution-mcp.mdc` (100+ satır, `DO $$`, büyük fonksiyon/tetikleyici/politika → migration dosyası veya parça parça; mümkünse manuel).
+- Bu dosya, **kısa ve basit** DDL/DML ve küçük migration içerikleri için MCP kullanımını tanımlar.
+
 ## Kural
-- **Migration ve SQL komutlarını doğrudan çalıştır** — MCP `user-supabase` ile `apply_migration` veya `execute_sql` kullan. Kullanıcıdan "supabase db push" veya "migration'ı çalıştır" diye sorma.
+- **Uygun gördüğün kısa DDL/DML ve migration’ları MCP ile çalıştır** — `user-supabase` ile `apply_migration` veya `execute_sql`. Kullanıcıdan "supabase db push" veya "migration'ı çalıştır" diye sorma (ancak uzun betikleri MCP’ye tıkma; bkz. yukarıdaki kural).
 - **Kullanıcı onayı isteme** — Kolon ekleme, tablo oluşturma, veri güncelleme gibi normal işlemler için onay isteme.
 
 ## Onay Gerektiren İşlemler

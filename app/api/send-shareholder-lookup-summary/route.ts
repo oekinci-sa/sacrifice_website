@@ -49,7 +49,10 @@ export async function POST(request: Request) {
           planned_delivery_time,
           share_price,
           share_weight,
-          sacrifice_year
+          sacrifice_year,
+          pricing_mode,
+          live_scale_total_kg,
+          live_scale_total_price
         )
       `)
       .eq("tenant_id", tenantId)

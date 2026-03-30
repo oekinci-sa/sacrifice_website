@@ -1,0 +1,44 @@
+---
+description: Supabase MCP ile SQL çalıştırma sınırları; parçalama, migration ve manuel çalıştırma tercihi
+alwaysApply: true
+---
+
+# Supabase / SQL — MCP ile çalıştırma kuralları
+
+Bu kurallar, `user-supabase` MCP (`execute_sql`, `apply_migration` vb.) ile **ne zaman** SQL çalıştırılacağını sınırlar. Özet: **kısa ve basit** ifadeler MCP ile; **uzun veya karmaşık** işler **migration dosyası** ve çoğu zaman **manuel çalıştırma**.
+
+## MCP ile çalıştırma sınırı
+
+- **100 satırdan uzun** SQL betiklerini MCP araçlarıyla **çalıştırma**. Bunun yerine betiği parçalara böl veya migration dosyası ver.
+- Büyük betikleri **50–100 satırı geçmeyecek** küçük parçalara böl.
+- MCP ile tek seferde gönderilen her parça, **mümkün olduğunca önceki parçaya bağlı olmadan** çalıştırılabilir olmalı (ör. tek `CREATE FUNCTION`, tek `CREATE INDEX`). Sıralı bağımlılık zorunluysa (ör. önce tablo, sonra FK): **MCP ile zorlamak yerine** tek migration dosyasında sıra belirt veya kullanıcıya sırayı söyle; parçaların “tam bağımsız” olması mümkün değilse **MCP kullanma**, migration + manuel tercih et.
+
+## Şema değişiklikleri
+
+- **Önce migration dosyası üret**; prod/staging’de doğrudan “uzun ad-hoc SQL” MCP ile koşturma.
+- Mümkünse **idempotent** kalıplar kullan: `IF NOT EXISTS` / `IF EXISTS` (PostgreSQL sürümüne uygun), `DROP … IF EXISTS` (dikkatli; veri kaybı yaratmayan bağlamlarda).
+- **Endişeleri ayır** (aynı dosyada bölüm bölüm veya ayrı migrasyonlar):
+  - tablolar / kolonlar
+  - indeksler
+  - fonksiyonlar
+  - tetikleyiciler
+  - RLS politikaları
+
+## `DO $$ … $$` blokları
+
+- **`DO $$` blokları her zaman kendi başına** bir çalıştırma birimi olarak ele alınmalı; başka SQL ile aynı MCP çağrısında karıştırma. Gerekirse yalnızca o bloğu gönder veya migration dosyasında netçe ayır.
+
+## Karmaşık SQL (fonksiyon, tetikleyici, politika)
+
+- **MCP ile çalıştırma** — bunları repo migration’ına (`supabase/migrations` veya projede kullanılan migration düzeni) **yaz** ve kullanıcıya / CI’ya **dosya olarak** bırak.
+- Parçalamak gerekiyorsa: fonksiyon gövdesi ayrı, `CREATE TRIGGER` ayrı dosya veya aynı migration içinde net bölümler.
+
+## Tercih sırası
+
+1. Kısa, düşük riskli tek ifade (ör. basit `SELECT`, tek `ALTER … ADD COLUMN` küçük) → MCP **opsiyonel** (proje kuralı `supabase-migration-run.mdc` ile uyumlu).
+2. Uzun / çok adımlı / kritik şema → **migration dosyası + çıktıyı kullanıcıya veya dokümana ver**; MCP ile uzun betik deneme.
+3. **MCP’nin uzun veya karmaşık sorgularda başarısız olabileceğini varsay.**
+
+## `supabase-migration-run.mdc` ile ilişki
+
+- `supabase-migration-run.mdc` MCP kullanımını **tanımlar**; **bu dosya MCP ile neyin gönderilemeyeceğini** sınırlar. Çelişki olduğunda **bu dosya (sınır ve parçalama) önceliklidir** uzun veya karmaşık SQL için.

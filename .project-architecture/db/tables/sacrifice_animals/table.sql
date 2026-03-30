@@ -5,8 +5,11 @@ CREATE TABLE "public"."sacrifice_animals" (
   "sacrifice_year" INT2 NOT NULL,
   "sacrifice_no" INT2 NOT NULL,
   "sacrifice_time" TIME(6) NOT NULL,
-  "share_weight" INT2 NOT NULL,
-  "share_price" NUMERIC(12,2) NOT NULL,
+  "share_weight" INT2,
+  "share_price" NUMERIC(12,2),
+  "pricing_mode" TEXT NOT NULL DEFAULT 'fixed' CHECK (pricing_mode IN ('fixed', 'live_scale')),
+  "live_scale_total_kg" NUMERIC,
+  "live_scale_total_price" NUMERIC(12,2),
   "empty_share" INT2 NOT NULL DEFAULT 7 CHECK (empty_share BETWEEN 0 AND 7),
   "animal_type" TEXT,
   "slaughter_time" TIMESTAMPTZ,
@@ -26,6 +29,11 @@ CREATE TABLE "public"."sacrifice_animals" (
 
 ALTER TABLE sacrifice_animals ADD CONSTRAINT sacrifice_animals_foundation_check
   CHECK (foundation IS NULL OR foundation IN ('AKV', 'İMH', 'AGD'));
+
+ALTER TABLE sacrifice_animals ADD CONSTRAINT sacrifice_animals_pricing_consistency CHECK (
+  (pricing_mode = 'fixed' AND share_price IS NOT NULL AND share_weight IS NOT NULL)
+  OR (pricing_mode = 'live_scale' AND share_price IS NULL AND share_weight IS NULL)
+);
 
 -- Tenant + yıl bazlı unique: aynı tenant ve yıl içinde sacrifice_no tekil
 ALTER TABLE sacrifice_animals ADD CONSTRAINT uq_sacrifice_no_per_tenant_year UNIQUE (tenant_id, sacrifice_year, sacrifice_no);

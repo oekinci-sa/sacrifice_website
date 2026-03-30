@@ -122,12 +122,34 @@ export async function POST(request: NextRequest) {
 
         const { data: sacrifice } = await supabaseAdmin
           .from("sacrifice_animals")
-          .select("share_price")
+          .select("share_price, pricing_mode, live_scale_total_price")
           .eq("sacrifice_id", existing.sacrifice_id)
           .single();
 
-        const sharePrice = Number(sacrifice?.share_price ?? 0);
-        const totalAmount = sharePrice + deliveryFee;
+        const { count: shareholderCount, error: countErr } = await supabaseAdmin
+          .from("shareholders")
+          .select("shareholder_id", { count: "exact" })
+          .eq("sacrifice_id", existing.sacrifice_id)
+          .limit(0);
+
+        if (countErr) {
+          console.error("shareholders count", countErr);
+        }
+
+        const n = shareholderCount ?? 0;
+        let shareBase = 0;
+        if (sacrifice?.pricing_mode === "live_scale") {
+          const total = sacrifice.live_scale_total_price != null
+            ? Number(sacrifice.live_scale_total_price)
+            : null;
+          if (total != null && n > 0) {
+            shareBase = total / n;
+          }
+        } else {
+          shareBase = Number(sacrifice?.share_price ?? 0);
+        }
+
+        const totalAmount = shareBase + deliveryFee;
         const paidAmount = Number(existing.paid_amount ?? 0);
         const remainingPayment = totalAmount - paidAmount;
 

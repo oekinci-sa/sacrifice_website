@@ -25,7 +25,10 @@ export async function GET(
           sacrifice_no,
           sacrifice_time,
           share_price,
-          share_weight
+          share_weight,
+          pricing_mode,
+          live_scale_total_kg,
+          live_scale_total_price
         )
       `)
       .eq("shareholder_id", id)

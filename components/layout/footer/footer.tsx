@@ -5,20 +5,15 @@ import Image from "next/image";
 
 import EmptySharesBadge from "@/components/common/empty-shares-badge";
 import CustomLink from "@/components/custom-data-components/custom-link";
-import { mediaLinks } from "../../../app/(public)/constants";
 
 const TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-
-interface MediaLink {
-  href: string;
-  iconName: string;
-}
 
 const Footer = () => {
   const branding = useTenantBranding();
   const isTest = branding.tenant_id === TEST_TENANT_ID;
   const isElya = branding.logo_slug === "elya-hayvancilik";
   const logoSizeClass = isElya ? "w-[112px] md:w-[125px]" : "w-[225px] md:w-[250px]";
+  const socialLinks = branding.contact_social_links;
 
   return (
     <div className="pt-12 pb-6 mt-20 bg-sac-section-background">
@@ -43,10 +38,9 @@ const Footer = () => {
               )}
             </CustomLink>
 
-            {/* Social Media - Elya Hayvancılık hariç */}
-            {!isElya && (
-              <div className="flex gap-6">
-                {mediaLinks.map((item: MediaLink) => (
+            {socialLinks.length > 0 && (
+              <div className="flex gap-6 flex-wrap">
+                {socialLinks.map((item) => (
                   <div
                     key={item.href}
                     className="flex items-center justify-center rounded text-white/50 bg-sac-black hover:bg-sac-black-hover transition duration-300"
@@ -56,7 +50,7 @@ const Footer = () => {
                       href={item.href}
                       target="_blank"
                     >
-                      <i className={item.iconName}></i>
+                      <i className={item.icon_name}></i>
                     </CustomLink>
                   </div>
                 ))}

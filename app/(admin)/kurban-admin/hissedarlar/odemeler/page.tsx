@@ -19,6 +19,7 @@ import { exportTableToExcel } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
 import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
+import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 
 const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
   sacrifice_no: "Kur. Sır.",
@@ -87,17 +88,9 @@ export default function OdemelerPage() {
         id: "sacrifice_info",
         accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
         header: "Hisse Bedeli",
-        cell: ({ row }) => {
-          const s = row.original.sacrifice;
-          const w = s?.share_weight;
-          const p = s?.share_price;
-          if (w == null && p == null) return "-";
-          const weightStr = w != null ? `${w} kg.` : "";
-          const priceStr = p != null
-            ? new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(p) + " TL"
-            : "";
-          return <span className="tabular-nums">{[weightStr, priceStr].filter(Boolean).join(" - ")}</span>;
-        },
+        cell: ({ row }) => (
+          <AdminSacrificeHisseBedeliCell sacrifice={row.original.sacrifice} />
+        ),
       },
       {
         accessorKey: "delivery_fee",

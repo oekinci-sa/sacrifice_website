@@ -1,5 +1,6 @@
 "use client";
 
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { sacrificeSchema } from "@/types";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
@@ -20,9 +21,18 @@ export function FilteredSacrificesContent({
     // Tüm kurbanlıkları göster (tükenenler dahil)
     const visibleSacrifices = sacrifices;
 
-    if (priceParam && !isNaN(Number(priceParam))) {
+    if (priceParam === "live_scale") {
+      onFilteredSacrificesChange(
+        visibleSacrifices.filter((sacrifice) => isLiveScaleSacrifice(sacrifice))
+      );
+    } else if (priceParam && !isNaN(Number(priceParam))) {
       const price = Number(priceParam);
-      onFilteredSacrificesChange(visibleSacrifices.filter(sacrifice => sacrifice.share_price === price));
+      onFilteredSacrificesChange(
+        visibleSacrifices.filter(
+          (sacrifice) =>
+            !isLiveScaleSacrifice(sacrifice) && sacrifice.share_price === price
+        )
+      );
     } else {
       onFilteredSacrificesChange(visibleSacrifices);
     }

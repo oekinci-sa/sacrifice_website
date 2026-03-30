@@ -15,7 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { sacrificeSchema } from "@/types";
@@ -28,19 +31,24 @@ import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 
 type PriceOption = { kg: string; price: string } | { kg: number; price: number };
 
+type UpdateSacrificePayload = Partial<{
+  share_weight: number | null;
+  share_price: number | null;
+  pricing_mode: string;
+  live_scale_total_kg: number | null;
+  live_scale_total_price: number | null;
+  empty_share: number;
+  animal_type: string | null;
+  foundation: string | null;
+  notes: string;
+  ear_tag: string | null;
+  barn_stall_order_no: string | null;
+}>;
+
 async function updateSacrificeApi(
   sacrificeId: string,
   sacrificeYear: number | undefined,
-  payload: Partial<{
-    share_weight: number;
-    share_price: number;
-    empty_share: number;
-    animal_type: string | null;
-    foundation: string | null;
-    notes: string;
-    ear_tag: string | null;
-    barn_stall_order_no: string | null;
-  }>
+  payload: UpdateSacrificePayload
 ) {
   const body: Record<string, unknown> = {
     sacrifice_id: sacrificeId,
@@ -68,6 +76,13 @@ function formatPriceOption(opt: PriceOption): string {
   return `${kg} - ${price} TL`;
 }
 
+function parseTrDecimal(input: string): number | null {
+  const t = input.trim().replace(/\s/g, "").replace(",", ".");
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
@@ -75,13 +90,18 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [options, setOptions] = useState<PriceOption[]>([]);
   const [saving, setSaving] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [pendingOpt, setPendingOpt] = useState<PriceOption | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tab, setTab] = useState<"fixed" | "live">("fixed");
+  const [liveKg, setLiveKg] = useState("");
+  const [liveTotal, setLiveTotal] = useState("");
+  const [selectedFixed, setSelectedFixed] = useState<PriceOption | null>(null);
 
   const sacrifice = row.original;
-  const displayText = sacrifice.share_weight != null && sacrifice.share_price != null
-    ? `${sacrifice.share_weight} kg. - ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(sacrifice.share_price)} TL`
-    : "-";
+
+  const fixedDisplayText =
+    sacrifice.share_weight != null && sacrifice.share_price != null
+      ? `${sacrifice.share_weight} kg. - ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(sacrifice.share_price)} TL`
+      : "-";
 
   const getKg = (o: PriceOption) => typeof o.kg === "number" ? o.kg : parseFloat(String(o.kg).replace(/[^\d.]/g, ""));
   const getPrice = (o: PriceOption) => typeof o.price === "number" ? o.price : parseInt(String(o.price).replace(/\./g, ""), 10);
@@ -110,36 +130,29 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
     return () => { cancelled = true; };
   }, [branding.logo_slug, selectedYear]);
 
-  const handleConfirm = useCallback(
-    async () => {
-      if (!pendingOpt) return;
-      const kg = getKg(pendingOpt);
-      const price = getPrice(pendingOpt);
-      setSaving(true);
-      try {
-        const { data } = await updateSacrificeApi(
-          sacrifice.sacrifice_id,
-          sacrifice.sacrifice_year,
-          { share_weight: kg, share_price: price }
-        );
-        updateSacrifice({ ...sacrifice, ...data });
-        triggerSacrificeRefresh();
-        toast({ title: "Güncellendi" });
-        setPendingOpt(null);
-        setOpen(false);
-      } catch (e) {
-        toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
-      } finally {
-        setSaving(false);
-      }
-    },
-    [pendingOpt, sacrifice, updateSacrifice, toast]
-  );
-
-  const handleCancel = useCallback(() => {
-    setPendingOpt(null);
-    setOpen(false);
-  }, []);
+  // row.original her render'da yeni referans olabilir; alan bazlı senkron yeterli
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- sacrifice nesnesi değil primitive alanlar
+  useEffect(() => {
+    if (!dialogOpen) return;
+    setTab(isLiveScaleSacrifice(sacrifice) ? "live" : "fixed");
+    setLiveKg(
+      sacrifice.live_scale_total_kg != null ? String(sacrifice.live_scale_total_kg) : ""
+    );
+    setLiveTotal(
+      sacrifice.live_scale_total_price != null
+        ? String(sacrifice.live_scale_total_price)
+        : ""
+    );
+    setSelectedFixed(null);
+  }, [
+    dialogOpen,
+    sacrifice.sacrifice_id,
+    sacrifice.pricing_mode,
+    sacrifice.live_scale_total_kg,
+    sacrifice.live_scale_total_price,
+    sacrifice.share_weight,
+    sacrifice.share_price,
+  ]);
 
   const currentInOptions = options.some(
     (o) => Math.abs(getKg(o) - (sacrifice.share_weight ?? 0)) < 0.01
@@ -150,45 +163,216 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
         (a, b) => getPrice(a) - getPrice(b)
       );
 
-  if (pendingOpt !== null) {
-    return (
-      <div className="flex items-center gap-1 w-full justify-center">
-        <span className="flex-1 text-center text-sm min-w-0">{formatPriceOption(pendingOpt)}</span>
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
-          <Check className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  }
+  const handleSaveFixed = useCallback(async () => {
+    if (!selectedFixed) {
+      toast({
+        title: "Seçim gerekli",
+        description: "Listeden kg ve tutar seçin.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const kg = getKg(selectedFixed);
+    const price = getPrice(selectedFixed);
+    setSaving(true);
+    try {
+      const { data } = await updateSacrificeApi(sacrifice.sacrifice_id, sacrifice.sacrifice_year, {
+        pricing_mode: "fixed",
+        share_weight: kg,
+        share_price: price,
+        live_scale_total_kg: null,
+        live_scale_total_price: null,
+      });
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setDialogOpen(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedFixed, sacrifice, updateSacrifice, toast]);
+
+  const handleSaveLive = useCallback(async () => {
+    const kgTrim = liveKg.trim();
+    const totalTrim = liveTotal.trim();
+
+    const patch: UpdateSacrificePayload = {
+      pricing_mode: "live_scale",
+      share_price: null,
+      share_weight: null,
+    };
+
+    if (kgTrim === "") {
+      patch.live_scale_total_kg = null;
+    } else {
+      const kgNum = parseTrDecimal(liveKg);
+      if (kgNum == null || kgNum <= 0) {
+        toast({
+          title: "Geçersiz ağırlık",
+          description: "Boş bırakın (silinsin) veya pozitif bir sayı girin.",
+          variant: "destructive",
+        });
+        return;
+      }
+      patch.live_scale_total_kg = kgNum;
+    }
+
+    if (totalTrim === "") {
+      patch.live_scale_total_price = null;
+    } else {
+      const priceNum = parseTrDecimal(liveTotal);
+      if (priceNum == null || priceNum <= 0) {
+        toast({
+          title: "Geçersiz tutar",
+          description: "Boş bırakın (silinsin) veya pozitif bir sayı girin.",
+          variant: "destructive",
+        });
+        return;
+      }
+      patch.live_scale_total_price = priceNum;
+    }
+
+    setSaving(true);
+    try {
+      const { data } = await updateSacrificeApi(sacrifice.sacrifice_id, sacrifice.sacrifice_year, patch);
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setDialogOpen(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [liveKg, liveTotal, sacrifice, updateSacrifice, toast]);
+
+  const handleTabChange = useCallback(
+    (v: string) => {
+      const next = v as "fixed" | "live";
+      setTab(next);
+      if (next === "live") {
+        setLiveKg(
+          sacrifice.live_scale_total_kg != null ? String(sacrifice.live_scale_total_kg) : ""
+        );
+        setLiveTotal(
+          sacrifice.live_scale_total_price != null
+            ? String(sacrifice.live_scale_total_price)
+            : ""
+        );
+      }
+    },
+    [sacrifice.live_scale_total_kg, sacrifice.live_scale_total_price]
+  );
 
   return (
-    <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="absolute inset-0 flex items-center justify-center tabular-nums px-8 truncate">{displayText}</span>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {allOptions.map((opt) => (
-            <DropdownMenuItem
-              key={formatPriceOption(opt)}
-              onSelect={() => { setPendingOpt(opt); setOpen(false); }}
-            >
-              {formatPriceOption(opt)}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <>
+      <div className="group relative w-full min-h-[2.5rem] flex items-center justify-center px-1">
+        <div className="text-center text-xs sm:text-sm leading-snug px-7 pr-9 max-w-full whitespace-normal">
+          {isLiveScaleSacrifice(sacrifice) ? (
+            <AdminSacrificeHisseBedeliCell
+              sacrifice={sacrifice}
+              className="items-center text-center w-full sm:text-sm"
+            />
+          ) : (
+            <span className="tabular-nums">{fixedDisplayText}</span>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => setDialogOpen(true)}
+        >
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Hisse fiyatı</DialogTitle>
+          </DialogHeader>
+          <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="fixed">Sabit fiyat</TabsTrigger>
+              <TabsTrigger value="live">Canlı baskül</TabsTrigger>
+            </TabsList>
+            <TabsContent value="fixed" className="space-y-3 pt-3">
+              <p className="text-sm text-muted-foreground">
+                Standart kg ve tutar listesinden seçin. Kayıt sabit hisse bedeli olarak uygulanır.
+              </p>
+              <div className="max-h-[220px] overflow-y-auto rounded-md border p-1 space-y-0.5">
+                {allOptions.map((opt) => (
+                  <button
+                    key={formatPriceOption(opt)}
+                    type="button"
+                    className={`w-full text-left rounded-sm px-3 py-2 text-sm hover:bg-muted ${
+                      selectedFixed && formatPriceOption(selectedFixed) === formatPriceOption(opt)
+                        ? "bg-muted font-medium"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedFixed(opt)}
+                  >
+                    {formatPriceOption(opt)}
+                  </button>
+                ))}
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+                  İptal
+                </Button>
+                <Button type="button" onClick={() => void handleSaveFixed()} disabled={saving}>
+                  Kaydet
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+            <TabsContent value="live" className="space-y-3 pt-3">
+              <p className="text-sm text-muted-foreground">
+                Alanları boş bırakıp kaydettiğinizde o alan veritabanında temizlenir (NULL).
+                Toplam tutar girildiğinde hisse başı tutar hissedar sayısına göre dağıtılır.
+              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Toplam kg (baskül)</label>
+                <Input
+                  inputMode="decimal"
+                  value={liveKg}
+                  onChange={(e) => setLiveKg(e.target.value)}
+                  placeholder="Örn. 480"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Toplam tutar (TL)</label>
+                <Input
+                  inputMode="decimal"
+                  value={liveTotal}
+                  onChange={(e) => setLiveTotal(e.target.value)}
+                  placeholder="Örn. 264000"
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+                  İptal
+                </Button>
+                <Button type="button" onClick={() => void handleSaveLive()} disabled={saving}>
+                  Kaydet
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

@@ -68,7 +68,8 @@ export interface ShareholderInput {
     phone_number: string;
     transaction_id: string;
     sacrifice_id: string;
-    share_price: number;
+    /** Sunucu tarafından yok sayılır; canlı baskülde istemci göndermez */
+    share_price?: number;
     delivery_fee?: number;
     delivery_location: string;
     security_code: string;

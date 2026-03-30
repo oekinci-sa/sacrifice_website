@@ -1,25 +1,3 @@
--- rpc_move_shareholder_to_sacrifice: hissedarı başka bir kurbanlığa taşı
--- Kullanım: POST /api/admin/shareholders/[id]/move-sacrifice
---
--- Garantiler:
---   1. Kaynak kurbanlıkta empty_share + 1, hedef kurbanlıkta - 1 (atomik).
---   2. Hissedarın total_amount ve remaining_payment hedef kurbanlığın
---      share_price + delivery_fee üzerinden yeniden hesaplanır.
---   3. Deadlock koruması: iki sacrifice_animals satırı her zaman
---      LEAST/GREATEST UUID sırasıyla kilitlenir.
---   4. Tenant, sacrifice_year uyumu ve kapasite kontrolleri içeride.
---
--- Fırlatılan exception'lar:
---   actor_required              : p_actor boş
---   shareholder_not_found       : hissedar bu tenant'a ait değil
---   sacrifice_row_missing       : kaynak veya hedef kurban satırı yok
---   source_sacrifice_not_found  : kaynak kurban bulunamadı
---   target_sacrifice_not_found  : hedef kurban bulunamadı
---   tenant_mismatch             : kurban(lar) bu tenant'a ait değil
---   sacrifice_year_mismatch     : yıllar farklı
---   target_sacrifice_full       : hedef kurbanlıkta boş hisse yok
---   source_empty_share_invariant: kaynak kurbanlık zaten tamamen boş (7)
-
 CREATE OR REPLACE FUNCTION public.rpc_move_shareholder_to_sacrifice(
   p_actor text,
   p_tenant_id uuid,
@@ -58,13 +36,11 @@ BEGIN
     RAISE EXCEPTION 'shareholder_not_found';
   END IF;
 
-  -- Zaten aynı kurbanlıktaysa işlem yapma
   IF v_sh.sacrifice_id = p_target_sacrifice_id THEN
     RETURN NEXT v_sh;
     RETURN;
   END IF;
 
-  -- Deadlock önleme: UUID sırasıyla kilitle
   v_id_low  := LEAST(v_sh.sacrifice_id, p_target_sacrifice_id);
   v_id_high := GREATEST(v_sh.sacrifice_id, p_target_sacrifice_id);
 
@@ -96,27 +72,29 @@ BEGIN
     RAISE EXCEPTION 'source_empty_share_invariant';
   END IF;
 
-  -- Finansal yeniden hesaplama (DB kaynağından)
-  v_paid        := COALESCE(v_sh.paid_amount, 0);
-  v_fee         := COALESCE(v_sh.delivery_fee, 0);
-  v_new_total   := v_tgt.share_price + v_fee;
-  v_new_remaining := GREATEST(v_new_total - v_paid, 0);
+  v_paid := COALESCE(v_sh.paid_amount, 0);
+  v_fee  := COALESCE(v_sh.delivery_fee, 0);
 
-  -- Kaynak kurbanlıkta hisseyi geri ver
+  IF v_tgt.pricing_mode = 'live_scale' THEN
+    v_new_total := v_fee;
+    v_new_remaining := GREATEST(v_fee - v_paid, 0);
+  ELSE
+    v_new_total := COALESCE(v_tgt.share_price, 0) + v_fee;
+    v_new_remaining := GREATEST(v_new_total - v_paid, 0);
+  END IF;
+
   UPDATE public.sacrifice_animals sa
   SET empty_share      = sa.empty_share + 1,
       last_edited_by   = p_actor,
       last_edited_time = now()
   WHERE sa.sacrifice_id = v_src.sacrifice_id;
 
-  -- Hedef kurbanlıkta hisseyi düş
   UPDATE public.sacrifice_animals sa
   SET empty_share      = sa.empty_share - 1,
       last_edited_by   = p_actor,
       last_edited_time = now()
   WHERE sa.sacrifice_id = v_tgt.sacrifice_id;
 
-  -- Hissedarı taşı, tutarları güncelle
   UPDATE public.shareholders sh
   SET sacrifice_id        = v_tgt.sacrifice_id,
       sacrifice_year      = v_tgt.sacrifice_year,
@@ -127,6 +105,15 @@ BEGIN
   WHERE sh.shareholder_id = p_shareholder_id
     AND sh.tenant_id      = p_tenant_id
   RETURNING * INTO v_sh;
+
+  IF v_tgt.pricing_mode = 'live_scale' AND v_tgt.live_scale_total_price IS NOT NULL THEN
+    PERFORM public.rebalance_live_scale_shareholders(v_tgt.sacrifice_id);
+    SELECT * INTO v_sh FROM public.shareholders WHERE shareholder_id = p_shareholder_id AND tenant_id = p_tenant_id;
+  END IF;
+
+  IF v_src.pricing_mode = 'live_scale' AND v_src.live_scale_total_price IS NOT NULL THEN
+    PERFORM public.rebalance_live_scale_shareholders(v_src.sacrifice_id);
+  END IF;
 
   RETURN NEXT v_sh;
 END;

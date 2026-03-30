@@ -7,6 +7,7 @@ import {
   getDeliveryTypeDisplayLabel,
   showPlannedTeslimSaatiOnPublicPages,
 } from "@/lib/delivery-options";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
@@ -15,16 +16,7 @@ import { ProgressBar } from "./ProgressBar";
 import { ShareholderLookupEmailActions } from "./shareholder-lookup-email-actions";
 
 interface ShareholderDetailsProps {
-  shareholderInfo: shareholderSchema & {
-    sacrifice?: {
-      sacrifice_id: string;
-      sacrifice_no: string;
-      sacrifice_time?: string;
-      planned_delivery_time?: string | null;
-      share_price?: number;
-      share_weight?: string | number;
-    };
-  };
+  shareholderInfo: shareholderSchema;
   lookupContext?: { phoneDigits: string; securityCode: string };
   inAccordion?: boolean;
 }
@@ -92,6 +84,9 @@ export function ShareholderDetails({
 
   const depositOk = shareholderInfo.paid_amount >= branding.deposit_amount;
   const hasEmail = Boolean(shareholderInfo.email?.trim());
+
+  const sacrificeRef = shareholderInfo.sacrifice;
+  const isLiveSacrifice = isLiveScaleSacrifice(sacrificeRef);
 
   const content = (
     <div className="divide-y divide-border">
@@ -166,7 +161,28 @@ export function ShareholderDetails({
             {shareholderInfo.sacrifice?.sacrifice_no ?? "-"}
           </Field>
           <Field label="Hisse Bedeli">
-            {fmt(Number(shareholderInfo.sacrifice?.share_price ?? 0))}
+            {isLiveSacrifice &&
+            sacrificeRef?.live_scale_total_kg == null ? (
+              <span className="text-muted-foreground font-normal">
+                Hisse bedeli henüz girilmedi.
+              </span>
+            ) : (
+              <span className="flex flex-col gap-0.5">
+                <span>
+                  {fmt(
+                    Math.max(
+                      0,
+                      Number(shareholderInfo.total_amount) - deliveryFee
+                    )
+                  )}
+                </span>
+                {shareholderInfo.sacrifice?.pricing_mode === "live_scale" ? (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    Canlı baskül
+                  </span>
+                ) : null}
+              </span>
+            )}
           </Field>
           <Field label="Kesim Saati">
             {formatSacrificeTime(shareholderInfo.sacrifice?.sacrifice_time)}
@@ -176,10 +192,24 @@ export function ShareholderDetails({
               {formatSacrificeTime(shareholderInfo.sacrifice?.planned_delivery_time)}
             </Field>
           )}
-          <Field label="Kilogram">
-            {shareholderInfo.sacrifice?.share_weight
-              ? `${shareholderInfo.sacrifice.share_weight} ±3 kg`
-              : "-"}
+          <Field
+            label={
+              isLiveSacrifice ? "Toplam kilogram (baskül)" : "Kilogram"
+            }
+          >
+            {isLiveSacrifice ? (
+              sacrificeRef?.live_scale_total_kg != null ? (
+                <>{Number(sacrificeRef.live_scale_total_kg)} kg</>
+              ) : (
+                <span className="text-muted-foreground font-normal">
+                  Toplam kg henüz girilmedi.
+                </span>
+              )
+            ) : shareholderInfo.sacrifice?.share_weight ? (
+              `${shareholderInfo.sacrifice.share_weight} ±3 kg`
+            ) : (
+              "-"
+            )}
           </Field>
         </div>
       </section>

@@ -19,7 +19,12 @@ BEGIN
       'Kurbanlıklar',
       CAST(NEW.sacrifice_no AS TEXT),
       'Ekleme',
-      'Listeye yeni kurbanlık eklendi. Sıra no: ' || NEW.sacrifice_no || ', planlanan kesim saati: ' || COALESCE(NEW.sacrifice_time::text, '—') || ', hisse bedeli: ' || NEW.share_price || ' ₺, boş hisse: ' || COALESCE(NEW.empty_share::text, '—') || ', cins: ' || COALESCE(NEW.animal_type, '—') || '.',
+      'Listeye yeni kurbanlık eklendi. Sıra no: ' || NEW.sacrifice_no || ', planlanan kesim saati: ' || COALESCE(NEW.sacrifice_time::text, '—') || ', hisse bedeli: ' ||
+        CASE
+          WHEN NEW.pricing_mode = 'live_scale' THEN
+            'Canlı baskül' || CASE WHEN NEW.live_scale_total_price IS NOT NULL THEN ' (toplam ' || NEW.live_scale_total_price::text || ' ₺)' ELSE '' END
+          ELSE COALESCE(NEW.share_price::text, '—') || ' ₺'
+        END || ', boş hisse: ' || COALESCE(NEW.empty_share::text, '—') || ', cins: ' || COALESCE(NEW.animal_type, '—') || '.',
       v_owner,
       NEW.tenant_id,
       NEW.sacrifice_year

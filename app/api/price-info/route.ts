@@ -19,9 +19,10 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("sacrifice_animals")
-      .select("share_weight, share_price, empty_share")
+      .select("share_weight, share_price, empty_share, pricing_mode")
       .eq("tenant_id", tenantId)
-      .eq("sacrifice_year", sacrificeYear);
+      .eq("sacrifice_year", sacrificeYear)
+      .neq("pricing_mode", "live_scale");
 
     if (error) {
       return NextResponse.json(

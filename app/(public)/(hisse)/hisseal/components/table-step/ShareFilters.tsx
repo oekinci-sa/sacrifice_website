@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 import { ColumnFiltersState, Table } from "@tanstack/react-table";
@@ -42,14 +43,20 @@ function ClientShareFilters({
   }, [sacrifices]);
 
   const sharePrices = useMemo(() => {
+    const hasLive = sacrifices.some((s) => isLiveScaleSacrifice(s));
+
     const priceGroups = sacrifices.reduce((groups, sacrifice) => {
+      if (isLiveScaleSacrifice(sacrifice)) return groups;
       const price = sacrifice.share_price;
-      if (!groups[price]) {
-        groups[price] = [];
+      if (price == null || Number.isNaN(Number(price))) return groups;
+      const p = Number(price);
+      if (!groups[p]) {
+        groups[p] = [];
       }
       const weight = sacrifice.share_weight;
-      if (!groups[price].includes(weight)) {
-        groups[price].push(weight);
+      if (typeof weight !== "number" || Number.isNaN(weight)) return groups;
+      if (!groups[p].includes(weight)) {
+        groups[p].push(weight);
       }
       return groups;
     }, {} as Record<number, number[]>);
@@ -64,7 +71,7 @@ function ClientShareFilters({
         const validWeights = weights.filter(
           (w) => typeof w === "number" && !isNaN(w)
         );
-        const weight = validWeights.length > 0 ? Math.min(...validWeights) : 0; // Default to 0 if no valid weights
+        const weight = validWeights.length > 0 ? Math.min(...validWeights) : 0;
 
         return {
           label: `${weight} kg. - ${formattedPrice} TL`,
@@ -73,6 +80,9 @@ function ClientShareFilters({
       })
       .sort((a, b) => Number(a.value) - Number(b.value));
 
+    if (hasLive) {
+      return [...priceOptions, { label: "Canlı baskül", value: "live_scale" }];
+    }
     return priceOptions;
   }, [sacrifices]);
 
@@ -93,9 +103,10 @@ function ClientShareFilters({
 
       if (priceFilter) {
         try {
-          const prices = priceFilter.includes(",")
-            ? priceFilter.split(",").map((p) => p.trim())
-            : [priceFilter.trim()];
+          const raw = priceFilter.trim();
+          const prices = raw.includes(",")
+            ? raw.split(",").map((p) => p.trim())
+            : [raw];
 
           const priceColumn = table.getColumn("share_price");
           if (priceColumn) {

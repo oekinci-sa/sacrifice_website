@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
           sacrifice_time,
           planned_delivery_time,
           share_price,
-          share_weight
+          share_weight,
+          pricing_mode,
+          live_scale_total_kg,
+          live_scale_total_price
         )
       `)
             .eq("tenant_id", tenantId)

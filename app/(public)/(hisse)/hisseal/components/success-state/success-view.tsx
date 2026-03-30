@@ -150,13 +150,19 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     const sacrifice = dbData?.sacrifice || {};
     const reservation = dbData?.reservation || {};
 
-    // Toplam tutarı hesapla
-    const sharePrice = sacrifice.share_price || 0;
-    const deliveryFee = getDeliveryFeeForLocation(
-      branding.logo_slug,
-      shareholder.delivery_location || "Kesimhane"
+    const deliveryFee = Number(
+      (shareholder as { delivery_fee?: number | null }).delivery_fee ??
+        getDeliveryFeeForLocation(
+          branding.logo_slug,
+          shareholder.delivery_location || "Kesimhane"
+        )
     );
-    const totalAmount = sharePrice + deliveryFee;
+    const totalAmountFromDb = (shareholder as { total_amount?: number }).total_amount;
+    const totalAmount =
+      typeof totalAmountFromDb === "number" && !Number.isNaN(totalAmountFromDb)
+        ? totalAmountFromDb
+        : Number(sacrifice.share_price || 0) + deliveryFee;
+    const sharePrice = Math.max(0, totalAmount - deliveryFee);
 
     // Remaining payment calculation
     const paidAmount = shareholder.paid_amount || 0;

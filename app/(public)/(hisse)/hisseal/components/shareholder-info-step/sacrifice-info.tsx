@@ -1,6 +1,7 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
 
@@ -96,13 +97,17 @@ export default function SacrificeInfo({
       {/* Dik çubuk */}
       <div className="hidden md:block w-px h-6 bg-gray-300 flex-shrink-0 mx-4" />
 
-      {/* Hisse Bedeli */}
+      {/* Hisse Bedeli / canlı baskül */}
       <div className="flex items-center flex-shrink-0">
         <span className="text-muted-foreground text-base md:text-xl">
           Hisse Bedeli:
         </span>
         <span className="ml-2 font-medium text-base md:text-xl">
-          {formatPrice(displaySacrifice.share_price)}
+          {isLiveScaleSacrifice(displaySacrifice) ? (
+            <>Canlı Baskül</>
+          ) : (
+            formatPrice(displaySacrifice.share_price)
+          )}
         </span>
       </div>
 

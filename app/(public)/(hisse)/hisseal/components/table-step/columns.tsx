@@ -1,5 +1,10 @@
 "use client";
 
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import {
+  ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE,
+  isAnkaraHissealLivePlaceholderTenant,
+} from "@/lib/hisseal-ankara-live-scale-placeholder";
 import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useActiveReservationsStore } from "@/stores/global/useActiveReservationsStore";
 import { sacrificeSchema } from "@/types";
@@ -90,6 +95,37 @@ const sacrificeNoColumn: ColumnDef<sacrificeSchema> = {
   enableSorting: true,
 };
 
+function HisseBedeliCell({ sacrifice }: { sacrifice: sacrificeSchema }) {
+  const { logo_slug } = useTenantBranding();
+
+  if (isLiveScaleSacrifice(sacrifice)) {
+    if (isAnkaraHissealLivePlaceholderTenant(logo_slug)) {
+      return (
+        <div className="text-center py-0.5 md:py-1 tabular-nums">
+          {ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE}
+        </div>
+      );
+    }
+    return (
+      <div className="text-center py-0.5 md:py-1">Canlı Baskül</div>
+    );
+  }
+
+  const share_price = sacrifice.share_price;
+  const share_weight = sacrifice.share_weight;
+
+  return (
+    <div className="text-center py-0.5 md:py-1">
+      {share_weight} kg. -{" "}
+      {new Intl.NumberFormat("tr-TR", {
+        style: "decimal",
+        maximumFractionDigits: 0,
+      }).format(share_price ?? 0)}{" "}
+      TL
+    </div>
+  );
+}
+
 function formatTimeCellHisseal(time: string | null | undefined) {
   if (!time) return <div className="text-center py-0.5 md:py-1">-</div>;
   const [hours, minutes] = time.split(":");
@@ -134,30 +170,7 @@ const baseColumnsAfterKesim: ColumnDef<sacrificeSchema>[] = [
         : Number(rowB.original.share_price ?? 0);
       return a - b;
     },
-    cell: ({ row }) => {
-      const s = row.original;
-      if (isLiveScaleSacrifice(s)) {
-        return (
-          <div className="text-center py-0.5 md:py-1">
-            Canlı Baskül
-          </div>
-        );
-      }
-
-      const share_price = row.getValue("share_price") as number | null;
-      const share_weight = row.original.share_weight;
-
-      return (
-        <div className="text-center py-0.5 md:py-1">
-          {share_weight} kg. -{" "}
-          {new Intl.NumberFormat("tr-TR", {
-            style: "decimal",
-            maximumFractionDigits: 0,
-          }).format(share_price ?? 0)}{" "}
-          TL
-        </div>
-      );
-    },
+    cell: ({ row }) => <HisseBedeliCell sacrifice={row.original} />,
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
 

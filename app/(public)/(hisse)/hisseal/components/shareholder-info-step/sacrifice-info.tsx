@@ -1,6 +1,10 @@
 "use client";
 
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import {
+  ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE,
+  isAnkaraHissealLivePlaceholderTenant,
+} from "@/lib/hisseal-ankara-live-scale-placeholder";
 import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { sacrificeSchema } from "@/types";
@@ -102,9 +106,13 @@ export default function SacrificeInfo({
         <span className="text-muted-foreground text-base md:text-xl">
           Hisse Bedeli:
         </span>
-        <span className="ml-2 font-medium text-base md:text-xl">
+        <span className="ml-2 font-medium text-base md:text-xl tabular-nums">
           {isLiveScaleSacrifice(displaySacrifice) ? (
-            <>Canlı Baskül</>
+            isAnkaraHissealLivePlaceholderTenant(logo_slug) ? (
+              ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE
+            ) : (
+              "Canlı Baskül"
+            )
           ) : (
             formatPrice(displaySacrifice.share_price)
           )}

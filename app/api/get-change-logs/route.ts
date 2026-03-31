@@ -19,8 +19,12 @@ export async function GET(request: NextRequest) {
       .eq("tenant_id", tenantId)
       .order("changed_at", { ascending: false });
 
+    // Kurban yılına bağlı kayıtlar (hisse yılı) + tenant geneli kayıtlar (ör. Kullanıcılar rolü;
+    // sacrifice_year NULL — yıl filtresinde dışarıda kalmasın)
     if (year != null && !Number.isNaN(year)) {
-      query = query.eq("sacrifice_year", year);
+      query = query.or(
+        `sacrifice_year.eq.${year},sacrifice_year.is.null`
+      );
     }
 
     const { data, error } = await query;

@@ -8,6 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import {
+  ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE,
+  isAnkaraHissealLivePlaceholderTenant,
+} from "@/lib/hisseal-ankara-live-scale-placeholder";
 import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { cn } from "@/lib/utils";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
@@ -33,6 +38,7 @@ export function ShareSelectDialog({
   isLoading = false,
 }: ShareSelectDialogProps) {
   const { toast } = useToast();
+  const { logo_slug } = useTenantBranding();
 
   // Get sacrifice data from the data store
   const { sacrifices, refetchSacrifices } = useSacrificeStore();
@@ -212,25 +218,38 @@ export function ShareSelectDialog({
             <>
               <p className="text-center text-muted-foreground font-medium text-base md:text-lg">
                 {isLiveScaleSacrifice(currentSacrifice) ? (
-                  <>
-                    Bu kurbanlık{" "}
-                    <span className="text-primary font-bold">canlı baskül</span>
-                    {currentSacrifice.live_scale_total_price != null ? (
-                      <>
-                        {" "}
-                        (toplam{" "}
-                        <span className="text-primary font-bold tabular-nums">
-                          {Number(currentSacrifice.live_scale_total_price).toLocaleString("tr-TR")}{" "}
-                          TL
-                        </span>
-                        , hissedar sayısına bölünür)
-                      </>
-                    ) : (
-                      <> (hisse tutarı kesim sonrası netleşir)</>
-                    )}
-                    <br />
-                    Kaç adet hisse almak istersiniz?
-                  </>
+                  isAnkaraHissealLivePlaceholderTenant(logo_slug) ? (
+                    <>
+                      Seçmiş olduğunuz{" "}
+                      <span className="text-primary font-bold tabular-nums">
+                        {ANKARA_HISSEAL_LIVE_SCALE_PLACEHOLDER_LINE}
+                      </span>
+                      {" "}
+                      kurbanlıktan
+                      <br />
+                      kaç adet hisse almak istersiniz?
+                    </>
+                  ) : (
+                    <>
+                      Bu kurbanlık{" "}
+                      <span className="text-primary font-bold">canlı baskül</span>
+                      {currentSacrifice.live_scale_total_price != null ? (
+                        <>
+                          {" "}
+                          (toplam{" "}
+                          <span className="text-primary font-bold tabular-nums">
+                            {Number(currentSacrifice.live_scale_total_price).toLocaleString("tr-TR")}{" "}
+                            TL
+                          </span>
+                          , hissedar sayısına bölünür)
+                        </>
+                      ) : (
+                        <> (hisse tutarı kesim sonrası netleşir)</>
+                      )}
+                      <br />
+                      Kaç adet hisse almak istersiniz?
+                    </>
+                  )
                 ) : (
                   <>
                     Seçmiş olduğunuz{" "}

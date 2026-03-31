@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,7 +17,7 @@ import { formatCurrencyForInput, parseCurrencyFromInput } from "@/utils/formatte
 import { shareholderSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type MouseEvent } from "react";
 
 interface EditablePaidAmountCellProps {
   row: Row<shareholderSchema>;
@@ -22,6 +32,8 @@ export function EditablePaidAmountCell({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const [saving, setSaving] = useState(false);
+  const [overpayConfirmOpen, setOverpayConfirmOpen] = useState(false);
+  const [pendingPaidValue, setPendingPaidValue] = useState<number | null>(null);
 
   const paidAmount = parseFloat(row.original.paid_amount.toString());
   const totalAmount = parseFloat(row.original.total_amount.toString());
@@ -42,7 +54,45 @@ export function EditablePaidAmountCell({
     setEditValue("");
   }, []);
 
-  const handleSave = useCallback(async () => {
+  const savePaidAmount = useCallback(
+    async (numValue: number) => {
+      setSaving(true);
+      try {
+        const res = await fetch("/api/update-shareholder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shareholder_id: row.original.shareholder_id,
+            paid_amount: numValue,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Güncelleme başarısız");
+        }
+
+        const { data } = await res.json();
+        onUpdate({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+        window.dispatchEvent(new Event("shareholders-updated"));
+        toast({ title: "Ödeme güncellendi" });
+        setIsEditing(false);
+        setOverpayConfirmOpen(false);
+        setPendingPaidValue(null);
+      } catch (e) {
+        toast({
+          title: "Hata",
+          description: e instanceof Error ? e.message : "Güncelleme başarısız",
+          variant: "destructive",
+        });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [onUpdate, row.original, toast]
+  );
+
+  const handleSave = useCallback(() => {
     const numValue = parseCurrencyFromInput(editValue);
     if (isNaN(numValue) || numValue < 0) {
       toast({
@@ -53,54 +103,48 @@ export function EditablePaidAmountCell({
       return;
     }
     if (numValue > totalAmount) {
-      toast({
-        title: "Geçersiz değer",
-        description: "Ödenen tutar toplam tutardan fazla olamaz.",
-        variant: "destructive",
-      });
+      setPendingPaidValue(numValue);
+      setOverpayConfirmOpen(true);
       return;
     }
+    void savePaidAmount(numValue);
+  }, [editValue, totalAmount, savePaidAmount, toast]);
 
-    setSaving(true);
-    try {
-      const res = await fetch("/api/update-shareholder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shareholder_id: row.original.shareholder_id,
-          paid_amount: numValue,
-        }),
-      });
+  const handleConfirmOverpay = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (pendingPaidValue == null) return;
+      void savePaidAmount(pendingPaidValue);
+    },
+    [pendingPaidValue, savePaidAmount]
+  );
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Güncelleme başarısız");
-      }
-
-      const { data } = await res.json();
-      onUpdate({ ...row.original, ...data, sacrifice: row.original.sacrifice });
-      window.dispatchEvent(new Event("shareholders-updated"));
-      toast({ title: "Ödeme güncellendi" });
-      setIsEditing(false);
-    } catch (e) {
-      toast({
-        title: "Hata",
-        description: e instanceof Error ? e.message : "Güncelleme başarısız",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, [
-    editValue,
-    totalAmount,
-    row.original,
-    onUpdate,
-    toast,
-  ]);
+  const handleCancelOverpayDialog = useCallback(() => {
+    setOverpayConfirmOpen(false);
+    setPendingPaidValue(null);
+  }, []);
 
   if (isEditing) {
     return (
+      <>
+      <AlertDialog open={overpayConfirmOpen} onOpenChange={(open) => !open && handleCancelOverpayDialog()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ödenen tutar toplamı aşıyor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ödenen tutarı toplam tutardan fazla girdiniz. Bu değeri yine de kabul ediyor musunuz?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelOverpayDialog}>
+              Geri dön
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmOverpay} disabled={saving}>
+              Tamam
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="flex items-center gap-1">
         <Input
           type="text"
@@ -134,6 +178,7 @@ export function EditablePaidAmountCell({
           <X className="h-4 w-4" />
         </Button>
       </div>
+      </>
     );
   }
 

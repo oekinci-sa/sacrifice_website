@@ -1,3 +1,4 @@
+-- Tek seferde çalıştırmak için: shareholders_change_logs_bundle_single_run_2026_04_04.sql (aynı içerik + üst başlık).
 -- rpc_update_shareholder: correlation_id + log_layer; log_shareholder_changes: türetilmiş kolonlar için detail
 -- Kaynak: .project-architecture/db/tables/shareholders/functions_and_triggers/rpc_update_shareholder.sql
 --         .project-architecture/db/tables/shareholders/functions_and_triggers/log_shareholder_changes.sql
@@ -358,8 +359,9 @@ END;
 $BODY$;
 
 DROP TRIGGER IF EXISTS trigger_shareholder_changes ON public.shareholders;
+DROP TRIGGER IF EXISTS "00_log_shareholder_changes" ON public.shareholders;
 
-CREATE TRIGGER trigger_shareholder_changes
+CREATE TRIGGER "00_log_shareholder_changes"
   AFTER INSERT OR UPDATE OR DELETE ON public.shareholders
   FOR EACH ROW
-  EXECUTE FUNCTION log_shareholder_changes();
+  EXECUTE FUNCTION public.log_shareholder_changes();

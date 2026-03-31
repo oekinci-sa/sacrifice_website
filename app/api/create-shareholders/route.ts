@@ -1,9 +1,7 @@
-import { authOptions } from '@/lib/auth';
-import { getSessionActorEmail, HISSE_AL_AKISI_ACTOR } from '@/lib/admin-editor-session';
+import { HISSE_AL_AKISI_ACTOR } from '@/lib/admin-editor-session';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { formatPhoneForDB } from "@/utils/formatters";
-import { getServerSession } from 'next-auth';
 import { NextResponse } from "next/server";
 
 // Define the expected structure for a single shareholder
@@ -20,7 +18,7 @@ interface ShareholderInput {
   delivery_type?: string; // Kesimhane | Adrese teslim | Ulus
   security_code: string;
   purchased_by: string;
-  /** İstemci gönderebilir; sunucu yok sayar (Faz 1: oturum veya hisseal-akisi). */
+  /** İstemci gönderebilir; sunucu yok sayar; audit aktörü sabit "Hisse al akışı". */
   last_edited_by?: string;
   sacrifice_consent?: boolean; // Optional
   total_amount: number; // Total amount to be paid (share_price + delivery_fee)
@@ -29,8 +27,8 @@ interface ShareholderInput {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    const actor = getSessionActorEmail(session) ?? HISSE_AL_AKISI_ACTOR;
+    /** Oturumdaki admin e-postası kullanılmaz: hisse al checkout ile boş hisse (DB) aynı aktör etiketini kullanır. */
+    const actor = HISSE_AL_AKISI_ACTOR;
 
     const tenantId = getTenantId();
     const shareholdersData: ShareholderInput[] = await req.json();

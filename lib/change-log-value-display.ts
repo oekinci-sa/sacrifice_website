@@ -1,10 +1,13 @@
 /**
  * Değişiklik kayıtları: Eski → Yeni hücresi ve detay paneli için skaler gösterim.
- * Boş değerler: (Boştu). Parasal kolonlarda ondalık gösterilmez.
+ * Boş geçişler: "… silindi" / "… girildi" (ok ve (Boştu) yok). Parasal kolonlarda ondalık gösterilmez.
+ * Telefon kolonları: 0552 400 03 09 biçimi (+90’sız, 4-3-2-2).
  * Saat kolonları: saniye gösterilmez (07:16:00 → 07:16).
  * contacted_at / sacrifice_consent: Türkçe etiketler.
  * IBAN: boştan doluya geçişte "… girişi yapıldı" (Eski → Yeni hücresinde ok yok).
  */
+
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 
 /** Audit’te para tutarı olarak izlenen kolon kodları (snake_case) */
 const MONEY_COLUMN_CODES = new Set<string>([
@@ -28,7 +31,10 @@ const TIME_LIKE_COLUMN_CODES = new Set<string>([
 
 const IBAN_COLUMN_CODES = new Set<string>(["iban"]);
 
-export const CHANGE_LOG_EMPTY_DISPLAY = "(Boştu)";
+/** Telefon: DB +90; gösterim 0552 400 03 09 */
+const PHONE_COLUMN_CODES = new Set<string>(["phone_number", "second_phone_number"]);
+
+export const CHANGE_LOG_EMPTY_DISPLAY = "—";
 
 const GORUSULMEDI = "Görüşülmedi";
 const GORUSULDU = "Görüşüldü";
@@ -48,6 +54,18 @@ function isTimeLikeColumn(columnName: string | null | undefined): boolean {
 function isIbanColumn(columnName: string | null | undefined): boolean {
   if (columnName == null || columnName === "") return false;
   return IBAN_COLUMN_CODES.has(columnName.trim());
+}
+
+function isPhoneColumn(columnName: string | null | undefined): boolean {
+  if (columnName == null || columnName === "") return false;
+  return PHONE_COLUMN_CODES.has(columnName.trim());
+}
+
+/** Boş veya geçersizse ""; aksi halde 0552 400 03 09 */
+function formatPhoneForChangeLog(value: string | null): string {
+  if (value == null || String(value).trim() === "") return "";
+  const s = formatPhoneForDisplayWithSpacing(String(value).trim());
+  return s === "-" ? "" : s;
 }
 
 /** Sütun adı para benzeri mi (tetikleyicide unutulan kolonlar için yedek) */
@@ -158,6 +176,10 @@ export function formatChangeLogScalarDisplay(
   }
   const raw = String(value).trim();
 
+  if (isPhoneColumn(columnName)) {
+    return formatPhoneForChangeLog(raw) || raw;
+  }
+
   if (isTimeLikeColumn(columnName)) {
     return formatChangeLogTimeLikeDisplay(raw);
   }
@@ -179,7 +201,7 @@ export function formatChangeLogScalarDisplay(
 }
 
 /**
- * Detay paneli — Eski Değer: IBAN boş→dolu geçişinde "(Boştu)" yerine kısa çizgi
+ * Detay paneli — Eski Değer: IBAN boş→dolu geçişinde kısa çizgi
  */
 export function formatChangeLogDetailOldDisplay(
   oldVal: string | null,
@@ -212,6 +234,7 @@ export function formatChangeLogDetailNewDisplay(
 
 /**
  * Eski → Yeni tek satır metni (tablo hücresi).
+ * Boş ↔ dolu: "… silindi" / "… girildi"; ikisi dolu: "sol → sağ".
  */
 export function formatChangeLogOldNewArrow(
   oldVal: string | null,
@@ -219,12 +242,31 @@ export function formatChangeLogOldNewArrow(
   columnName: string | null
 ): string {
   const col = columnName?.trim() ?? "";
-
   const oldEmpty = oldVal == null || String(oldVal).trim() === "";
   const newEmpty = newVal == null || String(newVal).trim() === "";
 
+  if (col === "contacted_at" || col === "sacrifice_consent") {
+    const left = formatChangeLogScalarDisplay(oldVal, columnName);
+    const right = formatChangeLogScalarDisplay(newVal, columnName);
+    return `${left} → ${right}`;
+  }
+
   if (isIbanColumn(columnName) && oldEmpty && !newEmpty) {
     return `${String(newVal).trim()} girişi yapıldı`;
+  }
+
+  if (oldEmpty && !newEmpty) {
+    const shown = formatChangeLogScalarDisplay(newVal, columnName);
+    return `${shown} girildi`;
+  }
+
+  if (!oldEmpty && newEmpty) {
+    const shown = formatChangeLogScalarDisplay(oldVal, columnName);
+    return `${shown} silindi`;
+  }
+
+  if (oldEmpty && newEmpty) {
+    return "—";
   }
 
   const left = formatChangeLogScalarDisplay(oldVal, columnName);

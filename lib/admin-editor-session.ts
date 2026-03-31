@@ -17,5 +17,5 @@ export function getSessionActorEmail(session: Session | null): string | null {
 /** Takip (kesimhane) ekranı — oturum yokken kullanılan sabit aktör etiketi */
 export const TAKIP_EKRANI_ACTOR = "takip-ekranı";
 
-/** Hisse al (müşteri) akışı — boş hisse güncellemesi oturumsuz olabilir */
-export const HISSE_AL_AKISI_ACTOR = "hisseal-akisi";
+/** Hisse al (müşteri) akışı — DB `update_empty_share` ile aynı metin (change_logs.change_owner) */
+export const HISSE_AL_AKISI_ACTOR = "Hisse al akışı";

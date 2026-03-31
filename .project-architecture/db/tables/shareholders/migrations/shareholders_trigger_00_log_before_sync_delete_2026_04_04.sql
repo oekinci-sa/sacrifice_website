@@ -1,0 +1,6 @@
+-- DEPRECATED: Tetik sırası düzeltmesi dahil tüm hissedar change_logs güncellemeleri için
+-- tek dosya kullanın:
+--
+--   shareholders_change_logs_bundle_single_run_2026_04_04.sql
+--
+-- (Bu dosyada artık SQL yok; yalnızca yönlendirme.)

@@ -19,7 +19,7 @@ export interface ShareholderInput {
   delivery_type?: string;
   security_code: string;
   purchased_by: string;
-  /** Sunucu tarafından oturum / hisseal-akisi ile set edilir (isteğe bağlı, gönderilmez). */
+  /** Sunucu tarafından Hisse al akışı / oturum ile set edilir (isteğe bağlı, gönderilmez). */
   last_edited_by?: string;
   is_purchaser?: boolean; // Made optional as it's only used locally
   sacrifice_consent?: boolean; // Made optional since it's not required when creating shareholders

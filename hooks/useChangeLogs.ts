@@ -6,13 +6,16 @@ export interface changeLogSchema {
   event_id: number;
   table_name: string;
   row_id: string;
-  column_name: string;
+  column_name: string | null;
   old_value: string | null;
   new_value: string | null;
   change_type: string;
   description: string;
   change_owner: string | null;
   changed_at: string;
+  correlation_id: string | null;
+  log_layer: string | null;
+  sacrifice_year: number | null;
 }
 
 /**

@@ -23,7 +23,7 @@ BEGIN
     );
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id)
     VALUES (
-      'Kullanıcılar',
+      'user_tenants',
       NEW.user_id::text,
       'Güncelleme',
       'Kullanıcı ikinci bir organizasyonda da onaylı üye yapıldı (aynı hesap, çoklu site erişimi).',
@@ -41,7 +41,7 @@ BEGIN
       );
       INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id)
       VALUES (
-        'Kullanıcılar',
+        'user_tenants',
         NEW.user_id::text,
         'Güncelleme',
         'Bu organizasyonda kullanıcının «onaylı üye» kaydı kaldırıldı; tekrar onaylanması gerekebilir.',

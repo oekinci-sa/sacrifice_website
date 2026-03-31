@@ -30,8 +30,8 @@ BEGIN
     );
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Hissedarlar',
-      CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'),
+      'shareholders',
+      NEW.shareholder_id::text,
       'Ekleme',
       'Yeni hissedar kaydı açıldı: «' || NEW.shareholder_name || '». Bağlı kurbanlık sıra no: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
       v_owner,
@@ -49,7 +49,7 @@ BEGIN
     IF NEW.shareholder_name IS DISTINCT FROM OLD.shareholder_name THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Hissedar Adı',
+        'shareholders', NEW.shareholder_id::text, 'shareholder_name',
         OLD.shareholder_name, NEW.shareholder_name, 'Güncelleme',
         'Hissedar görünen adı değişti: «' || COALESCE(OLD.shareholder_name, '—') || '» → «' || COALESCE(NEW.shareholder_name, '—') || '». Kurban sıra: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -59,7 +59,7 @@ BEGIN
     IF NEW.phone_number IS DISTINCT FROM OLD.phone_number THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Telefon Numarası',
+        'shareholders', NEW.shareholder_id::text, 'phone_number',
         OLD.phone_number, NEW.phone_number, 'Güncelleme',
         'Birinci telefon güncellendi. Önce: ' || COALESCE(OLD.phone_number, 'yok') || ', şimdi: ' || COALESCE(NEW.phone_number, 'yok') || '.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -69,7 +69,7 @@ BEGIN
     IF NEW.second_phone_number IS DISTINCT FROM OLD.second_phone_number THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'İkinci Telefon',
+        'shareholders', NEW.shareholder_id::text, 'second_phone_number',
         OLD.second_phone_number, NEW.second_phone_number, 'Güncelleme',
         'İkinci / yedek telefon güncellendi. Önce: ' || COALESCE(OLD.second_phone_number, 'yok') || ', şimdi: ' || COALESCE(NEW.second_phone_number, 'yok') || '.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -79,7 +79,7 @@ BEGIN
     IF NEW.total_amount IS DISTINCT FROM OLD.total_amount THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Toplam Tutar',
+        'shareholders', NEW.shareholder_id::text, 'total_amount',
         CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'Güncelleme',
         'Hissiye düşen toplam tutar (hisse + teslimat) değişti: ' || COALESCE(OLD.total_amount::text, '—') || ' ₺ → ' || COALESCE(NEW.total_amount::text, '—') || ' ₺.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -89,7 +89,7 @@ BEGIN
     IF NEW.paid_amount IS DISTINCT FROM OLD.paid_amount THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Ödenen Tutar',
+        'shareholders', NEW.shareholder_id::text, 'paid_amount',
         CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'Güncelleme',
         'Ödenen tutar güncellendi: ' || COALESCE(OLD.paid_amount::text, '0') || ' ₺ → ' || COALESCE(NEW.paid_amount::text, '0') || ' ₺.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -99,7 +99,7 @@ BEGIN
     IF NEW.remaining_payment IS DISTINCT FROM OLD.remaining_payment THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Kalan Ödeme',
+        'shareholders', NEW.shareholder_id::text, 'remaining_payment',
         CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'Güncelleme',
         'Kalan ödeme tutarı: ' || COALESCE(OLD.remaining_payment::text, '—') || ' ₺ → ' || COALESCE(NEW.remaining_payment::text, '—') || ' ₺.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -109,7 +109,7 @@ BEGIN
     IF NEW.delivery_fee IS DISTINCT FROM OLD.delivery_fee THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Teslimat Ücreti',
+        'shareholders', NEW.shareholder_id::text, 'delivery_fee',
         CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'Güncelleme',
         'Teslimat ücreti: ' || COALESCE(OLD.delivery_fee::text, '—') || ' ₺ → ' || COALESCE(NEW.delivery_fee::text, '—') || ' ₺.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -119,7 +119,7 @@ BEGIN
     IF NEW.delivery_location IS DISTINCT FROM OLD.delivery_location THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Teslimat Noktası',
+        'shareholders', NEW.shareholder_id::text, 'delivery_location',
         OLD.delivery_location, NEW.delivery_location, 'Güncelleme',
         'Teslimat adresi veya noktası değişti: «' || COALESCE(OLD.delivery_location, 'belirtilmemiş') || '» → «' || COALESCE(NEW.delivery_location, 'belirtilmemiş') || '».',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -129,7 +129,7 @@ BEGIN
     IF NEW.delivery_type IS DISTINCT FROM OLD.delivery_type THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Teslimat Tipi',
+        'shareholders', NEW.shareholder_id::text, 'delivery_type',
         OLD.delivery_type, NEW.delivery_type, 'Güncelleme',
         'Teslimat şekli güncellendi (kesimhane / adrese / vb.): «' || COALESCE(OLD.delivery_type, '—') || '» → «' || COALESCE(NEW.delivery_type, '—') || '».',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -139,7 +139,7 @@ BEGIN
     IF NEW.sacrifice_consent IS DISTINCT FROM OLD.sacrifice_consent THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Vekalet',
+        'shareholders', NEW.shareholder_id::text, 'sacrifice_consent',
         CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'Güncelleme',
         'Kurban vekaleti / onay kaydı güncellendi: ' || CASE WHEN OLD.sacrifice_consent THEN 'onaylıydı' ELSE 'onaysızdı' END || ' → ' || CASE WHEN NEW.sacrifice_consent THEN 'onaylı' ELSE 'onaysız' END || '.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -149,7 +149,7 @@ BEGIN
     IF NEW.notes IS DISTINCT FROM OLD.notes THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Notlar',
+        'shareholders', NEW.shareholder_id::text, 'notes',
         OLD.notes, NEW.notes, 'Güncelleme',
         'Bu hissedar için not metni değiştirildi (detay eski/yeni sütunlarda).',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -159,7 +159,7 @@ BEGIN
     IF NEW.email IS DISTINCT FROM OLD.email THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'E-posta',
+        'shareholders', NEW.shareholder_id::text, 'email',
         OLD.email, NEW.email, 'Güncelleme',
         'Hissedar e-posta adresi güncellendi: ' || COALESCE(OLD.email, 'yok') || ' → ' || COALESCE(NEW.email, 'yok') || '.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -169,7 +169,7 @@ BEGIN
     IF NEW.security_code IS DISTINCT FROM OLD.security_code THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Güvenlik Kodu',
+        'shareholders', NEW.shareholder_id::text, 'security_code',
         OLD.security_code, NEW.security_code, 'Güncelleme',
         'Hisse sorgulamada kullanılan 6 haneli güvenlik kodu yenilendi (eski ve yeni değer kayıtta).',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -179,7 +179,7 @@ BEGIN
     IF NEW.contacted_at IS DISTINCT FROM OLD.contacted_at THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Hissedarlar', CONCAT(NEW.shareholder_name, ' (', NEW.sacrifice_id, ')'), 'Görüşüldü',
+        'shareholders', NEW.shareholder_id::text, 'contacted_at',
         CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'Güncelleme',
         '«Görüşüldü» işareti veya görüşme tarihi güncellendi; arama takibinde kullanılır.',
         v_owner, NEW.tenant_id, v_sacrifice_year
@@ -196,8 +196,8 @@ BEGIN
     v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
     VALUES (
-      'Hissedarlar',
-      CONCAT(OLD.shareholder_name, ' (', OLD.sacrifice_id, ')'),
+      'shareholders',
+      OLD.shareholder_id::text,
       'Silme',
       'Hissedar kaydı silindi veya kurbanlıkla birlikte kaldırıldı: «' || OLD.shareholder_name || '». Kurban sıra no: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
       v_owner,

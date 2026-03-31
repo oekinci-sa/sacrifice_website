@@ -1,9 +1,9 @@
     IF NEW.sacrifice_no IS DISTINCT FROM OLD.sacrifice_no THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Kurban Numarası',
+        'sacrifice_no',
         CAST(OLD.sacrifice_no AS TEXT),
         CAST(NEW.sacrifice_no AS TEXT),
         'Güncelleme',
@@ -17,9 +17,9 @@
     IF NEW.share_weight IS DISTINCT FROM OLD.share_weight THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Hisse Ağırlığı (kg)',
+        'share_weight',
         CAST(OLD.share_weight AS TEXT),
         CAST(NEW.share_weight AS TEXT),
         'Güncelleme',
@@ -33,9 +33,9 @@
     IF NEW.share_price IS DISTINCT FROM OLD.share_price THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Hisse Bedeli',
+        'share_price',
         CAST(OLD.share_price AS TEXT),
         CAST(NEW.share_price AS TEXT),
         'Güncelleme',
@@ -49,9 +49,9 @@
     IF NEW.empty_share IS DISTINCT FROM OLD.empty_share THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Boş Hisse',
+        'empty_share',
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),
         'Güncelleme',

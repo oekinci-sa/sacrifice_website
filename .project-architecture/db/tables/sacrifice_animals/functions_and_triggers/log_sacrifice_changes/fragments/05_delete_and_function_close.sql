@@ -5,7 +5,7 @@
     );
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Kurbanlıklar',
+      'sacrifice_animals',
       CAST(OLD.sacrifice_no AS TEXT),
       'Silme',
       'Kurbanlık kaydı tamamen silindi (sıra no ' || OLD.sacrifice_no || '). Bağlı hissedar ve rezervasyon satırları da temizlendi.',

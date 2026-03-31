@@ -40,9 +40,9 @@ BEGIN
     tenant_id
   )
   VALUES (
-    'Aşama Metrikleri',
+    'stage_metrics',
     NEW.stage,
-    'Güncel kurban sırası (takip)',
+    'current_sacrifice_number',
     COALESCE(OLD.current_sacrifice_number::text, '—'),
     NEW.current_sacrifice_number::text,
     'Güncelleme',

@@ -16,7 +16,7 @@ BEGIN
     );
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Kurbanlıklar',
+      'sacrifice_animals',
       CAST(NEW.sacrifice_no AS TEXT),
       'Ekleme',
       'Listeye yeni kurbanlık eklendi. Sıra no: ' || NEW.sacrifice_no || ', planlanan kesim saati: ' || COALESCE(NEW.sacrifice_time::text, '—') || ', hisse bedeli: ' ||

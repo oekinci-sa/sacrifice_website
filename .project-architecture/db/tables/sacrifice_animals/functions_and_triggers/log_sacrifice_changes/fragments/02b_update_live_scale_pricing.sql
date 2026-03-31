@@ -1,9 +1,9 @@
     IF NEW.pricing_mode IS DISTINCT FROM OLD.pricing_mode THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Fiyatlama Modu',
+        'pricing_mode',
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
         'Güncelleme',
@@ -17,9 +17,9 @@
     IF NEW.live_scale_total_kg IS DISTINCT FROM OLD.live_scale_total_kg THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Canlı Baskül Toplam (kg)',
+        'live_scale_total_kg',
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
         'Güncelleme',
@@ -33,9 +33,9 @@
     IF NEW.live_scale_total_price IS DISTINCT FROM OLD.live_scale_total_price THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Canlı Baskül Toplam Tutar',
+        'live_scale_total_price',
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),
         'Güncelleme',

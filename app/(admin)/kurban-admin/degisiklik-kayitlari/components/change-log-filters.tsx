@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -14,13 +15,14 @@ import { useMemo } from "react";
 import { ChangeLogSearch } from "./change-log-search";
 import { ChangeLog } from "./columns";
 
-// change_logs tablosunda kullanılan table_name değerleri (DB trigger'larından)
+/** DB'de İngilizce kod; etiket Türkçe (lib/change-log-labels ile uyumlu) */
 const CHANGE_LOG_TABLE_OPTIONS: { value: string; label: string }[] = [
-    { value: "Kurbanlıklar", label: "Kurbanlıklar" },
-    { value: "Hissedarlar", label: "Hissedarlar" },
-    { value: "Hisse Uyumsuzluğu", label: "Hisse Uyumsuzluğu" },
-    { value: "Kullanıcılar", label: "Kullanıcılar" },
-    { value: "Aşama Metrikleri", label: "Aşama Metrikleri" },
+    { value: "sacrifice_animals", label: "Kurbanlıklar" },
+    { value: "shareholders", label: "Hissedarlar" },
+    { value: "mismatched_share_acknowledgments", label: "Hisse uyumsuzluğu" },
+    { value: "users", label: "Kullanıcılar" },
+    { value: "user_tenants", label: "Kullanıcı–organizasyon" },
+    { value: "stage_metrics", label: "Aşama metrikleri" },
 ];
 
 const CHANGE_TYPE_OPTIONS = [
@@ -62,6 +64,8 @@ interface ChangeLogFiltersProps {
     onSearchChange: (value: string) => void;
     datePreset: ChangeLogDatePreset;
     onDatePresetChange: (preset: ChangeLogDatePreset) => void;
+    rowIdFilter: string;
+    onRowIdFilterChange: (value: string) => void;
 }
 
 export function ChangeLogFilters({
@@ -71,6 +75,8 @@ export function ChangeLogFilters({
     onSearchChange,
     datePreset,
     onDatePresetChange,
+    rowIdFilter,
+    onRowIdFilterChange,
 }: ChangeLogFiltersProps) {
     const changeOwnerOptions = useMemo(() => {
         const owners = new Set<string>();
@@ -111,12 +117,14 @@ export function ChangeLogFilters({
     const resetAll = () => {
         onSearchChange("");
         onDatePresetChange("all");
+        onRowIdFilterChange("");
         table.resetColumnFilters();
     };
 
     const hasAnyFilter =
         searchValue.trim().length > 0 ||
         datePreset !== "all" ||
+        rowIdFilter.trim().length > 0 ||
         columnFilters.length > 0;
 
     return (
@@ -129,7 +137,7 @@ export function ChangeLogFilters({
                 />
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                 <QuickGroup label="Tarih">
                     <Select
                         value={datePreset}
@@ -200,6 +208,16 @@ export function ChangeLogFilters({
                             ))}
                         </SelectContent>
                     </Select>
+                </QuickGroup>
+
+                {/* Kayıt bazlı filtre — normalize contains, sıra no veya isim */}
+                <QuickGroup label="Kayıt">
+                    <Input
+                        placeholder="Sıra no, UUID…"
+                        value={rowIdFilter}
+                        onChange={(e) => onRowIdFilterChange(e.target.value)}
+                        className="h-8 w-full min-w-[160px] max-w-[220px] text-xs"
+                    />
                 </QuickGroup>
             </div>
 

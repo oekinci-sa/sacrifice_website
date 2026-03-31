@@ -22,7 +22,7 @@ BEGIN
     );
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Kurbanlıklar',
+      'sacrifice_animals',
       CAST(NEW.sacrifice_no AS TEXT),
       'Ekleme',
       'Listeye yeni kurbanlık eklendi. Sıra no: ' || NEW.sacrifice_no || ', planlanan kesim saati: ' || COALESCE(NEW.sacrifice_time::text, '—') || ', hisse bedeli: ' ||
@@ -47,9 +47,9 @@ BEGIN
     IF NEW.sacrifice_no IS DISTINCT FROM OLD.sacrifice_no THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Kurban Numarası',
+        'sacrifice_no',
         CAST(OLD.sacrifice_no AS TEXT),
         CAST(NEW.sacrifice_no AS TEXT),
         'Güncelleme',
@@ -63,9 +63,9 @@ BEGIN
     IF NEW.share_weight IS DISTINCT FROM OLD.share_weight THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Hisse Ağırlığı (kg)',
+        'share_weight',
         CAST(OLD.share_weight AS TEXT),
         CAST(NEW.share_weight AS TEXT),
         'Güncelleme',
@@ -79,9 +79,9 @@ BEGIN
     IF NEW.share_price IS DISTINCT FROM OLD.share_price THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Hisse Bedeli',
+        'share_price',
         CAST(OLD.share_price AS TEXT),
         CAST(NEW.share_price AS TEXT),
         'Güncelleme',
@@ -95,9 +95,9 @@ BEGIN
     IF NEW.empty_share IS DISTINCT FROM OLD.empty_share THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Boş Hisse',
+        'empty_share',
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),
         'Güncelleme',
@@ -114,9 +114,9 @@ BEGIN
     IF NEW.pricing_mode IS DISTINCT FROM OLD.pricing_mode THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Fiyatlama Modu',
+        'pricing_mode',
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
         'Güncelleme',
@@ -130,9 +130,9 @@ BEGIN
     IF NEW.live_scale_total_kg IS DISTINCT FROM OLD.live_scale_total_kg THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Canlı Baskül Toplam (kg)',
+        'live_scale_total_kg',
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
         'Güncelleme',
@@ -146,9 +146,9 @@ BEGIN
     IF NEW.live_scale_total_price IS DISTINCT FROM OLD.live_scale_total_price THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Canlı Baskül Toplam Tutar',
+        'live_scale_total_price',
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),
         'Güncelleme',
@@ -161,9 +161,9 @@ BEGIN
     IF NEW.notes IS DISTINCT FROM OLD.notes THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Notlar',
+        'notes',
         OLD.notes,
         NEW.notes,
         'Güncelleme',
@@ -177,9 +177,9 @@ BEGIN
     IF NEW.animal_type IS DISTINCT FROM OLD.animal_type THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Hayvan Cinsi',
+        'animal_type',
         COALESCE(OLD.animal_type, ''),
         COALESCE(NEW.animal_type, ''),
         'Güncelleme',
@@ -193,9 +193,9 @@ BEGIN
     IF NEW.foundation IS DISTINCT FROM OLD.foundation THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Vakıf',
+        'foundation',
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
         'Güncelleme',
@@ -209,9 +209,9 @@ BEGIN
     IF NEW.ear_tag IS DISTINCT FROM OLD.ear_tag THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Küpe No',
+        'ear_tag',
         COALESCE(OLD.ear_tag, ''),
         COALESCE(NEW.ear_tag, ''),
         'Güncelleme',
@@ -225,9 +225,9 @@ BEGIN
     IF NEW.barn_stall_order_no IS DISTINCT FROM OLD.barn_stall_order_no THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Ahır Sıra No',
+        'barn_stall_order_no',
         COALESCE(OLD.barn_stall_order_no, ''),
         COALESCE(NEW.barn_stall_order_no, ''),
         'Güncelleme',
@@ -241,9 +241,9 @@ BEGIN
     IF NEW.sacrifice_time IS DISTINCT FROM OLD.sacrifice_time THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Kesim Zamanı',
+        'sacrifice_time',
         CAST(OLD.sacrifice_time AS TEXT),
         CAST(NEW.sacrifice_time AS TEXT),
         'Güncelleme',
@@ -257,9 +257,9 @@ BEGIN
     IF NEW.slaughter_time IS DISTINCT FROM OLD.slaughter_time THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Kesim Saati',
+        'slaughter_time',
         CAST(OLD.slaughter_time AS TEXT),
         CAST(NEW.slaughter_time AS TEXT),
         'Güncelleme',
@@ -282,9 +282,9 @@ BEGIN
     IF NEW.butcher_time IS DISTINCT FROM OLD.butcher_time THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Parçalama Saati',
+        'butcher_time',
         CAST(OLD.butcher_time AS TEXT),
         CAST(NEW.butcher_time AS TEXT),
         'Güncelleme',
@@ -307,9 +307,9 @@ BEGIN
     IF NEW.delivery_time IS DISTINCT FROM OLD.delivery_time THEN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
-        'Kurbanlıklar',
+        'sacrifice_animals',
         CAST(NEW.sacrifice_no AS TEXT),
-        'Teslimat Saati',
+        'delivery_time',
         CAST(OLD.delivery_time AS TEXT),
         CAST(NEW.delivery_time AS TEXT),
         'Güncelleme',
@@ -338,7 +338,7 @@ BEGIN
     );
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Kurbanlıklar',
+      'sacrifice_animals',
       CAST(OLD.sacrifice_no AS TEXT),
       'Silme',
       'Kurbanlık kaydı tamamen silindi (sıra no ' || OLD.sacrifice_no || '). Bağlı hissedar ve rezervasyon satırları da temizlendi.',

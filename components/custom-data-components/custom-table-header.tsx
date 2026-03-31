@@ -1,6 +1,7 @@
 "use client"
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import { Table as TableInstance, flexRender } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useCallback, useState } from "react"
@@ -50,6 +51,7 @@ interface CustomTableHeaderProps<TData> {
   tableSize?: "small" | "medium" | "large"
   columnHeaderLabels?: Record<string, string>
   onColumnOrderChange?: (order: string[]) => void
+  stickyHeader?: boolean
 }
 
 export function CustomTableHeader<TData>({
@@ -57,6 +59,7 @@ export function CustomTableHeader<TData>({
   tableSize = "medium",
   columnHeaderLabels,
   onColumnOrderChange,
+  stickyHeader = false,
 }: CustomTableHeaderProps<TData>) {
   const headerSizeClasses = {
     small: "h-10 text-center text-xs md:text-sm py-1",
@@ -142,7 +145,12 @@ export function CustomTableHeader<TData>({
   )
 
   return (
-    <TableHeader>
+    <TableHeader
+      className={cn(
+        stickyHeader &&
+          "sticky top-0 z-20 bg-background shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:bg-background"
+      )}
+    >
       {table.getHeaderGroups().map((headerGroup) => (
         <TableRow
           key={headerGroup.id}

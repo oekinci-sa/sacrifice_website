@@ -3,13 +3,19 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
+import { getTableLabelTr } from "@/lib/change-log-labels";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useMemo, useState } from "react";
 import {
   ChangeLogFilters,
   type ChangeLogDatePreset,
 } from "./components/change-log-filters";
-import { ChangeLogsTooltipProvider, columns } from "./components/columns";
+import {
+  ChangeLog,
+  ChangeLogExpandedRow,
+  ChangeLogsTooltipProvider,
+  columns,
+} from "./components/columns";
 
 function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
   if (preset === "all") return null;
@@ -26,15 +32,34 @@ function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
 export default function ChangeLogsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [datePreset, setDatePreset] = useState<ChangeLogDatePreset>("all");
+  const [rowIdFilter, setRowIdFilter] = useState("");
+  // Açık satırların event_id seti
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   const { data = [], isLoading, error } = useChangeLogs();
 
+  const toggleExpand = (eventId: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(eventId)) {
+        next.delete(eventId);
+      } else {
+        next.add(eventId);
+      }
+      return next;
+    });
+  };
+
   const filteredData = useMemo(() => {
     let rows = data;
+
+    // Tarih filtresi
     const rangeStart = startOfFilterRange(datePreset);
     if (rangeStart) {
       rows = rows.filter((log) => new Date(log.changed_at) >= rangeStart);
     }
+
+    // Metin araması (tüm alanlar)
     const q = normalizeTurkishSearchText(searchTerm.trim());
     if (q) {
       rows = rows.filter((log) => {
@@ -46,6 +71,7 @@ export default function ChangeLogsPage() {
             log.old_value,
             log.new_value,
             log.table_name,
+            getTableLabelTr(log.table_name),
             log.change_type,
             log.row_id,
             String(log.event_id),
@@ -56,8 +82,23 @@ export default function ChangeLogsPage() {
         return blob.includes(q);
       });
     }
+
+    // Kayıt filtresi (row_id — normalize contains; ham + isim kısmı)
+    const rq = normalizeTurkishSearchText(rowIdFilter.trim());
+    if (rq) {
+      rows = rows.filter((log) => {
+        const raw = normalizeTurkishSearchText(log.row_id ?? "");
+        const parenIdx = log.row_id?.lastIndexOf("(") ?? -1;
+        const namePart =
+          parenIdx > 0
+            ? normalizeTurkishSearchText(log.row_id.slice(0, parenIdx).trim())
+            : "";
+        return raw.includes(rq) || namePart.includes(rq);
+      });
+    }
+
     return rows;
-  }, [data, searchTerm, datePreset]);
+  }, [data, searchTerm, datePreset, rowIdFilter]);
 
   if (error) {
     return (
@@ -95,6 +136,19 @@ export default function ChangeLogsPage() {
             storageKey="degisiklik-kayitlari"
             pageSizeOptions={[10, 20, 50, 100]}
             tableSize="medium"
+            stickyHeader
+            initialState={{
+              columnVisibility: {
+                // "Kaynak" (table_name) varsayılan gizli — kullanıcı açabilir
+                table_name: false,
+              },
+            }}
+            meta={{ expandedIds, toggleExpand }}
+            renderExpandedRow={(row: { original: ChangeLog }) =>
+              expandedIds.has(row.original.event_id) ? (
+                <ChangeLogExpandedRow log={row.original} />
+              ) : null
+            }
             filters={({ table, columnFilters }) => (
               <ChangeLogFilters
                 table={table}
@@ -103,6 +157,8 @@ export default function ChangeLogsPage() {
                 onSearchChange={setSearchTerm}
                 datePreset={datePreset}
                 onDatePresetChange={setDatePreset}
+                rowIdFilter={rowIdFilter}
+                onRowIdFilterChange={setRowIdFilter}
               />
             )}
           />
@@ -110,4 +166,4 @@ export default function ChangeLogsPage() {
       )}
     </div>
   );
-} 
+}

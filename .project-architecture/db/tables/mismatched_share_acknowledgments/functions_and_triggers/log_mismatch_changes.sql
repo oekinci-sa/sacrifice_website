@@ -26,7 +26,7 @@ BEGIN
 
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Hisse Uyumsuzluğu',
+      'mismatched_share_acknowledgments',
       COALESCE(v_no::text, NEW.sacrifice_id::text),
       'Güncelleme',
       'Bu kurbanlıkta toplam hisse sayısı 7 değil; yönetici ekranda «Tamam, uyumsuzluğu biliyorum» ile uyarıyı onayladı. Kurban sıra no: ' || COALESCE(v_no::text, '—') || '.',
@@ -52,7 +52,7 @@ BEGIN
 
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
-      'Hisse Uyumsuzluğu',
+      'mismatched_share_acknowledgments',
       COALESCE(v_no::text, OLD.sacrifice_id::text),
       'Güncelleme',
       'Hisse uyumsuzluğu onayı kaldırıldı; bu kurbanlık listesinde yeniden uyarı gösterebilir. Kurban sıra no: ' || COALESCE(v_no::text, '—') || '.',

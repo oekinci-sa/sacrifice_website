@@ -11,12 +11,13 @@ import {
   type ChangeLogDatePreset,
 } from "./components/change-log-filters";
 import {
-  ChangeLog,
   CHANGE_LOG_COLUMN_HEADER_MAP,
   ChangeLogExpandedRow,
   ChangeLogsTooltipProvider,
+  ChangeLogViewRow,
   columns,
 } from "./components/columns";
+import { buildChangeLogTableRows } from "@/lib/change-log-grouping";
 
 function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
   if (preset === "all") return null;
@@ -89,6 +90,11 @@ export default function ChangeLogsPage() {
     return rows;
   }, [data, searchTerm, datePreset]);
 
+  const tableRows = useMemo(
+    () => buildChangeLogTableRows(filteredData),
+    [filteredData]
+  );
+
   if (error) {
     return (
       <div className="flex flex-col space-y-4">
@@ -113,8 +119,8 @@ export default function ChangeLogsPage() {
         <AdminDataTablePageSkeleton rows={12} />
       ) : (
         <ChangeLogsTooltipProvider>
-          <CustomDataTable
-            data={filteredData}
+          <CustomDataTable<ChangeLogViewRow, unknown>
+            data={tableRows}
             columns={columns}
             columnHeaderLabels={CHANGE_LOG_COLUMN_HEADER_MAP}
             storageKey="degisiklik-kayitlari"
@@ -127,7 +133,7 @@ export default function ChangeLogsPage() {
               },
             }}
             meta={{ expandedIds, toggleExpand }}
-            renderExpandedRow={(row: { original: ChangeLog }) =>
+            renderExpandedRow={(row: { original: ChangeLogViewRow }) =>
               expandedIds.has(row.original.event_id) ? (
                 <ChangeLogExpandedRow log={row.original} />
               ) : null

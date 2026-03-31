@@ -1,5 +1,5 @@
     IF NEW.sacrifice_no IS DISTINCT FROM OLD.sacrifice_no THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -10,12 +10,14 @@
         'Kurban numarası güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.share_weight IS DISTINCT FROM OLD.share_weight THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -26,12 +28,14 @@
         'Hisse ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.share_price IS DISTINCT FROM OLD.share_price THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -42,7 +46,9 @@
         'Hisse bedeli güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
@@ -60,7 +66,7 @@
         NEW.tenant_id,
         NEW.sacrifice_year,
         CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
-        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN 'detail'::text ELSE NULL END
+        v_layer
       );
     END IF;
 

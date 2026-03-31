@@ -1,0 +1,17 @@
+---
+description: change_logs correlation_id, log_layer ve türetilmiş kolon audit kuralları
+alwaysApply: false
+---
+
+# change_logs — correlation ve audit katmanı
+
+Uygulanabilir tek kaynak: `.project-architecture/db/tables/change_logs/CORRELATION_AND_AUDIT_RULES.md`
+
+Özet:
+
+- **Bir mantıksal işlem** (RPC): `set_config('app.correlation_id', gen_random_uuid()::text, true)` + başlangıç `app.log_layer = 'primary'`.
+- **Primary**: doğrudan kullanıcı/RPC niyeti; **detail**: türetilmiş kolon veya zincirleme yan etki.
+- **shareholders**: `delivery_fee` teslimat noktası/tipi ile birlikte değiştiyse `detail`; `remaining_payment` / `total_amount` için bkz. `CORRELATION_AND_AUDIT_RULES.md` §5.
+- **sacrifice_animals**: `planned_delivery_time` aynı UPDATE’te `sacrifice_time` ile birlikte değiştiyse `detail`.
+
+Yeni tablo/RPC eklerken `new-column-change-logs.mdc` ile birlikte oku.

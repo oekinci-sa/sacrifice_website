@@ -14,13 +14,17 @@ AS $BODY$
 DECLARE
   v_owner text;
   v_corr text;
+  v_layer text;
 BEGIN
   IF (TG_OP = 'INSERT') THEN
     v_owner := COALESCE(
       NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
       NEW.last_edited_by
     );
-    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
+    v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
+    v_layer := NULLIF(trim(COALESCE(current_setting('app.log_layer', true), '')), '');
+    v_layer := CASE WHEN v_layer IN ('primary', 'detail') THEN v_layer ELSE NULL END;
+    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
     VALUES (
       'sacrifice_animals',
       NEW.sacrifice_id::text,
@@ -28,7 +32,9 @@ BEGIN
       'Kurbanlık eklendi',
       v_owner,
       NEW.tenant_id,
-      NEW.sacrifice_year
+      NEW.sacrifice_year,
+      CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+      v_layer
     );
     RETURN NEW;
 
@@ -38,9 +44,11 @@ BEGIN
       NEW.last_edited_by
     );
     v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
+    v_layer := NULLIF(trim(COALESCE(current_setting('app.log_layer', true), '')), '');
+    v_layer := CASE WHEN v_layer IN ('primary', 'detail') THEN v_layer ELSE NULL END;
 
     IF NEW.sacrifice_no IS DISTINCT FROM OLD.sacrifice_no THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -51,12 +59,14 @@ BEGIN
         'Kurban numarası güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.share_weight IS DISTINCT FROM OLD.share_weight THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -67,12 +77,14 @@ BEGIN
         'Hisse ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.share_price IS DISTINCT FROM OLD.share_price THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -83,7 +95,9 @@ BEGIN
         'Hisse bedeli güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
@@ -101,12 +115,12 @@ BEGIN
         NEW.tenant_id,
         NEW.sacrifice_year,
         CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
-        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN 'detail'::text ELSE NULL END
+        v_layer
       );
     END IF;
 
     IF NEW.pricing_mode IS DISTINCT FROM OLD.pricing_mode THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -117,12 +131,14 @@ BEGIN
         'Fiyatlama modu güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.live_scale_total_kg IS DISTINCT FROM OLD.live_scale_total_kg THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -133,12 +149,14 @@ BEGIN
         'Baskül ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.live_scale_total_price IS DISTINCT FROM OLD.live_scale_total_price THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -149,11 +167,13 @@ BEGIN
         'Baskül tutarı güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
     IF NEW.notes IS DISTINCT FROM OLD.notes THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -164,12 +184,14 @@ BEGIN
         'Notlar güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.animal_type IS DISTINCT FROM OLD.animal_type THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -180,12 +202,14 @@ BEGIN
         'Hayvan cinsi güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.foundation IS DISTINCT FROM OLD.foundation THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -196,12 +220,14 @@ BEGIN
         'Vakıf bilgisi güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.ear_tag IS DISTINCT FROM OLD.ear_tag THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -212,12 +238,14 @@ BEGIN
         'Küpe numarası güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.barn_stall_order_no IS DISTINCT FROM OLD.barn_stall_order_no THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -228,12 +256,14 @@ BEGIN
         'Ahır sıra numarası güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.sacrifice_time IS DISTINCT FROM OLD.sacrifice_time THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -244,12 +274,14 @@ BEGIN
         'Kesim planı güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.planned_delivery_time IS DISTINCT FROM OLD.planned_delivery_time THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -260,12 +292,17 @@ BEGIN
         'Planlı teslim saati güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        CASE
+          WHEN NEW.sacrifice_time IS DISTINCT FROM OLD.sacrifice_time THEN 'detail'
+          ELSE v_layer
+        END
       );
     END IF;
 
     IF NEW.slaughter_time IS DISTINCT FROM OLD.slaughter_time THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -276,12 +313,14 @@ BEGIN
         'Kesim saati güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.butcher_time IS DISTINCT FROM OLD.butcher_time THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -292,12 +331,14 @@ BEGIN
         'Parçalama saati güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
 
     IF NEW.delivery_time IS DISTINCT FROM OLD.delivery_time THEN
-      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
+      INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
         NEW.sacrifice_id::text,
@@ -308,9 +349,13 @@ BEGIN
         'Teslimat saati güncellendi',
         v_owner,
         NEW.tenant_id,
-        NEW.sacrifice_year
+        NEW.sacrifice_year,
+        CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+        v_layer
       );
     END IF;
+
+    PERFORM set_config('app.log_layer', 'detail', true);
 
     RETURN NEW;
 
@@ -319,7 +364,10 @@ BEGIN
       NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
       OLD.last_edited_by
     );
-    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
+    v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
+    v_layer := NULLIF(trim(COALESCE(current_setting('app.log_layer', true), '')), '');
+    v_layer := CASE WHEN v_layer IN ('primary', 'detail') THEN v_layer ELSE NULL END;
+    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
     VALUES (
       'sacrifice_animals',
       OLD.sacrifice_id::text,
@@ -327,7 +375,9 @@ BEGIN
       'Kurbanlık silindi',
       v_owner,
       OLD.tenant_id,
-      OLD.sacrifice_year
+      OLD.sacrifice_year,
+      CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+      v_layer
     );
     RETURN OLD;
   END IF;

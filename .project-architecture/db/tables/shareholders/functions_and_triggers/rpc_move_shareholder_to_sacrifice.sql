@@ -19,12 +19,16 @@ DECLARE
   v_new_remaining numeric;
   v_paid numeric;
   v_fee numeric;
+  v_corr uuid;
 BEGIN
   IF p_actor IS NULL OR btrim(p_actor) = '' THEN
     RAISE EXCEPTION 'actor_required';
   END IF;
 
   PERFORM set_config('app.actor', p_actor, true);
+  v_corr := gen_random_uuid();
+  PERFORM set_config('app.correlation_id', v_corr::text, true);
+  PERFORM set_config('app.log_layer', 'primary', true);
 
   SELECT * INTO v_sh
   FROM public.shareholders sh
@@ -107,11 +111,13 @@ BEGIN
   RETURNING * INTO v_sh;
 
   IF v_tgt.pricing_mode = 'live_scale' AND v_tgt.live_scale_total_price IS NOT NULL THEN
+    PERFORM set_config('app.log_layer', 'detail', true);
     PERFORM public.rebalance_live_scale_shareholders(v_tgt.sacrifice_id);
     SELECT * INTO v_sh FROM public.shareholders WHERE shareholder_id = p_shareholder_id AND tenant_id = p_tenant_id;
   END IF;
 
   IF v_src.pricing_mode = 'live_scale' AND v_src.live_scale_total_price IS NOT NULL THEN
+    PERFORM set_config('app.log_layer', 'detail', true);
     PERFORM public.rebalance_live_scale_shareholders(v_src.sacrifice_id);
   END IF;
 

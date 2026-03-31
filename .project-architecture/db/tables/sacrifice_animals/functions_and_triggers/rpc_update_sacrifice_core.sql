@@ -12,11 +12,15 @@ SET search_path = public
 AS $f$
 DECLARE
   r public.sacrifice_animals%ROWTYPE;
+  v_corr uuid;
 BEGIN
   IF p_actor IS NULL OR btrim(p_actor) = '' THEN
     RAISE EXCEPTION 'actor_required';
   END IF;
   PERFORM set_config('app.actor', p_actor, true);
+  v_corr := gen_random_uuid();
+  PERFORM set_config('app.correlation_id', v_corr::text, true);
+  PERFORM set_config('app.log_layer', 'primary', true);
 
   FOR r IN
     UPDATE public.sacrifice_animals sa
@@ -101,6 +105,7 @@ BEGIN
     RETURNING sa.*
   LOOP
     IF r.pricing_mode = 'live_scale' AND r.live_scale_total_price IS NOT NULL THEN
+      PERFORM set_config('app.log_layer', 'detail', true);
       PERFORM public.rebalance_live_scale_shareholders(r.sacrifice_id);
       SELECT * INTO r FROM public.sacrifice_animals WHERE sacrifice_id = r.sacrifice_id;
     END IF;

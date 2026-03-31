@@ -11,6 +11,7 @@ BEGIN
   IF COALESCE(current_setting('app.skip_empty_share_sync', true), 'false') = 'true' THEN
     RETURN OLD;
   END IF;
+  PERFORM set_config('app.log_layer', 'detail', true);
   UPDATE public.sacrifice_animals
   SET empty_share = LEAST(7, empty_share + 1)
   WHERE sacrifice_id = OLD.sacrifice_id;

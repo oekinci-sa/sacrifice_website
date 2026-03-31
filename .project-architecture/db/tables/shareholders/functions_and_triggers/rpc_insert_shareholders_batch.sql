@@ -11,6 +11,7 @@ AS $f$
 DECLARE
   v_first_tid text;
   v_row public.shareholders%ROWTYPE;
+  v_corr uuid;
 BEGIN
   IF p_actor IS NULL OR btrim(p_actor) = '' THEN
     RAISE EXCEPTION 'actor_required';
@@ -44,6 +45,9 @@ BEGIN
   END IF;
 
   PERFORM set_config('app.actor', p_actor, true);
+  v_corr := gen_random_uuid();
+  PERFORM set_config('app.correlation_id', v_corr::text, true);
+  PERFORM set_config('app.log_layer', 'primary', true);
 
   FOR v_row IN
     INSERT INTO public.shareholders (
@@ -108,6 +112,7 @@ BEGIN
     RETURN NEXT v_row;
   END LOOP;
 
+  PERFORM set_config('app.log_layer', 'detail', true);
   PERFORM public.rebalance_live_scale_shareholders(sub.sacrifice_id)
   FROM (
     SELECT DISTINCT (elem->>'sacrifice_id')::uuid AS sacrifice_id

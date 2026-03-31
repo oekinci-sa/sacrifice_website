@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:merge:log-sacrifice-changes": "node scripts/merge-log-sacrifice-changes.mjs"
+    "db:merge:log-sacrifice-changes": "node scripts/merge-log-sacrifice-changes.mjs",
+    "db:bundle:change-logs-correlation": "node scripts/build-change-logs-correlation-bundle.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

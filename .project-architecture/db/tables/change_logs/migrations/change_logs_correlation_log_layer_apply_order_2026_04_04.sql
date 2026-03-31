@@ -1,0 +1,39 @@
+-- =============================================================================
+-- correlation_id + app.log_layer oturum sözleşmesi — UYGULAMA SIRASI
+-- =============================================================================
+-- TEK DOSYA (önerilen): aynı klasörde
+--   change_logs_correlation_log_layer_bundle_2026_04_04.sql
+-- Yenileme: npm run db:bundle:change-logs-correlation
+--
+-- Aşağıda parça dosya sırası (bundle ile aynı).
+-- Bu dosya DDL çalıştırmaz; sırayı ve kaynak yolları belirtir.
+-- Parçaları tek tek uygulamak isterseniz aşağıdaki kaynak dosyaları
+-- (projede güncel halleriyle) aynı sırayla uygulayın.
+--
+-- 1) sync_empty_share_after_shareholder_delete.sql
+--    .project-architecture/db/tables/shareholders/functions_and_triggers/
+--
+-- 2) log_shareholder_changes.sql
+--    .project-architecture/db/tables/shareholders/functions_and_triggers/
+--
+-- 3) log_sacrifice_changes.sql (parçalar birleşik çıktı)
+--    .project-architecture/db/tables/sacrifice_animals/functions_and_triggers/
+--    Yerelde yenileme: npm run db:merge:log-sacrifice-changes
+--
+-- 4) rpc_update_sacrifice_core.sql
+--    .project-architecture/db/tables/sacrifice_animals/functions_and_triggers/
+--
+-- 5) rpc_delete_shareholder.sql
+--    .project-architecture/db/tables/shareholders/functions_and_triggers/
+--
+-- 6) rpc_insert_shareholders_batch.sql
+--    .project-architecture/db/tables/shareholders/functions_and_triggers/
+--
+-- 7) rpc_move_shareholder_to_sacrifice.sql
+--    .project-architecture/db/tables/shareholders/functions_and_triggers/
+--
+-- Tetikleyiciler (2–3) ve fonksiyonlar (4–7) bir transaction içinde veya
+-- ayrı ayrı uygulanabilir; aynı oturumda sıra önemlidir.
+-- =============================================================================
+
+SELECT 1 AS apply_order_readme_only;

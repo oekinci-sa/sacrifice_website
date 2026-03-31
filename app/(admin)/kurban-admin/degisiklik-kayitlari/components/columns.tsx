@@ -9,11 +9,7 @@ import {
   normalizeChangeType,
   tableNameMatchesFilter,
 } from "@/lib/change-log-labels";
-import {
-  formatChangeLogDetailNewDisplay,
-  formatChangeLogDetailOldDisplay,
-  formatChangeLogOldNewArrow,
-} from "@/lib/change-log-value-display";
+import { formatChangeLogOldNewArrow } from "@/lib/change-log-value-display";
 import { cn } from "@/lib/utils";
 import {
   Content,
@@ -44,6 +40,11 @@ export type ChangeLog = {
   correlation_id: string | null;
   log_layer: string | null;
   sacrifice_year: number | null;
+};
+
+/** Tablo satırı: aynı correlation altındaki diğer kayıtlar expand ile */
+export type ChangeLogViewRow = ChangeLog & {
+  groupDetailRows?: ChangeLog[];
 };
 
 // ---------------------------------------------------------------------------
@@ -122,96 +123,89 @@ function TruncatedCell({
 // ---------------------------------------------------------------------------
 // İşlem tipi rozeti
 // ---------------------------------------------------------------------------
-function ChangeTypeCell({ row }: { row: Row<ChangeLog> }) {
-  const raw = row.getValue("change_type") as string;
-  const type = normalizeChangeType(raw);
-  const label = formatChangeTypeTr(raw);
+function ChangeTypeBadge({ changeType }: { changeType: string }) {
+  const type = normalizeChangeType(changeType);
+  const label = formatChangeTypeTr(changeType);
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center text-xs font-semibold",
+        type === "INSERT" && "bg-muted text-muted-foreground",
+        type === "UPDATE" && "bg-sac-yellow-light text-sac-yellow",
+        type === "DELETE" && "bg-sac-red-light text-sac-red"
+      )}
+    >
+      {label}
+    </span>
+  );
+}
 
+function ChangeTypeCell({ row }: { row: Row<ChangeLogViewRow> }) {
+  const raw = row.getValue("change_type") as string;
   return (
     <div className="text-center">
-      <span
-        className={cn(
-          "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center text-xs font-semibold",
-          type === "INSERT" && "bg-muted text-muted-foreground",
-          type === "UPDATE" && "bg-sac-yellow-light text-sac-yellow",
-          type === "DELETE" && "bg-sac-red-light text-sac-red"
-        )}
-      >
-        {label}
-      </span>
+      <ChangeTypeBadge changeType={raw} />
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Açılır detay paneli
+// Genişletilmiş içerik: ana tablo ile aynı sütunlar (ilişki id / katman / yıl yok)
 // ---------------------------------------------------------------------------
-function ExpandedDetailPanel({ log }: { log: ChangeLog }) {
-  const items: { label: string; value: ReactNode }[] = [
-    { label: "Tablo", value: getTableLabelTr(log.table_name) },
-    {
-      label: "Kayıt",
-      value: formatRowIdDisplay(log.table_name, log.row_id ?? "", log.row_id_label),
-    },
-    {
-      label: "Alan",
-      value: getColumnLabelTr(log.table_name, log.column_name),
-    },
-    {
-      label: "Eski Değer",
-      value: formatChangeLogDetailOldDisplay(
-        log.old_value,
-        log.new_value,
-        log.column_name
-      ),
-    },
-    {
-      label: "Yeni Değer",
-      value: formatChangeLogDetailNewDisplay(
-        log.old_value,
-        log.new_value,
-        log.column_name
-      ),
-    },
-    {
-      label: "Açıklama",
-      value: <span className="whitespace-pre-wrap">{log.description}</span>,
-    },
-    ...(log.correlation_id
-      ? [
-          {
-            label: "İlişki ID",
-            value: (
-              <span className="font-mono text-xs text-muted-foreground">
-                {log.correlation_id}
-              </span>
-            ),
-          },
-          {
-            label: "Katman",
-            value: log.log_layer === "primary" ? "Ana kayıt" : log.log_layer === "detail" ? "Detay kayıt" : log.log_layer ?? "-",
-          },
-        ]
-      : []),
-    ...(log.sacrifice_year
-      ? [{ label: "Kurban Yılı", value: String(log.sacrifice_year) }]
-      : []),
-    { label: "Olay ID", value: String(log.event_id) },
-  ];
+function ChangeLogInlineRow({ log }: { log: ChangeLog }) {
+  const type = normalizeChangeType(log.change_type);
+  const valueStr =
+    type !== "UPDATE" || (log.old_value == null && log.new_value == null)
+      ? "-"
+      : formatChangeLogOldNewArrow(
+          log.old_value,
+          log.new_value,
+          log.column_name
+        );
+  const colRaw = log.column_name;
+  const colLabelText =
+    colRaw == null || colRaw === ""
+      ? "-"
+      : getColumnLabelTr(log.table_name, colRaw);
 
   return (
-    <tr>
-      <td colSpan={9} className="bg-muted/30 px-4 py-3 border-b">
-        <dl className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-          {items.map(({ label, value }) => (
-            <div key={label} className="flex flex-col gap-0.5">
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                {label}
-              </dt>
-              <dd className="text-foreground break-words">{value}</dd>
-            </div>
-          ))}
-        </dl>
+    <tr className="border-b border-border/60 last:border-0 hover:bg-muted/40">
+      <td className="w-8 p-2 align-middle" aria-hidden />
+      <td className="p-2 align-middle whitespace-nowrap text-center text-xs md:text-sm text-foreground">
+        {formatDate(log.changed_at)}
+      </td>
+      <td className="p-2 align-middle text-center">
+        <ChangeTypeBadge changeType={log.change_type} />
+      </td>
+      <td className="p-2 align-middle text-center text-xs md:text-sm text-foreground">
+        {getTableLabelTr(log.table_name) || "-"}
+      </td>
+      <td className="p-2 align-middle text-center text-xs md:text-sm text-foreground break-words">
+        {formatRowIdDisplay(log.table_name, log.row_id ?? "", log.row_id_label)}
+      </td>
+      <td className="p-2 align-middle text-center text-xs md:text-sm text-foreground break-words">
+        {colLabelText === "-" ? (
+          <span className="text-muted-foreground">-</span>
+        ) : (
+          colLabelText
+        )}
+      </td>
+      <td className="p-2 align-middle text-left text-xs md:text-sm text-foreground">
+        {valueStr === "-" ? (
+          <span className="text-muted-foreground">-</span>
+        ) : (
+          <span className="inline-block max-w-[min(18rem,100%)] break-words">
+            {valueStr}
+          </span>
+        )}
+      </td>
+      <td className="p-2 align-middle text-left text-xs md:text-sm text-foreground">
+        <span className="inline-block max-w-[min(28rem,100%)] break-words whitespace-normal">
+          {log.description}
+        </span>
+      </td>
+      <td className="p-2 align-middle text-center text-xs md:text-sm text-foreground">
+        {log.change_owner || "-"}
       </td>
     </tr>
   );
@@ -235,14 +229,57 @@ export function ChangeLogsTooltipProvider({
 // ---------------------------------------------------------------------------
 // Expanded row render — page.tsx'ten çağrılır
 // ---------------------------------------------------------------------------
-export function ChangeLogExpandedRow({ log }: { log: ChangeLog }) {
-  return <ExpandedDetailPanel log={log} />;
+export function ChangeLogExpandedRow({ log }: { log: ChangeLogViewRow }) {
+  const details = log.groupDetailRows;
+  if (details && details.length > 0) {
+    return (
+      <tr className="border-b">
+        <td colSpan={9} className="bg-muted/25 p-0 align-top border-b border-border/60">
+          <div className="w-full min-w-0 p-2 box-border">
+            <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
+              Aynı işlemdeki diğer kayıtlar
+            </p>
+            <div className="w-full min-w-0 overflow-x-auto rounded-md border border-border/50 bg-card">
+              {/* table-fixed + iç içe tablo: colSpan hücresinde sütun genişliği 0 olabiliyor; table-auto + min-w */}
+              <table className="w-full min-w-[760px] caption-bottom text-xs md:text-sm border-collapse text-foreground">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-[10px] md:text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="w-8 p-2 font-medium" aria-hidden />
+                    <th className="p-2 font-medium text-center whitespace-nowrap">
+                      Tarih
+                    </th>
+                    <th className="p-2 font-medium text-center whitespace-nowrap">
+                      İşlem
+                    </th>
+                    <th className="p-2 font-medium text-center">Tablo</th>
+                    <th className="p-2 font-medium text-center">Kayıt</th>
+                    <th className="p-2 font-medium text-center">Alan</th>
+                    <th className="p-2 font-medium text-left">Eski → Yeni</th>
+                    <th className="p-2 font-medium text-left">Açıklama</th>
+                    <th className="p-2 font-medium text-center whitespace-nowrap">
+                      Kim
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="[&_tr:last-child]:border-0">
+                  {details.map((d) => (
+                    <ChangeLogInlineRow key={d.event_id} log={d} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
 // Sütun tanımları
 // ---------------------------------------------------------------------------
-export const columns: ColumnDef<ChangeLog>[] = [
+export const columns: ColumnDef<ChangeLogViewRow>[] = [
   // Genişletme oku — meta.expandedIds (Set<number>) ve meta.toggleExpand kullanır
   {
     id: "expand",
@@ -252,11 +289,18 @@ export const columns: ColumnDef<ChangeLog>[] = [
       const meta = table.options.meta as
         | { expandedIds?: Set<number>; toggleExpand?: (id: number) => void }
         | undefined;
-      const eventId = (row.original as ChangeLog).event_id;
+      const original = row.original as ChangeLogViewRow;
+      const eventId = original.event_id;
+      const hasGroupDetails =
+        original.groupDetailRows != null && original.groupDetailRows.length > 0;
       const isExpanded = meta?.expandedIds?.has(eventId) ?? false;
       const toggle = meta?.toggleExpand;
+      if (!hasGroupDetails) {
+        return <span className="inline-block w-6" aria-hidden />;
+      }
       return (
         <button
+          type="button"
           onClick={() => toggle?.(eventId)}
           className="flex items-center justify-center w-6 h-6 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
           aria-label={isExpanded ? "Detayı kapat" : "Detayı aç"}

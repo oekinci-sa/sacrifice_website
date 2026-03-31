@@ -1,4 +1,4 @@
--- rpc_update_shareholder: hissedar güncelleme + log_shareholder_changes (app.actor)
+-- rpc_update_shareholder: hissedar güncelleme + log_shareholder_changes (app.actor, correlation_id, log_layer)
 
 CREATE OR REPLACE FUNCTION public.rpc_update_shareholder(
   p_actor text,
@@ -17,6 +17,8 @@ BEGIN
   END IF;
 
   PERFORM set_config('app.actor', p_actor, true);
+  PERFORM set_config('app.correlation_id', gen_random_uuid()::text, true);
+  PERFORM set_config('app.log_layer', 'primary', true);
 
   RETURN QUERY
   UPDATE public.shareholders sh

@@ -17,6 +17,7 @@ BEGIN
   END IF;
   v_corr := gen_random_uuid();
   PERFORM set_config('app.correlation_id', v_corr::text, true);
+  PERFORM set_config('app.log_layer', 'primary', true);
   PERFORM set_config('app.actor', p_actor, true);
 
   SELECT sh.sacrifice_id INTO v_sid

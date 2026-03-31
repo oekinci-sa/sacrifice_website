@@ -8,13 +8,17 @@ AS $BODY$
 DECLARE
   v_owner text;
   v_corr text;
+  v_layer text;
 BEGIN
   IF (TG_OP = 'INSERT') THEN
     v_owner := COALESCE(
       NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
       NEW.last_edited_by
     );
-    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
+    v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
+    v_layer := NULLIF(trim(COALESCE(current_setting('app.log_layer', true), '')), '');
+    v_layer := CASE WHEN v_layer IN ('primary', 'detail') THEN v_layer ELSE NULL END;
+    INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
     VALUES (
       'sacrifice_animals',
       NEW.sacrifice_id::text,
@@ -22,7 +26,9 @@ BEGIN
       'Kurbanlık eklendi',
       v_owner,
       NEW.tenant_id,
-      NEW.sacrifice_year
+      NEW.sacrifice_year,
+      CASE WHEN v_corr IS NOT NULL AND v_corr <> '' THEN v_corr::uuid ELSE NULL END,
+      v_layer
     );
     RETURN NEW;
 
@@ -32,4 +38,6 @@ BEGIN
       NEW.last_edited_by
     );
     v_corr := NULLIF(trim(COALESCE(current_setting('app.correlation_id', true), '')), '');
+    v_layer := NULLIF(trim(COALESCE(current_setting('app.log_layer', true), '')), '');
+    v_layer := CASE WHEN v_layer IN ('primary', 'detail') THEN v_layer ELSE NULL END;
 

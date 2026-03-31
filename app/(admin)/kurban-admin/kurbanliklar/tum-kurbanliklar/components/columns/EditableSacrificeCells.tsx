@@ -90,12 +90,22 @@ function parseTrDecimal(input: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** API gelmeden önce de tam liste gösterilsin (tek satır “flash” olmasın). */
+function defaultPriceOptionsFromTenant(logoSlug: string): PriceOption[] {
+  return getDefaultPriceInfoByTenant(logoSlug).map((p) => ({
+    kg: parseFloat(p.kg.replace(/[^\d.]/g, "")),
+    price: parseInt(p.price.replace(/\./g, ""), 10),
+  }));
+}
+
 export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const branding = useTenantBranding();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
-  const [options, setOptions] = useState<PriceOption[]>([]);
+  const [options, setOptions] = useState<PriceOption[]>(() =>
+    defaultPriceOptionsFromTenant(branding.logo_slug ?? "ankara-kurban")
+  );
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tab, setTab] = useState<"fixed" | "live">("fixed");
@@ -121,10 +131,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
           }
         }
       } catch {}
-      return getDefaultPriceInfoByTenant(branding.logo_slug).map((p) => ({
-        kg: parseFloat(p.kg.replace(/[^\d.]/g, "")),
-        price: parseInt(p.price.replace(/\./g, ""), 10),
-      }));
+      return defaultPriceOptionsFromTenant(branding.logo_slug ?? "ankara-kurban");
     };
     load().then((opts) => {
       if (!cancelled) setOptions(opts);

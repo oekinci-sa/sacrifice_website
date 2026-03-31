@@ -238,7 +238,7 @@ BEGIN
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'sacrifice_animals',
-      CAST(NEW.sacrifice_no AS TEXT),
+      NEW.sacrifice_id::text,
       'Ekleme',
       'Kurbanlık eklendi',
       v_owner,
@@ -258,7 +258,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'sacrifice_no',
         CAST(OLD.sacrifice_no AS TEXT),
         CAST(NEW.sacrifice_no AS TEXT),
@@ -274,7 +274,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'share_weight',
         CAST(OLD.share_weight AS TEXT),
         CAST(NEW.share_weight AS TEXT),
@@ -290,7 +290,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'share_price',
         CAST(OLD.share_price AS TEXT),
         CAST(NEW.share_price AS TEXT),
@@ -306,7 +306,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'empty_share',
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),
@@ -324,7 +324,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'pricing_mode',
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
@@ -340,7 +340,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'live_scale_total_kg',
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
@@ -356,7 +356,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'live_scale_total_price',
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),
@@ -371,7 +371,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'notes',
         OLD.notes,
         NEW.notes,
@@ -387,7 +387,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'animal_type',
         COALESCE(OLD.animal_type, ''),
         COALESCE(NEW.animal_type, ''),
@@ -403,7 +403,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'foundation',
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
@@ -419,7 +419,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'ear_tag',
         COALESCE(OLD.ear_tag, ''),
         COALESCE(NEW.ear_tag, ''),
@@ -435,7 +435,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'barn_stall_order_no',
         COALESCE(OLD.barn_stall_order_no, ''),
         COALESCE(NEW.barn_stall_order_no, ''),
@@ -451,7 +451,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'sacrifice_time',
         CAST(OLD.sacrifice_time AS TEXT),
         CAST(NEW.sacrifice_time AS TEXT),
@@ -467,7 +467,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'planned_delivery_time',
         CAST(OLD.planned_delivery_time AS TEXT),
         CAST(NEW.planned_delivery_time AS TEXT),
@@ -483,7 +483,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'slaughter_time',
         CAST(OLD.slaughter_time AS TEXT),
         CAST(NEW.slaughter_time AS TEXT),
@@ -499,7 +499,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'butcher_time',
         CAST(OLD.butcher_time AS TEXT),
         CAST(NEW.butcher_time AS TEXT),
@@ -515,7 +515,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'delivery_time',
         CAST(OLD.delivery_time AS TEXT),
         CAST(NEW.delivery_time AS TEXT),
@@ -537,7 +537,7 @@ BEGIN
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'sacrifice_animals',
-      CAST(OLD.sacrifice_no AS TEXT),
+      OLD.sacrifice_id::text,
       'Silme',
       'Kurbanlık silindi',
       v_owner,

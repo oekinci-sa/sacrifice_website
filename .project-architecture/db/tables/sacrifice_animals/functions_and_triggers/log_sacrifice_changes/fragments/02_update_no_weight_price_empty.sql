@@ -2,7 +2,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'sacrifice_no',
         CAST(OLD.sacrifice_no AS TEXT),
         CAST(NEW.sacrifice_no AS TEXT),
@@ -18,7 +18,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'share_weight',
         CAST(OLD.share_weight AS TEXT),
         CAST(NEW.share_weight AS TEXT),
@@ -34,7 +34,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'share_price',
         CAST(OLD.share_price AS TEXT),
         CAST(NEW.share_price AS TEXT),
@@ -50,7 +50,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year, correlation_id, log_layer)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'empty_share',
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),

@@ -6,7 +6,7 @@
     INSERT INTO change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'sacrifice_animals',
-      CAST(OLD.sacrifice_no AS TEXT),
+      OLD.sacrifice_id::text,
       'Silme',
       'Kurbanlık silindi',
       v_owner,

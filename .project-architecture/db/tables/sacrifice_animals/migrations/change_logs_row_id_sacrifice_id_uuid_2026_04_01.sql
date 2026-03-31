@@ -1,3 +1,7 @@
+-- change_logs.row_id: sacrifice_animals için eski sıra no (sacrifice_no) → sacrifice_id (UUID metni).
+-- Tetikleyici + geçmiş backfill (sacrifice_animals’da hâlâ var olan satırlar; silinmiş hayvan logları sayısal kalır).
+-- Kaynak tetikleyici: log_sacrifice_changes/fragments + npm run db:merge:log-sacrifice-changes
+
 -- =============================================================================
 -- BİRLEŞTİRİLMİŞ ÇIKTI — elle düzenleme yok
 -- Kaynak: log_sacrifice_changes/fragments/*.sql
@@ -342,3 +346,13 @@ CREATE TRIGGER trigger_sacrifice_changes
   AFTER INSERT OR UPDATE OR DELETE ON public.sacrifice_animals
   FOR EACH ROW
   EXECUTE FUNCTION log_sacrifice_changes();
+
+-- Geçmiş: row_id hâlâ sıra no olan satırlar → sacrifice_id (yalnızca sacrifice_animals’da mevcut kayıtlar)
+UPDATE public.change_logs cl
+SET row_id = sa.sacrifice_id::text
+FROM public.sacrifice_animals sa
+WHERE cl.table_name = 'sacrifice_animals'
+  AND cl.tenant_id = sa.tenant_id
+  AND cl.sacrifice_year = sa.sacrifice_year
+  AND cl.row_id ~ '^[0-9]+$'
+  AND sa.sacrifice_no = cl.row_id::int;

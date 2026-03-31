@@ -109,6 +109,7 @@ export function getColumnLabelTr(
 
 /**
  * Satır kimliğinin tabloya göre kısa/okunabilir gösterimi (UI).
+ * Kurbanlıklar: `row_id` artık sacrifice_id (UUID); eski silinmiş kayıtlar için sıra no kalabilir.
  * Hissedar / kullanıcı: yalnızca UUID (ve eski "Ad (uuid)" satırları için geriye dönük).
  */
 export function formatRowIdDisplay(
@@ -119,6 +120,8 @@ export function formatRowIdDisplay(
   const t = normalizeTableCode(tableName ?? "");
 
   if (t === "sacrifice_animals") {
+    const trimmed = rowId.trim();
+    if (UUID_RE.test(trimmed)) return trimmed;
     const n = parseInt(rowId, 10);
     if (!Number.isNaN(n)) return `Sıra #${n}`;
   }

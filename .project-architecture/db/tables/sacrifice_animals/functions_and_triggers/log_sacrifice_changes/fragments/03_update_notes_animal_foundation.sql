@@ -2,7 +2,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'notes',
         OLD.notes,
         NEW.notes,
@@ -18,7 +18,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'animal_type',
         COALESCE(OLD.animal_type, ''),
         COALESCE(NEW.animal_type, ''),
@@ -34,7 +34,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'foundation',
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
@@ -50,7 +50,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'ear_tag',
         COALESCE(OLD.ear_tag, ''),
         COALESCE(NEW.ear_tag, ''),
@@ -66,7 +66,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'barn_stall_order_no',
         COALESCE(OLD.barn_stall_order_no, ''),
         COALESCE(NEW.barn_stall_order_no, ''),

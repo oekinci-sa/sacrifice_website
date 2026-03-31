@@ -2,7 +2,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'pricing_mode',
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
@@ -18,7 +18,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'live_scale_total_kg',
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
@@ -34,7 +34,7 @@
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'sacrifice_animals',
-        CAST(NEW.sacrifice_no AS TEXT),
+        NEW.sacrifice_id::text,
         'live_scale_total_price',
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),

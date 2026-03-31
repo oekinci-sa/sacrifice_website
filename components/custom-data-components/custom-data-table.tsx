@@ -17,7 +17,6 @@ import { useSession } from "next-auth/react"
 import * as React from "react"
 
 import { Table } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 import { CustomDataTableFooter } from "./custom-data-table-footer"
 import { CustomTableBody } from "./custom-table-body"
 import { CustomTableHeader } from "./custom-table-header"
@@ -48,14 +47,6 @@ interface DataTableProps<TData, TValue> {
   tableSize?: "small" | "medium" | "large"
   /** Satır genişletme: satır için detay paneli render fonksiyonu */
   renderExpandedRow?: (row: { original: TData }) => React.ReactNode | null
-  /** Dikey kaydırmada başlık satırı üstte sabit kalır (Excel benzeri) */
-  stickyHeader?: boolean
-  /**
-   * `stickyHeader` ile birlikte: tablo gövdesi sabit yükseklikte iç scroll yapmaz;
-   * üst düzey içerik alanı (ör. admin `main`) ile kayar; thead sticky kalır.
-   * `false` (varsayılan): iç `max-height` + `overflow-auto` (mevcut davranış).
-   */
-  stickyHeaderPageScroll?: boolean
 }
 
 const STORAGE_PREFIX = "table-column-visibility-";
@@ -111,8 +102,6 @@ export function CustomDataTable<TData, TValue>({
   filters,
   tableSize = "medium",
   renderExpandedRow,
-  stickyHeader = false,
-  stickyHeaderPageScroll = false,
 }: DataTableProps<TData, TValue>) {
   const { data: session } = useSession();
   const userId = session?.user?.id as string | undefined;
@@ -286,55 +275,15 @@ export function CustomDataTable<TData, TValue>({
         }) : null}
 
         <div className="rounded-md min-w-0">
-          {stickyHeader && stickyHeaderPageScroll ? (
-            <div className="rounded-md border min-w-0">
-              <table className="isolate w-full min-w-max caption-bottom text-sm">
-                <CustomTableHeader
-                  table={table}
-                  tableSize={tableSize}
-                  columnHeaderLabels={columnHeaderLabels}
-                  onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
-                  stickyHeader
-                  stickyHeaderPageScroll
-                />
-                <CustomTableBody
-                  table={table}
-                  columns={tableColumns}
-                  tableSize={tableSize}
-                  renderExpandedRow={renderExpandedRow}
-                  stickyHeaderPageScroll
-                />
-              </table>
-            </div>
-          ) : stickyHeader ? (
-            <div
-              className={cn(
-                "max-h-[min(70vh,560px)] overflow-auto rounded-md border min-w-0",
-                "relative"
-              )}
-            >
-              <table className="w-full min-w-max caption-bottom text-sm">
-                <CustomTableHeader
-                  table={table}
-                  tableSize={tableSize}
-                  columnHeaderLabels={columnHeaderLabels}
-                  onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
-                  stickyHeader
-                />
-                <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} renderExpandedRow={renderExpandedRow} />
-              </table>
-            </div>
-          ) : (
-            <Table>
-              <CustomTableHeader
-                table={table}
-                tableSize={tableSize}
-                columnHeaderLabels={columnHeaderLabels}
-                onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
-              />
-              <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} renderExpandedRow={renderExpandedRow} />
-            </Table>
-          )}
+          <Table>
+            <CustomTableHeader
+              table={table}
+              tableSize={tableSize}
+              columnHeaderLabels={columnHeaderLabels}
+              onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
+            />
+            <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} renderExpandedRow={renderExpandedRow} />
+          </Table>
         </div>
 
         {/* Table Footer */}

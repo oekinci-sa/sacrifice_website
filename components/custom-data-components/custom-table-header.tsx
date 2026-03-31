@@ -1,7 +1,6 @@
 "use client"
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 import { Table as TableInstance, flexRender } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useCallback, useState } from "react"
@@ -51,9 +50,6 @@ interface CustomTableHeaderProps<TData> {
   tableSize?: "small" | "medium" | "large"
   columnHeaderLabels?: Record<string, string>
   onColumnOrderChange?: (order: string[]) => void
-  stickyHeader?: boolean
-  /** Window scroll ile sticky: daha yüksek z-index (iç scroll modundan ayrım) */
-  stickyHeaderPageScroll?: boolean
 }
 
 export function CustomTableHeader<TData>({
@@ -61,8 +57,6 @@ export function CustomTableHeader<TData>({
   tableSize = "medium",
   columnHeaderLabels,
   onColumnOrderChange,
-  stickyHeader = false,
-  stickyHeaderPageScroll = false,
 }: CustomTableHeaderProps<TData>) {
   const headerSizeClasses = {
     small: "h-10 text-center text-xs md:text-sm py-1",
@@ -148,15 +142,7 @@ export function CustomTableHeader<TData>({
   )
 
   return (
-    <TableHeader
-      className={cn(
-        stickyHeader &&
-          cn(
-            "sticky top-0 bg-background shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:bg-background",
-            stickyHeaderPageScroll ? "z-50" : "z-20"
-          )
-      )}
-    >
+    <TableHeader>
       {table.getHeaderGroups().map((headerGroup) => (
         <TableRow
           key={headerGroup.id}
@@ -184,12 +170,7 @@ export function CustomTableHeader<TData>({
                 key={header.id}
                 draggable={canReorderThis}
                 style={minSize != null ? { minWidth: `${minSize}px` } : undefined}
-                className={cn(
-                  "relative text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-                  headerClass,
-                  draggingColumnId === columnId ? "cursor-grabbing opacity-60" : canReorderThis ? "cursor-grab" : "",
-                  stickyHeader && stickyHeaderPageScroll && "z-50 bg-background"
-                )}
+                className={`relative text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass} ${draggingColumnId === columnId ? "cursor-grabbing opacity-60" : canReorderThis ? "cursor-grab" : ""}`}
                 onDragStart={canReorderThis ? (e) => handleDragStart(e, columnId) : undefined}
                 onDragEnd={canReorderThis ? handleDragEnd : undefined}
                 onDragOver={

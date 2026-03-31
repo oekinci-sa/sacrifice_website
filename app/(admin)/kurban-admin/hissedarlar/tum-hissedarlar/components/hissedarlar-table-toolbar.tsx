@@ -30,6 +30,7 @@ export const SHAREHOLDER_COLUMN_HEADER_MAP: Record<string, string> = {
   last_edited_by: "Son Güncelleyen",
   sacrifice_info: "Hisse Bedeli",
   second_phone_number: "İkinci Telefon",
+  email: "E-posta",
 };
 
 type ToolbarProps = {

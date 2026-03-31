@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +21,7 @@ import {
   EditableEmptyShareCell,
   EditableFoundationCell,
   EditableNotesCell,
+  EditablePlannedDeliveryTimeCell,
   EditableSharePriceCell,
 } from "./columns/EditableSacrificeCells";
 
@@ -31,21 +31,6 @@ function getEffectiveEarTagSortValue(row: sacrificeSchema): string {
 
 function getEffectiveBarnStallOrderSortValue(row: sacrificeSchema): string {
   return (row.barn_stall_order_no ?? "").trim();
-}
-
-function formatPlanTimeCell(value: unknown) {
-  const time = value as string | undefined;
-  if (!time) return <div className="text-center">-</div>;
-  try {
-    const [hours, minutes] = time.split(":");
-    return (
-      <div className="text-center tabular-nums">
-        {`${hours}:${minutes}`}
-      </div>
-    );
-  } catch {
-    return <div className="text-center">-</div>;
-  }
 }
 
 function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
@@ -101,6 +86,15 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
     return <div className="flex justify-start py-2">{shareholderBars}</div>;
   }
 
+  const rowPairs: { left: typeof shareholders[0]; right?: typeof shareholders[0]; leftIdx: number }[] = [];
+  for (let i = 0; i < shareholders.length; i += 2) {
+    rowPairs.push({
+      left: shareholders[i],
+      right: shareholders[i + 1],
+      leftIdx: i,
+    });
+  }
+
   return (
     <div className="flex justify-start py-2">
       <TooltipProvider>
@@ -108,23 +102,19 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
           <TooltipTrigger asChild>{shareholderBars}</TooltipTrigger>
           <TooltipContent className="p-4 max-w-[90vw] bg-white shadow-lg border">
             <p className="font-semibold text-sm mb-3">Hissedarlar</p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-0">
-              {shareholders.map((s, idx) => {
-                const paid = s.paid_amount ?? 0;
-                const totalAmt = s.total_amount ?? 0;
-                const barNum = idx + 1;
-                return (
-                  <div key={s.shareholder_id ?? idx} className="flex flex-col gap-1 min-w-0">
-                    {idx > 0 && idx % 2 === 0 && (
-                      <div className="col-span-2 py-2 my-2 flex items-center">
-                        <Separator className="w-full" />
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0">
+              {rowPairs.map((pair, rowIdx) => {
+                const renderCard = (s: (typeof shareholders)[0], idx: number) => {
+                  const paid = s.paid_amount ?? 0;
+                  const totalAmt = s.total_amount ?? 0;
+                  const barNum = idx + 1;
+                  return (
+                    <div key={s.shareholder_id ?? idx} className="flex flex-col gap-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full shrink-0", getShareholderColor(paid, totalAmt))} />
                         <span className="text-sm font-medium truncate">
-                          <span className="text-muted-foreground font-normal">{barNum}.</span> {s.shareholder_name ?? "-"}
+                          <span className="text-muted-foreground font-normal">{barNum}.</span>{" "}
+                          {s.shareholder_name ?? "-"}
                         </span>
                       </div>
                       <div className="grid gap-0.5 text-xs pl-4">
@@ -143,6 +133,20 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
                           <span className="tabular-nums">{formatCurrency(totalAmt)}</span>
                         </div>
                       </div>
+                    </div>
+                  );
+                };
+                return (
+                  <div
+                    key={pair.leftIdx}
+                    className={cn(
+                      "grid grid-cols-2 gap-x-6 gap-y-0 pb-3 mb-3 border-b border-border/60",
+                      rowIdx === rowPairs.length - 1 && "border-b-0 pb-0 mb-0"
+                    )}
+                  >
+                    <div className="min-w-0">{renderCard(pair.left, pair.leftIdx)}</div>
+                    <div className="min-w-0">
+                      {pair.right ? renderCard(pair.right, pair.leftIdx + 1) : null}
                     </div>
                   </div>
                 );
@@ -207,7 +211,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     id: "barn_stall_order_no",
     accessorFn: (row) => getEffectiveBarnStallOrderSortValue(row),
     minSize: 110,
-    header: "Ahır Sıra No",
+    header: "Padok No",
     cell: ({ row }) => <EditableBarnStallOrderCell row={row} />,
     enableSorting: true,
     enableHiding: true,
@@ -273,7 +277,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         )}
       </Button>
     ),
-    cell: ({ row }) => formatPlanTimeCell(row.original.planned_delivery_time),
+    cell: ({ row }) => <EditablePlannedDeliveryTimeCell row={row} />,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
       const a = rowA.original.planned_delivery_time ?? "";

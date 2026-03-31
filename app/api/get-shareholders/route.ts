@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
           sacrifice_id,
           sacrifice_no,
           sacrifice_time,
+          planned_delivery_time,
           share_price,
           share_weight,
           pricing_mode,

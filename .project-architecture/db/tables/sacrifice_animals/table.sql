@@ -20,7 +20,7 @@ CREATE TABLE "public"."sacrifice_animals" (
   "notes" TEXT,
   -- Aşağıdakiler migration ile eklendi (bkz. sacrifice_foundation_planned_delivery_ear_tag_2026_03_24.sql)
   "foundation" TEXT,
-  "planned_delivery_time" TIME GENERATED ALWAYS AS (((sacrifice_time + interval '90 minutes')::time)) STORED,
+  "planned_delivery_time" TIME NOT NULL,
   -- Admin panelinden girilen küpe numarası (otomatik doldurulmaz)
   "ear_tag" TEXT,
   -- Ahır / sıra numarası (serbest metin)

@@ -144,6 +144,7 @@ export default function TumKurbanliklarPage() {
           data={filteredData}
           columns={columns}
           storageKey="kurbanliklar"
+          defaultPageSize={200}
           columnHeaderLabels={kurbanliklarColumnHeaderLabels}
           initialState={{
             columnVisibility: {

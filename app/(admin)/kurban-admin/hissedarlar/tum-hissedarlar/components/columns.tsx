@@ -588,6 +588,18 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     cell: ({ row }) => <EditablePhoneCell row={row} />,
   },
   {
+    accessorKey: "email",
+    header: "E-posta",
+    minSize: 180,
+    enableSorting: false,
+    enableHiding: true,
+    cell: ({ row }) => (
+      <div className="text-center text-sm px-1 truncate max-w-[220px] mx-auto" title={row.original.email ?? ""}>
+        {(row.original.email ?? "").trim() || "—"}
+      </div>
+    ),
+  },
+  {
     accessorKey: "second_phone_number",
     header: "İkinci Telefon",
     minSize: 130,

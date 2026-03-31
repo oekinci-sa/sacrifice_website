@@ -39,6 +39,7 @@ export async function PUT(request: Request) {
             notes,
             ear_tag,
             barn_stall_order_no,
+            planned_delivery_time,
             last_edited_time,
             sacrifice_year: bodyYear
         } = body;
@@ -103,8 +104,23 @@ export async function PUT(request: Request) {
                 const t = barn_stall_order_no.trim();
                 patch.barn_stall_order_no = t === "" ? null : t;
             } else {
-                return NextResponse.json({ error: "Ahır sıra no geçersiz." }, { status: 400 });
+                return NextResponse.json({ error: "Padok no geçersiz." }, { status: 400 });
             }
+        }
+        if (planned_delivery_time !== undefined) {
+            if (planned_delivery_time === null || planned_delivery_time === "") {
+                return NextResponse.json(
+                    { error: "Planlı teslim saati boş olamaz." },
+                    { status: 400 }
+                );
+            }
+            if (typeof planned_delivery_time !== "string") {
+                return NextResponse.json(
+                    { error: "Planlı teslim saati geçersiz." },
+                    { status: 400 }
+                );
+            }
+            patch.planned_delivery_time = planned_delivery_time.trim();
         }
 
         const { data: rows, error } = await supabaseAdmin.rpc('rpc_update_sacrifice_core', {

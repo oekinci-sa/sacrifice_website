@@ -39,6 +39,96 @@ export const formatPhoneForInput = (value: string): string => {
   return `${formatted.slice(0, 4)} ${formatted.slice(4, 7)} ${formatted.slice(7, 9)} ${formatted.slice(9, 11)}`;
 };
 
+/**
+ * 24 saat (HH:mm) — telefon maskesi gibi; sadece rakam, otomatik ":".
+ * Tek rakam 3–9 → saat 03–09 kabul edilir ve hemen ": " sonrası dakikaya geçilir.
+ * İki rakam geçerli saat (00–23) ise ":" eklenir (ör. 13 → 13:).
+ * AM/PM yok.
+ */
+export function formatTimeForInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (!digits) return "";
+
+  const d = digits.split("").map(Number);
+
+  if (digits.length === 1) {
+    return d[0] <= 2 ? digits : `0${digits}:`;
+  }
+  if (digits.length === 2) {
+    const hh = d[0] * 10 + d[1];
+    return hh <= 23 ? `${String(hh).padStart(2, "0")}:` : `0${d[0]}:${d[1]}`;
+  }
+  if (digits.length === 3) {
+    const hh = d[0] * 10 + d[1];
+    return hh <= 23
+      ? `${String(hh).padStart(2, "0")}:${d[2]}`
+      : `0${d[0]}:${d[1]}${d[2]}`;
+  }
+
+  const hh = d[0] * 10 + d[1];
+  const mm = d[2] * 10 + d[3];
+  if (hh <= 23 && mm <= 59) {
+    return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  }
+  if (d[0] <= 2) {
+    const mmAlt = d[1] * 10 + d[2];
+    if (mmAlt <= 59) {
+      return `0${d[0]}:${String(mmAlt).padStart(2, "0")}`;
+    }
+  }
+  return formatTimeForInput(digits.slice(0, 3));
+}
+
+/** Tam 4 rakamlı geçerli saatten Postgres `time` için `HH:MM:00` üretir; aksi halde null. */
+export function parseTimeFormattedToPostgresTime(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 4) return null;
+  const hh = parseInt(digits.slice(0, 2), 10);
+  const mm = parseInt(digits.slice(2, 4), 10);
+  if (hh > 23 || mm > 59 || Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`;
+}
+
+/** Planlı teslim — saat kutusu (ayrı input): rakam, max 2; tek hane 3–9 → 03–09. */
+export function sanitizeHourDigitsInput(value: string): string {
+  let x = value.replace(/\D/g, "").slice(0, 2);
+  if (x.length === 1 && x[0] > "2" && x[0] <= "9") {
+    return `0${x[0]}`;
+  }
+  if (x.length === 2) {
+    const n = parseInt(x, 10);
+    if (n > 23) return x.slice(0, 1);
+  }
+  return x;
+}
+
+/** Planlı teslim — dakika kutusu: 00–59; tek hane 6–9 → 06–09. */
+export function sanitizeMinuteDigitsInput(value: string): string {
+  let x = value.replace(/\D/g, "").slice(0, 2);
+  if (x.length === 1 && x[0] > "5" && x[0] <= "9") {
+    return `0${x[0]}`;
+  }
+  if (x.length === 2) {
+    const n = parseInt(x, 10);
+    if (n > 59) return x.slice(0, 1);
+  }
+  return x;
+}
+
+/** İki ayrı alandan (tam 2 + 2 rakam) Postgres `time` `HH:MM:00`; eksik/geçersizse null. */
+export function mergeHourMinuteToPostgresTime(
+  hourDigits: string,
+  minuteDigits: string,
+): string | null {
+  const hd = hourDigits.replace(/\D/g, "").slice(0, 2);
+  const md = minuteDigits.replace(/\D/g, "").slice(0, 2);
+  if (hd.length !== 2 || md.length !== 2) return null;
+  const hh = parseInt(hd, 10);
+  const mm = parseInt(md, 10);
+  if (hh > 23 || mm > 59 || Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`;
+}
+
 /** Para input'ta yazarken 3 hanede bir nokta (10.000) */
 export const formatCurrencyForInput = (value: string): string => {
   const numbers = value.replace(/\D/g, "");

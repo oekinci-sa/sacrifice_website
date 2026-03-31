@@ -8,7 +8,7 @@
       'sacrifice_animals',
       CAST(OLD.sacrifice_no AS TEXT),
       'Silme',
-      'Kurbanlık kaydı tamamen silindi (sıra no ' || OLD.sacrifice_no || '). Bağlı hissedar ve rezervasyon satırları da temizlendi.',
+      'Kurbanlık silindi',
       v_owner,
       OLD.tenant_id,
       OLD.sacrifice_year

@@ -8,8 +8,7 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $BODY$
 DECLARE
-  v_owner       text;
-  v_stage_label text;
+  v_owner text;
 BEGIN
   IF OLD.current_sacrifice_number IS NOT DISTINCT FROM NEW.current_sacrifice_number THEN
     RETURN NEW;
@@ -20,13 +19,6 @@ BEGIN
     NEW.last_edited_by,
     'Anonim Kullanıcı'
   );
-
-  v_stage_label := CASE NEW.stage
-    WHEN 'slaughter_stage' THEN 'Kesim'
-    WHEN 'butcher_stage'   THEN 'Parçalama'
-    WHEN 'delivery_stage'  THEN 'Teslimat'
-    ELSE NEW.stage
-  END;
 
   INSERT INTO public.change_logs (
     table_name,
@@ -46,8 +38,7 @@ BEGIN
     COALESCE(OLD.current_sacrifice_number::text, '—'),
     NEW.current_sacrifice_number::text,
     'Güncelleme',
-    'Takip ekranında «' || v_stage_label || '» aşaması için gösterilen «şu an işlenen kurban sıra numarası» güncellendi: '
-      || COALESCE(OLD.current_sacrifice_number::text, '—') || ' → ' || NEW.current_sacrifice_number::text || '.',
+    'Sıra güncellendi',
     v_owner,
     NEW.tenant_id
   );

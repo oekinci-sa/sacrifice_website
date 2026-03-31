@@ -73,6 +73,11 @@ BEGIN
         WHEN p_patch->'barn_stall_order_no' IS NULL OR jsonb_typeof(p_patch->'barn_stall_order_no') = 'null' THEN NULL
         ELSE NULLIF(trim(p_patch->>'barn_stall_order_no'), '')
       END,
+      planned_delivery_time = CASE
+        WHEN p_patch ? 'planned_delivery_time' THEN (p_patch->>'planned_delivery_time')::time
+        WHEN p_patch ? 'sacrifice_time' THEN ((p_patch->>'sacrifice_time')::time + interval '90 minutes')::time
+        ELSE sa.planned_delivery_time
+      END,
       slaughter_time = CASE
         WHEN NOT (p_patch ? 'slaughter_time') THEN sa.slaughter_time
         WHEN p_patch->'slaughter_time' IS NULL OR jsonb_typeof(p_patch->'slaughter_time') = 'null' THEN NULL

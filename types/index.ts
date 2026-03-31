@@ -121,7 +121,7 @@ export interface sacrificeSchema {
   animal_type: string | null;
   /** Vakıf kodu (AKV, İMH, AGD) veya boş */
   foundation?: string | null;
-  /** Planlı kesim saatine +1,5 saat (DB generated) */
+  /** Planlı teslim saati (TIME; kesim saatinden bağımsız düzenlenebilir; yeni kayıtta varsayılan +90 dk) */
   planned_delivery_time?: string | null;
   /** Küpe numarası (yalnızca admin panelinden; boş olabilir) */
   ear_tag?: string | null;

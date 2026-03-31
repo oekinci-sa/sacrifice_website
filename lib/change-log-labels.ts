@@ -1,5 +1,7 @@
 /**
  * change_logs: DB'de İngilizce tablo/kolon kodları; arayüzde Türkçe etiketler.
+ * Alan etiketleri (COLUMN_LABEL_TR), tetikleyicilerdeki kısa `description` kökleriyle uyumludur;
+ * referans: `.project-architecture/db/tables/change_logs/short_descriptions_reference.md`
  */
 
 /** Eski trigger'ların yazdığı Türkçe table_name → canonical kod */
@@ -33,25 +35,26 @@ const UUID_RE =
 const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
   sacrifice_animals: {
     sacrifice_no: "Kurban numarası",
-    share_weight: "Hisse ağırlığı (kg)",
+    share_weight: "Hisse ağırlığı",
     share_price: "Hisse bedeli",
     empty_share: "Boş hisse",
     pricing_mode: "Fiyatlama modu",
-    live_scale_total_kg: "Canlı baskül toplam (kg)",
-    live_scale_total_price: "Canlı baskül toplam tutar",
+    live_scale_total_kg: "Baskül ağırlığı",
+    live_scale_total_price: "Baskül tutarı",
     notes: "Notlar",
     animal_type: "Hayvan cinsi",
-    foundation: "Vakıf",
-    ear_tag: "Küpe no",
-    barn_stall_order_no: "Ahır sıra no",
-    sacrifice_time: "Kesim zamanı",
+    foundation: "Vakıf bilgisi",
+    ear_tag: "Küpe numarası",
+    barn_stall_order_no: "Padok no",
+    sacrifice_time: "Kesim planı",
+    planned_delivery_time: "Planlı teslim saati",
     slaughter_time: "Kesim saati",
     butcher_time: "Parçalama saati",
     delivery_time: "Teslimat saati",
   },
   shareholders: {
     shareholder_name: "Hissedar adı",
-    phone_number: "Telefon numarası",
+    phone_number: "Telefon",
     second_phone_number: "İkinci telefon",
     total_amount: "Toplam tutar",
     paid_amount: "Ödenen tutar",
@@ -59,11 +62,11 @@ const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
     delivery_fee: "Teslimat ücreti",
     delivery_location: "Teslimat noktası",
     delivery_type: "Teslimat tipi",
-    sacrifice_consent: "Vekalet",
-    notes: "Notlar",
+    sacrifice_consent: "Vekalet durumu",
+    notes: "Not",
     email: "E-posta",
     security_code: "Güvenlik kodu",
-    contacted_at: "Görüşüldü",
+    contacted_at: "Görüşme durumu",
   },
   users: {
     name: "Ad",
@@ -73,7 +76,7 @@ const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
     status: "Durum",
   },
   stage_metrics: {
-    current_sacrifice_number: "Güncel kurban sırası (takip)",
+    current_sacrifice_number: "Sıra",
   },
 };
 

@@ -26,7 +26,7 @@ BEGIN
       'user_tenants',
       NEW.user_id::text,
       'Güncelleme',
-      'Kullanıcı ikinci bir organizasyonda da onaylı üye yapıldı (aynı hesap, çoklu site erişimi).',
+      'Kullanıcı onaylandı',
       v_owner,
       NEW.tenant_id
     );
@@ -44,7 +44,7 @@ BEGIN
         'user_tenants',
         NEW.user_id::text,
         'Güncelleme',
-        'Bu organizasyonda kullanıcının «onaylı üye» kaydı kaldırıldı; tekrar onaylanması gerekebilir.',
+        'Kullanıcı onayı kaldırıldı',
         v_owner,
         NEW.tenant_id
       );

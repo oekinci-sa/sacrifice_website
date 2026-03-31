@@ -27,6 +27,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   meta?: Record<string, unknown>
   pageSizeOptions?: number[]
+  /** Varsayılan sayfa boyutu (ör. 200). `pageSizeOptions` içinde yoksa en yakın / ilk seçenek kullanılır. */
+  defaultPageSize?: number
   initialState?: {
     columnVisibility?: VisibilityState
   }
@@ -48,6 +50,12 @@ interface DataTableProps<TData, TValue> {
   renderExpandedRow?: (row: { original: TData }) => React.ReactNode | null
   /** Dikey kaydırmada başlık satırı üstte sabit kalır (Excel benzeri) */
   stickyHeader?: boolean
+  /**
+   * `stickyHeader` ile birlikte: tablo gövdesi sabit yükseklikte iç scroll yapmaz;
+   * üst düzey içerik alanı (ör. admin `main`) ile kayar; thead sticky kalır.
+   * `false` (varsayılan): iç `max-height` + `overflow-auto` (mevcut davranış).
+   */
+  stickyHeaderPageScroll?: boolean
 }
 
 const STORAGE_PREFIX = "table-column-visibility-";
@@ -96,6 +104,7 @@ export function CustomDataTable<TData, TValue>({
   data,
   meta,
   pageSizeOptions = [20, 50, 100, 200, 500, 1000],
+  defaultPageSize,
   initialState,
   columnHeaderLabels,
   storageKey,
@@ -103,6 +112,7 @@ export function CustomDataTable<TData, TValue>({
   tableSize = "medium",
   renderExpandedRow,
   stickyHeader = false,
+  stickyHeaderPageScroll = false,
 }: DataTableProps<TData, TValue>) {
   const { data: session } = useSession();
   const userId = session?.user?.id as string | undefined;
@@ -196,9 +206,18 @@ export function CustomDataTable<TData, TValue>({
     [fullStorageKey]
   )
 
-  const [{ pageIndex, pageSize }, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: pageSizeOptions[0],
+  const [{ pageIndex, pageSize }, setPagination] = React.useState(() => {
+    const fallback = pageSizeOptions[0] ?? 20;
+    if (defaultPageSize != null && pageSizeOptions.includes(defaultPageSize)) {
+      return { pageIndex: 0, pageSize: defaultPageSize };
+    }
+    if (defaultPageSize != null) {
+      const nearest = pageSizeOptions.reduce((best, n) =>
+        Math.abs(n - defaultPageSize) < Math.abs(best - defaultPageSize) ? n : best
+      );
+      return { pageIndex: 0, pageSize: nearest };
+    }
+    return { pageIndex: 0, pageSize: fallback };
   })
 
   // Reset page index when page size changes
@@ -267,7 +286,27 @@ export function CustomDataTable<TData, TValue>({
         }) : null}
 
         <div className="rounded-md min-w-0">
-          {stickyHeader ? (
+          {stickyHeader && stickyHeaderPageScroll ? (
+            <div className="rounded-md border min-w-0">
+              <table className="isolate w-full min-w-max caption-bottom text-sm">
+                <CustomTableHeader
+                  table={table}
+                  tableSize={tableSize}
+                  columnHeaderLabels={columnHeaderLabels}
+                  onColumnOrderChange={fullStorageKey ? handleColumnOrderChangePersisted : undefined}
+                  stickyHeader
+                  stickyHeaderPageScroll
+                />
+                <CustomTableBody
+                  table={table}
+                  columns={tableColumns}
+                  tableSize={tableSize}
+                  renderExpandedRow={renderExpandedRow}
+                  stickyHeaderPageScroll
+                />
+              </table>
+            </div>
+          ) : stickyHeader ? (
             <div
               className={cn(
                 "max-h-[min(70vh,560px)] overflow-auto rounded-md border min-w-0",

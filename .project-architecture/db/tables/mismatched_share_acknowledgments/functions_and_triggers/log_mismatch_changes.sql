@@ -29,7 +29,7 @@ BEGIN
       'mismatched_share_acknowledgments',
       COALESCE(v_no::text, NEW.sacrifice_id::text),
       'Güncelleme',
-      'Bu kurbanlıkta toplam hisse sayısı 7 değil; yönetici ekranda «Tamam, uyumsuzluğu biliyorum» ile uyarıyı onayladı. Kurban sıra no: ' || COALESCE(v_no::text, '—') || '.',
+      'Uyumsuzluk onaylandı',
       v_owner,
       NEW.tenant_id,
       v_year
@@ -55,7 +55,7 @@ BEGIN
       'mismatched_share_acknowledgments',
       COALESCE(v_no::text, OLD.sacrifice_id::text),
       'Güncelleme',
-      'Hisse uyumsuzluğu onayı kaldırıldı; bu kurbanlık listesinde yeniden uyarı gösterebilir. Kurban sıra no: ' || COALESCE(v_no::text, '—') || '.',
+      'Uyumsuzluk kaldırıldı',
       v_owner,
       OLD.tenant_id,
       v_year

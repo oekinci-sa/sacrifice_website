@@ -4,7 +4,7 @@ export const kurbanliklarColumnHeaderLabels: Record<string, string> = {
   sacrifice_time: "Kesim Saati",
   planned_delivery_time: "Teslim Saati",
   ear_tag: "Küpe No",
-  barn_stall_order_no: "Ahır Sıra No",
+  barn_stall_order_no: "Padok No",
   share_price: "Hisse Bedeli",
   animal_type: "Cins",
   foundation: "Vakıf",

@@ -24,10 +24,15 @@ import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { sacrificeSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import {
+  mergeHourMinuteToPostgresTime,
+  sanitizeHourDigitsInput,
+  sanitizeMinuteDigitsInput,
+} from "@/utils/formatters";
 
 type PriceOption = { kg: string; price: string } | { kg: number; price: number };
 
@@ -43,6 +48,8 @@ type UpdateSacrificePayload = Partial<{
   notes: string;
   ear_tag: string | null;
   barn_stall_order_no: string | null;
+  /** TIME (HH:MM:SS) — Postgres `time` */
+  planned_delivery_time?: string | null;
 }>;
 
 async function updateSacrificeApi(
@@ -670,7 +677,7 @@ export function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> 
             if (e.key === "Escape") handleCancel();
           }}
           className="h-8 min-w-0 flex-1 max-w-[160px] text-sm"
-          placeholder="Ahır sıra no"
+          placeholder="Padok no"
           maxLength={128}
           autoFocus
           disabled={saving}
@@ -710,6 +717,209 @@ export function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> 
       </Button>
     </div>
   );
+}
+
+function splitHourMinuteFromDb(t: string | null | undefined): { h: string; m: string } {
+  const s = String(t ?? "").trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return { h: "", m: "" };
+  return { h: m[1].padStart(2, "0"), m: m[2] };
+}
+
+export function EditablePlannedDeliveryTimeCell({ row }: { row: Row<sacrificeSchema> }) {
+  const { toast } = useToast();
+  const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
+  const [editing, setEditing] = useState(false);
+  const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("");
+  const [saving, setSaving] = useState(false);
+  const minuteInputRef = useRef<HTMLInputElement>(null);
+  const hourInputRef = useRef<HTMLInputElement>(null);
+  const sacrifice = row.original;
+  const displayRaw = sacrifice.planned_delivery_time;
+  const display = formatPlanTimeDisplay(displayRaw);
+
+  const applyFromDb = useCallback(() => {
+    const { h, m } = splitHourMinuteFromDb(displayRaw ?? undefined);
+    setHour(h);
+    setMinute(m);
+  }, [displayRaw]);
+
+  const handleSave = useCallback(async () => {
+    const pgTime = mergeHourMinuteToPostgresTime(hour, minute);
+    if (!pgTime) {
+      toast({
+        title: "Geçersiz saat",
+        description: "Saat ve dakikayı ikişer hane olarak girin (ör. 13 ve 45).",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        planned_delivery_time: pgTime,
+      };
+      const { data } = await updateSacrificeApi(
+        sacrifice.sacrifice_id,
+        sacrifice.sacrifice_year,
+        payload
+      );
+      updateSacrifice({ ...sacrifice, ...data });
+      triggerSacrificeRefresh();
+      toast({ title: "Güncellendi" });
+      setEditing(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [hour, minute, sacrifice, updateSacrifice, toast]);
+
+  const handleCancel = useCallback(() => {
+    applyFromDb();
+    setEditing(false);
+  }, [applyFromDb]);
+
+  const startEdit = useCallback(() => {
+    applyFromDb();
+    setEditing(true);
+  }, [applyFromDb]);
+
+  const focusMinuteSelectAll = useCallback(() => {
+    requestAnimationFrame(() => {
+      const el = minuteInputRef.current;
+      if (!el) return;
+      el.focus();
+      el.select();
+    });
+  }, []);
+
+  const onHourChange = useCallback((raw: string) => {
+    const next = sanitizeHourDigitsInput(raw);
+    setHour(next);
+    const n = parseInt(next, 10);
+    if (next.length === 2 && !Number.isNaN(n) && n <= 23) {
+      focusMinuteSelectAll();
+    }
+  }, [focusMinuteSelectAll]);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center min-w-0 px-1">
+        <div className="flex items-center gap-0.5 min-w-0 max-w-[140px]">
+          <Input
+            ref={hourInputRef}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="00"
+            name="planned-delivery-hour"
+            value={hour}
+            onChange={(e) => onHourChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                focusMinuteSelectAll();
+              }
+              if (e.key === "Escape") handleCancel();
+            }}
+            className="h-8 w-11 min-w-0 px-1 text-center font-mono tabular-nums text-sm"
+            maxLength={2}
+            autoFocus
+            disabled={saving}
+            aria-label="Saat"
+          />
+          <span className="text-muted-foreground select-none" aria-hidden>
+            :
+          </span>
+          <Input
+            ref={minuteInputRef}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="00"
+            name="planned-delivery-minute"
+            value={minute}
+            onFocus={(e) => {
+              e.currentTarget.select();
+            }}
+            onChange={(e) => setMinute(sanitizeMinuteDigitsInput(e.target.value))}
+            onKeyDown={(e) => {
+              if (/^[0-9]$/.test(e.key) && minute.length === 2) {
+                const el = e.currentTarget;
+                const start = el.selectionStart ?? 0;
+                const end = el.selectionEnd ?? 0;
+                if (start === end) {
+                  e.preventDefault();
+                  setMinute(sanitizeMinuteDigitsInput(e.key));
+                }
+              }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleSave();
+              }
+              if (e.key === "Escape") handleCancel();
+              if (e.key === "Backspace" && minute === "" && hourInputRef.current) {
+                hourInputRef.current.focus();
+              }
+            }}
+            className="h-8 w-11 min-w-0 px-1 text-center font-mono tabular-nums text-sm"
+            maxLength={2}
+            disabled={saving}
+            aria-label="Dakika"
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50"
+          onClick={() => void handleSave()}
+          disabled={saving}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
+      <span className="text-sm px-8 pr-9 py-1 text-center tabular-nums">{display}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={startEdit}
+      >
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+}
+
+function formatPlanTimeDisplay(value: unknown): string {
+  const time = value as string | undefined;
+  if (!time) return "-";
+  try {
+    const [hours, minutes] = String(time).split(":");
+    return `${hours}:${minutes}`;
+  } catch {
+    return "-";
+  }
 }
 
 export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {

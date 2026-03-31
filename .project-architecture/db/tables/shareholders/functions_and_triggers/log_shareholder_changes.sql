@@ -1,5 +1,5 @@
 -- shareholders → change_logs; change_owner = app.actor (RPC) veya last_edited_by
--- Açıklamalar: admin panelinde okunabilir Türkçe özetler
+-- description: kısa sabit cümleler; değerler kolonlarda (short_descriptions_reference.md)
 
 CREATE OR REPLACE FUNCTION public.log_shareholder_changes()
 RETURNS trigger
@@ -33,7 +33,7 @@ BEGIN
       'shareholders',
       NEW.shareholder_id::text,
       'Ekleme',
-      'Yeni hissedar kaydı açıldı: «' || NEW.shareholder_name || '». Bağlı kurbanlık sıra no: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
+      'Hissedar eklendi',
       v_owner,
       NEW.tenant_id,
       v_sacrifice_year
@@ -51,7 +51,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'shareholder_name',
         OLD.shareholder_name, NEW.shareholder_name, 'Güncelleme',
-        'Hissedar görünen adı değişti: «' || COALESCE(OLD.shareholder_name, '—') || '» → «' || COALESCE(NEW.shareholder_name, '—') || '». Kurban sıra: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
+        'Hissedar adı güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -61,7 +61,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'phone_number',
         OLD.phone_number, NEW.phone_number, 'Güncelleme',
-        'Birinci telefon güncellendi. Önce: ' || COALESCE(OLD.phone_number, 'yok') || ', şimdi: ' || COALESCE(NEW.phone_number, 'yok') || '.',
+        'Telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -71,7 +71,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'second_phone_number',
         OLD.second_phone_number, NEW.second_phone_number, 'Güncelleme',
-        'İkinci / yedek telefon güncellendi. Önce: ' || COALESCE(OLD.second_phone_number, 'yok') || ', şimdi: ' || COALESCE(NEW.second_phone_number, 'yok') || '.',
+        'İkinci telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -81,7 +81,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'total_amount',
         CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'Güncelleme',
-        'Hissiye düşen toplam tutar (hisse + teslimat) değişti: ' || COALESCE(OLD.total_amount::text, '—') || ' ₺ → ' || COALESCE(NEW.total_amount::text, '—') || ' ₺.',
+        'Toplam tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -91,7 +91,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'paid_amount',
         CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'Güncelleme',
-        'Ödenen tutar güncellendi: ' || COALESCE(OLD.paid_amount::text, '0') || ' ₺ → ' || COALESCE(NEW.paid_amount::text, '0') || ' ₺.',
+        'Ödenen tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -101,7 +101,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'remaining_payment',
         CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'Güncelleme',
-        'Kalan ödeme tutarı: ' || COALESCE(OLD.remaining_payment::text, '—') || ' ₺ → ' || COALESCE(NEW.remaining_payment::text, '—') || ' ₺.',
+        'Kalan ödeme güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -111,7 +111,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_fee',
         CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'Güncelleme',
-        'Teslimat ücreti: ' || COALESCE(OLD.delivery_fee::text, '—') || ' ₺ → ' || COALESCE(NEW.delivery_fee::text, '—') || ' ₺.',
+        'Teslimat ücreti güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -121,7 +121,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_location',
         OLD.delivery_location, NEW.delivery_location, 'Güncelleme',
-        'Teslimat adresi veya noktası değişti: «' || COALESCE(OLD.delivery_location, 'belirtilmemiş') || '» → «' || COALESCE(NEW.delivery_location, 'belirtilmemiş') || '».',
+        'Teslimat noktası güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -131,7 +131,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_type',
         OLD.delivery_type, NEW.delivery_type, 'Güncelleme',
-        'Teslimat şekli güncellendi (kesimhane / adrese / vb.): «' || COALESCE(OLD.delivery_type, '—') || '» → «' || COALESCE(NEW.delivery_type, '—') || '».',
+        'Teslimat tipi güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -141,7 +141,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'sacrifice_consent',
         CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'Güncelleme',
-        'Kurban vekaleti / onay kaydı güncellendi: ' || CASE WHEN OLD.sacrifice_consent THEN 'onaylıydı' ELSE 'onaysızdı' END || ' → ' || CASE WHEN NEW.sacrifice_consent THEN 'onaylı' ELSE 'onaysız' END || '.',
+        'Vekalet durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -151,7 +151,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'notes',
         OLD.notes, NEW.notes, 'Güncelleme',
-        'Bu hissedar için not metni değiştirildi (detay eski/yeni sütunlarda).',
+        'Not güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -161,7 +161,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'email',
         OLD.email, NEW.email, 'Güncelleme',
-        'Hissedar e-posta adresi güncellendi: ' || COALESCE(OLD.email, 'yok') || ' → ' || COALESCE(NEW.email, 'yok') || '.',
+        'E-posta güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -171,7 +171,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'security_code',
         OLD.security_code, NEW.security_code, 'Güncelleme',
-        'Hisse sorgulamada kullanılan 6 haneli güvenlik kodu yenilendi (eski ve yeni değer kayıtta).',
+        'Güvenlik kodu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -181,7 +181,7 @@ BEGIN
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'contacted_at',
         CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'Güncelleme',
-        '«Görüşüldü» işareti veya görüşme tarihi güncellendi; arama takibinde kullanılır.',
+        'Görüşme durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
     END IF;
@@ -199,7 +199,7 @@ BEGIN
       'shareholders',
       OLD.shareholder_id::text,
       'Silme',
-      'Hissedar kaydı silindi veya kurbanlıkla birlikte kaldırıldı: «' || OLD.shareholder_name || '». Kurban sıra no: ' || COALESCE(v_sacrifice_no::text, '—') || '.',
+      'Hissedar silindi',
       v_owner,
       OLD.tenant_id,
       v_sacrifice_year,

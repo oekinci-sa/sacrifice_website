@@ -7,7 +7,7 @@
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
         'Güncelleme',
-        'Fiyatlama modu güncellendi: ' || COALESCE(OLD.pricing_mode::text, '—') || ' → ' || COALESCE(NEW.pricing_mode::text, '—') || '.',
+        'Fiyatlama modu güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -23,7 +23,7 @@
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
         'Güncelleme',
-        'Canlı baskül toplam ağırlık (kg): ' || COALESCE(OLD.live_scale_total_kg::text, '—') || ' → ' || COALESCE(NEW.live_scale_total_kg::text, '—') || '.',
+        'Baskül ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -39,7 +39,7 @@
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),
         'Güncelleme',
-        'Canlı baskül toplam tutar: ' || COALESCE(OLD.live_scale_total_price::text, '—') || ' ₺ → ' || COALESCE(NEW.live_scale_total_price::text, '—') || ' ₺.',
+        'Baskül tutarı güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year

@@ -21,6 +21,7 @@ export default function TumHissedarlarPage() {
     sacrifice_consent: false,
     delivery_location_raw: false, // Teslimat Yeri - default gizli
     second_phone_number: false, // İkinci Telefon - default gizli
+    email: false, // E-posta — sütun seçiciden açılır
   });
 
   // Use shareholder store instead of React Query

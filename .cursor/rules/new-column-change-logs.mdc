@@ -16,7 +16,8 @@ Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **t
 1. **Kullanıcıya sor:** Bu sütun/tablo `change_logs` ile izlenmeli mi?
 2. Evet ise ilgili **audit tetikleyici fonksiyonunda**:
    - `IF NEW.<kolon> IS DISTINCT FROM OLD.<kolon>` (UPDATE) ve gerekirse INSERT/DELETE dalları
-   - INSERT ile oluşturulan `change_logs` kaydının açıklama/metin kısımlarında yeni alan
+   - `description`: **kısa sabit Türkçe cümle** (değerler `old_value`/`new_value`’da); kalıplar için bkz. `.project-architecture/db/tables/change_logs/short_descriptions_reference.md`
+   - Aynı kolon için [`lib/change-log-labels.ts`](lib/change-log-labels.ts) içindeki `COLUMN_LABEL_TR` (Alan etiketi) ile sözcük uyumu
 3. Hayır ise: tetikleyiciye dokunma; yine de `table.sql` ve kod tipleri güncel kalmalı.
 
 ## Sütun silindiğinde
@@ -35,6 +36,7 @@ Veritabanında **yeni sütun ekleme**, **sütun silme**, **yeni tablo** veya **t
 |------------|--------|
 | Tablo şeması | `.project-architecture/db/tables/<tablo>/table.sql` |
 | Satır bazlı audit (INSERT/UPDATE/DELETE) | `.project-architecture/db/tables/<tablo>/functions_and_triggers/log_*_changes.sql` (tek kaynak) |
+| Alan etiketi (UI) | `lib/change-log-labels.ts` — tetikleyicideki kısa `description` ile uyumlu Türkçe kök |
 | Uyumsuzluk / özel audit | `.project-architecture/db/tables/mismatched_share_acknowledgments/functions_and_triggers/log_mismatch_changes.sql` |
 | Migration | Supabase migration / proje migration; tetikleyici ve `table.sql` ile uyumlu |
 

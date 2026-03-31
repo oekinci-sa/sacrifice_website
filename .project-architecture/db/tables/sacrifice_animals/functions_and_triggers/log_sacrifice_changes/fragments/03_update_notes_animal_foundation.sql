@@ -7,7 +7,7 @@
         OLD.notes,
         NEW.notes,
         'Güncelleme',
-        'Bu kurbanlık için yönetici notları güncellendi.',
+        'Notlar güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -23,7 +23,7 @@
         COALESCE(OLD.animal_type, ''),
         COALESCE(NEW.animal_type, ''),
         'Güncelleme',
-        'Hayvan cinsi değiştirildi: ' || COALESCE(OLD.animal_type, '—') || ' → ' || COALESCE(NEW.animal_type, '—') || '.',
+        'Hayvan cinsi güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -39,7 +39,7 @@
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
         'Güncelleme',
-        'Vakıf bilgisi güncellendi: ' || COALESCE(OLD.foundation, '—') || ' → ' || COALESCE(NEW.foundation, '—') || '.',
+        'Vakıf bilgisi güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -55,7 +55,7 @@
         COALESCE(OLD.ear_tag, ''),
         COALESCE(NEW.ear_tag, ''),
         'Güncelleme',
-        'Küpe numarası güncellendi: ' || COALESCE(NULLIF(trim(OLD.ear_tag), ''), '—') || ' → ' || COALESCE(NULLIF(trim(NEW.ear_tag), ''), '—') || '.',
+        'Küpe numarası güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year
@@ -71,7 +71,7 @@
         COALESCE(OLD.barn_stall_order_no, ''),
         COALESCE(NEW.barn_stall_order_no, ''),
         'Güncelleme',
-        'Ahır sıra numarası güncellendi: ' || COALESCE(NULLIF(trim(OLD.barn_stall_order_no), ''), '—') || ' → ' || COALESCE(NULLIF(trim(NEW.barn_stall_order_no), ''), '—') || '.',
+        'Ahır sıra numarası güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year

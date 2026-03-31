@@ -52,6 +52,8 @@ interface CustomTableHeaderProps<TData> {
   columnHeaderLabels?: Record<string, string>
   onColumnOrderChange?: (order: string[]) => void
   stickyHeader?: boolean
+  /** Window scroll ile sticky: daha yüksek z-index (iç scroll modundan ayrım) */
+  stickyHeaderPageScroll?: boolean
 }
 
 export function CustomTableHeader<TData>({
@@ -60,6 +62,7 @@ export function CustomTableHeader<TData>({
   columnHeaderLabels,
   onColumnOrderChange,
   stickyHeader = false,
+  stickyHeaderPageScroll = false,
 }: CustomTableHeaderProps<TData>) {
   const headerSizeClasses = {
     small: "h-10 text-center text-xs md:text-sm py-1",
@@ -148,7 +151,10 @@ export function CustomTableHeader<TData>({
     <TableHeader
       className={cn(
         stickyHeader &&
-          "sticky top-0 z-20 bg-background shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:bg-background"
+          cn(
+            "sticky top-0 bg-background shadow-[0_1px_0_0_hsl(var(--border))] [&_th]:bg-background",
+            stickyHeaderPageScroll ? "z-50" : "z-20"
+          )
       )}
     >
       {table.getHeaderGroups().map((headerGroup) => (
@@ -178,7 +184,12 @@ export function CustomTableHeader<TData>({
                 key={header.id}
                 draggable={canReorderThis}
                 style={minSize != null ? { minWidth: `${minSize}px` } : undefined}
-                className={`relative text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${headerClass} ${draggingColumnId === columnId ? "cursor-grabbing opacity-60" : canReorderThis ? "cursor-grab" : ""}`}
+                className={cn(
+                  "relative text-left align-middle font-medium text-muted-foreground font-sans whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                  headerClass,
+                  draggingColumnId === columnId ? "cursor-grabbing opacity-60" : canReorderThis ? "cursor-grab" : "",
+                  stickyHeader && stickyHeaderPageScroll && "z-50 bg-background"
+                )}
                 onDragStart={canReorderThis ? (e) => handleDragStart(e, columnId) : undefined}
                 onDragEnd={canReorderThis ? handleDragEnd : undefined}
                 onDragOver={

@@ -137,6 +137,7 @@ export default function ChangeLogsPage() {
             pageSizeOptions={[10, 20, 50, 100]}
             tableSize="medium"
             stickyHeader
+            stickyHeaderPageScroll
             initialState={{
               columnVisibility: {
                 // "Kaynak" (table_name) varsayılan gizli — kullanıcı açabilir

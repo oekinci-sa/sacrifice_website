@@ -19,7 +19,7 @@ BEGIN
       'users',
       NEW.id::text,
       'Ekleme',
-      'Sisteme yeni kullanıcı kaydı eklendi. Giriş e-postası: ' || NEW.email || '.',
+      'Kullanıcı eklendi',
       v_owner,
       NEW.last_audit_tenant_id
     );
@@ -38,7 +38,7 @@ BEGIN
       VALUES (
         'users', NEW.id::text, 'name',
         OLD.name, NEW.name, 'Güncelleme',
-        'Panelde görünen kullanıcı adı değişti: «' || COALESCE(OLD.name, '—') || '» → «' || COALESCE(NEW.name, '—') || '».',
+        'Ad güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
     END IF;
@@ -48,7 +48,7 @@ BEGIN
       VALUES (
         'users', NEW.id::text, 'image',
         OLD.image, NEW.image, 'Güncelleme',
-        'Profil fotoğrafı veya avatar adresi değiştirildi.',
+        'Profil görseli güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
     END IF;
@@ -58,21 +58,7 @@ BEGIN
       VALUES (
         'users', NEW.id::text, 'role',
         OLD.role::text, NEW.role::text, 'Güncelleme',
-        'Sistem rolü (yetki seviyesi) güncellendi: '
-          || CASE OLD.role::text
-               WHEN 'editor'      THEN 'Editör'
-               WHEN 'admin'       THEN 'Yönetici'
-               WHEN 'super_admin' THEN 'Süper yönetici'
-               ELSE COALESCE(OLD.role::text, '—')
-             END
-          || ' → '
-          || CASE NEW.role::text
-               WHEN 'editor'      THEN 'Editör'
-               WHEN 'admin'       THEN 'Yönetici'
-               WHEN 'super_admin' THEN 'Süper yönetici'
-               ELSE COALESCE(NEW.role::text, '—')
-             END
-          || '. Menü ve işlem yetkilerini etkiler.',
+        'Rol güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
     END IF;
@@ -82,7 +68,7 @@ BEGIN
       VALUES (
         'users', NEW.id::text, 'email',
         OLD.email, NEW.email, 'Güncelleme',
-        'Giriş e-postası değiştirildi: ' || COALESCE(OLD.email, '—') || ' → ' || COALESCE(NEW.email, '—') || '.',
+        'E-posta güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
     END IF;
@@ -92,21 +78,7 @@ BEGIN
       VALUES (
         'users', NEW.id::text, 'status',
         OLD.status::text, NEW.status::text, 'Güncelleme',
-        'Hesap durumu değişti: '
-          || CASE OLD.status::text
-               WHEN 'pending'  THEN 'Onay bekliyor'
-               WHEN 'approved' THEN 'Onaylı'
-               WHEN 'rejected' THEN 'Reddedildi'
-               ELSE COALESCE(OLD.status::text, '—')
-             END
-          || ' → '
-          || CASE NEW.status::text
-               WHEN 'pending'  THEN 'Onay bekliyor'
-               WHEN 'approved' THEN 'Onaylı'
-               WHEN 'rejected' THEN 'Reddedildi'
-               ELSE COALESCE(NEW.status::text, '—')
-             END
-          || '.',
+        'Durum güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
     END IF;
@@ -125,7 +97,7 @@ BEGIN
       'users',
       OLD.id::text,
       'Silme',
-      'Kullanıcı hesabı tamamen silindi. E-posta: ' || OLD.email || '.',
+      'Kullanıcı silindi',
       v_owner,
       OLD.last_audit_tenant_id
     );

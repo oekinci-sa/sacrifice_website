@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminMailRecipientsListSkeleton } from "../components/admin-page-skeletons";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { adminPrimaryCtaClassName } from "@/lib/admin-tenant-accent";
@@ -517,11 +517,7 @@ export default function MailIslemleriPage() {
               </div>
 
               {listLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-9 w-96 max-w-full sm:w-[28rem]" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
+                <AdminMailRecipientsListSkeleton />
               ) : (
                 <CustomDataTable
                   columns={columns}

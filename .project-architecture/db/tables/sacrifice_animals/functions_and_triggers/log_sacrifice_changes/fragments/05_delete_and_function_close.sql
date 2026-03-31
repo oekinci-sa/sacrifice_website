@@ -7,7 +7,7 @@
     VALUES (
       'sacrifice_animals',
       OLD.sacrifice_id::text,
-      'Silme',
+      'DELETE',
       'Kurbanlık silindi',
       v_owner,
       OLD.tenant_id,

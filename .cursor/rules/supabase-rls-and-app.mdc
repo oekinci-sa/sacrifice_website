@@ -1,0 +1,56 @@
+---
+description: RLS açıldığında Next.js + service role kullanımı; risk özeti
+globs:
+  - lib/supabase*.ts
+  - app/api/**/*
+---
+
+# Supabase RLS ve bu uygulama
+
+## Service role (`supabaseAdmin`)
+
+`lib/supabaseAdmin.ts` **SUPABASE_SERVICE_ROLE_KEY** ile oluşturulur. Bu istemci **Row Level Security kurallarını baypas eder** (Postgres `BYPASSRLS` / service role davranışı).
+
+Bu yüzden **sunucu tarafı** `app/api/**` route’larında `supabaseAdmin` kullanıldığı sürece, ilgili tablolarda RLS **açılsa bile** bu route’ların veritabanı erişimi **engellenmez** (mevcut davranış korunur).
+
+## Anon / kullanıcı JWT ile istemci
+
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` veya kullanıcı oturumu ile çalışan `createClient` kullanan kodlar için RLS **uygulanır**. Politika yoksa veya yanlışsa:
+
+- Okuma/yazma başarısız olabilir veya
+- Yanlış yapılandırılmış politika ile beklenmeyen veri sızıntısı riski oluşur.
+
+Yeni özellik eklerken: veri erişimi **doğrudan tarayıcıdan** mı, yoksa **yalnızca API route** üzerinden mi netleştirilmeli.
+
+## Security Advisor “RLS kapalı” uyarısı
+
+Tabloda RLS kapalıysa ve tablo **PostgREST ile anon key** üzerinden erişilebiliyorsa risk yüksektir. RLS’i açıp uygun politikalar tanımlamak doğru yaklaşımdır.
+
+**Dikkat:** Sadece service role kullanan iç API’ler için RLS “uygulama mantığı” olarak kalır; yine de production’da tabloların gereksiz yere anon’a açık olmaması gerekir.
+
+## `app/api` taraması (repo)
+
+Tüm `app/api/**` route’larında veritabanı erişimi `supabaseAdmin` (`@/lib/supabaseAdmin`) üzerinden; **doğrudan anon key ile Supabase sorgusu yok**. RLS açıldığında bu route’ların **DB tarafı davranışı** service role ile korunur.
+
+## Tarayıcıdaki anon istemci (`utils/supabaseClient.ts`)
+
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` ile oluşturulan `supabase` şu yerlerde kullanılır (özet):
+
+| Alan | Risk notu |
+|------|-----------|
+| `stores/only-admin-pages/useShareholderStore` | Liste **API** ile; **Realtime** anon kanal dinler. RLS sıkıysa `postgres_changes` için ilgili tabloda anon/service role’e uygun politikalar veya Realtime ayarı gerekir; aksi halde anlık güncelleme eksik kalabilir. |
+| `stores/global/useSacrificeStore` + `RealtimeManager` | Benzer: kurbanlık değişimleri Realtime. |
+| `hooks/useUsers.ts` | Doğrudan anon sorgu → RLS politikalarına bağlı. |
+| `app/(takip)/queue-card-with-buttons.tsx` | Anon. |
+| `app/(public)/(hisse)/hisseal/...` (ör. `share-select-dialog`) | Anon. |
+| `lib/auth.ts` | Anon (oturum akışı). |
+
+**Özet:** RLS’i açtıktan sonra mutlaka **admin panelde Realtime** (hissedar / kurbanlık) ve **anon kullanan sayfa/hook** akışlarını manuel test et.
+
+## Özet
+
+| Erişim yolu | RLS açılınca |
+|-------------|----------------|
+| `supabaseAdmin` (API route) | Genelde etkilenmez (bypass) |
+| Anon / kullanıcı Supabase istemcisi | Politikalara bağlı; test gerekir |
+| Realtime (`postgres_changes`) | Anon ile bağlı; tablo RLS + Realtime birlikte doğrulanmalı |

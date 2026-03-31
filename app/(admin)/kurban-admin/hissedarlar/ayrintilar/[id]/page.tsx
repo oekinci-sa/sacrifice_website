@@ -2,7 +2,7 @@
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminShareholderDetailPageSkeleton } from "../../../components/admin-page-skeletons";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "@/hooks/useShareholders";
@@ -189,10 +189,8 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full md:w-1/2" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
+        <h1 className="text-2xl font-semibold tracking-tight">Hissedar Ayrıntıları</h1>
+        <AdminShareholderDetailPageSkeleton />
       </div>
     );
   }

@@ -18,7 +18,7 @@ BEGIN
     VALUES (
       'sacrifice_animals',
       NEW.sacrifice_id::text,
-      'Ekleme',
+      'INSERT',
       'Kurbanlık eklendi',
       v_owner,
       NEW.tenant_id,

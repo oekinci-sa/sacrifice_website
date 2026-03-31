@@ -1,9 +1,9 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminDataTablePageSkeleton } from "../components/admin-page-skeletons";
 import { useChangeLogs } from "@/hooks/useChangeLogs";
-import { getTableLabelTr } from "@/lib/change-log-labels";
+import { CHANGE_LOG_ROW_UUID_RE, formatRowIdDisplay } from "@/lib/change-log-labels";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useMemo, useState } from "react";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./components/change-log-filters";
 import {
   ChangeLog,
+  CHANGE_LOG_COLUMN_HEADER_MAP,
   ChangeLogExpandedRow,
   ChangeLogsTooltipProvider,
   columns,
@@ -32,7 +33,6 @@ function startOfFilterRange(preset: ChangeLogDatePreset): Date | null {
 export default function ChangeLogsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [datePreset, setDatePreset] = useState<ChangeLogDatePreset>("all");
-  const [rowIdFilter, setRowIdFilter] = useState("");
   // Açık satırların event_id seti
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
@@ -59,46 +59,35 @@ export default function ChangeLogsPage() {
       rows = rows.filter((log) => new Date(log.changed_at) >= rangeStart);
     }
 
-    // Metin araması (tüm alanlar)
+    // Arama: yalnızca Kayıt (görünen metin); ham UUID ile arama yok
     const q = normalizeTurkishSearchText(searchTerm.trim());
     if (q) {
-      rows = rows.filter((log) => {
-        const blob = normalizeTurkishSearchText(
-          [
-            log.description,
-            log.column_name,
-            log.change_owner,
-            log.old_value,
-            log.new_value,
+      const searchLooksLikeUuid = CHANGE_LOG_ROW_UUID_RE.test(searchTerm.trim());
+      if (searchLooksLikeUuid) {
+        rows = [];
+      } else {
+        rows = rows.filter((log) => {
+          const display = formatRowIdDisplay(
             log.table_name,
-            getTableLabelTr(log.table_name),
-            log.change_type,
-            log.row_id,
-            String(log.event_id),
-          ]
-            .filter(Boolean)
-            .join(" ")
-        );
-        return blob.includes(q);
-      });
-    }
-
-    // Kayıt filtresi (row_id — normalize contains; ham + isim kısmı)
-    const rq = normalizeTurkishSearchText(rowIdFilter.trim());
-    if (rq) {
-      rows = rows.filter((log) => {
-        const raw = normalizeTurkishSearchText(log.row_id ?? "");
-        const parenIdx = log.row_id?.lastIndexOf("(") ?? -1;
-        const namePart =
-          parenIdx > 0
-            ? normalizeTurkishSearchText(log.row_id.slice(0, parenIdx).trim())
+            log.row_id ?? "",
+            log.row_id_label
+          );
+          const disp = normalizeTurkishSearchText(display);
+          const label = log.row_id_label
+            ? normalizeTurkishSearchText(log.row_id_label)
             : "";
-        return raw.includes(rq) || namePart.includes(rq);
-      });
+          const raw = String(log.row_id ?? "").trim();
+          if (CHANGE_LOG_ROW_UUID_RE.test(raw)) {
+            return disp.includes(q) || (label.length > 0 && label.includes(q));
+          }
+          const rawN = normalizeTurkishSearchText(raw);
+          return disp.includes(q) || rawN.includes(q) || (label.length > 0 && label.includes(q));
+        });
+      }
     }
 
     return rows;
-  }, [data, searchTerm, datePreset, rowIdFilter]);
+  }, [data, searchTerm, datePreset]);
 
   if (error) {
     return (
@@ -121,25 +110,20 @@ export default function ChangeLogsPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminDataTablePageSkeleton rows={12} />
       ) : (
         <ChangeLogsTooltipProvider>
           <CustomDataTable
             data={filteredData}
             columns={columns}
+            columnHeaderLabels={CHANGE_LOG_COLUMN_HEADER_MAP}
             storageKey="degisiklik-kayitlari"
-            pageSizeOptions={[10, 20, 50, 100]}
+            pageSizeOptions={[10, 20, 50, 100, 200, 500, 1000, 5000]}
+            defaultPageSize={100}
             tableSize="medium"
             initialState={{
               columnVisibility: {
-                // "Kaynak" (table_name) varsayılan gizli — kullanıcı açabilir
-                table_name: false,
+                table_name: true,
               },
             }}
             meta={{ expandedIds, toggleExpand }}
@@ -148,16 +132,23 @@ export default function ChangeLogsPage() {
                 <ChangeLogExpandedRow log={row.original} />
               ) : null
             }
-            filters={({ table, columnFilters }) => (
+            filters={({
+              table,
+              columnFilters,
+              columnOrder,
+              onColumnOrderChange,
+              resetColumnLayout,
+            }) => (
               <ChangeLogFilters
                 table={table}
                 columnFilters={columnFilters}
+                columnOrder={columnOrder}
+                onColumnOrderChange={onColumnOrderChange}
+                resetColumnLayout={resetColumnLayout}
                 searchValue={searchTerm}
                 onSearchChange={setSearchTerm}
                 datePreset={datePreset}
                 onDatePresetChange={setDatePreset}
-                rowIdFilter={rowIdFilter}
-                onRowIdFilterChange={setRowIdFilter}
               />
             )}
           />

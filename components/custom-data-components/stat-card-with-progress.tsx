@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/date-utils";
+import { normalizeChangeType } from "@/lib/change-log-labels";
 import { Clock, Edit, LucideIcon, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 
@@ -41,7 +42,8 @@ interface RecentActivity {
   event_id: string;
   changed_at: string;
   description: string;
-  change_type: "Ekleme" | "Güncelleme" | "Silme";
+  /** INSERT | UPDATE | DELETE (veya eski Türkçe) */
+  change_type: string;
   column_name: string;
   old_value: string;
   new_value: string;
@@ -186,12 +188,12 @@ function StatCard({
 function EnhancedStatCard({ stats, recentActivities }: EnhancedStatCardProps) {
   // Get change type icon
   const getChangeTypeIcon = (type: string) => {
-    switch (type) {
-      case "Ekleme":
+    switch (normalizeChangeType(type)) {
+      case "INSERT":
         return <Plus className="h-4 w-4 text-sac-primary" />;
-      case "Güncelleme":
+      case "UPDATE":
         return <Edit className="h-4 w-4 text-amber-500" />;
-      case "Silme":
+      case "DELETE":
         return <Trash className="h-4 w-4 text-red-500" />;
       default:
         return <Edit className="h-4 w-4 text-gray-500" />;

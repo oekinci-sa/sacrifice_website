@@ -340,6 +340,106 @@ const EditablePhoneCell = ({ row }: { row: Row<shareholderSchema> }) => {
   );
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const EditableEmailCell = ({ row }: { row: Row<shareholderSchema> }) => {
+  const { toast } = useToast();
+  const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(() => (row.original.email ?? "").trim());
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    const trimmed = value.trim();
+    if (trimmed && !EMAIL_RE.test(trimmed)) {
+      toast({ title: "Geçerli bir e-posta girin", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data } = await updateShareholderField(
+        row.original.shareholder_id,
+        "email",
+        trimmed ? trimmed : null
+      );
+      updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      window.dispatchEvent(new Event("shareholders-updated"));
+      toast({ title: "Güncellendi" });
+      setIsEditing(false);
+    } catch (e) {
+      toast({
+        title: "Hata",
+        description: e instanceof Error ? e.message : "Güncelleme başarısız",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [value, row.original, updateShareholder, toast]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setValue((row.original.email ?? "").trim());
+  }, [row.original.email]);
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1 w-full justify-center">
+        <Input
+          type="email"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSave();
+            if (e.key === "Escape") handleCancel();
+          }}
+          className="h-8 text-sm flex-1 min-w-0"
+          placeholder="ornek@posta.com"
+          autoFocus
+          disabled={saving}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  const display = (row.original.email ?? "").trim() || "—";
+  return (
+    <div className="group relative w-full min-h-[2rem] flex items-center">
+      <span
+        className="flex-1 text-center text-sm px-8 truncate max-w-[220px] mx-auto"
+        title={display !== "—" ? display : undefined}
+      >
+        {display}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={() => setIsEditing(true)}
+      >
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+};
+
 /** Teslimat tercihi/yeri düzenlemesi Teslimatlar sayfasında; burada salt okunur. */
 const ReadOnlyDeliveryPreferenceCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const branding = useTenantBranding();
@@ -593,11 +693,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     minSize: 180,
     enableSorting: false,
     enableHiding: true,
-    cell: ({ row }) => (
-      <div className="text-center text-sm px-1 truncate max-w-[220px] mx-auto" title={row.original.email ?? ""}>
-        {(row.original.email ?? "").trim() || "—"}
-      </div>
-    ),
+    cell: ({ row }) => <EditableEmailCell row={row} />,
   },
   {
     accessorKey: "second_phone_number",

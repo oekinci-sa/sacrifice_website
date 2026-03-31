@@ -13,6 +13,7 @@ interface ShareholderUpdateInput {
   shareholder_id: string; // Required for identifying which shareholder to update
   shareholder_name?: string;
   phone_number?: string;
+  email?: string | null;
   second_phone_number?: string | null;
   delivery_fee?: number;
   delivery_location?: string;
@@ -30,6 +31,7 @@ interface ShareholderUpdateInput {
 interface UpdateFields {
   shareholder_name?: string;
   phone_number?: string;
+  email?: string | null;
   second_phone_number?: string | null;
   delivery_fee?: number;
   delivery_location?: string;
@@ -84,6 +86,21 @@ export async function POST(request: NextRequest) {
     if (updateData.phone_number !== undefined) {
       const formatted = formatPhoneForDB(updateData.phone_number);
       if (formatted) updateFields.phone_number = formatted;
+    }
+    if (updateData.email !== undefined) {
+      if (updateData.email === null || String(updateData.email).trim() === "") {
+        updateFields.email = null;
+      } else {
+        const trimmed = String(updateData.email).trim();
+        const basicEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!basicEmail.test(trimmed)) {
+          return NextResponse.json(
+            { error: "Geçerli bir e-posta adresi girin" },
+            { status: 400 }
+          );
+        }
+        updateFields.email = trimmed;
+      }
     }
     if (updateData.second_phone_number !== undefined) {
       if (updateData.second_phone_number === null || updateData.second_phone_number === "") {

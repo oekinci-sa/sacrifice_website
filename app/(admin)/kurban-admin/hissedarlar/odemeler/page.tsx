@@ -3,7 +3,7 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { ColumnSelectorPopover } from "../tum-hissedarlar/components/column-selector-popover";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminOdemelerTeslimatSkeleton } from "../../components/admin-page-skeletons";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
@@ -13,7 +13,7 @@ import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Download, X } from "lucide-react";
 import { exportTableToExcel } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
@@ -229,11 +229,9 @@ export default function OdemelerPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <AdminOdemelerTeslimatSkeleton rows={12} />
       ) : (
+        <Suspense fallback={<AdminOdemelerTeslimatSkeleton rows={12} />}>
         <CustomDataTable
           columns={columns}
           data={sortedData}
@@ -291,6 +289,7 @@ export default function OdemelerPage() {
             );
           }}
         />
+        </Suspense>
       )}
     </div>
   );

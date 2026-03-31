@@ -37,7 +37,7 @@ BEGIN
     'current_sacrifice_number',
     COALESCE(OLD.current_sacrifice_number::text, '—'),
     NEW.current_sacrifice_number::text,
-    'Güncelleme',
+    'UPDATE',
     'Sıra güncellendi',
     v_owner,
     NEW.tenant_id

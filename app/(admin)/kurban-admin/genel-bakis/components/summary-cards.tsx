@@ -154,7 +154,7 @@ export function SummaryCards() {
                     displayValue={stats.completedSacrifices}
                     actionLink={{
                         text: "Tümünü göster",
-                        href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+                        href: "/kurban-admin/kurbanliklar/tum-kurbanliklar?empty_share=0",
                     }}
                 />
                 <StatCardWithProgress
@@ -163,7 +163,7 @@ export function SummaryCards() {
                     maxValue={stats.activeSacrificesCount}
                     actionLink={{
                         text: "Tümünü göster",
-                        href: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+                        href: "/kurban-admin/kurbanliklar/tum-kurbanliklar?payment_status=completed",
                     }}
                 />
                 <StatCardWithProgress
@@ -178,10 +178,6 @@ export function SummaryCards() {
                     value={stats.paidAmount}
                     maxValue={stats.totalAmount}
                     displayValue={stats.paidAmount}
-                    actionLink={{
-                        text: "Tümünü göster",
-                        href: "/kurban-admin/hissedarlar/tum-hissedarlar",
-                    }}
                     format="currency"
                 />
                 <StatCardWithProgress
@@ -190,7 +186,7 @@ export function SummaryCards() {
                     maxValue={stats.totalShareholders}
                     actionLink={{
                         text: "Tümünü göster",
-                        href: "/kurban-admin/hissedarlar/tum-hissedarlar",
+                        href: "/kurban-admin/hissedarlar/odemeler?paymentStatus=partial,completed",
                     }}
                 />
                 <StatCardWithProgress
@@ -200,7 +196,7 @@ export function SummaryCards() {
                     displayValue={stats.shareholdersWithCompletePayments}
                     actionLink={{
                         text: "Tümünü göster",
-                        href: "/kurban-admin/hissedarlar/tum-hissedarlar",
+                        href: "/kurban-admin/hissedarlar/odemeler?paymentStatus=completed",
                     }}
                     description="Ödemesi tamamlanmış hissedarlar"
                     icon={CreditCard}

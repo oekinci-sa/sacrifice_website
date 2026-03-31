@@ -1,13 +1,13 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminDataTablePageSkeleton } from "../../components/admin-page-skeletons";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { columns } from "./components/columns";
 import { NewSacrificeAnimal } from "./components/new-sacrifice-animal";
@@ -132,14 +132,9 @@ export default function TumKurbanliklarPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminDataTablePageSkeleton rows={12} />
       ) : (
+        <Suspense fallback={<AdminDataTablePageSkeleton rows={12} />}>
         <CustomDataTable
           data={filteredData}
           columns={columns}
@@ -163,6 +158,7 @@ export default function TumKurbanliklarPage() {
           )}
           tableSize="medium"
         />
+        </Suspense>
       )}
     </div>
   );

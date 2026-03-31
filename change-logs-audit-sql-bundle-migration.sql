@@ -29,7 +29,7 @@ ALTER TABLE public.change_logs
 
 ALTER TABLE public.change_logs
   ADD CONSTRAINT chk_change_type
-  CHECK (change_type IN ('Ekleme', 'Güncelleme', 'Silme'));
+  CHECK (change_type IN ('INSERT', 'UPDATE', 'DELETE'));
 
 -- ---------------------------------------------------------------------------
 -- 3. row_id indeksi (UI kayıt bazlı filtre performansı için)

@@ -28,8 +28,11 @@ const STAGE_ROW_LABEL_TR: Record<string, string> = {
   delivery_stage: "Teslimat",
 };
 
-const UUID_RE =
+/** Satır kimliği UUID doğrulama (change_logs row_id, API eşleştirme) */
+export const CHANGE_LOG_ROW_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const UUID_RE = CHANGE_LOG_ROW_UUID_RE;
 
 /** Kolon kodları (snake_case) → Türkçe etiket; tablo bazlı */
 const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
@@ -95,6 +98,28 @@ export function getTableLabelTr(tableName: string | null | undefined): string {
   return TABLE_LABEL_TR[code] ?? tableName;
 }
 
+export type ChangeTypeCode = "INSERT" | "UPDATE" | "DELETE";
+
+/** DB'de İngilizce; eski Türkçe satırlar için geriye dönük */
+export function normalizeChangeType(raw: string | null | undefined): ChangeTypeCode {
+  const s = (raw ?? "").trim();
+  if (s === "INSERT" || s === "Ekleme") return "INSERT";
+  if (s === "UPDATE" || s === "Güncelleme") return "UPDATE";
+  if (s === "DELETE" || s === "Silme") return "DELETE";
+  return "UPDATE";
+}
+
+export function formatChangeTypeTr(raw: string | null | undefined): string {
+  if (raw == null || raw === "") return "-";
+  const c = normalizeChangeType(raw);
+  const map: Record<ChangeTypeCode, string> = {
+    INSERT: "Ekleme",
+    UPDATE: "Güncelleme",
+    DELETE: "Silme",
+  };
+  return map[c] ?? raw;
+}
+
 export function getColumnLabelTr(
   tableName: string | null | undefined,
   columnName: string | null | undefined
@@ -109,17 +134,20 @@ export function getColumnLabelTr(
 
 /**
  * Satır kimliğinin tabloya göre kısa/okunabilir gösterimi (UI).
- * Kurbanlıklar: `row_id` artık sacrifice_id (UUID); eski silinmiş kayıtlar için sıra no kalabilir.
+ * `rowIdLabel`: API’nin sacrifice_id → sıra no eşlemesi (Kurbanlıklar / uyumsuzluk).
+ * Kurbanlıklar: `row_id` sacrifice_id (UUID); eski silinmiş kayıtlar için sıra no kalabilir.
  * Hissedar / kullanıcı: yalnızca UUID (ve eski "Ad (uuid)" satırları için geriye dönük).
  */
 export function formatRowIdDisplay(
   tableName: string | null | undefined,
-  rowId: string
+  rowId: string,
+  rowIdLabel?: string | null
 ): string {
+  if (rowIdLabel != null && rowIdLabel.trim() !== "") return rowIdLabel.trim();
   if (!rowId) return "-";
   const t = normalizeTableCode(tableName ?? "");
 
-  if (t === "sacrifice_animals") {
+  if (t === "sacrifice_animals" || t === "mismatched_share_acknowledgments") {
     const trimmed = rowId.trim();
     if (UUID_RE.test(trimmed)) return trimmed;
     const n = parseInt(rowId, 10);
@@ -136,11 +164,6 @@ export function formatRowIdDisplay(
 
   if (t === "stage_metrics") {
     return STAGE_ROW_LABEL_TR[rowId] ?? rowId;
-  }
-
-  if (t === "mismatched_share_acknowledgments") {
-    const n = parseInt(rowId, 10);
-    if (!Number.isNaN(n)) return `Sıra #${n}`;
   }
 
   return rowId;

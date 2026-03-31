@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminTabsTableSkeleton } from "../components/admin-page-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { MISMATCHES_UPDATED_EVENT } from "@/hooks/useUnacknowledgedMismatchesCount";
@@ -153,10 +153,7 @@ export default function UyumsuzHisselerPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <AdminTabsTableSkeleton tabCount={2} rows={8} />
       ) : (
         <>
           <Tabs

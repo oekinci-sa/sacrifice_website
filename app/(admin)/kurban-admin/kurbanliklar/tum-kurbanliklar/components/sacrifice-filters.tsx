@@ -20,7 +20,8 @@ import { sacrificeSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // Ödeme Durumu filter
 function PaymentStatusFilter({
@@ -300,6 +301,9 @@ interface SacrificeFiltersProps {
 }
 
 export function SacrificeFilters({ table, registerResetFunction }: SacrificeFiltersProps) {
+  const searchParams = useSearchParams();
+  const urlSyncDone = useRef(false);
+
   // Add state for "hide filled ones" option
   const [showHideFullOption, setShowHideFullOption] = useState(true);
 
@@ -389,6 +393,23 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
       };
     }
   }, [table]);
+
+  // Genel bakış "Tümünü göster" — ?empty_share= & ?payment_status=
+  useEffect(() => {
+    if (urlSyncDone.current) return;
+    const empty = searchParams.get("empty_share");
+    const pay = searchParams.get("payment_status");
+    let applied = false;
+    if (empty !== null && empty !== "") {
+      table.getColumn("empty_share")?.setFilterValue([empty]);
+      applied = true;
+    }
+    if (pay !== null && pay !== "") {
+      table.getColumn("payment_status")?.setFilterValue(pay);
+      applied = true;
+    }
+    if (applied) urlSyncDone.current = true;
+  }, [table, searchParams]);
 
   const paymentStatusFilter = table.getColumn("payment_status")?.getFilterValue() as string | undefined;
   const { completedCount, incompleteCount } = useMemo(() => {

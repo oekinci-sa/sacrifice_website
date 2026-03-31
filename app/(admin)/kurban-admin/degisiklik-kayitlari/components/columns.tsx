@@ -2,11 +2,18 @@
 
 import { formatDate } from "@/lib/date-utils";
 import {
+  formatChangeTypeTr,
   formatRowIdDisplay,
   getColumnLabelTr,
   getTableLabelTr,
+  normalizeChangeType,
   tableNameMatchesFilter,
 } from "@/lib/change-log-labels";
+import {
+  formatChangeLogDetailNewDisplay,
+  formatChangeLogDetailOldDisplay,
+  formatChangeLogOldNewArrow,
+} from "@/lib/change-log-value-display";
 import { cn } from "@/lib/utils";
 import {
   Content,
@@ -24,11 +31,14 @@ export type ChangeLog = {
   event_id: number;
   table_name: string;
   row_id: string;
+  /** API: sacrifice_id → "Kurbanlık sıra #N" (Kurbanlıklar / uyumsuzluk) */
+  row_id_label?: string | null;
   column_name: string | null;
   old_value: string | null;
   new_value: string | null;
   description: string;
-  change_type: "Ekleme" | "Güncelleme" | "Silme";
+  /** DB: INSERT | UPDATE | DELETE */
+  change_type: string;
   changed_at: string;
   change_owner: string | null;
   correlation_id: string | null;
@@ -113,19 +123,21 @@ function TruncatedCell({
 // İşlem tipi rozeti
 // ---------------------------------------------------------------------------
 function ChangeTypeCell({ row }: { row: Row<ChangeLog> }) {
-  const type = row.getValue("change_type") as string;
+  const raw = row.getValue("change_type") as string;
+  const type = normalizeChangeType(raw);
+  const label = formatChangeTypeTr(raw);
 
   return (
     <div className="text-center">
       <span
         className={cn(
           "inline-flex items-center rounded-md px-2 py-1 min-w-[90px] justify-center text-xs font-semibold",
-          type === "Ekleme" && "bg-muted text-muted-foreground",
-          type === "Güncelleme" && "bg-sac-yellow-light text-sac-yellow",
-          type === "Silme" && "bg-sac-red-light text-sac-red"
+          type === "INSERT" && "bg-muted text-muted-foreground",
+          type === "UPDATE" && "bg-sac-yellow-light text-sac-yellow",
+          type === "DELETE" && "bg-sac-red-light text-sac-red"
         )}
       >
-        {type}
+        {label}
       </span>
     </div>
   );
@@ -136,10 +148,10 @@ function ChangeTypeCell({ row }: { row: Row<ChangeLog> }) {
 // ---------------------------------------------------------------------------
 function ExpandedDetailPanel({ log }: { log: ChangeLog }) {
   const items: { label: string; value: ReactNode }[] = [
-    { label: "Kaynak Tablo", value: getTableLabelTr(log.table_name) },
+    { label: "Tablo", value: getTableLabelTr(log.table_name) },
     {
       label: "Kayıt",
-      value: formatRowIdDisplay(log.table_name, log.row_id ?? ""),
+      value: formatRowIdDisplay(log.table_name, log.row_id ?? "", log.row_id_label),
     },
     {
       label: "Alan",
@@ -147,11 +159,19 @@ function ExpandedDetailPanel({ log }: { log: ChangeLog }) {
     },
     {
       label: "Eski Değer",
-      value: log.old_value != null ? log.old_value : "-",
+      value: formatChangeLogDetailOldDisplay(
+        log.old_value,
+        log.new_value,
+        log.column_name
+      ),
     },
     {
       label: "Yeni Değer",
-      value: log.new_value != null ? log.new_value : "-",
+      value: formatChangeLogDetailNewDisplay(
+        log.old_value,
+        log.new_value,
+        log.column_name
+      ),
     },
     {
       label: "Açıklama",
@@ -272,14 +292,15 @@ export const columns: ColumnDef<ChangeLog>[] = [
     filterFn: (row, id, value: unknown) => {
       const arr = Array.isArray(value) ? value : [];
       if (arr.length === 0) return true;
-      return arr.includes(row.getValue(id));
+      const rowCode = normalizeChangeType(row.getValue(id) as string);
+      return arr.some((v) => normalizeChangeType(String(v)) === rowCode);
     },
   },
 
-  // Kaynak tablo (varsayılan gizli)
+  // Tablo (hangi kaynak tabloda işlem yapıldı)
   {
     accessorKey: "table_name",
-    header: "Kaynak",
+    header: "Tablo",
     cell: ({ row }) => {
       const tableName = row.getValue("table_name") as string;
       return (
@@ -302,13 +323,18 @@ export const columns: ColumnDef<ChangeLog>[] = [
     cell: ({ row }) => {
       const tableName = row.original.table_name;
       const rowId = row.getValue("row_id") as string;
-      const formatted = formatRowIdDisplay(tableName, rowId);
+      const label = row.original.row_id_label;
+      const formatted = formatRowIdDisplay(tableName, rowId, label);
       return <div className="text-center text-sm">{formatted}</div>;
     },
     filterFn: (row, id, value: unknown) => {
       if (typeof value !== "string" || !value.trim()) return true;
       const rawId = (row.getValue(id) as string) ?? "";
-      const formatted = formatRowIdDisplay(row.original.table_name, rawId);
+      const formatted = formatRowIdDisplay(
+        row.original.table_name,
+        rawId,
+        row.original.row_id_label
+      );
       const q = value.trim().toLowerCase();
       return (
         rawId.toLowerCase().includes(q) ||
@@ -341,15 +367,19 @@ export const columns: ColumnDef<ChangeLog>[] = [
     header: "Eski → Yeni",
     meta: { align: "left" as const },
     cell: ({ row }) => {
-      const type = row.original.change_type;
+      const type = normalizeChangeType(row.original.change_type);
       const oldVal = row.original.old_value;
       const newVal = row.original.new_value;
 
-      if (type !== "Güncelleme" || (oldVal == null && newVal == null)) {
+      if (type !== "UPDATE" || (oldVal == null && newVal == null)) {
         return <span className="text-muted-foreground text-xs">-</span>;
       }
 
-      const display = `${oldVal ?? "—"} → ${newVal ?? "—"}`;
+      const display = formatChangeLogOldNewArrow(
+        oldVal,
+        newVal,
+        row.original.column_name
+      );
       return (
         <TruncatedCell text={display} maxWidth="max-w-[14rem]" />
       );
@@ -385,5 +415,18 @@ export const columns: ColumnDef<ChangeLog>[] = [
     },
   },
 ];
+
+/** Sütunlar popover etiketleri (id → başlık) */
+export const CHANGE_LOG_COLUMN_HEADER_MAP: Record<string, string> = {
+  expand: "Genişlet",
+  changed_at: "Tarih",
+  change_type: "İşlem",
+  table_name: "Tablo",
+  row_id: "Kayıt",
+  column_name: "Alan",
+  value_change: "Eski → Yeni",
+  description: "Açıklama",
+  change_owner: "Kim",
+};
 
 export const columnIcon = <Columns2 className="h-4 w-4" />;

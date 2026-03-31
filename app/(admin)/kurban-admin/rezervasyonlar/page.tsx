@@ -3,7 +3,7 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminReservationPageSkeleton } from "../components/admin-page-skeletons";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useReservationTransactionsStore } from "@/stores/only-admin-pages/useReservationTransactionsStore";
@@ -104,11 +104,7 @@ export default function RezervasyonlarPage() {
         </div>
       ) : null}
       {loading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminReservationPageSkeleton rows={10} />
       ) : (
         <CustomDataTable
           data={filteredData}

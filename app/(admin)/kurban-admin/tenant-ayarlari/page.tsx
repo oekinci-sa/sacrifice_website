@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminTenantSettingsSkeleton } from "../components/admin-page-skeletons";
 import { useEffect, useState } from "react";
 import { createColumns, type TenantSettingRow } from "./components/columns";
 import { TenantSettingsEditDialog } from "./components/tenant-settings-edit-dialog";
@@ -57,11 +57,7 @@ export default function TenantAyarlariPage() {
         </p>
       </div>
       {loading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminTenantSettingsSkeleton rows={8} />
       ) : (
         <CustomDataTable
           data={data}

@@ -1,7 +1,8 @@
--- users → change_logs
--- Actor: önce app.actor GUC (RPC'den set_config ile gelir), yoksa last_edited_by kolonundan alınır.
--- sacrifice_year: tenant_settings.active_sacrifice_year (admin yıl filtresi ile eşleşsin)
+-- 1) API: seçili yıl + sacrifice_year IS NULL (uygulama tarafında get-change-logs güncellendi).
+-- 2) users / user_tenants audit: sacrifice_year = tenant_settings.active_sacrifice_year
+-- 3) Geçmiş: sacrifice_animals satırlarında sacrifice_year boşsa 2026 (tek sefer; gerekirse yıl değiştir)
 
+-- --- log_user_changes (tam gövde: repo ile aynı) ---
 CREATE OR REPLACE FUNCTION public.log_user_changes()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -123,9 +124,75 @@ BEGIN
 END;
 $BODY$;
 
-DROP TRIGGER IF EXISTS trigger_user_changes ON public.users;
+-- --- log_user_tenants_changes ---
+CREATE OR REPLACE FUNCTION public.log_user_tenants_changes()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $BODY$
+DECLARE
+  v_owner text;
+  v_cnt int;
+  v_year smallint;
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.approved_at IS NULL THEN
+      RETURN NEW;
+    END IF;
+    SELECT COUNT(*)::int INTO v_cnt FROM public.user_tenants ut WHERE ut.user_id = NEW.user_id;
+    IF v_cnt < 2 THEN
+      RETURN NEW;
+    END IF;
+    v_owner := COALESCE(
+      NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
+      'Anonim Kullanıcı'
+    );
+    SELECT ts.active_sacrifice_year INTO v_year
+    FROM public.tenant_settings ts
+    WHERE ts.tenant_id = NEW.tenant_id;
 
-CREATE TRIGGER trigger_user_changes
-  AFTER INSERT OR UPDATE OR DELETE ON public.users
-  FOR EACH ROW
-  EXECUTE FUNCTION public.log_user_changes();
+    INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
+    VALUES (
+      'user_tenants',
+      NEW.user_id::text,
+      'UPDATE',
+      'Kullanıcı onaylandı',
+      v_owner,
+      NEW.tenant_id,
+      v_year
+    );
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE' THEN
+    IF OLD.approved_at IS NOT NULL AND NEW.approved_at IS NULL THEN
+      v_owner := COALESCE(
+        NULLIF(trim(COALESCE(current_setting('app.actor', true), '')), ''),
+        'Anonim Kullanıcı'
+      );
+      SELECT ts.active_sacrifice_year INTO v_year
+      FROM public.tenant_settings ts
+      WHERE ts.tenant_id = NEW.tenant_id;
+
+      INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
+      VALUES (
+        'user_tenants',
+        NEW.user_id::text,
+        'UPDATE',
+        'Kullanıcı onayı kaldırıldı',
+        v_owner,
+        NEW.tenant_id,
+        v_year
+      );
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  RETURN NULL;
+END;
+$BODY$;
+
+-- --- Geçmiş kurbanlık audit kayıtları (yıl boş) ---
+UPDATE public.change_logs
+SET sacrifice_year = 2026
+WHERE table_name = 'sacrifice_animals'
+  AND sacrifice_year IS NULL;

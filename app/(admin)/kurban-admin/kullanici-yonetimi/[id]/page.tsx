@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
+import { AdminUserProfilePageSkeleton } from "../../components/admin-page-skeletons";
 import { ArrowLeft, Loader2, Upload } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
@@ -156,11 +157,7 @@ export default function UserProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <AdminUserProfilePageSkeleton />;
   }
 
   if (!user) {

@@ -1,0 +1,34 @@
+---
+description: Admin veri tablolarında arama + filtre + sütun seçici düzeni; yüklemede skeleton
+globs:
+  - app/(admin)/kurban-admin/**/*
+---
+
+# Admin tablo araç çubuğu ve filtre UI düzeni
+
+Yeni veya güncellenen **filtreli admin veri tabloları** bu düzeni takip etmeli. Referans: `app/(admin)/kurban-admin/kurbanliklar/tum-kurbanliklar/ToolbarAndFilters.tsx` + `components/sacrifice-filters.tsx`.
+
+## Üst satır
+
+- **Sol:** Geniş arama alanı (`w-96` / `sm:w-[28rem]`, `max-w-full`, `min-w-0`).
+- **Sağ:** `ColumnSelectorPopover` (Sütunlar) ve varsa Excel dışa aktar vb. — `shrink-0`, `flex items-center gap-2`.
+
+## Alt satır
+
+- **Sol:** `flex flex-1 flex-wrap items-center gap-3 min-w-0` içinde filtreler.
+- Filtre düğmeleri: `Button variant="outline" size="sm"` + `h-8 border-dashed text-xs` + `PlusCircle` ikonu + kısa başlık (ör. Kurban No, Ödeme Durumu, Tablo).
+- Açılır içerik: `Popover` + `PopoverContent` + `Command` / `CommandList` / `CommandItem`; **çoklu seçim** gerekiyorsa öğe tıklanınca seçimi **toggle** et (tek seçim zorunlu değilse).
+- Çoklu seçimde seçilen değerler rozet olarak: `bg-muted text-xs px-2 py-0.5` (masaüstünde `hidden md:flex` ile yan yana); mobilde sayı rozeti için `FilterCountBadge` (sağ üst `absolute`, `md:hidden`) kullanılabilir — bkz. `sacrifice-filters.tsx`.
+- **Sağ:** `Tüm filtreleri temizle` (aktif filtre/arama varken), `ml-auto`, `shrink-0`.
+
+## Yükleme (skeleton) — zorunlu
+
+- **Tam sayfa spinner** (`animate-spin`, `Loader2` ile sayfa ortası) kullanma; **shadcn `Skeleton`** kullan.
+- Sayfa başlığı (`h1`) ve kısa açıklama **mümkünse her zaman görünür**; yalnızca veri alanı iskeletlenir (ör. `genel-bakis/page.tsx`).
+- Ortak bileşenler: `app/(admin)/kurban-admin/components/admin-page-skeletons.tsx` — tablo sayfaları için `AdminDataTablePageSkeleton`, arama+tablo için `AdminSearchToolbarTableSkeleton`, ödeme/teslimat için `AdminOdemelerTeslimatSkeleton`, vb. Yeni sayfa eklerken uygun export’u içe aktar veya aynı dosyaya yeni bir varyant ekle.
+- Küçük **aksiyon içi** spinner (kaydet butonu, satır içi yükleme) sayfa yükleme kurallarına dahil değildir.
+
+## Tutarlılık
+
+- Aynı sayfada üst/alt satır yapısını bozma; filtreleri üstteki açıklama metninin içine gömme (ayrı satır).
+- Yeni menü eklerken bu dosyayı ve Kurbanlıklar bileşenlerini örnek al.

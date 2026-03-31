@@ -37,7 +37,7 @@ BEGIN
     VALUES (
       'sacrifice_animals',
       NEW.sacrifice_id::text,
-      'Ekleme',
+      'INSERT',
       'Kurbanlık eklendi',
       v_owner,
       NEW.tenant_id,
@@ -60,7 +60,7 @@ BEGIN
         'sacrifice_no',
         CAST(OLD.sacrifice_no AS TEXT),
         CAST(NEW.sacrifice_no AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Kurban numarası güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -76,7 +76,7 @@ BEGIN
         'share_weight',
         CAST(OLD.share_weight AS TEXT),
         CAST(NEW.share_weight AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Hisse ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -92,7 +92,7 @@ BEGIN
         'share_price',
         CAST(OLD.share_price AS TEXT),
         CAST(NEW.share_price AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Hisse bedeli güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -108,7 +108,7 @@ BEGIN
         'empty_share',
         CAST(OLD.empty_share AS TEXT),
         CAST(NEW.empty_share AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Boş hisse güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -126,7 +126,7 @@ BEGIN
         'pricing_mode',
         COALESCE(OLD.pricing_mode::text, '—'),
         COALESCE(NEW.pricing_mode::text, '—'),
-        'Güncelleme',
+        'UPDATE',
         'Fiyatlama modu güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -142,7 +142,7 @@ BEGIN
         'live_scale_total_kg',
         COALESCE(OLD.live_scale_total_kg::text, '—'),
         COALESCE(NEW.live_scale_total_kg::text, '—'),
-        'Güncelleme',
+        'UPDATE',
         'Baskül ağırlığı güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -158,7 +158,7 @@ BEGIN
         'live_scale_total_price',
         COALESCE(OLD.live_scale_total_price::text, '—'),
         COALESCE(NEW.live_scale_total_price::text, '—'),
-        'Güncelleme',
+        'UPDATE',
         'Baskül tutarı güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -173,7 +173,7 @@ BEGIN
         'notes',
         OLD.notes,
         NEW.notes,
-        'Güncelleme',
+        'UPDATE',
         'Notlar güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -189,7 +189,7 @@ BEGIN
         'animal_type',
         COALESCE(OLD.animal_type, ''),
         COALESCE(NEW.animal_type, ''),
-        'Güncelleme',
+        'UPDATE',
         'Hayvan cinsi güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -205,7 +205,7 @@ BEGIN
         'foundation',
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
-        'Güncelleme',
+        'UPDATE',
         'Vakıf bilgisi güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -221,7 +221,7 @@ BEGIN
         'ear_tag',
         COALESCE(OLD.ear_tag, ''),
         COALESCE(NEW.ear_tag, ''),
-        'Güncelleme',
+        'UPDATE',
         'Küpe numarası güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -237,7 +237,7 @@ BEGIN
         'barn_stall_order_no',
         COALESCE(OLD.barn_stall_order_no, ''),
         COALESCE(NEW.barn_stall_order_no, ''),
-        'Güncelleme',
+        'UPDATE',
         'Ahır sıra numarası güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -253,7 +253,7 @@ BEGIN
         'sacrifice_time',
         CAST(OLD.sacrifice_time AS TEXT),
         CAST(NEW.sacrifice_time AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Kesim planı güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -269,7 +269,7 @@ BEGIN
         'planned_delivery_time',
         CAST(OLD.planned_delivery_time AS TEXT),
         CAST(NEW.planned_delivery_time AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Planlı teslim saati güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -285,7 +285,7 @@ BEGIN
         'slaughter_time',
         CAST(OLD.slaughter_time AS TEXT),
         CAST(NEW.slaughter_time AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Kesim saati güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -301,7 +301,7 @@ BEGIN
         'butcher_time',
         CAST(OLD.butcher_time AS TEXT),
         CAST(NEW.butcher_time AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Parçalama saati güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -317,7 +317,7 @@ BEGIN
         'delivery_time',
         CAST(OLD.delivery_time AS TEXT),
         CAST(NEW.delivery_time AS TEXT),
-        'Güncelleme',
+        'UPDATE',
         'Teslimat saati güncellendi',
         v_owner,
         NEW.tenant_id,
@@ -336,7 +336,7 @@ BEGIN
     VALUES (
       'sacrifice_animals',
       OLD.sacrifice_id::text,
-      'Silme',
+      'DELETE',
       'Kurbanlık silindi',
       v_owner,
       OLD.tenant_id,
@@ -391,7 +391,7 @@ BEGIN
     VALUES (
       'shareholders',
       NEW.shareholder_id::text,
-      'Ekleme',
+      'INSERT',
       'Hissedar eklendi',
       v_owner,
       NEW.tenant_id,
@@ -409,7 +409,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'shareholder_name',
-        OLD.shareholder_name, NEW.shareholder_name, 'Güncelleme',
+        OLD.shareholder_name, NEW.shareholder_name, 'UPDATE',
         'Hissedar adı güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -419,7 +419,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'phone_number',
-        OLD.phone_number, NEW.phone_number, 'Güncelleme',
+        OLD.phone_number, NEW.phone_number, 'UPDATE',
         'Telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -429,7 +429,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'second_phone_number',
-        OLD.second_phone_number, NEW.second_phone_number, 'Güncelleme',
+        OLD.second_phone_number, NEW.second_phone_number, 'UPDATE',
         'İkinci telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -439,7 +439,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'total_amount',
-        CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'Güncelleme',
+        CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'UPDATE',
         'Toplam tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -449,7 +449,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'paid_amount',
-        CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'Güncelleme',
+        CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'UPDATE',
         'Ödenen tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -459,7 +459,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'remaining_payment',
-        CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'Güncelleme',
+        CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'UPDATE',
         'Kalan ödeme güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -469,7 +469,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_fee',
-        CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'Güncelleme',
+        CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'UPDATE',
         'Teslimat ücreti güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -479,7 +479,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_location',
-        OLD.delivery_location, NEW.delivery_location, 'Güncelleme',
+        OLD.delivery_location, NEW.delivery_location, 'UPDATE',
         'Teslimat noktası güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -489,7 +489,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_type',
-        OLD.delivery_type, NEW.delivery_type, 'Güncelleme',
+        OLD.delivery_type, NEW.delivery_type, 'UPDATE',
         'Teslimat tipi güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -499,7 +499,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'sacrifice_consent',
-        CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'Güncelleme',
+        CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'UPDATE',
         'Vekalet durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -509,7 +509,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'notes',
-        OLD.notes, NEW.notes, 'Güncelleme',
+        OLD.notes, NEW.notes, 'UPDATE',
         'Not güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -519,7 +519,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'email',
-        OLD.email, NEW.email, 'Güncelleme',
+        OLD.email, NEW.email, 'UPDATE',
         'E-posta güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -529,7 +529,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'security_code',
-        OLD.security_code, NEW.security_code, 'Güncelleme',
+        OLD.security_code, NEW.security_code, 'UPDATE',
         'Güvenlik kodu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -539,7 +539,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'contacted_at',
-        CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'Güncelleme',
+        CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'UPDATE',
         'Görüşme durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -557,7 +557,7 @@ BEGIN
     VALUES (
       'shareholders',
       OLD.shareholder_id::text,
-      'Silme',
+      'DELETE',
       'Hissedar silindi',
       v_owner,
       OLD.tenant_id,
@@ -619,7 +619,7 @@ BEGIN
       INSERT INTO public.change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id)
       VALUES (
         'users', NEW.id::text, 'name',
-        OLD.name, NEW.name, 'Güncelleme',
+        OLD.name, NEW.name, 'UPDATE',
         'Ad güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
@@ -629,7 +629,7 @@ BEGIN
       INSERT INTO public.change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id)
       VALUES (
         'users', NEW.id::text, 'image',
-        OLD.image, NEW.image, 'Güncelleme',
+        OLD.image, NEW.image, 'UPDATE',
         'Profil görseli güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
@@ -639,7 +639,7 @@ BEGIN
       INSERT INTO public.change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id)
       VALUES (
         'users', NEW.id::text, 'role',
-        OLD.role::text, NEW.role::text, 'Güncelleme',
+        OLD.role::text, NEW.role::text, 'UPDATE',
         'Rol güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
@@ -649,7 +649,7 @@ BEGIN
       INSERT INTO public.change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id)
       VALUES (
         'users', NEW.id::text, 'email',
-        OLD.email, NEW.email, 'Güncelleme',
+        OLD.email, NEW.email, 'UPDATE',
         'E-posta güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
@@ -659,7 +659,7 @@ BEGIN
       INSERT INTO public.change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id)
       VALUES (
         'users', NEW.id::text, 'status',
-        OLD.status::text, NEW.status::text, 'Güncelleme',
+        OLD.status::text, NEW.status::text, 'UPDATE',
         'Durum güncellendi',
         v_owner, NEW.last_audit_tenant_id
       );
@@ -678,7 +678,7 @@ BEGIN
     VALUES (
       'users',
       OLD.id::text,
-      'Silme',
+      'DELETE',
       'Kullanıcı silindi',
       v_owner,
       OLD.last_audit_tenant_id
@@ -725,7 +725,7 @@ BEGIN
     VALUES (
       'user_tenants',
       NEW.user_id::text,
-      'Güncelleme',
+      'UPDATE',
       'Kullanıcı onaylandı',
       v_owner,
       NEW.tenant_id
@@ -743,7 +743,7 @@ BEGIN
       VALUES (
         'user_tenants',
         NEW.user_id::text,
-        'Güncelleme',
+        'UPDATE',
         'Kullanıcı onayı kaldırıldı',
         v_owner,
         NEW.tenant_id
@@ -803,7 +803,7 @@ BEGIN
     'current_sacrifice_number',
     COALESCE(OLD.current_sacrifice_number::text, '—'),
     NEW.current_sacrifice_number::text,
-    'Güncelleme',
+    'UPDATE',
     'Sıra güncellendi',
     v_owner,
     NEW.tenant_id
@@ -832,12 +832,11 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
   v_owner   text;
-  v_no      INT2;
   v_year    INT2;
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    SELECT sa.sacrifice_no, sa.sacrifice_year
-    INTO v_no, v_year
+    SELECT sa.sacrifice_year
+    INTO v_year
     FROM public.sacrifice_animals sa
     WHERE sa.sacrifice_id = NEW.sacrifice_id;
 
@@ -850,8 +849,8 @@ BEGIN
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'mismatched_share_acknowledgments',
-      COALESCE(v_no::text, NEW.sacrifice_id::text),
-      'Güncelleme',
+      NEW.sacrifice_id::text,
+      'INSERT',
       'Uyumsuzluk onaylandı',
       v_owner,
       NEW.tenant_id,
@@ -861,8 +860,8 @@ BEGIN
   END IF;
 
   IF TG_OP = 'DELETE' THEN
-    SELECT sa.sacrifice_no, sa.sacrifice_year
-    INTO v_no, v_year
+    SELECT sa.sacrifice_year
+    INTO v_year
     FROM public.sacrifice_animals sa
     WHERE sa.sacrifice_id = OLD.sacrifice_id;
 
@@ -876,8 +875,8 @@ BEGIN
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'mismatched_share_acknowledgments',
-      COALESCE(v_no::text, OLD.sacrifice_id::text),
-      'Güncelleme',
+      OLD.sacrifice_id::text,
+      'DELETE',
       'Uyumsuzluk kaldırıldı',
       v_owner,
       OLD.tenant_id,

@@ -9,12 +9,11 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
   v_owner   text;
-  v_no      INT2;
   v_year    INT2;
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    SELECT sa.sacrifice_no, sa.sacrifice_year
-    INTO v_no, v_year
+    SELECT sa.sacrifice_year
+    INTO v_year
     FROM public.sacrifice_animals sa
     WHERE sa.sacrifice_id = NEW.sacrifice_id;
 
@@ -27,8 +26,8 @@ BEGIN
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'mismatched_share_acknowledgments',
-      COALESCE(v_no::text, NEW.sacrifice_id::text),
-      'Güncelleme',
+      NEW.sacrifice_id::text,
+      'INSERT',
       'Uyumsuzluk onaylandı',
       v_owner,
       NEW.tenant_id,
@@ -38,8 +37,8 @@ BEGIN
   END IF;
 
   IF TG_OP = 'DELETE' THEN
-    SELECT sa.sacrifice_no, sa.sacrifice_year
-    INTO v_no, v_year
+    SELECT sa.sacrifice_year
+    INTO v_year
     FROM public.sacrifice_animals sa
     WHERE sa.sacrifice_id = OLD.sacrifice_id;
 
@@ -53,8 +52,8 @@ BEGIN
     INSERT INTO public.change_logs (table_name, row_id, change_type, description, change_owner, tenant_id, sacrifice_year)
     VALUES (
       'mismatched_share_acknowledgments',
-      COALESCE(v_no::text, OLD.sacrifice_id::text),
-      'Güncelleme',
+      OLD.sacrifice_id::text,
+      'DELETE',
       'Uyumsuzluk kaldırıldı',
       v_owner,
       OLD.tenant_id,

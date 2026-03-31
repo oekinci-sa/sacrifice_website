@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminOdemelerTeslimatSkeleton } from "../components/admin-page-skeletons";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
@@ -177,10 +177,7 @@ export default function TeslimatlarPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <AdminOdemelerTeslimatSkeleton rows={12} />
       ) : (
         <CustomDataTable
           columns={columns}

@@ -32,7 +32,7 @@ BEGIN
     VALUES (
       'shareholders',
       NEW.shareholder_id::text,
-      'Ekleme',
+      'INSERT',
       'Hissedar eklendi',
       v_owner,
       NEW.tenant_id,
@@ -50,7 +50,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'shareholder_name',
-        OLD.shareholder_name, NEW.shareholder_name, 'Güncelleme',
+        OLD.shareholder_name, NEW.shareholder_name, 'UPDATE',
         'Hissedar adı güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -60,7 +60,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'phone_number',
-        OLD.phone_number, NEW.phone_number, 'Güncelleme',
+        OLD.phone_number, NEW.phone_number, 'UPDATE',
         'Telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -70,7 +70,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'second_phone_number',
-        OLD.second_phone_number, NEW.second_phone_number, 'Güncelleme',
+        OLD.second_phone_number, NEW.second_phone_number, 'UPDATE',
         'İkinci telefon güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -80,7 +80,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'total_amount',
-        CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'Güncelleme',
+        CAST(OLD.total_amount AS TEXT), CAST(NEW.total_amount AS TEXT), 'UPDATE',
         'Toplam tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -90,7 +90,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'paid_amount',
-        CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'Güncelleme',
+        CAST(OLD.paid_amount AS TEXT), CAST(NEW.paid_amount AS TEXT), 'UPDATE',
         'Ödenen tutar güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -100,7 +100,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'remaining_payment',
-        CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'Güncelleme',
+        CAST(OLD.remaining_payment AS TEXT), CAST(NEW.remaining_payment AS TEXT), 'UPDATE',
         'Kalan ödeme güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -110,7 +110,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_fee',
-        CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'Güncelleme',
+        CAST(OLD.delivery_fee AS TEXT), CAST(NEW.delivery_fee AS TEXT), 'UPDATE',
         'Teslimat ücreti güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -120,7 +120,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_location',
-        OLD.delivery_location, NEW.delivery_location, 'Güncelleme',
+        OLD.delivery_location, NEW.delivery_location, 'UPDATE',
         'Teslimat noktası güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -130,7 +130,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'delivery_type',
-        OLD.delivery_type, NEW.delivery_type, 'Güncelleme',
+        OLD.delivery_type, NEW.delivery_type, 'UPDATE',
         'Teslimat tipi güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -140,7 +140,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'sacrifice_consent',
-        CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'Güncelleme',
+        CAST(OLD.sacrifice_consent AS TEXT), CAST(NEW.sacrifice_consent AS TEXT), 'UPDATE',
         'Vekalet durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -150,7 +150,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'notes',
-        OLD.notes, NEW.notes, 'Güncelleme',
+        OLD.notes, NEW.notes, 'UPDATE',
         'Not güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -160,7 +160,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'email',
-        OLD.email, NEW.email, 'Güncelleme',
+        OLD.email, NEW.email, 'UPDATE',
         'E-posta güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -170,7 +170,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'security_code',
-        OLD.security_code, NEW.security_code, 'Güncelleme',
+        OLD.security_code, NEW.security_code, 'UPDATE',
         'Güvenlik kodu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -180,7 +180,7 @@ BEGIN
       INSERT INTO change_logs (table_name, row_id, column_name, old_value, new_value, change_type, description, change_owner, tenant_id, sacrifice_year)
       VALUES (
         'shareholders', NEW.shareholder_id::text, 'contacted_at',
-        CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'Güncelleme',
+        CAST(OLD.contacted_at AS TEXT), CAST(NEW.contacted_at AS TEXT), 'UPDATE',
         'Görüşme durumu güncellendi',
         v_owner, NEW.tenant_id, v_sacrifice_year
       );
@@ -198,7 +198,7 @@ BEGIN
     VALUES (
       'shareholders',
       OLD.shareholder_id::text,
-      'Silme',
+      'DELETE',
       'Hissedar silindi',
       v_owner,
       OLD.tenant_id,

@@ -1,3 +1,60 @@
+=== 2026-03-31 (3) ===
+
+[İstek] Admin menüdeki tüm sayfalara genel bakış skeleton mantığı (ortak bileşen + kural)
+
+[Yapılan Değişiklikler]
+1. **admin-page-skeletons.tsx:** Tablo, arama+tablo, ödeme/teslimat, sekmeli tablo, rezervasyon, genel bakış, tenant, hissedar ayrıntı, kullanıcı profili, mail alıcı listesi iskeletleri.
+2. Tüm `kurban-admin` ilgili `page.tsx` dosyaları bu bileşenlere geçirildi; kullanıcı profili tam sayfa spinner kaldırıldı.
+3. **admin-table-toolbar-filters.mdc:** Skeleton zorunluluğu ve glob güncellendi.
+
+[Dosyalar]
+- app/(admin)/kurban-admin/components/admin-page-skeletons.tsx
+- (17 admin sayfa + kural + agent-log)
+
+[Risk] Düşük — UI yükleme; import yolları doğrulandı.
+
+=== 2026-03-31 (2) ===
+
+[İstek] Değişiklik kayıtları contacted_at / sacrifice_consent Türkçe etiket; genel bakış skeleton + Toplanan Tutar link kaldır; RLS route analizi
+
+[Yapılan Değişiklikler]
+1. **change-log-value-display:** contacted_at → Görüşülmedi/Görüşüldü; sacrifice_consent → Vekalet alınmadı/alındı.
+2. **genel-bakis/page:** Spinner kaldırıldı; başlık sabit, kartlar + grafik alanı shadcn Skeleton.
+3. **summary-cards:** Toplanan Tutar kartından "Tümünü göster" kaldırıldı.
+4. **supabase-rls-and-app.mdc:** app/api tamamı supabaseAdmin; anon kullanım yerleri + Realtime notu.
+
+[Dosyalar]
+- lib/change-log-value-display.ts
+- app/(admin)/kurban-admin/genel-bakis/page.tsx
+- app/(admin)/kurban-admin/genel-bakis/components/summary-cards.tsx
+- .cursor/rules/supabase-rls-and-app.mdc
+
+[Risk] Düşük — UI metinleri; RLS’te Realtime için ek test önerilir.
+
+=== 2026-03-31 ===
+
+[İstek] Değişiklik kayıtları: çoklu filtre; yıla göre API; eski/yeni (Boştu) + para formatı; sayfa boyutu 200–5000; filtre UI kuralı; RLS/service role notu
+
+[Yapılan Değişiklikler]
+1. **Filtreler:** Tablo, işlem tipi, düzenleyen — çoklu seçim (toggle + rozetler); tarih tek seçim.
+2. **API:** `get-change-logs` yıl yoksa boş dizi; yıl varsa yalnızca `sacrifice_year` eşit olan kayıtlar (NULL dahil değil).
+3. **useChangeLogs:** Yıl yokken veri temizlenir; yıl ile tek endpoint.
+4. **Eski → Yeni:** `lib/change-log-value-display.ts` — boş `(Boştu)`; para kolonlarında tam sayı gösterim.
+5. **Sayfa:** `pageSizeOptions` 200, 500, 1000, 5000 eklendi.
+6. **Kurallar:** `admin-table-toolbar-filters.mdc`, `supabase-rls-and-app.mdc`.
+
+[Dosyalar]
+- lib/change-log-value-display.ts
+- app/api/get-change-logs/route.ts
+- hooks/useChangeLogs.ts
+- app/(admin)/kurban-admin/degisiklik-kayitlari/page.tsx
+- app/(admin)/kurban-admin/degisiklik-kayitlari/components/columns.tsx
+- app/(admin)/kurban-admin/degisiklik-kayitlari/components/change-log-filters.tsx
+- .cursor/rules/admin-table-toolbar-filters.mdc
+- .cursor/rules/supabase-rls-and-app.mdc
+
+[Risk] Orta — `sacrifice_year` NULL olan audit satırları (ör. bazı kullanıcı tabloları) seçili yılda listelenmez; bilinçli sıkı filtre.
+
 === 2025-03-17 ===
 
 [İstek] Tekrarlayan sorunlarda debug rule; rezervasyon realtime loglama

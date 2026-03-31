@@ -19,7 +19,8 @@ import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, PlusCircle } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const FilterCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
@@ -148,6 +149,8 @@ interface PaymentFiltersProps {
 export function PaymentFilters({ table }: PaymentFiltersProps) {
   const branding = useTenantBranding();
   const depositAmount = branding.deposit_amount;
+  const searchParams = useSearchParams();
+  const urlSyncDone = useRef(false);
   const [paymentStatusCounts, setPaymentStatusCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -196,6 +199,17 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
       };
     }
   }, [table, depositAmount]);
+
+  // Genel bakış — ?paymentStatus=deposit|partial|completed (virgülle çoklu); filterFn kurulduktan sonra
+  useEffect(() => {
+    if (urlSyncDone.current) return;
+    const raw = searchParams.get("paymentStatus");
+    if (!raw) return;
+    const values = raw.split(",").map((s) => s.trim()).filter(Boolean);
+    if (values.length === 0) return;
+    table.getColumn("payment_status")?.setFilterValue(values);
+    urlSyncDone.current = true;
+  }, [table, searchParams]);
 
   const paymentColumn = table.getColumn("payment_status");
   if (!paymentColumn) return null;

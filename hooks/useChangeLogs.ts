@@ -6,6 +6,7 @@ export interface changeLogSchema {
   event_id: number;
   table_name: string;
   row_id: string;
+  row_id_label?: string | null;
   column_name: string | null;
   old_value: string | null;
   new_value: string | null;
@@ -32,14 +33,16 @@ export const useChangeLogs = () => {
   const [isRefetching, setIsRefetching] = useState(false);
 
   const fetchChangeLogs = async () => {
+    if (selectedYear == null) {
+      setData([]);
+      return [];
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const url = selectedYear != null
-        ? `/api/get-change-logs?year=${selectedYear}`
-        : "/api/get-change-logs";
-      const response = await fetch(url);
+      const response = await fetch(`/api/get-change-logs?year=${selectedYear}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -51,8 +54,7 @@ export const useChangeLogs = () => {
       // Transform the raw API data to match the ChangeLog type
       const transformedData: ChangeLog[] = result.logs.map((log: changeLogSchema) => ({
         ...log,
-        // Ensure change_type is one of the allowed values
-        change_type: log.change_type as "Ekleme" | "Güncelleme" | "Silme"
+        row_id_label: log.row_id_label ?? null,
       }));
 
       setData(transformedData);
@@ -68,7 +70,11 @@ export const useChangeLogs = () => {
   };
 
   useEffect(() => {
-    if (selectedYear == null) return;
+    if (selectedYear == null) {
+      setData([]);
+      setError(null);
+      return;
+    }
     fetchChangeLogs();
   }, [selectedYear]);
 

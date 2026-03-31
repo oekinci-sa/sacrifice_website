@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminDataTablePageSkeleton } from "../../components/admin-page-skeletons";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { VisibilityState } from "@tanstack/react-table";
@@ -97,13 +97,7 @@ export default function TumHissedarlarPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminDataTablePageSkeleton rows={12} />
       ) : (
         <CustomDataTable
           columns={columns}

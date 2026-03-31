@@ -3,7 +3,7 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminSearchToolbarTableSkeleton } from "../components/admin-page-skeletons";
 import { useSession } from "next-auth/react";
 import { Search, X } from "lucide-react";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
@@ -70,11 +70,7 @@ export default function UserManagementPage() {
         </p>
       </div>
       {loading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminSearchToolbarTableSkeleton rows={10} />
       ) : (
         <CustomDataTable
           data={filteredUsers}

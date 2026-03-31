@@ -3,7 +3,7 @@
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminSearchToolbarTableSkeleton } from "../components/admin-page-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { Search, X } from "lucide-react";
@@ -77,11 +77,7 @@ export default function IletisimMesajlariPage() {
 
         <TabsContent value={filter} className="mt-6">
           {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
+            <AdminSearchToolbarTableSkeleton rows={10} />
           ) : (
             <CustomDataTable
               data={filteredData}

@@ -4,6 +4,7 @@ import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { useEffect, useState } from "react";
+import { AdminGenelBakisContentSkeleton } from "../components/admin-page-skeletons";
 import { SummaryCards } from "./components/summary-cards";
 import { SummaryGraphs } from "./components/summary-graphs";
 
@@ -29,14 +30,6 @@ export default function GenelBakisPage() {
     setLoading(!(sacrificesInitialized && shareholdersInitialized));
   }, [sacrificesInitialized, shareholdersInitialized]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       <div className="w-full">
@@ -46,11 +39,12 @@ export default function GenelBakisPage() {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <SummaryCards />
-
-      {/* Sales Charts */}
-      <SummaryGraphs />
+      {loading ? <AdminGenelBakisContentSkeleton /> : (
+        <>
+          <SummaryCards />
+          <SummaryGraphs />
+        </>
+      )}
     </div>
   );
 }

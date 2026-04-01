@@ -56,7 +56,9 @@ export async function GET() {
       contact_phone_label: labelOr(data?.contact_phone_label, DEFAULT_BRANDING.contact_phone_label),
       contact_social_links: parseContactSocialLinks(data?.contact_social_links),
       deposit_amount: Number(data?.deposit_amount ?? DEFAULT_BRANDING.deposit_amount),
-      deposit_deadline_days: Number(data?.deposit_deadline_days ?? 3),
+      deposit_deadline_days: Number(
+        data?.deposit_deadline_days ?? DEFAULT_BRANDING.deposit_deadline_days
+      ),
       full_payment_deadline_month: Number(data?.full_payment_deadline_month ?? 5),
       full_payment_deadline_day: Number(data?.full_payment_deadline_day ?? 20),
       active_sacrifice_year:

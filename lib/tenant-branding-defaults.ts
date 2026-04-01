@@ -110,7 +110,7 @@ export const DEFAULT_BRANDING: TenantBranding = {
   contact_phone_label: "Telefon",
   contact_social_links: [],
   deposit_amount: 5000,
-  deposit_deadline_days: 3,
+  deposit_deadline_days: 10,
   full_payment_deadline_month: 5,
   full_payment_deadline_day: 20,
   active_sacrifice_year: 2026,

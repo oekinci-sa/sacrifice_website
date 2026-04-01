@@ -17,3 +17,16 @@ Admin tablolarındaki düzenlenebilir hücrelerde şu pattern kullanılmalıdır
 - `onBlur` ile otomatik kaydetme yapılmamalı (yanlışlıkla kayıt riski).
 - Input + Check butonu + X butonu birlikte gösterilmeli.
 - Örnek: Ödemeler tablosu (ödeme yapılan tutar), Hissedarlar (telefon), Organizasyon Ayarları (tüm alanlar).
+
+## Store ile senkron: yerel state takılması (kalem ikonu / hover)
+
+Tablo hücresinde `useState` ile **isEditing**, **pendingValue**, **dialog açık** vb. tutuluyorsa, kayıt sonrası **Zustand / props** ile `row.original` güncellense bile bazen yerel state sıfırlanmayabilir; kullanıcı **kalem ikonunu göremez** veya **hover çalışmaz**, sayfa yenileyince düzelir.
+
+**Kural:** İlgili alan(lar) store’da değişince yerel UI state’ini sıfırla:
+
+- `useLayoutEffect` ile `row.original`’dan türetilmiş bir **sync anahtarı** (ör. `` `${id}|${delivery_location}|${delivery_type}` ``) değişince: düzenleme bayraklarını kapat, diyalog state’ini temizle, gerekirse input değerini satırla hizala.
+- Alternatif veya ek: `cell` içinde `<EditableCell key={\`${id}-${fieldSnapshot}\`} />` ile satır+alan güncellenince hücreyi **yeniden mount** et.
+
+**Örnek uygulama:** `app/(admin)/kurban-admin/components/editable-delivery-cells.tsx` — `EditableDeliveryCell`, `EditableSecondPhoneCell`.
+
+Framer Motion `layout` / `layoutId` kullanan tablolarda (`custom-table-body`) hücre içi `group-hover` ile kalem görünürlüğü bozulabiliyorsa, kapsayıcıda `pointer-events-auto` denenebilir.

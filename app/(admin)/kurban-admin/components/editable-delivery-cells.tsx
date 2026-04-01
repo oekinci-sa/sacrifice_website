@@ -29,7 +29,7 @@ import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/formatters";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -67,6 +67,18 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
   const [secondPhoneDialogOpen, setSecondPhoneDialogOpen] = useState(false);
   const [secondPhoneValue, setSecondPhoneValue] = useState("");
   const [secondPhoneError, setSecondPhoneError] = useState<string | null>(null);
+  const [adreseAddress, setAdreseAddress] = useState("");
+
+  /** Store / props satırı güncellenince (kayıt sonrası) yerel düzenleme state'ini sıfırla; aksi halde kalem ikonu / hover takılı kalabiliyor. */
+  const deliveryRowSyncKey = `${row.original.shareholder_id}|${row.original.delivery_location ?? ""}|${row.original.delivery_type ?? ""}`;
+  useLayoutEffect(() => {
+    setIsEditing(false);
+    setPendingValue(null);
+    setSecondPhoneDialogOpen(false);
+    setSecondPhoneValue("");
+    setSecondPhoneError(null);
+    setAdreseAddress("");
+  }, [deliveryRowSyncKey]);
 
   const deliveryOptions = useMemo(() => {
     const isElya = branding.logo_slug === "elya-hayvancilik";
@@ -129,29 +141,40 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
   }, [pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
 
   const handleSecondPhoneConfirm = useCallback(async () => {
-    const digitsSecond = secondPhoneValue.replace(/\D/g, "");
     const digitsPhone = (row.original.phone_number ?? "").replace(/\D/g, "");
     setSecondPhoneError(null);
-    if (!secondPhoneValue.trim()) {
-      setSecondPhoneError("İkinci telefon numarası zorunludur");
-      return;
+
+    const addrTrim = adreseAddress.trim();
+    const trimmedSecond = secondPhoneValue.trim();
+
+    if (trimmedSecond) {
+      const digitsSecond = trimmedSecond.replace(/\D/g, "");
+      if (digitsSecond.length !== 11 || !trimmedSecond.startsWith("05")) {
+        setSecondPhoneError("Geçerli bir telefon numarası giriniz (05XX XXX XX XX)");
+        return;
+      }
+      if (digitsPhone && digitsSecond === digitsPhone) {
+        setSecondPhoneError("İkinci telefon numarası birinciden farklı olmalıdır");
+        return;
+      }
     }
-    if (digitsSecond.length !== 11 || !secondPhoneValue.startsWith("05")) {
-      setSecondPhoneError("Geçerli bir telefon numarası giriniz (05XX XXX XX XX)");
-      return;
-    }
-    if (digitsPhone && digitsSecond === digitsPhone) {
-      setSecondPhoneError("İkinci telefon numarası birinciden farklı olmalıdır");
-      return;
-    }
+
+    const deliveryLocationFinal = getDeliveryLocationFromSelection(
+      branding.logo_slug,
+      "Adrese teslim",
+      addrTrim
+    );
     setSaving(true);
     try {
-      const delivery_type = getDeliverySelectionFromLocation(branding.logo_slug, pendingValue ?? "");
+      const delivery_type = getDeliverySelectionFromLocation(
+        branding.logo_slug,
+        deliveryLocationFinal
+      );
       const { data } = await updateShareholderField(
         row.original.shareholder_id,
         "delivery_location",
-        pendingValue ?? "",
-        { delivery_type, second_phone_number: secondPhoneValue }
+        deliveryLocationFinal,
+        { delivery_type, second_phone_number: trimmedSecond || null }
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
       window.dispatchEvent(new Event("shareholders-updated"));
@@ -159,6 +182,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
       setSecondPhoneDialogOpen(false);
       setSecondPhoneValue("");
       setSecondPhoneError(null);
+      setAdreseAddress("");
       setIsEditing(false);
       setPendingValue(null);
     } catch (e) {
@@ -166,12 +190,13 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [secondPhoneValue, pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
+  }, [secondPhoneValue, adreseAddress, row.original, updateShareholder, toast, branding.logo_slug]);
 
   const handleSecondPhoneCancel = useCallback(() => {
     setSecondPhoneDialogOpen(false);
     setSecondPhoneValue("");
     setSecondPhoneError(null);
+    setAdreseAddress("");
     setIsEditing(false);
     setPendingValue(null);
   }, []);
@@ -189,6 +214,11 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     if (needsSecondPhone) {
       setSecondPhoneValue("");
       setSecondPhoneError(null);
+      setAdreseAddress(
+        optValue !== "-" && optValue !== "Gölbaşı" && optValue !== "Kahramankazan"
+          ? optValue
+          : ""
+      );
       setSecondPhoneDialogOpen(true);
     }
   }, [branding.logo_slug, deliveryType]);
@@ -210,7 +240,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
 
   return (
     <>
-      <div className="group relative w-full min-h-[2rem] flex items-center">
+      <div className="group pointer-events-auto relative w-full min-h-[2rem] flex items-center">
         <span className="flex-1 text-center text-sm px-8 pr-9 py-1">{current}</span>
         <DropdownMenu open={dropdownOpen} onOpenChange={(open) => { setDropdownOpen(open); if (!open && isEditing && !pendingValue) setIsEditing(false); }}>
           <DropdownMenuTrigger asChild>
@@ -237,7 +267,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
       <Dialog open={secondPhoneDialogOpen} onOpenChange={(open) => { if (!open) handleSecondPhoneCancel(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>İkinci Telefon Numarası (Adrese Teslim)</DialogTitle>
+            <DialogTitle>Adrese teslim bilgileri</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -247,7 +277,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="second-phone-input">İkinci telefon (teslimat için)</Label>
+              <Label htmlFor="second-phone-input">İkinci telefon (teslimat için, isteğe bağlı)</Label>
               <Input
                 id="second-phone-input"
                 placeholder="05XX XXX XX XX"
@@ -258,6 +288,17 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
               {secondPhoneError && (
                 <p className="text-sm text-destructive">{secondPhoneError}</p>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="adrese-address-input">Teslimat adresi (isteğe bağlı)</Label>
+              <textarea
+                id="adrese-address-input"
+                value={adreseAddress}
+                onChange={(e) => setAdreseAddress(e.target.value)}
+                rows={3}
+                className="min-h-[4.5rem] max-h-32 w-full resize-y rounded-md border px-3 py-2 text-sm"
+                placeholder="Mahalle, sokak, bina no, daire, ilçe, şehir..."
+              />
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -281,6 +322,13 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
   const rawPhone = row.original.second_phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "";
   const [value, setValue] = useState(() => formatPhoneForInput(rawPhone));
   const [saving, setSaving] = useState(false);
+
+  const secondPhoneSyncKey = `${row.original.shareholder_id}|${row.original.second_phone_number ?? ""}`;
+  useLayoutEffect(() => {
+    setIsEditing(false);
+    setValue(formatPhoneForInput(row.original.second_phone_number?.replace(/^\+90/, "0") || ""));
+    // secondPhoneSyncKey: id + second_phone_number — row.original her render'da yeni referans olabilir; dep olarak kullanma.
+  }, [secondPhoneSyncKey]);
 
   const handleSave = useCallback(async () => {
     const trimmed = value.trim();

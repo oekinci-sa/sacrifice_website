@@ -327,8 +327,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
   useLayoutEffect(() => {
     setIsEditing(false);
     setValue(formatPhoneForInput(row.original.second_phone_number?.replace(/^\+90/, "0") || ""));
-    // secondPhoneSyncKey: id + second_phone_number — row.original her render'da yeni referans olabilir; dep olarak kullanma.
-  }, [secondPhoneSyncKey]);
+  }, [secondPhoneSyncKey, row.original.second_phone_number]);
 
   const handleSave = useCallback(async () => {
     const trimmed = value.trim();

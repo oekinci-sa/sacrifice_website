@@ -17,7 +17,6 @@ export function StickyHorizontalScrollbar({
   scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const fakeRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const [contentWidth, setContentWidth] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const [leftOffset, setLeftOffset] = useState(0);
@@ -65,7 +64,6 @@ export function StickyHorizontalScrollbar({
     sentinel.setAttribute("aria-hidden", "true");
     sentinel.setAttribute("data-sticky-sentinel", "true");
     container.appendChild(sentinel);
-    sentinelRef.current = sentinel;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -80,7 +78,6 @@ export function StickyHorizontalScrollbar({
       if (sentinel.parentNode) {
         sentinel.parentNode.removeChild(sentinel);
       }
-      sentinelRef.current = null;
     };
   }, [scrollRef]);
 

@@ -139,8 +139,8 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
     return () => { cancelled = true; };
   }, [branding.logo_slug, selectedYear]);
 
-  // row.original her render'da yeni referans olabilir; alan bazlı senkron yeterli
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- sacrifice nesnesi değil primitive alanlar
+  /* sacrifice nesnesi yerine primitive alanlar; row.original referansı her render'da değişebilir */
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!dialogOpen) return;
     setTab(isLiveScaleSacrifice(sacrifice) ? "live" : "fixed");
@@ -162,6 +162,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
     sacrifice.share_weight,
     sacrifice.share_price,
   ]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const currentInOptions = options.some(
     (o) => Math.abs(getKg(o) - (sacrifice.share_weight ?? 0)) < 0.01

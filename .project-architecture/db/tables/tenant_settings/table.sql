@@ -16,7 +16,7 @@ CREATE TABLE tenant_settings (
   contact_social_links JSONB DEFAULT '[]'::jsonb,
   active_sacrifice_year SMALLINT DEFAULT 2025,
   deposit_amount NUMERIC(12,2) DEFAULT 10000,
-  deposit_deadline_days SMALLINT DEFAULT 10,
+  deposit_deadline_days SMALLINT DEFAULT 3,
   full_payment_deadline_month SMALLINT DEFAULT 5,
   full_payment_deadline_day SMALLINT DEFAULT 20,
   agreement_terms JSONB DEFAULT '[]'::jsonb,

@@ -7,8 +7,17 @@ import {
   getDeliveryFeeForLocation,
   getDeliverySelectionFromLocation,
 } from "@/lib/delivery-options";
+import {
+  isLiveScaleSacrifice,
+  type SacrificePricingFields,
+} from "@/lib/live-scale-share";
 import type { TenantBranding } from "@/lib/tenant-branding";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+
+/** Hisse sorgula (`shareholder-details`) ile aynı metinler — PDF / e-posta senkronu */
+const MSG_LIVE_PENDING_SHARE = "Hisse bedeli henüz girilmedi.";
+const MSG_LIVE_PENDING_KG = "Toplam kg henüz girilmedi.";
+const MSG_LIVE_PENDING_TOTAL = "Henüz kesinleşmedi.";
 
 /** ReceiptPDF `data` prop ile uyumlu düz alanlar */
 export interface PurchaseReceiptPdfLikeData {
@@ -38,6 +47,15 @@ function formatSacrificeTime(time: string | null | undefined): string {
   return time.split(":").slice(0, 2).join(":");
 }
 
+/** PDF / e-posta: canlı baskül placeholder veya `X kg` için ±3 eklemeden; sabit hisse için `±3 kg` */
+export function formatReceiptKilogramDisplay(shareWeight: string): string {
+  const s = shareWeight.trim();
+  if (!s) return "-";
+  if (/henüz girilmedi/i.test(s)) return s;
+  if (s.endsWith(" kg")) return s;
+  return `${s} ±3 kg`;
+}
+
 export function buildPurchaseReceiptData(
   shareholder: {
     shareholder_name?: string | null;
@@ -57,12 +75,15 @@ export function buildPurchaseReceiptData(
     sacrifice_time?: string | null;
     share_price?: number | null;
     share_weight?: string | null;
-  },
+  } & SacrificePricingFields,
   reservation: { created_at?: string | null },
   transactionId: string,
   branding: TenantBranding
 ): PurchaseReceiptPdfLikeData {
   const logoSlug = branding.logo_slug;
+  const livePending =
+    isLiveScaleSacrifice(sacrifice) && sacrifice.live_scale_total_kg == null;
+
   const sharePrice = Number(sacrifice.share_price ?? 0);
   const rawDelivery = shareholder.delivery_location || "Kesimhane";
   const deliveryFee = getDeliveryFeeForLocation(logoSlug, rawDelivery);
@@ -86,6 +107,25 @@ export function buildPurchaseReceiptData(
     ? formatPhoneForDisplayWithSpacing(shareholder.second_phone_number)
     : undefined;
 
+  let sharePriceDisplay: string;
+  let shareWeightDisplay: string;
+  let totalAmountDisplay: string;
+
+  if (livePending) {
+    sharePriceDisplay = MSG_LIVE_PENDING_SHARE;
+    shareWeightDisplay = MSG_LIVE_PENDING_KG;
+    totalAmountDisplay = MSG_LIVE_PENDING_TOTAL;
+  } else {
+    sharePriceDisplay = sharePrice.toString();
+    totalAmountDisplay = totalAmount.toString();
+    if (isLiveScaleSacrifice(sacrifice) && sacrifice.live_scale_total_kg != null) {
+      shareWeightDisplay = `${Number(sacrifice.live_scale_total_kg)} kg`;
+    } else {
+      shareWeightDisplay =
+        sacrifice.share_weight != null ? String(sacrifice.share_weight) : "";
+    }
+  }
+
   return {
     shareholder_name: shareholder.shareholder_name?.trim() || "Müşteri",
     phone_number: phone,
@@ -94,9 +134,9 @@ export function buildPurchaseReceiptData(
     delivery_type: deliveryType,
     delivery_location: deliveryLocationDisplay,
     vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
-    share_price: sharePrice.toString(),
+    share_price: sharePriceDisplay,
     delivery_fee: deliveryFee.toString(),
-    total_amount: totalAmount.toString(),
+    total_amount: totalAmountDisplay,
     paid_amount: paidAmount.toString(),
     remaining_payment: remainingPayment.toString(),
     purchase_time: reservation.created_at
@@ -105,7 +145,7 @@ export function buildPurchaseReceiptData(
     sacrifice_consent: !!shareholder.sacrifice_consent,
     sacrifice_no: sacrifice.sacrifice_no != null ? String(sacrifice.sacrifice_no) : "",
     sacrifice_time: formatSacrificeTime(sacrifice.sacrifice_time ?? undefined),
-    share_weight: sacrifice.share_weight != null ? String(sacrifice.share_weight) : "",
+    share_weight: shareWeightDisplay,
     transaction_id: transactionId,
     security_code: shareholder.security_code?.trim() || "------",
   };

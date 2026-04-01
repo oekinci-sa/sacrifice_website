@@ -401,7 +401,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "foundation",
-    header: "Vakıf",
+    header: "Referans",
     minSize: 88,
     cell: ({ row }) => <EditableFoundationCell row={row} />,
     enableSorting: true,

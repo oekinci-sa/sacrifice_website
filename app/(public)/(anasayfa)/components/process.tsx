@@ -1,32 +1,9 @@
 "use client";
 
-import { useTenantBranding } from "@/hooks/useTenantBranding";
-import {
-  getFullPaymentMonthName,
-  getFullPaymentWeekdayName,
-} from "@/lib/agreement-placeholders";
 import { motion } from "framer-motion";
 import { processes } from "../constants";
 
-function usePaymentProcessDescription(): string {
-  const branding = useTenantBranding();
-  const monthName = getFullPaymentMonthName(branding.full_payment_deadline_month);
-  const calendarYear =
-    branding.active_sacrifice_year != null && !Number.isNaN(Number(branding.active_sacrifice_year))
-      ? Number(branding.active_sacrifice_year)
-      : new Date().getFullYear();
-  const weekday = getFullPaymentWeekdayName(
-    calendarYear,
-    branding.full_payment_deadline_month,
-    branding.full_payment_deadline_day
-  );
-  const day = branding.full_payment_deadline_day;
-  const d = branding.deposit_deadline_days;
-  return `Kaydınızın kalıcı olması için ${d} gün içinde kaporanızı, ${day} ${monthName} ${weekday} gününe kadar da tüm ödemelerinizi tamamlamalısınız.`;
-}
-
 const Process = () => {
-  const paymentStepDescription = usePaymentProcessDescription();
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -104,9 +81,7 @@ const Process = () => {
                 {process.header}
               </p>
               <p className="text-base md:text-base text-white/90 md:text-black/80">
-                {"useDynamicPaymentCopy" in process && process.useDynamicPaymentCopy
-                  ? paymentStepDescription
-                  : process.description}
+                {process.description}
               </p>
             </motion.div>
           ))}

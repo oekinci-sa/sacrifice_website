@@ -79,7 +79,7 @@ export function TenantSettingsEditDialog({
         })(),
         active_sacrifice_year: row.active_sacrifice_year ?? 2025,
         deposit_amount: row.deposit_amount ?? DEFAULT_BRANDING.deposit_amount,
-        deposit_deadline_days: row.deposit_deadline_days ?? DEFAULT_BRANDING.deposit_deadline_days,
+        deposit_deadline_days: row.deposit_deadline_days ?? 3,
         full_payment_deadline_month: row.full_payment_deadline_month ?? 5,
         full_payment_deadline_day: row.full_payment_deadline_day ?? 20,
         agreement_dialog_title:

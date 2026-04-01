@@ -1,8 +1,7 @@
 import { TripleInfo } from "@/app/(public)/components/triple-info";
 import { Button } from "@/components/ui/button";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { formatDate } from "@/lib/date-utils";
-import { getDeliveryFeeForLocation, getDeliverySelectionFromLocation } from "@/lib/delivery-options";
+import { buildPurchaseReceiptData } from "@/lib/purchase-receipt-data";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { useRouter } from "next/navigation";
@@ -140,79 +139,46 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit number
   };
 
-  // Format the sacrifice time
-  const formatSacrificeTime = (time: string | null | undefined) => {
-    if (!time) return "";
-    return time.split(":").slice(0, 2).join(":");
-  };
-
   const createReceiptDataFromDb = (shareholder: ShareholderData) => {
     const sacrifice = dbData?.sacrifice || {};
     const reservation = dbData?.reservation || {};
 
-    const deliveryFee = Number(
-      (shareholder as { delivery_fee?: number | null }).delivery_fee ??
-        getDeliveryFeeForLocation(
-          branding.logo_slug,
-          shareholder.delivery_location || "Kesimhane"
-        )
-    );
-    const totalAmountFromDb = (shareholder as { total_amount?: number }).total_amount;
-    const totalAmount =
-      typeof totalAmountFromDb === "number" && !Number.isNaN(totalAmountFromDb)
-        ? totalAmountFromDb
-        : Number(sacrifice.share_price || 0) + deliveryFee;
-    const sharePrice = Math.max(0, totalAmount - deliveryFee);
-
-    // Remaining payment calculation
-    const paidAmount = shareholder.paid_amount || 0;
-    const remainingPayment = totalAmount - paidAmount;
-
-    const formattedPhoneNumber = formatPhoneForDisplayWithSpacing(
-      shareholder.phone_number || shareholder.phone || ""
-    );
-    const formattedSecondPhone = shareholder.second_phone_number
-      ? formatPhoneForDisplayWithSpacing(shareholder.second_phone_number)
-      : undefined;
-
-    const deliveryType = (shareholder as { delivery_type?: string }).delivery_type
-      || getDeliverySelectionFromLocation(branding.logo_slug, shareholder.delivery_location || "");
-    const deliveryLocationDisplay = shareholder.delivery_location && shareholder.delivery_location !== "-"
-      ? shareholder.delivery_location
-      : "-";
-
-    return {
-      // Hisse Sahibi Bilgileri
-      shareholder_name:
-        shareholder.shareholder_name || shareholder.name || "Müşteri",
-      phone_number: formattedPhoneNumber,
-      second_phone_number: formattedSecondPhone,
-      email: shareholder.email || undefined,
-      delivery_type: deliveryType,
-      delivery_location: deliveryLocationDisplay,
-      sacrifice_consent: !!shareholder.sacrifice_consent, // Convert to boolean with double negation
-      vekalet_durumu: shareholder.proxy_status || "Belirtilmemiş",
-
-      // Hisse ve Ödeme Özeti
-      share_price: sharePrice.toString(),
-      delivery_fee: deliveryFee.toString(),
-      total_amount: totalAmount.toString(),
-      // Veritabanından paid_amount değerini kullan, yoksa total_amount'a eşitle
-      paid_amount: paidAmount.toString(),
-      remaining_payment: remainingPayment.toString(),
-      purchase_time: reservation.created_at
-        ? formatDate(reservation.created_at)
-        : formatDate(new Date()),
-
-      // Hayvana Ait Bilgiler
-      sacrifice_no: sacrifice.sacrifice_no?.toString() || "",
-      sacrifice_time: formatSacrificeTime(sacrifice.sacrifice_time),
-      share_weight: sacrifice.share_weight?.toString() || "", // Use real share_weight from DB if available
-
-      // Rezervasyon Takibi ve Güvenlik
-      transaction_id: transaction_id || "Belirtilmemiş",
+    const sh = {
+      shareholder_name: shareholder.shareholder_name || shareholder.name,
+      phone_number: shareholder.phone_number || shareholder.phone,
+      second_phone_number: shareholder.second_phone_number,
+      email: shareholder.email,
+      delivery_location: shareholder.delivery_location,
+      delivery_type: (shareholder as { delivery_type?: string | null }).delivery_type,
+      paid_amount: shareholder.paid_amount,
+      remaining_payment: (shareholder as { remaining_payment?: number | null })
+        .remaining_payment,
       security_code: shareholder.security_code || generateSecurityCode(),
+      sacrifice_consent: shareholder.sacrifice_consent,
+      proxy_status: shareholder.proxy_status,
     };
+
+    const sac = sacrifice as SacrificeData & {
+      pricing_mode?: string | null;
+      live_scale_total_kg?: number | null;
+      live_scale_total_price?: number | null;
+    };
+
+    return buildPurchaseReceiptData(
+      sh,
+      {
+        sacrifice_no: sac.sacrifice_no,
+        sacrifice_time: sac.sacrifice_time ?? null,
+        share_price: sac.share_price ?? null,
+        share_weight: sac.share_weight != null ? String(sac.share_weight) : null,
+        pricing_mode: sac.pricing_mode ?? null,
+        live_scale_total_kg: sac.live_scale_total_kg ?? null,
+        live_scale_total_price: sac.live_scale_total_price ?? null,
+      },
+      { created_at: (reservation.created_at as string | null) ?? null },
+      transaction_id || "Belirtilmemiş",
+      branding
+    );
   };
 
   // Shareholder isim ve telefon bilgilerini göstermek için yardımcı fonksiyon

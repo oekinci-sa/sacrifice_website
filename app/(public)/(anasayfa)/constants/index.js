@@ -121,9 +121,8 @@ export const processes = [
   {
     number: "05",
     header: "Ödeme",
-    /** Metin `process.tsx` içinde tenant_settings (kapora günü + tam ödeme tarihi) ile üretilir. */
-    description: "",
-    useDynamicPaymentCopy: true,
+    description:
+      "Kaydınızın kalıcı olması için 10 gün içinde kaporanızı, 20 Mayıs Çarşamba gününe kadar da tüm ödemelerinizi tamamlamalısınız.",
   },
   {
     number: "06",

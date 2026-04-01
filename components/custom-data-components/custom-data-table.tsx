@@ -18,6 +18,7 @@ import * as React from "react"
 
 import { Table } from "@/components/ui/table"
 import { CustomDataTableFooter } from "./custom-data-table-footer"
+import { StickyHorizontalScrollbar } from "./sticky-horizontal-scrollbar"
 import { CustomTableBody } from "./custom-table-body"
 import { CustomTableHeader } from "./custom-table-header"
 
@@ -237,6 +238,8 @@ export function CustomDataTable<TData, TValue>({
     return [...notInStored, ...inStored, ...actions];
   }, [fullStorageKey, columnOrder, defaultColumnIds]);
 
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
+
   const table = useReactTable({
     data,
     columns: tableColumns,
@@ -274,8 +277,8 @@ export function CustomDataTable<TData, TValue>({
           resetColumnLayout: fullStorageKey ? resetColumnLayout : undefined,
         }) : null}
 
-        <div className="rounded-md min-w-0">
-          <Table>
+        <div className="rounded-md min-w-0 w-full max-w-full">
+          <Table wrapperRef={tableScrollRef}>
             <CustomTableHeader
               table={table}
               tableSize={tableSize}
@@ -285,6 +288,7 @@ export function CustomDataTable<TData, TValue>({
             <CustomTableBody table={table} columns={tableColumns} tableSize={tableSize} renderExpandedRow={renderExpandedRow} />
           </Table>
         </div>
+        <StickyHorizontalScrollbar scrollRef={tableScrollRef} />
 
         {/* Table Footer */}
         <CustomDataTableFooter

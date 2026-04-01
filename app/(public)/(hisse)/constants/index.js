@@ -3,7 +3,7 @@
 export const agreementTerms = [
   {
     "title": "Ödeme ve Kapora",
-    "description": "Yedek metin — canlı sitede tenant_settings ve lib/receipt-reminders kullanılır. Örnek: hisse alımdan itibaren 10 gün içinde kapora; tam ödeme tenant ayarındaki tarihe kadar."
+    "description": "Her hisse için hisse alımdan itibaren 7 gün içerisinde en az 5000₺ kapora ödenmesi zorunludur. Kalan tutarın ise 20 Mayıs Çarşamba gününe kadar eksiksiz olarak tamamlanması beklenmektedir. Belirtilen tarihlere kadar ödeme tamamlanmazsa hisse hakkı iptal edilebilir."
   },
   {
     "title": "Vekalet ve Dini Usuller",

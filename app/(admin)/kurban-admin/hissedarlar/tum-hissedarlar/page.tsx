@@ -7,12 +7,16 @@ import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderSto
 import { VisibilityState } from "@tanstack/react-table";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useEffect, useMemo, useState } from "react";
+import { AdminHissedarPdfDialog } from "./components/admin-hissedar-pdf-dialog";
 import { columns } from "./components/columns";
 import { HissedarlarTableToolbar } from "./components/hissedarlar-table-toolbar";
+import type { shareholderSchema } from "@/types";
 
 export default function TumHissedarlarPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [pdfShareholder, setPdfShareholder] = useState<shareholderSchema | null>(null);
   // Default column visibility - Vekalet gizli, Kayıt Tarihi ve Ödeme görünür (sonda)
   const [columnVisibility] = useState<VisibilityState>({
     notes: false,
@@ -103,6 +107,12 @@ export default function TumHissedarlarPage() {
           columns={columns}
           data={filteredShareholders}
           storageKey="hissedarlar"
+          meta={{
+            openPdfForShareholder: (sh: shareholderSchema) => {
+              setPdfShareholder(sh);
+              setPdfDialogOpen(true);
+            },
+          }}
           initialState={{
             columnVisibility: columnVisibility
           }}
@@ -123,6 +133,14 @@ export default function TumHissedarlarPage() {
           pageSizeOptions={[20, 50, 100, 200, 500]}
         />
       )}
+      <AdminHissedarPdfDialog
+        shareholder={pdfShareholder}
+        open={pdfDialogOpen}
+        onOpenChange={(open) => {
+          setPdfDialogOpen(open);
+          if (!open) setPdfShareholder(null);
+        }}
+      />
     </div>
   );
 } 

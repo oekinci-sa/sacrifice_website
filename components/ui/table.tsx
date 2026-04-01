@@ -4,9 +4,12 @@ import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full min-w-0 overflow-x-auto">
+  React.HTMLAttributes<HTMLTableElement> & {
+    /** Dış container'a ref almak istediğinizde (sticky scrollbar vb.) */
+    wrapperRef?: React.Ref<HTMLDivElement>;
+  }
+>(({ className, wrapperRef, ...props }, ref) => (
+  <div ref={wrapperRef} className="relative w-full min-w-0 overflow-x-auto">
     <table
       ref={ref}
       className={cn("w-full min-w-max caption-bottom text-sm", className)}

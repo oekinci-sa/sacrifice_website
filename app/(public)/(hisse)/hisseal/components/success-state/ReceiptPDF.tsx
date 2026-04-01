@@ -4,6 +4,7 @@
 import type { TenantBranding } from '@/lib/tenant-branding';
 import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
+import { formatReceiptKilogramDisplay } from '@/lib/purchase-receipt-data';
 import {
   buildReceiptReminders,
   formatKaporaTlForReceipt,
@@ -14,7 +15,7 @@ import {
 } from '@/lib/receipt-reminders';
 import { DEFAULT_BRANDING } from '@/lib/tenant-branding-defaults';
 import { formatIbanForDisplay } from '@/utils/formatters';
-import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 // Register OpenSans font from local files
 Font.register({
@@ -167,6 +168,8 @@ const formatPrice = (price: string): string => {
 // Create Document Component
 interface ReceiptPDFProps {
   branding?: TenantBranding | null;
+  /** Admin PDF vb.: boş değilse PDF’te kapora tutarı bu değerle gösterilir (tenant varsayılanının üzerine). */
+  depositAmountOverride?: number | null;
   data: {
     // Hisse Sahibi Bilgileri
     shareholder_name: string;
@@ -197,18 +200,23 @@ interface ReceiptPDFProps {
   };
 }
 
-export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
-  const logoSlug = branding?.logo_slug ?? "ankara-kurban";
+export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDFProps) => {
+  const baseBranding = branding ?? DEFAULT_BRANDING;
+  const effectiveBranding =
+    depositAmountOverride != null && Number.isFinite(Number(depositAmountOverride))
+      ? { ...baseBranding, deposit_amount: Number(depositAmountOverride) }
+      : baseBranding;
+  const logoSlug = effectiveBranding.logo_slug ?? "ankara-kurban";
   const logoBase64 = getLogoBase64ForSlug(logoSlug);
   const logoStyle =
     logoSlug === "elya-hayvancilik" ? styles.logoElya : styles.logo;
-  const remindersList = buildReceiptReminders(branding, {
+  const remindersList = buildReceiptReminders(effectiveBranding, {
     includeKaporaIbanReminder: false,
   });
-  const ibanAccountHolderName = getIbanAccountHolderDisplay(branding);
-  const brandingForIban = branding ?? DEFAULT_BRANDING;
-  const websiteUrl = branding?.website_url ?? "ankarakurban.com.tr";
-  const contactPhone = branding?.contact_phone ?? "0552 652 90 00 / 0312 312 44 64";
+  const ibanAccountHolderName = getIbanAccountHolderDisplay(effectiveBranding);
+  const brandingForIban = effectiveBranding;
+  const websiteUrl = effectiveBranding.website_url || "ankarakurban.com.tr";
+  const contactPhone = effectiveBranding.contact_phone || "0552 652 90 00 / 0312 312 44 64";
 
   return (
   <Document>
@@ -254,7 +262,7 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
           )}
           <View style={styles.row}>
             <Text style={styles.label}>Teslimat Tercihi:</Text>
-            <Text style={styles.value}>{getDeliveryTypeDisplayLabel(branding?.logo_slug ?? "ankara-kurban", data.delivery_type, null, false)}</Text>
+            <Text style={styles.value}>{getDeliveryTypeDisplayLabel(effectiveBranding.logo_slug ?? "ankara-kurban", data.delivery_type, null, false)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Teslimat Yeri:</Text>
@@ -275,7 +283,7 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Kilogram:</Text>
-            <Text style={styles.value}>{data.share_weight} ±3 kg</Text>
+            <Text style={styles.value}>{formatReceiptKilogramDisplay(data.share_weight)}</Text>
           </View>
         </View>
       </View>
@@ -299,7 +307,7 @@ export const ReceiptPDF = ({ data, branding }: ReceiptPDFProps) => {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>{KAPORA_PAYMENT_ROW_LABEL}:</Text>
-            <Text style={styles.value}>{formatKaporaTlForReceipt(branding)}</Text>
+            <Text style={styles.value}>{formatKaporaTlForReceipt(effectiveBranding)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>{IBAN_PAYMENT_ROW_LABEL}:</Text>

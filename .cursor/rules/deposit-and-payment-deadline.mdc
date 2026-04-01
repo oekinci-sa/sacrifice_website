@@ -14,4 +14,10 @@ globs:
 - Kapora süresi (gün): `tenant_settings.deposit_deadline_days`
 - Tam ödeme son tarihi: `tenant_settings.full_payment_deadline_month` + `full_payment_deadline_day` + `active_sacrifice_year`
 - "10 gün", "20 Mayıs" gibi metinler sabit yazılmamalı; tenant ayarlarından türetilmeli
-- Kod / yeni satır yedeği: `DEFAULT_BRANDING.deposit_deadline_days` ve `tenant_settings.deposit_deadline_days` varsayılanı **10** gün olmalı (PDF, e-posta `buildReceiptReminders`, SSS `FaqKaporaPaymentAnswer`, anasayfa süreç adımı `process.tsx` — hepsi `branding.deposit_deadline_days` kullanır).
+
+## Nerede kullanılır (özet)
+- Ana sayfa üçlü kutu: `TripleInfo` → `buildReceiptReminders(branding)` (DB).
+- PDF / e-posta: `ReceiptPDF`, `buildPurchaseConfirmationHtml`, `receipt-reminders.ts` (DB).
+- SSS id=7: `FaqKaporaPaymentAnswer` → `useTenantBranding()` (`deposit_amount`, `deposit_deadline_days`, tam ödeme tarihi).
+- Elya sözleşme metni (`ElyaHisseAgreementTermsBody`): hukuki metin **sabit**; güncel tutar/tarihler sitede ayrı gösterilir.
+- Admin hissedar PDF: `ReceiptPDF` + isteğe bağlı `depositAmountOverride` (yalnızca PDF’teki kapora satırı).

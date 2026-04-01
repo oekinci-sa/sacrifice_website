@@ -6,7 +6,10 @@ import {
   getLogoAbsoluteUrlForEmail,
 } from "@/lib/email-logo-url";
 import { getLogoBase64ForSlug } from "@/lib/logoBase64";
-import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
+import {
+  formatReceiptKilogramDisplay,
+  type PurchaseReceiptPdfLikeData,
+} from "@/lib/purchase-receipt-data";
 import {
   buildReceiptReminders,
   formatKaporaTlForReceipt,
@@ -155,7 +158,7 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
           rowsHtml([
             ["Hayvan No", receipt.sacrifice_no],
             ["Kesim Zamanı", receipt.sacrifice_time || "-"],
-            ["Kilogram", receipt.share_weight ? `${receipt.share_weight} ±3 kg` : "-"],
+            ["Kilogram", formatReceiptKilogramDisplay(receipt.share_weight)],
           ])
         )}
         ${sectionBlock("Ödeme Bilgileri", rowsHtml(odemeRows))}
@@ -295,7 +298,7 @@ function buildPlainText(params: {
     "--- Kurbanlık Bilgileri ---",
     `Hayvan No: ${receipt.sacrifice_no}`,
     `Kesim Zamanı: ${receipt.sacrifice_time || "-"}`,
-    `Kilogram: ${receipt.share_weight ? `${receipt.share_weight} ±3 kg` : "-"}`,
+    `Kilogram: ${formatReceiptKilogramDisplay(receipt.share_weight)}`,
     "",
     "--- Ödeme Bilgileri ---",
     `Hisse Fiyatı: ${formatPrice(receipt.share_price)}`,

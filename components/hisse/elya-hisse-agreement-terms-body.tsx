@@ -1,6 +1,8 @@
+"use client";
+
 /**
- * Elya Hayvancılık — Hisse Al onay adımı mesafeli satış sözleşmesi (statik metin).
- * Ankara Kurban ve diğer tenant’lar `tenant_settings` sözleşme alanlarını kullanmaya devam eder.
+ * Elya Hayvancılık — Hisse Al onay adımı mesafeli satış sözleşmesi (sabit hukuki metin).
+ * Tutar ve tarihler sitede/tenant ayarlarında ayrıca gösterilir; bu sözleşme metni değiştirilmeden sabit kalır.
  */
 export function ElyaHisseAgreementTermsBody() {
   return (

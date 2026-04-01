@@ -36,9 +36,9 @@ import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/formatters";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
-import { AlertCircle, Check, CheckCircle2, Clock, Loader2, Pencil, Phone, UserMinus, X } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Clock, Download, Loader2, Pencil, Phone, UserMinus, X } from "lucide-react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { EditableSecondPhoneCell } from "@/app/(admin)/kurban-admin/components/editable-delivery-cells";
 import {
@@ -47,6 +47,36 @@ import {
 } from "@/lib/delivery-options";
 import { useCallback, useState } from "react";
 import { EditableSacrificeNumberCell } from "./editable-sacrifice-number-cell";
+
+type HissedarlarTableMeta = {
+  openPdfForShareholder?: (sh: shareholderSchema) => void;
+};
+
+function PdfColumnCell({
+  row,
+  table,
+}: {
+  row: Row<shareholderSchema>;
+  table: Table<shareholderSchema>;
+}) {
+  const meta = table.options.meta as HissedarlarTableMeta | undefined;
+  const onOpen = meta?.openPdfForShareholder;
+  return (
+    <div className="flex justify-center">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0"
+        aria-label="PDF indir"
+        disabled={!onOpen}
+        onClick={() => onOpen?.(row.original)}
+      >
+        <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
   const branding = useTenantBranding();
@@ -804,6 +834,13 @@ export const columns: ColumnDef<shareholderSchema>[] = [
         "";
       return label || "-";
     },
+  },
+  {
+    id: "pdf",
+    header: "PDF",
+    minSize: 72,
+    enableSorting: false,
+    cell: ({ row, table }) => <PdfColumnCell row={row} table={table} />,
   },
   {
     id: "actions",

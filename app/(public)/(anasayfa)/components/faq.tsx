@@ -60,13 +60,13 @@ function FaqKaporaPaymentAnswer() {
     branding.full_payment_deadline_day
   );
   const day = branding.full_payment_deadline_day;
-  const kaporaGun = branding.deposit_deadline_days;
+  const depositDays = branding.deposit_deadline_days;
   return (
     <>
       <p>
-        Hisse alımınızdan itibaren {kaporaGun} gün içinde minimum {depositFormatted} TL kapora
-        yatırmanız gerekmektedir. Kalan ödemeyi ise {day} {monthName} {weekday} gününe kadar
-        tamamlamanız gerekmektedir.
+        İlk etapta minimum {depositFormatted} TL kapora yatırmanız gerekmektedir. Kaporanın,
+        hisse kaydınızı takip eden {depositDays} gün içinde tamamlanması beklenir. Kalan
+        ödemeyi ise {day} {monthName} {weekday} gününe kadar tamamlamanız gerekmektedir.
       </p>
       <p className="mt-3">
         Ancak kaporasını yatırmış ve durumunu önceden bildirmiş hissedarlarımız, kalan tutarı

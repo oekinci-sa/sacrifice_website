@@ -7,7 +7,7 @@ export const kurbanliklarColumnHeaderLabels: Record<string, string> = {
   barn_stall_order_no: "Padok No",
   share_price: "Hisse Bedeli",
   animal_type: "Cins",
-  foundation: "Vakıf",
+  foundation: "Referans",
   empty_share: "Boş Hisse",
   payment_status: "Ödeme Durumu",
   notes: "Notlar",

@@ -1,0 +1,20 @@
+---
+description: Admin hissedar mutasyonlarından sonra UI’nin güncel kalması
+alwaysApply: false
+---
+
+# Admin — hissedar güncellemesi sonrası liste senkronu
+
+## Sorun
+
+`/api/update-shareholder` veya benzeri mutasyon sonrası yalnızca `updateShareholder({ ...row.original, ...data })` ile store birleştirmek, RPC/JSON tipleri veya `sacrifice` join farkı yüzünden tabloda **eski teslimat / tutar** gösterebilir; kullanıcı sayfayı yenileyince düzelir.
+
+## Kural
+
+1. **Teslimat / ikinci telefon / teslimat yeri** gibi `editable-delivery-cells.tsx` üzerinden yapılan güncellemelerde: mutasyon başarılı olduktan sonra **`fetchShareholders(selectedYear ?? undefined, { silent: true })`** çağır (`useAdminShareholdersSilentRefetch`).  
+   - `silent: true` → tam sayfa `isLoading` / iskelet açılmaz.  
+   - İsteğe bağlı olarak mevcut `updateShareholder` optimistic merge’i korunabilir; **sessiz refetch** kaynağı sunucu ile hizalar.
+
+2. **Hissedar satırlı** admin tablolarında (`Teslimatlar`, `Ödemeler`, `Tüm hissedarlar`) `CustomDataTable` için mümkünse **`getRowId={(row) => row.shareholder_id}`** ver; satır kimliği indekse bağlı kalıp güncelleme sonrası hücrelerin takılı kalma riskini azaltır.
+
+3. Yeni inline düzenleme veya mutasyon eklerken: başarıda **ya** doğru merge + **ya da** sessiz `fetchShareholders` — **en az biri** sunucu ile uyum için yeterli olmalı; pratikte kritik akışlarda **sessiz refetch** tercih edilir.

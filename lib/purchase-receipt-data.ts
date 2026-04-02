@@ -11,6 +11,7 @@ import {
   isLiveScaleSacrifice,
   type SacrificePricingFields,
 } from "@/lib/live-scale-share";
+import { parseDepositTlFromShareholderNotes } from "@/lib/receipt-reminders";
 import type { TenantBranding } from "@/lib/tenant-branding";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 
@@ -40,6 +41,45 @@ export interface PurchaseReceiptPdfLikeData {
   share_weight: string;
   transaction_id: string;
   security_code: string;
+  /** Notlardaki “Bu hissedardan X TL kapora” veya tenant `deposit_amount` */
+  effective_deposit_tl: number;
+}
+
+/** Toplam/kalan tutarlar henüz kesin değilse (canlı baskül vb.) false — kalan tutar gösterilmez. */
+export function isPurchaseReceiptTotalFinalized(
+  receipt: Pick<PurchaseReceiptPdfLikeData, "total_amount" | "share_price">
+): boolean {
+  const sp = (receipt.share_price || "").trim();
+  if (/henüz girilmedi/i.test(sp)) return false;
+  const ta = (receipt.total_amount || "").trim();
+  if (!ta) return false;
+  if (/henüz|kesinleşmedi/i.test(ta)) return false;
+  return true;
+}
+
+/**
+ * “Toplam Tutar” yalnızca ek teslimat ücreti varken **ve** tutarlar kesinleştiyse gösterilir.
+ * Ek ücret yoksa (toplam = hisse) veya canlı baskül / henüz kesinleşmedi ise satır yok.
+ */
+export function shouldShowReceiptTotalAmountRow(
+  receipt: Pick<PurchaseReceiptPdfLikeData, "total_amount" | "share_price">,
+  hasDeliveryFee: boolean
+): boolean {
+  return hasDeliveryFee && isPurchaseReceiptTotalFinalized(receipt);
+}
+
+/**
+ * Geçerli rezervasyon kodu var mı — yoksa PDF/e-postada yalnızca “Rezervasyon Kodu” satırı gösterilmez;
+ * “Rezervasyon Takibi ve Güvenlik” bölümü ve güvenlik kodu satırı kalır.
+ */
+export function hasReceiptReservationCode(
+  transactionId: string | null | undefined
+): boolean {
+  const t = (transactionId ?? "").trim();
+  if (!t) return false;
+  if (/^Belirtilmemiş$/i.test(t)) return false;
+  if (/^[-_.\u2022]+$/.test(t) && t.length >= 8) return false;
+  return true;
 }
 
 function formatSacrificeTime(time: string | null | undefined): string {
@@ -69,6 +109,7 @@ export function buildPurchaseReceiptData(
     security_code?: string | null;
     sacrifice_consent?: boolean | null;
     proxy_status?: string | null;
+    notes?: string | null;
   },
   sacrifice: {
     sacrifice_no?: unknown;
@@ -106,6 +147,10 @@ export function buildPurchaseReceiptData(
   const second = shareholder.second_phone_number
     ? formatPhoneForDisplayWithSpacing(shareholder.second_phone_number)
     : undefined;
+
+  const notesDeposit = parseDepositTlFromShareholderNotes(shareholder.notes ?? null);
+  const effectiveDepositTl =
+    notesDeposit != null ? notesDeposit : branding.deposit_amount;
 
   let sharePriceDisplay: string;
   let shareWeightDisplay: string;
@@ -148,5 +193,6 @@ export function buildPurchaseReceiptData(
     share_weight: shareWeightDisplay,
     transaction_id: transactionId,
     security_code: shareholder.security_code?.trim() || "------",
+    effective_deposit_tl: effectiveDepositTl,
   };
 }

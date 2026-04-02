@@ -38,6 +38,7 @@ import { formatPhoneForDisplayWithSpacing, formatPhoneForInput } from "@/utils/f
 import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
+import { getOdemelerPaymentStatus } from "@/lib/odeme-payment-status";
 import { AlertCircle, Check, CheckCircle2, Clock, Download, Loader2, Pencil, Phone, UserMinus, X } from "lucide-react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { EditableSecondPhoneCell } from "@/app/(admin)/kurban-admin/components/editable-delivery-cells";
@@ -52,7 +53,7 @@ type HissedarlarTableMeta = {
   openPdfForShareholder?: (sh: shareholderSchema) => void;
 };
 
-function PdfColumnCell({
+export function PdfColumnCell({
   row,
   table,
 }: {
@@ -78,23 +79,24 @@ function PdfColumnCell({
   );
 }
 
-function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
+export function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
   const branding = useTenantBranding();
   const paid = parseFloat(row.original.paid_amount.toString());
   const total = parseFloat(row.original.total_amount.toString());
   const remaining = parseFloat(row.original.remaining_payment.toString());
+  const status = getOdemelerPaymentStatus(row.original, branding.deposit_amount);
   let StatusIcon: React.ElementType;
   let statusColorClass: string;
   let tooltipLabel: string;
 
-  if (paid < branding.deposit_amount) {
+  if (status === "deposit") {
     StatusIcon = AlertCircle;
     statusColorClass = "text-sac-red";
     tooltipLabel = "Kapora bekleniyor";
-  } else if (paid < total) {
+  } else if (status === "partial") {
     StatusIcon = Clock;
     statusColorClass = "text-sac-yellow";
-    tooltipLabel = "Kısmi ödeme";
+    tooltipLabel = "Tüm ödeme bekleniyor";
   } else {
     StatusIcon = CheckCircle2;
     statusColorClass = "text-sac-primary";
@@ -103,6 +105,9 @@ function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + " TL";
+
+  const isLiveScaleNoTotalYet =
+    row.original.sacrifice?.pricing_mode === "live_scale" && total === 0;
 
   return (
     <div className="flex justify-center">
@@ -124,7 +129,7 @@ function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
                   </div>
                   <span className="font-medium tabular-nums">{formatCurrency(paid)}</span>
                 </div>
-                {paid < total && (
+                {total > 0 && paid < total && (
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full shrink-0 bg-sac-red" />
@@ -139,7 +144,9 @@ function PaymentStatusCell({ row }: { row: Row<shareholderSchema> }) {
                     <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
                     <span className="text-muted-foreground">Toplam</span>
                   </div>
-                  <span className="font-medium tabular-nums">{formatCurrency(total)}</span>
+                  <span className="font-medium text-right max-w-[min(160px,50vw)]">
+                    {isLiveScaleNoTotalYet ? "Henüz belli değil." : formatCurrency(total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -544,7 +551,7 @@ const EditableConsentCell = ({ row }: { row: Row<shareholderSchema> }) => {
   );
 };
 
-const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
+export const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
   const [open, setOpen] = useState(false);
@@ -572,8 +579,8 @@ const EditableNotesCell = ({ row }: { row: Row<shareholderSchema> }) => {
 
   return (
     <>
-      <div className="group relative w-full min-h-[2rem] flex items-center">
-        <span className="flex-1 text-center px-8 pr-9 text-sm">
+      <div className="group relative w-full min-h-[2rem] flex min-w-0 items-center">
+        <span className="flex-1 px-8 pr-9 text-left text-sm">
           {row.original.notes ? (
             <span>{row.original.notes}</span>
           ) : (
@@ -810,6 +817,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     accessorKey: "notes",
     header: "Notlar",
     minSize: 100,
+    meta: { align: "left" },
     enableSorting: false,
     cell: ({ row }) => <EditableNotesCell row={row} />,
   },

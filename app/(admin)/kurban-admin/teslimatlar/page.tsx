@@ -182,6 +182,7 @@ export default function TeslimatlarPage() {
         <CustomDataTable
           columns={columns}
           data={sortedData}
+          getRowId={(row) => row.shareholder_id}
           storageKey="teslimatlar"
           initialState={{ columnVisibility: { second_phone_number: false } }}
           tableSize="medium"

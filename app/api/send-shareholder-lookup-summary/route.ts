@@ -154,10 +154,12 @@ export async function POST(request: Request) {
       branding
     );
 
+    const documentGeneratedAt = new Date();
     const { html, text } = buildPurchaseConfirmationHtml({
       tenantName: tenantDisplayName,
       branding,
       receipt,
+      documentGeneratedAt,
     });
 
     const from = getResendFromForPurchaseConfirmation(tenantId);

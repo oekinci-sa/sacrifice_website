@@ -81,8 +81,8 @@ const SelectedFiltersDisplay = ({
   );
 };
 
-// Faceted filter component
-function DataTableFacetedFilter<TData, TValue>({
+/** Hissedarlar / Ödemeler tablolarında ortak faceted filtre */
+export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,

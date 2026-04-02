@@ -39,16 +39,28 @@ type BrandingDepositFields = Pick<
 
 export type BuildReceiptRemindersOptions = {
   /**
-   * false: “Kapora IBAN Bilgisi” maddesini ekleme
-   * (PDF/e-postada Ödeme Bilgileri’nde zaten var). Varsayılan: true (ana sayfa üçlü kutu).
+   * @deprecated IBAN artık “Tüm Ödemeler”den sonra; bu bayrak kullanılmıyor.
    */
   includeKaporaIbanReminder?: boolean;
   /**
-   * false: “Kapora Ödeme Süresi” maddesini ekleme
-   * (PDF/e-posta Önemli Notlar’da yalnızca tam ödeme tarihi kalsın). Varsayılan: true.
+   * false: “Kapora Ödeme Süresi” maddesini ekleme. Varsayılan: true.
    */
   includeKaporaPaymentDeadlineReminder?: boolean;
+  /** Admin PDF: kapora 0 seçildiğinde önemli notlarda “Kapora alınmayacak” vb. */
+  kaporaWaived?: boolean;
+  /** Ödenen tutar (TL); kapora satırında tamamlandı / bekleniyor metni için */
+  paidAmountTl?: number;
+  /**
+   * Beklenen kapora (TL). Verilmezse `branding.deposit_amount`.
+   * Admin PDF’te not/override ile `buildPurchaseReceiptData` → `effective_deposit_tl` veya `ReceiptPDF` override.
+   */
+  depositExpectedTl?: number;
 };
+
+/** Önemli notlar — kapora maddesi başlığı */
+export const KAPORA_REMINDER_HEADER = "Kapora";
+/** @deprecated `KAPORA_REMINDER_HEADER` kullanın */
+export const ODENECEK_KAPORA_HEADER = KAPORA_REMINDER_HEADER;
 
 /** Ödeme tablosu: "Kapora" satırı değeri — örn. `5.000 TL` (DB `deposit_amount`). */
 export function formatKaporaTlForReceipt(
@@ -68,6 +80,24 @@ export function parseReceiptTlAmountString(s: string | null | undefined): number
   if (s == null || String(s).trim() === "") return 0;
   const n = parseFloat(String(s).replace(/[^\d.-]/g, ""));
   return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * `shareholders.notes` içindeki “Bu hissedardan X TL kapora …” cümlesinden tutarı çıkarır.
+ * Admin PDF not birleştirmesi ile aynı kalıba uyar (`receipt-pdf-admin-notes`).
+ */
+export function parseDepositTlFromShareholderNotes(
+  notes: string | null | undefined
+): number | null {
+  if (!notes?.trim()) return null;
+  const matches = Array.from(
+    notes.matchAll(/hissedardan\s+([\d.,]+)\s*TL\s*kapora/gi)
+  );
+  if (matches.length === 0) return null;
+  const raw = matches[matches.length - 1][1].replace(/\./g, "").replace(",", ".");
+  const n = parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n);
 }
 
 /** PDF/e-posta ödeme tablosu satır etiketleri (ayrı satırlar). */
@@ -95,14 +125,22 @@ export function buildReceiptReminders(
   branding: BrandingDepositFields | null | undefined,
   options?: BuildReceiptRemindersOptions
 ): ReceiptReminderItem[] {
-  const includeKaporaIban = options?.includeKaporaIbanReminder !== false;
   const includeKaporaDeadline =
     options?.includeKaporaPaymentDeadlineReminder !== false;
+  const kaporaWaived = options?.kaporaWaived === true;
   const b = branding ?? DEFAULT_BRANDING;
+  const depositTl =
+    options?.depositExpectedTl != null && Number.isFinite(options.depositExpectedTl)
+      ? Number(options.depositExpectedTl)
+      : b.deposit_amount;
+  const paidTl =
+    options?.paidAmountTl != null && Number.isFinite(options.paidAmountTl)
+      ? Number(options.paidAmountTl)
+      : 0;
   const depositFormatted = new Intl.NumberFormat("tr-TR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(b.deposit_amount);
+  }).format(depositTl);
   const monthName = getFullPaymentMonthName(b.full_payment_deadline_month);
   const calendarYear =
     b.active_sacrifice_year != null && !Number.isNaN(Number(b.active_sacrifice_year))
@@ -115,25 +153,29 @@ export function buildReceiptReminders(
   );
 
   const reminders: ReceiptReminderItem[] = [];
+  const hasKaporaAmount = !kaporaWaived && depositTl > 0;
 
-  if (includeKaporaDeadline) {
+  if (kaporaWaived) {
+    reminders.push({
+      src: "info.svg",
+      header: KAPORA_REMINDER_HEADER,
+      description: KAPORA_WAIVED_DISPLAY,
+    });
+  } else if (hasKaporaAmount) {
+    const kaporaStatus =
+      paidTl >= depositTl ? "Kapora tamamlandı" : "Kapora bekleniyor";
+    reminders.push({
+      src: "info.svg",
+      header: KAPORA_REMINDER_HEADER,
+      description: `${depositFormatted} TL — ${kaporaStatus}`,
+    });
+  }
+
+  if (includeKaporaDeadline && hasKaporaAmount && !kaporaWaived) {
     reminders.push({
       src: "info.svg",
       header: "Kapora Ödeme Süresi",
       description: `${b.deposit_deadline_days} gün içerisinde kaporası<br/>ödenmeyen hisseler iptal edilir.`,
-    });
-  }
-
-  if (includeKaporaIban) {
-    let ibanText = formatIbanForDisplay(b.iban);
-    const holder = getIbanAccountHolderDisplay(b);
-    if (holder) {
-      ibanText += `<br/>${IBAN_ACCOUNT_HOLDER_FIELD_LABEL}: ${holder}`;
-    }
-    reminders.push({
-      src: "wallet-fill.svg",
-      header: `Kapora IBAN Bilgisi (${depositFormatted} TL)`,
-      description: ibanText,
     });
   }
 
@@ -145,6 +187,19 @@ export function buildReceiptReminders(
         ? `Tüm ödemeler ${b.full_payment_deadline_day} ${monthName} ${weekdayName}<br/>gününe kadar tamamlanmalıdır.`
         : `Tüm ödemeler ${b.full_payment_deadline_day} ${monthName}<br/>gününe kadar tamamlanmalıdır.`,
   });
+
+  if (hasKaporaAmount && !kaporaWaived) {
+    let ibanText = formatIbanForDisplay(b.iban);
+    const holder = getIbanAccountHolderDisplay(b);
+    if (holder) {
+      ibanText += `<br/>${IBAN_ACCOUNT_HOLDER_FIELD_LABEL}: ${holder}`;
+    }
+    reminders.push({
+      src: "wallet-fill.svg",
+      header: IBAN_PAYMENT_ROW_LABEL,
+      description: ibanText,
+    });
+  }
 
   return reminders;
 }

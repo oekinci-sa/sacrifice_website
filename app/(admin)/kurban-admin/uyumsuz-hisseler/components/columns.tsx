@@ -108,6 +108,7 @@ export function createColumns(
       id: "sacrifice_notes",
       accessorFn: (row) => row.notes ?? "",
       header: "Kurbanlık Notları",
+      meta: { align: "left" },
       enableSorting: false,
       cell: ({ row }) => {
         const n = row.original.notes;

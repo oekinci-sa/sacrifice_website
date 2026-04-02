@@ -7,22 +7,21 @@ import {
   getElyaCuttingArrivalNoteLines,
   shouldShowElyaCuttingArrivalNote,
 } from '@/lib/receipt-cutting-note';
-import { formatReceiptKilogramDisplay } from '@/lib/purchase-receipt-data';
+import {
+  formatReceiptKilogramDisplay,
+  hasReceiptReservationCode,
+  isPurchaseReceiptTotalFinalized,
+  shouldShowReceiptTotalAmountRow,
+} from '@/lib/purchase-receipt-data';
 import {
   buildReceiptReminders,
-  formatKaporaTlForReceipt,
-  getIbanAccountHolderDisplay,
-  IBAN_HOLDER_PAYMENT_ROW_LABEL,
-  IBAN_PAYMENT_ROW_LABEL,
-  KAPORA_PAYMENT_ROW_LABEL,
-  KAPORA_PAYMENT_ROW_LABEL_FULL,
-  KAPORA_WAIVED_DISPLAY,
   parseReceiptTlAmountString,
 } from '@/lib/receipt-reminders';
 import type { TenantBranding } from '@/lib/tenant-branding';
 import { DEFAULT_BRANDING } from '@/lib/tenant-branding-defaults';
-import { formatIbanForDisplay } from '@/utils/formatters';
+import { formatDateWithSeconds } from "@/lib/date-utils";
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { useMemo } from "react";
 
 // Register OpenSans font from local files
 Font.register({
@@ -43,9 +42,32 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
+  },
+  headerSpacer: {
+    width: '28%',
+  },
+  headerLogoWrap: {
+    width: '44%',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  belgeOlusturulma: {
+    width: '28%',
+    alignItems: 'flex-end',
+    fontSize: 8,
+    color: '#666666',
+    textAlign: 'right',
+    lineHeight: 1.35,
+  },
+  paymentDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    marginTop: 6,
+    marginBottom: 6,
+    paddingTop: 6,
   },
   logo: {
     width: 150,
@@ -183,6 +205,11 @@ interface ReceiptPDFProps {
   branding?: TenantBranding | null;
   /** Admin PDF vb.: boş değilse PDF’te kapora tutarı bu değerle gösterilir (tenant varsayılanının üzerine). */
   depositAmountOverride?: number | null;
+  /**
+   * Admin PDF: kapora alanı boşken `data.effective_deposit_tl` (notlardan parse) yerine
+   * tenant `deposit_amount` kullanılır — diyalogdaki “varsayılan tenant kapora” ile uyumlu.
+   */
+  preferTenantDepositForKaporaReminders?: boolean;
   data: {
     // Hisse Sahibi Bilgileri
     shareholder_name: string;
@@ -210,10 +237,16 @@ interface ReceiptPDFProps {
     // Rezervasyon Takibi ve Güvenlik
     transaction_id: string;
     security_code: string;
+    effective_deposit_tl: number;
   };
 }
 
-export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDFProps) => {
+export const ReceiptPDF = ({
+  data,
+  branding,
+  depositAmountOverride,
+  preferTenantDepositForKaporaReminders = false,
+}: ReceiptPDFProps) => {
   const baseBranding = branding ?? DEFAULT_BRANDING;
   const effectiveBranding =
     depositAmountOverride != null && Number.isFinite(Number(depositAmountOverride))
@@ -232,28 +265,45 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
     depositAmountOverride != null &&
     Number.isFinite(Number(depositAmountOverride)) &&
     Number(depositAmountOverride) === 0;
-  const showKaporaRow =
-    isAdminKaporaWaived || (effectiveBranding.deposit_amount ?? 0) > 0;
-  /** Kapora yoksa IBAN satırları (kapora ödemesi için) gösterilmez */
-  const showKaporaIbanRows = (effectiveBranding.deposit_amount ?? 0) > 0;
+  const documentGeneratedAtLabel = useMemo(
+    () => formatDateWithSeconds(new Date()),
+    []
+  );
   const logoBase64 = getLogoBase64ForSlug(logoSlug);
   const logoStyle =
     logoSlug === "elya-hayvancilik" ? styles.logoElya : styles.logo;
+  const depositTlForReminders =
+    depositAmountOverride != null && Number.isFinite(Number(depositAmountOverride))
+      ? Number(depositAmountOverride)
+      : preferTenantDepositForKaporaReminders
+        ? baseBranding.deposit_amount
+        : data.effective_deposit_tl;
+  const paidTl = parseReceiptTlAmountString(data.paid_amount);
   const remindersList = buildReceiptReminders(effectiveBranding, {
-    includeKaporaIbanReminder: false,
+    kaporaWaived: isAdminKaporaWaived,
+    paidAmountTl: paidTl,
+    depositExpectedTl: depositTlForReminders,
   });
-  const ibanAccountHolderName = getIbanAccountHolderDisplay(effectiveBranding);
-  const brandingForIban = effectiveBranding;
+  const odemeTotalsFinalized = isPurchaseReceiptTotalFinalized(data);
+  const showTotalAmountRow = shouldShowReceiptTotalAmountRow(data, showDeliveryFeeRow);
+  const showReservationCodeRow = hasReceiptReservationCode(data.transaction_id);
   const websiteUrl = effectiveBranding.website_url || "ankarakurban.com.tr";
   const contactPhone = effectiveBranding.contact_phone || "0552 652 90 00 / 0312 312 44 64";
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Logo */}
+        {/* Logo + belge tarihi (sağ üst) */}
         <View style={styles.header}>
-          {/* alt attribute not supported by react-pdf's Image component */}
-          <Image src={logoBase64} style={logoStyle} />
+          <View style={styles.headerSpacer} />
+          <View style={styles.headerLogoWrap}>
+            {/* alt attribute not supported by react-pdf's Image component */}
+            <Image src={logoBase64} style={logoStyle} />
+          </View>
+          <View style={styles.belgeOlusturulma}>
+            <Text>Belge oluşturulma</Text>
+            <Text>{documentGeneratedAtLabel}</Text>
+          </View>
         </View>
 
         {/* Title */}
@@ -324,10 +374,14 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
               <Text style={styles.label}>Kilogram:</Text>
               <Text style={styles.value}>{formatReceiptKilogramDisplay(data.share_weight)}</Text>
             </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Satın Alma Tarihi:</Text>
+              <Text style={styles.value}>{data.purchase_time}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Second row of sections: 2 and 4 side by side */}
+        {/* Second row: Ödeme + Rezervasyon/Güvenlik (rezervasyon kodu satırı yalnızca kod varsa) */}
         <View style={styles.twoColumnLayout}>
           {/* 2. Hisse ve Ödeme Özeti */}
           <View style={styles.column}>
@@ -342,51 +396,36 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
                 <Text style={styles.value}>{formatPrice(data.delivery_fee)}</Text>
               </View>
             ) : null}
-            <View style={styles.row}>
-              <Text style={styles.label}>Toplam Tutar:</Text>
-              <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
-            </View>
-            {showKaporaRow ? (
+            {showTotalAmountRow ? (
               <View style={styles.row}>
-                <Text style={styles.label}>
-                  {isAdminKaporaWaived
-                    ? `${KAPORA_PAYMENT_ROW_LABEL_FULL}:`
-                    : `${KAPORA_PAYMENT_ROW_LABEL}:`}
-                </Text>
-                <Text style={styles.value}>
-                  {isAdminKaporaWaived
-                    ? KAPORA_WAIVED_DISPLAY
-                    : formatKaporaTlForReceipt(effectiveBranding)}
-                </Text>
+                <Text style={styles.label}>Toplam Tutar:</Text>
+                <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
               </View>
             ) : null}
-            {showKaporaIbanRows ? (
+            <View style={styles.paymentDivider}>
               <View style={styles.row}>
-                <Text style={styles.label}>{IBAN_PAYMENT_ROW_LABEL}:</Text>
-                <Text style={styles.value}>{formatIbanForDisplay(brandingForIban.iban)}</Text>
+                <Text style={styles.label}>Ödenen Tutar:</Text>
+                <Text style={styles.value}>{formatPrice(data.paid_amount)}</Text>
               </View>
-            ) : null}
-            {showKaporaIbanRows && ibanAccountHolderName ? (
-              <View style={styles.row}>
-                <Text style={styles.label}>{IBAN_HOLDER_PAYMENT_ROW_LABEL}:</Text>
-                <Text style={styles.value}>{ibanAccountHolderName}</Text>
-              </View>
-            ) : null}
-            <View style={styles.row}>
-              <Text style={styles.label}>Satın Alma Tarihi:</Text>
-              <Text style={styles.value}>{data.purchase_time}</Text>
+              {odemeTotalsFinalized ? (
+                <View style={styles.row}>
+                  <Text style={styles.label}>Kalan Tutar:</Text>
+                  <Text style={styles.value}>{formatPrice(data.remaining_payment)}</Text>
+                </View>
+              ) : null}
             </View>
           </View>
 
-          {/* 4. Rezervasyon Takibi ve Güvenlik */}
           <View style={styles.column}>
             <Text style={styles.sectionTitle}>
               Rezervasyon Takibi ve Güvenlik
             </Text>
-            <View style={styles.row}>
-              <Text style={styles.label}>Rezervasyon Kodu:</Text>
-              <Text style={styles.value}>{data.transaction_id}</Text>
-            </View>
+            {showReservationCodeRow ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>Rezervasyon Kodu:</Text>
+                <Text style={styles.value}>{data.transaction_id}</Text>
+              </View>
+            ) : null}
             <View style={styles.row}>
               <Text style={styles.label}>Güvenlik Kodu:</Text>
               <Text style={styles.value}>{data.security_code}</Text>
@@ -410,7 +449,7 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
           {remindersList.map((reminder, index) => (
             <View key={index} style={{ marginBottom: 5 }}>
               <Text>
-                • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\/>/g, ' ')}
+                • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\s*\/?>/gi, " ")}
               </Text>
             </View>
           ))}

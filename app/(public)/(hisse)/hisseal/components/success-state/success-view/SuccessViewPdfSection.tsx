@@ -1,28 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import type { PurchaseReceiptPdfLikeData } from "@/lib/purchase-receipt-data";
 import { BlobProvider } from "@react-pdf/renderer";
 import ReceiptPDF from "../ReceiptPDF";
 
-export interface ReceiptData {
-  shareholder_name: string;
-  phone_number: string;
-  second_phone_number?: string;
-  delivery_type: string;
-  delivery_location: string;
-  sacrifice_consent: boolean;
-  vekalet_durumu: string;
-  share_price: string;
-  delivery_fee: string;
-  total_amount: string;
-  paid_amount: string;
-  remaining_payment: string;
-  purchase_time: string;
-  sacrifice_no: string;
-  sacrifice_time: string;
-  share_weight: string;
-  transaction_id: string;
-  security_code: string;
-}
+export type ReceiptData = PurchaseReceiptPdfLikeData;
 
 interface SuccessViewPdfSectionProps {
   shareholders: unknown[];

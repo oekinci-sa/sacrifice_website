@@ -16,19 +16,17 @@ import {
 } from "@/lib/receipt-cutting-note";
 import {
   formatReceiptKilogramDisplay,
+  hasReceiptReservationCode,
+  isPurchaseReceiptTotalFinalized,
+  shouldShowReceiptTotalAmountRow,
   type PurchaseReceiptPdfLikeData,
 } from "@/lib/purchase-receipt-data";
+import { formatDateWithSeconds } from "@/lib/date-utils";
 import {
   buildReceiptReminders,
-  formatKaporaTlForReceipt,
-  getIbanAccountHolderDisplay,
-  IBAN_HOLDER_PAYMENT_ROW_LABEL,
-  IBAN_PAYMENT_ROW_LABEL,
-  KAPORA_PAYMENT_ROW_LABEL,
   parseReceiptTlAmountString,
 } from "@/lib/receipt-reminders";
 import type { TenantBranding } from "@/lib/tenant-branding";
-import { formatIbanForDisplay } from "@/utils/formatters";
 
 /** E-posta konusu ve gövdede marka adı (DB `tenants.name` değil, logo_slug ile). */
 export function getPurchaseConfirmationTenantDisplayName(logoSlug: string): string {
@@ -41,8 +39,12 @@ export function buildPurchaseConfirmationHtml(params: {
   tenantName: string;
   branding: TenantBranding;
   receipt: PurchaseReceiptPdfLikeData;
+  /** E-posta/PDF üretim anı; verilmezse `new Date()` */
+  documentGeneratedAt?: Date;
 }): { html: string; text: string } {
-  const { tenantName, branding, receipt } = params;
+  const { tenantName, branding, receipt, documentGeneratedAt } = params;
+  const generatedAt = documentGeneratedAt ?? new Date();
+  const documentGeneratedAtFormatted = formatDateWithSeconds(generatedAt);
   const slug = branding.logo_slug;
   const logoLightHttps = getLogoAbsoluteUrlForEmail(slug, branding.website_url);
   const logoDarkHttps =
@@ -60,10 +62,12 @@ export function buildPurchaseConfirmationHtml(params: {
     false
   );
 
+  const paidTl = parseReceiptTlAmountString(receipt.paid_amount);
   const remindersList = buildReceiptReminders(branding, {
-    includeKaporaIbanReminder: false,
+    kaporaWaived: false,
+    paidAmountTl: paidTl,
+    depositExpectedTl: receipt.effective_deposit_tl,
   });
-  const ibanAccountHolderName = getIbanAccountHolderDisplay(branding);
   const showElyaCuttingNote = shouldShowElyaCuttingArrivalNote(
     slug,
     receipt.delivery_type
@@ -82,39 +86,46 @@ export function buildPurchaseConfirmationHtml(params: {
       : ""
   }`;
 
-  const logoTd =
+  const logoImgs =
     logoLightHttps && slug === "ankara-kurban" && logoDarkHttps
-      ? `<td style="padding:24px 20px 12px 20px;text-align:center;">
-            <img class="email-logo-img email-logo-light${elyaClass}" src="${fmt(logoLightHttps)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
-            <img class="email-logo-img email-logo-dark${elyaClass}" src="${fmt(logoDarkHttps)}" alt="" width="${logoWidthPx}" style="display:none;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
-          </td>`
-      : `<td style="padding:24px 20px 12px 20px;text-align:center;">
-            <img class="email-logo-img${elyaClass}" src="${fmt(logoLightHttps || logoFallback)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
-          </td>`;
+      ? `<img class="email-logo-img email-logo-light${elyaClass}" src="${fmt(logoLightHttps)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />
+            <img class="email-logo-img email-logo-dark${elyaClass}" src="${fmt(logoDarkHttps)}" alt="" width="${logoWidthPx}" style="display:none;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />`
+      : `<img class="email-logo-img${elyaClass}" src="${fmt(logoLightHttps || logoFallback)}" alt="${fmt(tenantName)}" width="${logoWidthPx}" style="display:block;margin:0 auto;max-width:100%;height:auto;border:0;outline:none;" />`;
+
+  const logoRow = `<tr>
+    <td style="padding:24px 20px 12px 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="28%" valign="top"></td>
+          <td width="44%" align="center" valign="top">${logoImgs}</td>
+          <td width="28%" valign="top" align="right" style="font-size:11px;line-height:1.35;color:#6b7280;">
+            Belge oluşturulma<br />${fmt(documentGeneratedAtFormatted)}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
 
   const deliveryFeeNum = parseReceiptTlAmountString(receipt.delivery_fee);
   const showDeliveryFeeRow = deliveryFeeNum > 0;
-  const showKaporaRow = (branding.deposit_amount ?? 0) > 0;
-
-  const odemeRows: [string, string][] = [
-    ["Hisse Fiyatı", formatPrice(receipt.share_price)],
-    ...(showDeliveryFeeRow
-      ? ([["Teslimat Ücreti", formatPrice(receipt.delivery_fee)]] as [string, string][])
-      : []),
-    ["Toplam Tutar", formatPrice(receipt.total_amount)],
-    ...(showKaporaRow
-      ? ([[KAPORA_PAYMENT_ROW_LABEL, formatKaporaTlForReceipt(branding)]] as [string, string][])
-      : []),
-    ...(showKaporaRow
-      ? ([
-          [IBAN_PAYMENT_ROW_LABEL, formatIbanForDisplay(branding.iban)],
-          ...(ibanAccountHolderName
-            ? ([[IBAN_HOLDER_PAYMENT_ROW_LABEL, ibanAccountHolderName]] as [string, string][])
-            : []),
-        ] as [string, string][])
-      : []),
-    ["Satın Alma Tarihi", receipt.purchase_time],
-  ];
+  const odemeTotalsFinalized = isPurchaseReceiptTotalFinalized(receipt);
+  const showTotalAmountRow = shouldShowReceiptTotalAmountRow(receipt, showDeliveryFeeRow);
+  const showReservationCodeRow = hasReceiptReservationCode(receipt.transaction_id);
+  const odemeBlockHtml =
+    rowsHtml([
+      ["Hisse Fiyatı", formatPrice(receipt.share_price)],
+      ...(showDeliveryFeeRow
+        ? ([["Teslimat Ücreti", formatPrice(receipt.delivery_fee)]] as [string, string][])
+        : []),
+      ...(showTotalAmountRow
+        ? ([["Toplam Tutar", formatPrice(receipt.total_amount)]] as [string, string][])
+        : []),
+    ]) +
+    `<tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding:8px 0 0 0;"></td></tr>` +
+    rowHtml("Ödenen Tutar", formatPrice(receipt.paid_amount)) +
+    (odemeTotalsFinalized
+      ? rowHtml("Kalan Tutar", formatPrice(receipt.remaining_payment))
+      : "");
 
   const hisseSahibiRows: [string, string][] = [
     ["Ad Soyad", receipt.shareholder_name],
@@ -171,9 +182,7 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
   <tr>
     <td class="email-outer" align="center" style="padding:24px 12px;">
       <table role="presentation" class="email-card" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;">
-        <tr>
-          ${logoTd}
-        </tr>
+        ${logoRow}
         <tr>
           <td class="email-pad" style="padding:0 20px 8px 20px;">
             <p style="margin:0 0 8px 0;font-size:15px;color:#374151;">Kıymetli hissedarımız ${fmt(receipt.shareholder_name)},</p>
@@ -186,16 +195,19 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
           "Kurbanlık Bilgileri",
           rowHtml("Hayvan No", receipt.sacrifice_no) +
             rowHtmlRawValue("Kesim Zamanı", cuttingTimeValueHtml) +
-            rowHtml("Kilogram", formatReceiptKilogramDisplay(receipt.share_weight))
+            rowHtml("Kilogram", formatReceiptKilogramDisplay(receipt.share_weight)) +
+            rowHtml("Satın Alma Tarihi", receipt.purchase_time)
         )}
-        ${sectionBlock("Ödeme Bilgileri", rowsHtml(odemeRows))}
+        ${sectionBlock("Ödeme Bilgileri", odemeBlockHtml)}
         ${sectionBlock(
-    "Rezervasyon Takibi ve Güvenlik",
-    rowsHtml([
-      ["Rezervasyon Kodu", receipt.transaction_id],
-      ["Güvenlik Kodu", receipt.security_code],
-    ])
-  )}
+          "Rezervasyon Takibi ve Güvenlik",
+          rowsHtml([
+            ...(showReservationCodeRow
+              ? ([["Rezervasyon Kodu", receipt.transaction_id]] as [string, string][])
+              : []),
+            ["Güvenlik Kodu", receipt.security_code],
+          ])
+        )}
         <tr>
           <td class="email-pad" style="padding:0 20px 16px 20px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border-radius:6px;border:1px solid #fde68a;">
@@ -237,6 +249,7 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
     remindersList,
     websiteUrl,
     contactPhone,
+    documentGeneratedAtFormatted,
   });
 
   return { html, text };
@@ -292,6 +305,7 @@ function buildPlainText(params: {
   remindersList: { header: string; description: string }[];
   websiteUrl: string;
   contactPhone: string;
+  documentGeneratedAtFormatted: string;
 }): string {
   const {
     tenantName,
@@ -301,8 +315,8 @@ function buildPlainText(params: {
     remindersList,
     websiteUrl,
     contactPhone,
+    documentGeneratedAtFormatted,
   } = params;
-  const holder = getIbanAccountHolderDisplay(branding);
   const showElyaCuttingNote = shouldShowElyaCuttingArrivalNote(
     branding.logo_slug,
     receipt.delivery_type
@@ -310,9 +324,16 @@ function buildPlainText(params: {
   const [cuttingNoteLine1, cuttingNoteLine2] = getElyaCuttingArrivalNoteLines();
   const deliveryFeeNumPlain = parseReceiptTlAmountString(receipt.delivery_fee);
   const showDeliveryFeeRowPlain = deliveryFeeNumPlain > 0;
-  const showKaporaRowPlain = (branding.deposit_amount ?? 0) > 0;
+  const odemeTotalsFinalizedPlain = isPurchaseReceiptTotalFinalized(receipt);
+  const showTotalAmountRowPlain = shouldShowReceiptTotalAmountRow(
+    receipt,
+    showDeliveryFeeRowPlain
+  );
+  const showReservationCodeRowPlain = hasReceiptReservationCode(receipt.transaction_id);
   const lines: string[] = [
     `Kıymetli hissedarımız ${receipt.shareholder_name},`,
+    "",
+    `Belge oluşturulma: ${documentGeneratedAtFormatted}`,
     "",
     `${tenantName} — Kurban Hisse Seçimi İşlem Özeti`,
     "",
@@ -342,29 +363,30 @@ function buildPlainText(params: {
     `Kesim Zamanı: ${receipt.sacrifice_time || "-"}`,
     ...(showElyaCuttingNote ? [cuttingNoteLine1, cuttingNoteLine2] : []),
     `Kilogram: ${formatReceiptKilogramDisplay(receipt.share_weight)}`,
+    `Satın Alma Tarihi: ${receipt.purchase_time}`,
     "",
     "--- Ödeme Bilgileri ---",
     `Hisse Fiyatı: ${formatPrice(receipt.share_price)}`,
     ...(showDeliveryFeeRowPlain
       ? [`Teslimat Ücreti: ${formatPrice(receipt.delivery_fee)}`]
       : []),
-    `Toplam Tutar: ${formatPrice(receipt.total_amount)}`,
-    ...(showKaporaRowPlain
-      ? [`Kapora: ${formatKaporaTlForReceipt(branding)}`]
+    ...(showTotalAmountRowPlain
+      ? [`Toplam Tutar: ${formatPrice(receipt.total_amount)}`]
       : []),
-    ...(showKaporaRowPlain
-      ? [
-          `IBAN: ${formatIbanForDisplay(branding.iban)}`,
-          ...(holder ? [`${IBAN_HOLDER_PAYMENT_ROW_LABEL}: ${holder}`] : []),
-        ]
+    "---",
+    `Ödenen Tutar: ${formatPrice(receipt.paid_amount)}`,
+    ...(odemeTotalsFinalizedPlain
+      ? [`Kalan Tutar: ${formatPrice(receipt.remaining_payment)}`]
       : []),
-    `Satın Alma Tarihi: ${receipt.purchase_time}`,
-    "",
-    "--- Rezervasyon Takibi ve Güvenlik ---",
-    `Rezervasyon Kodu: ${receipt.transaction_id}`,
-    `Güvenlik Kodu: ${receipt.security_code}`,
-    "",
-    "Önemli Notlar:",
+    ""
+  );
+  lines.push("--- Rezervasyon Takibi ve Güvenlik ---");
+  if (showReservationCodeRowPlain) {
+    lines.push(`Rezervasyon Kodu: ${receipt.transaction_id}`);
+  }
+  lines.push(`Güvenlik Kodu: ${receipt.security_code}`, "");
+  lines.push("Önemli Notlar:");
+  lines.push(
     "Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için gerekmektedir.",
     "Lütfen kodunuzu kimse ile paylaşmayınız.",
     ""

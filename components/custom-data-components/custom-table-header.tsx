@@ -1,6 +1,7 @@
 "use client"
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import { Table as TableInstance, flexRender } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useCallback, useState } from "react"
@@ -59,9 +60,9 @@ export function CustomTableHeader<TData>({
   onColumnOrderChange,
 }: CustomTableHeaderProps<TData>) {
   const headerSizeClasses = {
-    small: "h-10 text-center text-xs md:text-sm py-1",
-    medium: "h-12 text-center text-sm md:text-md py-2",
-    large: "h-14 text-center text-sm md:text-lg py-3"
+    small: "h-10 text-xs md:text-sm py-1",
+    medium: "h-12 text-sm md:text-md py-2",
+    large: "h-14 text-sm md:text-lg py-3"
   }
 
   const arrowSizeClasses = {
@@ -70,7 +71,6 @@ export function CustomTableHeader<TData>({
     large: "h-4 w-4 md:h-5 md:h-5"
   }
 
-  const headerClass = headerSizeClasses[tableSize]
   const arrowClass = arrowSizeClasses[tableSize]
 
   const canReorder = Boolean(onColumnOrderChange)
@@ -159,6 +159,12 @@ export function CustomTableHeader<TData>({
               !HEADER_REORDER_EXCLUDED_IDS.includes(columnId as "actions" | "security_code")
 
             const minSize = (header.column.columnDef as { minSize?: number }).minSize
+            const alignLeft =
+              (header.column.columnDef.meta as { align?: string } | undefined)?.align === "left"
+            const headerClass = cn(
+              headerSizeClasses[tableSize],
+              alignLeft ? "text-left" : "text-center"
+            )
 
             const showLineBefore =
               dropIndicator?.columnId === columnId && dropIndicator.edge === "before"
@@ -197,7 +203,12 @@ export function CustomTableHeader<TData>({
                   />
                 ) : null}
                 {header.isPlaceholder ? null : (
-                  <div className="flex items-center justify-center gap-1">
+                  <div
+                    className={cn(
+                      "flex items-center gap-1",
+                      alignLeft ? "justify-start" : "justify-center"
+                    )}
+                  >
                     {typeof header.column.columnDef.header === "string" ? (
                       header.column.getCanSort() ? (
                         <button

@@ -106,6 +106,7 @@ export default function TumHissedarlarPage() {
         <CustomDataTable
           columns={columns}
           data={filteredShareholders}
+          getRowId={(row) => row.shareholder_id}
           storageKey="hissedarlar"
           meta={{
             openPdfForShareholder: (sh: shareholderSchema) => {

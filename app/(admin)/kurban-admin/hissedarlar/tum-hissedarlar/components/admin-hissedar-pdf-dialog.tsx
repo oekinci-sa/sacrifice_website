@@ -202,6 +202,7 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
                       data={receiptData}
                       branding={branding}
                       depositAmountOverride={depositOverride}
+                      preferTenantDepositForKaporaReminders
                     />
                   ).toBlob();
                   downloadPdfBlob(blob, shareholder.shareholder_name);

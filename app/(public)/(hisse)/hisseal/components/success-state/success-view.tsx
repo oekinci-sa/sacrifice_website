@@ -28,6 +28,9 @@ interface ShareholderData {
   proxy_status?: string;
   paid_amount?: number;
   security_code?: string;
+  last_edited_time?: string | null;
+  /** Kapora notu (“Bu hissedardan X TL kapora”) için */
+  notes?: string | null;
 }
 
 // Veritabanından veri tiplerini tanımlayalım
@@ -156,6 +159,7 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       security_code: shareholder.security_code || generateSecurityCode(),
       sacrifice_consent: shareholder.sacrifice_consent,
       proxy_status: shareholder.proxy_status,
+      notes: (shareholder as { notes?: string | null }).notes ?? null,
     };
 
     const sac = sacrifice as SacrificeData & {

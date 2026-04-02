@@ -10,7 +10,10 @@ interface ShareholderState {
   realtimeEnabled: boolean;
 
   // Actions
-  fetchShareholders: (year?: number | null) => Promise<void>;
+  fetchShareholders: (
+    year?: number | null,
+    options?: { silent?: boolean }
+  ) => Promise<void>;
   fetchShareholdersByTransactionId: (transactionId: string) => Promise<shareholderSchema[]>;
   setShareholders: (data: shareholderSchema[]) => void;
   updateShareholder: (shareholder: shareholderSchema) => void;
@@ -155,9 +158,12 @@ export const useShareholderStore = create<ShareholderState>((set, get) => {
     realtimeEnabled: false,
 
     // Fetch shareholders from API
-    fetchShareholders: async (year?: number | null) => {
+    fetchShareholders: async (year?: number | null, options?: { silent?: boolean }) => {
+      const silent = options?.silent === true;
       try {
-        set({ isLoading: true, error: null });
+        if (!silent) {
+          set({ isLoading: true, error: null });
+        }
 
         const url = year != null
           ? `/api/get-shareholders?year=${year}`
@@ -170,21 +176,30 @@ export const useShareholderStore = create<ShareholderState>((set, get) => {
         }
 
         const data = await response.json();
-        set({
-          shareholders: data.shareholders || [],
-          isLoading: false,
-          error: null,
-          isInitialized: true
-        });
+        if (silent) {
+          set({
+            shareholders: data.shareholders || [],
+            error: null,
+          });
+        } else {
+          set({
+            shareholders: data.shareholders || [],
+            isLoading: false,
+            error: null,
+            isInitialized: true,
+          });
+        }
 
         if (!get().realtimeEnabled) {
           get().enableRealtime();
         }
       } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "Unknown error",
-          isLoading: false
-        });
+        if (!silent) {
+          set({
+            error: error instanceof Error ? error.message : "Unknown error",
+            isLoading: false,
+          });
+        }
       }
     },
 

@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import {
@@ -56,10 +57,20 @@ export async function updateShareholderField(
   return res.json();
 }
 
+/** Mutasyon sonrası store’u API ile hizala; tabloda manuel yenileme gerekmez (sessiz, isLoading açmaz). */
+function useAdminShareholdersSilentRefetch() {
+  const fetchShareholders = useShareholderStore((s) => s.fetchShareholders);
+  const selectedYear = useAdminYearStore((s) => s.selectedYear);
+  return useCallback(async () => {
+    await fetchShareholders(selectedYear ?? undefined, { silent: true });
+  }, [fetchShareholders, selectedYear]);
+}
+
 export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const branding = useTenantBranding();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const silentRefetch = useAdminShareholdersSilentRefetch();
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
@@ -129,6 +140,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
         extraFields
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      await silentRefetch();
       window.dispatchEvent(new Event("shareholders-updated"));
       toast({ title: "Güncellendi" });
       setIsEditing(false);
@@ -138,7 +150,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [pendingValue, row.original, updateShareholder, toast, branding.logo_slug]);
+  }, [pendingValue, row.original, updateShareholder, silentRefetch, toast, branding.logo_slug]);
 
   const handleSecondPhoneConfirm = useCallback(async () => {
     const digitsPhone = (row.original.phone_number ?? "").replace(/\D/g, "");
@@ -177,6 +189,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
         { delivery_type, second_phone_number: trimmedSecond || null }
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      await silentRefetch();
       window.dispatchEvent(new Event("shareholders-updated"));
       toast({ title: "Güncellendi" });
       setSecondPhoneDialogOpen(false);
@@ -190,7 +203,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
     } finally {
       setSaving(false);
     }
-  }, [secondPhoneValue, adreseAddress, row.original, updateShareholder, toast, branding.logo_slug]);
+  }, [secondPhoneValue, adreseAddress, row.original, updateShareholder, silentRefetch, toast, branding.logo_slug]);
 
   const handleSecondPhoneCancel = useCallback(() => {
     setSecondPhoneDialogOpen(false);
@@ -318,6 +331,7 @@ export function EditableDeliveryCell({ row }: { row: Row<shareholderSchema> }) {
 export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const silentRefetch = useAdminShareholdersSilentRefetch();
   const [isEditing, setIsEditing] = useState(false);
   const rawPhone = row.original.second_phone_number?.replace(/^\+90/, "0").replace(/\s/g, "") || "";
   const [value, setValue] = useState(() => formatPhoneForInput(rawPhone));
@@ -340,6 +354,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
           null
         );
         updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+        await silentRefetch();
         window.dispatchEvent(new Event("shareholders-updated"));
         toast({ title: "Güncellendi" });
         setIsEditing(false);
@@ -368,6 +383,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
         value
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      await silentRefetch();
       window.dispatchEvent(new Event("shareholders-updated"));
       toast({ title: "Güncellendi" });
       setIsEditing(false);
@@ -376,7 +392,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, silentRefetch, toast]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
@@ -424,6 +440,7 @@ export function EditableSecondPhoneCell({ row }: { row: Row<shareholderSchema> }
 export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSchema> }) {
   const { toast } = useToast();
   const updateShareholder = useShareholderStore((s) => s.updateShareholder);
+  const silentRefetch = useAdminShareholdersSilentRefetch();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(row.original.delivery_location || "");
   const [saving, setSaving] = useState(false);
@@ -437,6 +454,7 @@ export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSche
         value.trim() || row.original.delivery_location || ""
       );
       updateShareholder({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+      await silentRefetch();
       window.dispatchEvent(new Event("shareholders-updated"));
       toast({ title: "Güncellendi" });
       setOpen(false);
@@ -445,7 +463,7 @@ export function EditableDeliveryLocationCell({ row }: { row: Row<shareholderSche
     } finally {
       setSaving(false);
     }
-  }, [value, row.original, updateShareholder, toast]);
+  }, [value, row.original, updateShareholder, silentRefetch, toast]);
 
   const loc = row.original.delivery_location;
 

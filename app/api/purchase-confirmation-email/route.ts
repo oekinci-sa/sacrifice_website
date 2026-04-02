@@ -130,10 +130,12 @@ export async function POST(request: Request) {
         transaction_id,
         branding
       );
+      const documentGeneratedAt = new Date();
       const { html, text } = buildPurchaseConfirmationHtml({
         tenantName: tenantDisplayName,
         branding,
         receipt,
+        documentGeneratedAt,
       });
 
       const { error } = await resend.emails.send({

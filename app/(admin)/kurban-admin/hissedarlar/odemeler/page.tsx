@@ -20,6 +20,14 @@ import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
 import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
 import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { AdminHissedarPdfDialog } from "../tum-hissedarlar/components/admin-hissedar-pdf-dialog";
+import {
+  EditableNotesCell,
+  PaymentStatusCell,
+  PdfColumnCell,
+} from "../tum-hissedarlar/components/columns";
+import { getOdemelerPaymentStatusSortValue } from "@/lib/odeme-payment-status";
+import { sortingFunctions } from "@/utils/table-sort-helpers";
 
 const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
   sacrifice_no: "Kur. Sır.",
@@ -31,14 +39,18 @@ const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
   delivery_location_raw: "Teslimat Yeri",
   paid_amount: "Ödeme Yapılan Tutar",
   remaining_payment: "Kalan Tutar",
-  payment_status: "Ödeme Durumu",
+  payment_status: "Ödeme",
   purchase_time: "Kayıt Tarihi",
+  pdf: "PDF",
+  notes: "Notlar",
 };
 
 export default function OdemelerPage() {
   const branding = useTenantBranding();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [pdfShareholder, setPdfShareholder] = useState<shareholderSchema | null>(null);
   const {
     shareholders: allShareholders,
     isLoading,
@@ -152,30 +164,35 @@ export default function OdemelerPage() {
       {
         accessorKey: "purchase_time",
         header: "Kayıt Tarihi",
+        sortingFn: sortingFunctions.date,
         cell: ({ row }) => formatDateMedium(row.getValue("purchase_time")),
       },
       {
-        id: "payment_status",
-        header: "Ödeme Durumu",
-        accessorFn: (row) => {
-          const paid = parseFloat(row.paid_amount.toString());
-          const total = parseFloat(row.total_amount.toString());
-          return total > 0 ? (paid / total) * 100 : 0;
-        },
-        cell: ({ row }) => {
-          const paid = parseFloat(row.original.paid_amount.toString());
-          const total = parseFloat(row.original.total_amount.toString());
-          let label: string;
-          if (total > 0 && paid >= total) {
-            label = "Tamamlandı";
-          } else if (total > 0 && paid >= branding.deposit_amount) {
-            label = "Tüm Ödeme Bekleniyor";
-          } else {
-            label = "Kapora Bekleniyor";
-          }
-          return <span className="text-sm">{label}</span>;
-        },
+        id: "pdf",
+        header: "PDF",
+        minSize: 72,
+        enableSorting: false,
         enableHiding: true,
+        cell: ({ row, table }) => <PdfColumnCell row={row} table={table} />,
+      },
+      {
+        id: "payment_status",
+        header: "Ödeme",
+        minSize: 90,
+        accessorFn: (row) =>
+          getOdemelerPaymentStatusSortValue(row, branding.deposit_amount),
+        sortingFn: sortingFunctions.number,
+        cell: ({ row }) => <PaymentStatusCell row={row} />,
+        enableHiding: true,
+      },
+      {
+        accessorKey: "notes",
+        header: "Notlar",
+        minSize: 100,
+        meta: { align: "left" },
+        enableSorting: false,
+        enableHiding: true,
+        cell: ({ row }) => <EditableNotesCell row={row} />,
       },
     ],
     [updateShareholder, branding.logo_slug, branding.deposit_amount]
@@ -235,15 +252,50 @@ export default function OdemelerPage() {
         <CustomDataTable
           columns={columns}
           data={sortedData}
+          getRowId={(row) => row.shareholder_id}
           storageKey="odemeler"
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
-          initialState={{ columnVisibility: { delivery_location: false, delivery_location_raw: false } }}
+          meta={{
+            openPdfForShareholder: (sh: shareholderSchema) => {
+              setPdfShareholder(sh);
+              setPdfDialogOpen(true);
+            },
+          }}
+          initialState={{
+            columnVisibility: {
+              phone_number: false,
+              purchase_time: false,
+              notes: false,
+              delivery_location: false,
+              delivery_location_raw: false,
+            },
+          }}
           filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
             const hasAnyFilter =
               columnFilters.length > 0 || searchTerm.trim().length > 0;
             return (
               <div className="flex flex-col gap-3 w-full">
+                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                    <PaymentFilters table={table} />
+                  </div>
+                  {hasAnyFilter ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
+                      onClick={() => {
+                        table.resetColumnFilters();
+                        setSearchTerm("");
+                      }}
+                    >
+                      <X className="h-4 w-4 shrink-0" />
+                      Tüm filtreleri temizle
+                    </Button>
+                  ) : null}
+                </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 w-full">
                   <ShareholderSearch onSearch={setSearchTerm} className="w-96 sm:w-[28rem] max-w-full min-w-0" />
                   <div className="flex items-center gap-2 shrink-0">
@@ -265,32 +317,20 @@ export default function OdemelerPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
-                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
-                    <PaymentFilters table={table} />
-                  </div>
-                  {hasAnyFilter ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
-                      onClick={() => {
-                        table.resetColumnFilters();
-                        setSearchTerm("");
-                      }}
-                    >
-                      <X className="h-4 w-4 shrink-0" />
-                      Tüm filtreleri temizle
-                    </Button>
-                  ) : null}
-                </div>
               </div>
             );
           }}
         />
         </Suspense>
       )}
+      <AdminHissedarPdfDialog
+        shareholder={pdfShareholder}
+        open={pdfDialogOpen}
+        onOpenChange={(open) => {
+          setPdfDialogOpen(open);
+          if (!open) setPdfShareholder(null);
+        }}
+      />
     </div>
   );
 }

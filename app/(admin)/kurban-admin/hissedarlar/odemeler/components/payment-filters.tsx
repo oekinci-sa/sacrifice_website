@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTableFacetedFilter } from "@/app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/components/shareholder-filters";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { getOdemelerPaymentStatus } from "@/lib/odeme-payment-status";
 import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "framer-motion";
@@ -153,6 +155,19 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
   const urlSyncDone = useRef(false);
   const [paymentStatusCounts, setPaymentStatusCounts] = useState<Record<string, number>>({});
 
+  const sacrificeOptions = useMemo(() => {
+    const sacrificeNos = new Set<string>();
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const sacrifice = row.original.sacrifice;
+      if (sacrifice?.sacrifice_no != null && sacrifice.sacrifice_no !== "") {
+        sacrificeNos.add(String(sacrifice.sacrifice_no));
+      }
+    });
+    return Array.from(sacrificeNos)
+      .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+      .map((sacrificeNo) => ({ label: sacrificeNo, value: sacrificeNo }));
+  }, [table]);
+
   useEffect(() => {
     const counts: Record<string, number> = {
       deposit: 0,
@@ -162,15 +177,8 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
     const filteredRows = table.getPreFilteredRowModel().rows;
     filteredRows.forEach((row) => {
       const sh = row.original;
-      const paid = Number(sh.paid_amount ?? 0);
-      const total = Number(sh.total_amount ?? 0);
-      if (total > 0 && paid >= total) {
-        counts.completed++;
-      } else if (total > 0 && paid >= depositAmount) {
-        counts.partial++;
-      } else {
-        counts.deposit++;
-      }
+      const status = getOdemelerPaymentStatus(sh, depositAmount);
+      counts[status]++;
     });
     setPaymentStatusCounts(counts);
   }, [table, depositAmount]);
@@ -185,20 +193,29 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
       ) => {
         if (!filterValues?.length) return true;
         const shareholder = (row as { original: shareholderSchema }).original;
-        const paid = Number(shareholder.paid_amount ?? 0);
-        const total = Number(shareholder.total_amount ?? 0);
-        let status: string;
-        if (total > 0 && paid >= total) {
-          status = "completed";
-        } else if (total > 0 && paid >= depositAmount) {
-          status = "partial";
-        } else {
-          status = "deposit";
-        }
+        const status = getOdemelerPaymentStatus(shareholder, depositAmount);
         return filterValues.includes(status);
       };
     }
   }, [table, depositAmount]);
+
+  useEffect(() => {
+    const sacrificeColumn = table.getColumn("sacrifice_no");
+    if (sacrificeColumn) {
+      (sacrificeColumn.columnDef as { filterFn?: (row: unknown, id: string, filterValues: string[]) => boolean }).filterFn = (
+        row,
+        _id,
+        filterValues
+      ) => {
+        if (!filterValues?.length) return true;
+        const shareholder = (row as { original: shareholderSchema }).original;
+        if (!shareholder.sacrifice) return false;
+        const sacrificeNo = shareholder.sacrifice.sacrifice_no?.toString();
+        if (!sacrificeNo) return false;
+        return filterValues.includes(sacrificeNo);
+      };
+    }
+  }, [table]);
 
   // Genel bakış — ?paymentStatus=deposit|partial|completed (virgülle çoklu); filterFn kurulduktan sonra
   useEffect(() => {
@@ -211,12 +228,23 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
     urlSyncDone.current = true;
   }, [table, searchParams]);
 
+  const sacrificeColumn = table.getColumn("sacrifice_no");
   const paymentColumn = table.getColumn("payment_status");
-  if (!paymentColumn) return null;
+  if (!sacrificeColumn && !paymentColumn) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <PaymentStatusFilter column={paymentColumn} paymentStatusCounts={paymentStatusCounts} />
+      {sacrificeColumn ? (
+        <DataTableFacetedFilter
+          column={sacrificeColumn}
+          title="Kurban No"
+          options={sacrificeOptions}
+          type="sacrifice"
+        />
+      ) : null}
+      {paymentColumn ? (
+        <PaymentStatusFilter column={paymentColumn} paymentStatusCounts={paymentStatusCounts} />
+      ) : null}
     </div>
   );
 }

@@ -36,6 +36,8 @@ interface DataTableProps<TData, TValue> {
   columnHeaderLabels?: Record<string, string>
   /** localStorage key for persisting column visibility (e.g. "hissedarlar", "kurbanliklar") */
   storageKey?: string
+  /** TanStack satır kimliği (örn. `shareholder_id`); güncelleme sonrası doğru satırın yenilenmesi için önerilir */
+  getRowId?: (row: TData) => string
   filters?: (props: {
     table: TableInstance<TData>;
     columnFilters: ColumnFiltersState;
@@ -100,6 +102,7 @@ export function CustomDataTable<TData, TValue>({
   initialState,
   columnHeaderLabels,
   storageKey,
+  getRowId,
   filters,
   tableSize = "medium",
   renderExpandedRow,
@@ -244,6 +247,7 @@ export function CustomDataTable<TData, TValue>({
     data,
     columns: tableColumns,
     meta,
+    ...(getRowId ? { getRowId } : {}),
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),

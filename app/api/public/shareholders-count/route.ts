@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("shareholders")
-      .select("*", { count: "exact" })
+      .select("shareholder_id", { count: "exact" })
       .eq("tenant_id", tenantId);
 
     if (year != null && !Number.isNaN(year)) {

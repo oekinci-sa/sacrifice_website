@@ -217,7 +217,7 @@ BEGIN
         COALESCE(OLD.foundation, ''),
         COALESCE(NEW.foundation, ''),
         'UPDATE',
-        'Vakıf bilgisi güncellendi',
+        'Referans güncellendi',
         v_owner,
         NEW.tenant_id,
         NEW.sacrifice_year,

@@ -1,5 +1,8 @@
 import { getTenantIdFromHeaders } from "@/lib/tenant";
-import { NO_SACRIFICE_YEAR_ERROR } from "@/lib/sacrifice-year-resolver";
+import {
+  NO_SACRIFICE_YEAR_ERROR,
+  resolveEffectiveYearWhenSettingsStale,
+} from "@/lib/sacrifice-year-resolver";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,6 +46,10 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (settings?.active_sacrifice_year != null) {
+      const effectiveYear = await resolveEffectiveYearWhenSettingsStale(
+        tenantId,
+        settings.active_sacrifice_year
+      );
       const { data: yearsData } = await supabaseAdmin
         .from("sacrifice_animals")
         .select("sacrifice_year")
@@ -50,8 +57,8 @@ export async function GET(request: NextRequest) {
       const uniqueYears = Array.from(new Set((yearsData ?? []).map((r) => r.sacrifice_year))).sort(
         (a, b) => b - a
       );
-      const availableYears = uniqueYears.length > 0 ? uniqueYears : [settings.active_sacrifice_year];
-      return NextResponse.json({ year: settings.active_sacrifice_year, availableYears });
+      const availableYears = uniqueYears.length > 0 ? uniqueYears : [effectiveYear];
+      return NextResponse.json({ year: effectiveYear, availableYears });
     }
 
     const { data: yearsData } = await supabaseAdmin

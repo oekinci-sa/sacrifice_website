@@ -27,8 +27,7 @@ CREATE TABLE "public"."sacrifice_animals" (
   "barn_stall_order_no" TEXT
 );
 
-ALTER TABLE sacrifice_animals ADD CONSTRAINT sacrifice_animals_foundation_check
-  CHECK (foundation IS NULL OR foundation IN ('AKV', 'İMH', 'AGD'));
+-- foundation: admin "Referans" sütunu — serbest metin (AKV/İMH/AGD veya kişi/kurum adı vb.)
 
 ALTER TABLE sacrifice_animals ADD CONSTRAINT sacrifice_animals_pricing_consistency CHECK (
   (pricing_mode = 'fixed' AND share_price IS NOT NULL AND share_weight IS NOT NULL)

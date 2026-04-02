@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Exact count, satır taşımadan: bkz. supabase-postgrest-count-exact
     const { count, error } = await supabaseAdmin
       .from("shareholders")
-      .select("*", { count: "exact" })
+      .select("shareholder_id", { count: "exact" })
       .eq("tenant_id", tenantId)
       .eq("sacrifice_id", sacrifice_id)
       .limit(0);

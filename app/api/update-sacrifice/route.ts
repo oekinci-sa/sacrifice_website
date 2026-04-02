@@ -71,17 +71,17 @@ export async function PUT(request: Request) {
                 const t = foundation.trim();
                 if (t === "") {
                     patch.foundation = null;
-                } else if (t === "AKV" || t === "İMH" || t === "AGD") {
-                    patch.foundation = t;
-                } else {
+                } else if (t.length > 500) {
                     return NextResponse.json(
-                        { error: "Vakıf yalnızca AKV, İMH veya AGD olabilir (veya boş)." },
+                        { error: "Referans en fazla 500 karakter olabilir." },
                         { status: 400 }
                     );
+                } else {
+                    patch.foundation = t;
                 }
             } else {
                 return NextResponse.json(
-                    { error: "Vakıf alanı geçersiz." },
+                    { error: "Referans alanı geçersiz." },
                     { status: 400 }
                 );
             }

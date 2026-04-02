@@ -46,7 +46,7 @@ const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
     live_scale_total_price: "Baskül tutarı",
     notes: "Notlar",
     animal_type: "Hayvan cinsi",
-    foundation: "Vakıf bilgisi",
+    foundation: "Referans",
     ear_tag: "Küpe numarası",
     barn_stall_order_no: "Padok no",
     sacrifice_time: "Kesim planı",

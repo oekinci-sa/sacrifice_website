@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("contact_messages")
-      .select("*", { count: "exact" })
+      .select("id", { count: "exact" })
       .eq("tenant_id", tenantId)
       .is("read_at", null);
 

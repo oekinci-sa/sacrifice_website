@@ -119,12 +119,15 @@ const SelectedFiltersDisplay = ({
 }: {
   selectedValues: Set<string>;
   options: { label: string; value: string }[];
-  type: "price" | "share" | "kurbanNo";
+  type: "price" | "share" | "kurbanNo" | "textFacet";
 }) => {
   if (selectedValues.size === 0) return null;
 
   // Sort selected values
   const sortedValues = Array.from(selectedValues).sort((a, b) => {
+    if (type === "textFacet") {
+      return a.localeCompare(b, "tr", { sensitivity: "base" });
+    }
     return parseFloat(a) - parseFloat(b);
   });
 
@@ -151,7 +154,25 @@ const SelectedFiltersDisplay = ({
             ) : null;
           }
 
-          // For other types (share, kurbanNo), use the value directly
+          // For other types (share, kurbanNo, textFacet), use the label from options when present
+          if (type === "textFacet") {
+            const option = options.find((opt) => opt.value === value);
+            const label = option?.label ?? value;
+            return (
+              <motion.span
+                key={value}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-muted text-xs px-2 py-0.5 truncate max-w-[100px]"
+                title={label}
+              >
+                {label}
+              </motion.span>
+            );
+          }
+
           return (
             <motion.span
               key={value}
@@ -183,7 +204,7 @@ function DataTableFacetedFilter<TData, TValue>({
   column?: Column<TData, TValue>;
   title?: string;
   options: { label: string; value: string }[];
-  type: "price" | "share" | "kurbanNo";
+  type: "price" | "share" | "kurbanNo" | "textFacet";
   showHideFullOption?: boolean;
   setShowHideFullOption?: (show: boolean) => void;
 }) {
@@ -318,6 +339,8 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
         table.getColumn("empty_share")?.setFilterValue(undefined);
         table.getColumn("share_price")?.setFilterValue(undefined);
         table.getColumn("payment_status")?.setFilterValue(undefined);
+        table.getColumn("animal_type")?.setFilterValue(undefined);
+        table.getColumn("foundation")?.setFilterValue(undefined);
       });
     }
   }, [registerResetFunction, table]);
@@ -377,6 +400,40 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
         label: kurbanNo.toString(),
         value: kurbanNo.toString(),
       }));
+  }, [table]);
+
+  const animalTypeOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const v = row.getValue("animal_type") as string | null;
+      const key = v?.trim() ? v.trim() : "__empty__";
+      const label = key === "__empty__" ? "— Boş" : key;
+      map.set(key, label);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => {
+        if (a[0] === "__empty__") return -1;
+        if (b[0] === "__empty__") return 1;
+        return a[0].localeCompare(b[0], "tr", { sensitivity: "base" });
+      })
+      .map(([value, label]) => ({ value, label }));
+  }, [table]);
+
+  const foundationOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const v = row.getValue("foundation") as string | null;
+      const key = v?.trim() ? v.trim() : "__empty__";
+      const label = key === "__empty__" ? "Boş" : key;
+      map.set(key, label);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => {
+        if (a[0] === "__empty__") return -1;
+        if (b[0] === "__empty__") return 1;
+        return a[0].localeCompare(b[0], "tr", { sensitivity: "base" });
+      })
+      .map(([value, label]) => ({ value, label }));
   }, [table]);
 
   // Add filter function for Kurban No column
@@ -445,6 +502,18 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
         type="share"
         showHideFullOption={showHideFullOption}
         setShowHideFullOption={setShowHideFullOption}
+      />
+      <DataTableFacetedFilter
+        column={table.getColumn("animal_type")}
+        title="Cins"
+        options={animalTypeOptions}
+        type="textFacet"
+      />
+      <DataTableFacetedFilter
+        column={table.getColumn("foundation")}
+        title="Referans"
+        options={foundationOptions}
+        type="textFacet"
       />
       <PaymentStatusFilter
         table={table}

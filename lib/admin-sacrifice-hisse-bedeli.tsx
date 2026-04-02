@@ -57,7 +57,7 @@ export function AdminSacrificeHisseBedeliCell({
           className
         )}
       >
-        <span className="font-medium">Canlı baskül</span>
+        <span className="font-medium">Canlı Baskül</span>
         {sub ? (
           <span className="text-muted-foreground tabular-nums whitespace-normal">
             {sub}

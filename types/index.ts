@@ -119,7 +119,7 @@ export interface sacrificeSchema {
   live_scale_total_price?: number | null;
   /** Hayvan cinsi (DANA, DÜVE vb.) */
   animal_type: string | null;
-  /** Vakıf kodu (AKV, İMH, AGD) veya boş */
+  /** Admin "Referans" — AKV/İMH/AGD veya serbest metin */
   foundation?: string | null;
   /** Planlı teslim saati (TIME; kesim saatinden bağımsız düzenlenebilir; yeni kayıtta varsayılan +90 dk) */
   planned_delivery_time?: string | null;

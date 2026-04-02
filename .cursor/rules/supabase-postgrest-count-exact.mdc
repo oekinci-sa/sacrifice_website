@@ -1,32 +1,39 @@
 ---
-description: Supabase/PostgREST exact count — head:true yasak; limit(0) kullan
+description: Supabase/PostgREST exact count — head:true yasak; select("*") yasak; spesifik kolon + limit(0) kullan
 alwaysApply: true
 ---
 
-# Supabase `count: "exact"` ve `head: true`
+# Supabase `count: "exact"` — doğru kalıp
 
-## Sorun
+## Sorun 1: `head: true`
 
-`@supabase/supabase-js` içinde `.select(..., { count: "exact", head: true })` kullanımı PostgREST’e **HTTP HEAD** isteği gönderir. **Production (ör. Vercel)** ortamında bu kombinasyon, filtreli sorgularda **yanlış `count`** döndürebilir; veritabanı ve doğrudan REST ile yapılan kontroller doğruyken API sayısı sapabilir.
+`@supabase/supabase-js` içinde `.select(..., { count: "exact", head: true })` kullanımı PostgREST'e **HTTP HEAD** isteği gönderir. **Production (ör. Vercel)** ortamında bu kombinasyon, filtreli sorgularda **yanlış `count`** döndürebilir.
+
+## Sorun 2: `select("*")` + `limit(0)`
+
+`.select("*", { count: "exact" }).limit(0)` kalıbı da **yanlış count** (genellikle 0) döndürebilir. PostgREST, `*` ile `limit(0)` birleştiğinde `Content-Range` header'ını doğru hesaplamayabiliyor. **Özellikle çok filtre (`.eq(…)`) uygulandığında tetikleniyor.**
 
 ## Kural
 
-1. **`head: true` kullanma** — exact count ihtiyacında bu seçeneği ekleme.
-2. **Yerine:** `count: "exact"` ile normal SELECT zinciri kur; satır taşımak istemiyorsan sorgunun sonuna **`.limit(0)`** ekle:
-   - PostgREST `Content-Range` üzerinden toplam sayıyı doğru verir; gövde boş kalır.
-3. **Örnek (doğru kalıp):**
+1. **`head: true` kullanma.**
+2. **`select("*")` kullanma** — her zaman **spesifik bir kolon** seç (tablonun PK'sı ideal):
+   - `shareholders` → `"shareholder_id"`
+   - `sacrifice_animals` → `"sacrifice_id"`
+   - `contact_messages` → `"id"`
+3. Satır taşımak istemiyorsan **`.limit(0)`** ekle.
+4. **Örnek (doğru kalıp):**
 
 ```ts
 const { count, error } = await supabaseAdmin
   .from("shareholders")
-  .select("*", { count: "exact" })
+  .select("shareholder_id", { count: "exact" })
   .eq("tenant_id", tenantId)
   .eq("sacrifice_year", year)
   .limit(0);
 ```
 
-4. **Bağlantı / canlılık testi** için var olmayan kolon (`select('count')` gibi) kullanma; gerçek bir kolon seç (örn. `transaction_id`) ve `limit(1)`.
+5. **Bağlantı / canlılık testi** için var olmayan kolon (`select('count')` gibi) kullanma; gerçek bir kolon seç (örn. `transaction_id`) ve `limit(1)`.
 
 ## İlgili
 
-- Düzeltilmiş örnek route’lar: `app/api/public/shareholders-count`, admin `*-count` route’ları.
+- Düzeltilmiş route'lar: `app/api/public/shareholders-count`, `app/api/admin/shareholders/count`, `app/api/admin/shareholders/uncontacted-count`, `app/api/admin/contact-messages/unread-count`, `app/api/get-shareholder-count-by-sacrifice-id`, `lib/sacrifice-year-resolver.ts`.

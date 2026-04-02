@@ -9,12 +9,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
@@ -24,8 +36,9 @@ import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import { sacrificeSchema } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import {
@@ -309,7 +322,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
           <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="fixed">Sabit fiyat</TabsTrigger>
-              <TabsTrigger value="live">Canlı baskül</TabsTrigger>
+              <TabsTrigger value="live">Canlı Baskül</TabsTrigger>
             </TabsList>
             <TabsContent value="fixed" className="space-y-3 pt-3">
               <p className="text-sm text-muted-foreground">
@@ -346,7 +359,7 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
                 Toplam tutar girildiğinde hisse başı tutar hissedar sayısına göre dağıtılır.
               </p>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Toplam kg (baskül)</label>
+                <label className="text-sm font-medium">Toplam kg (Baskül)</label>
                 <Input
                   inputMode="decimal"
                   value={liveKg}
@@ -462,82 +475,152 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
 
 const ANIMAL_TYPE_OPTIONS = ["Dana", "Düve", ""] as const;
 
-const FOUNDATION_OPTIONS = ["", "AKV", "İMH", "AGD"] as const;
+/** Sık kullanılanlar — listede her zaman dursun; asıl liste tenant yılındaki tüm distinct foundation değerleri. */
+const FOUNDATION_DEFAULT_SUGGESTIONS = ["AKV", "İMH", "AGD"] as const;
 
 export function EditableFoundationCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
+  const sacrifices = useSacrificeStore((s) => s.sacrifices);
   const [open, setOpen] = useState(false);
-  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const sacrifice = row.original;
 
-  const handleConfirm = useCallback(async () => {
-    if (pendingValue === null) return;
-    setSaving(true);
-    try {
-      const { data } = await updateSacrificeApi(
-        sacrifice.sacrifice_id,
-        sacrifice.sacrifice_year,
-        { foundation: pendingValue === "" ? null : pendingValue }
-      );
-      updateSacrifice({ ...sacrifice, ...data });
-      triggerSacrificeRefresh();
-      toast({ title: "Güncellendi" });
-      setPendingValue(null);
-      setOpen(false);
-    } catch (e) {
-      toast({ title: "Hata", description: e instanceof Error ? e.message : "Güncelleme başarısız", variant: "destructive" });
-    } finally {
-      setSaving(false);
+  const allFoundationOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of FOUNDATION_DEFAULT_SUGGESTIONS) {
+      set.add(s);
     }
-  }, [pendingValue, sacrifice, updateSacrifice, toast]);
+    for (const s of sacrifices) {
+      const t = s.foundation?.trim();
+      if (t) set.add(t);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "tr", { sensitivity: "base" }));
+  }, [sacrifices]);
 
-  const handleCancel = useCallback(() => {
-    setPendingValue(null);
-    setOpen(false);
-  }, []);
+  const filteredOptions = useMemo(() => {
+    const q = search.trim();
+    if (q === "") return allFoundationOptions;
+    const n = normalizeTurkishSearchText(q);
+    return allFoundationOptions.filter((o) =>
+      normalizeTurkishSearchText(o).includes(n)
+    );
+  }, [allFoundationOptions, search]);
+
+  const searchNormalized = normalizeTurkishSearchText(search.trim());
+  const exactMatch = allFoundationOptions.some(
+    (o) => normalizeTurkishSearchText(o) === searchNormalized
+  );
+  /** Yalnızca listede hiç eşleşme yokken (ör. "AK" yazınca AKV hâlâ listede — ayrı satır gösterme). */
+  const canSaveCustom =
+    search.trim().length > 0 &&
+    search.trim().length <= 500 &&
+    !exactMatch &&
+    filteredOptions.length === 0;
+
+  const applyFoundation = useCallback(
+    async (next: string | null) => {
+      setSaving(true);
+      try {
+        const { data } = await updateSacrificeApi(
+          sacrifice.sacrifice_id,
+          sacrifice.sacrifice_year,
+          { foundation: next === "" || next == null ? null : next.trim() }
+        );
+        updateSacrifice({ ...sacrifice, ...data });
+        triggerSacrificeRefresh();
+        toast({ title: "Güncellendi" });
+        setOpen(false);
+        setSearch("");
+      } catch (e) {
+        toast({
+          title: "Hata",
+          description: e instanceof Error ? e.message : "Güncelleme başarısız",
+          variant: "destructive",
+        });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [sacrifice, updateSacrifice, toast]
+  );
 
   const displayValue = sacrifice.foundation?.trim() || "-";
-
-  if (pendingValue !== null) {
-    return (
-      <div className="flex items-center gap-1 w-full justify-center">
-        <span className="flex-1 text-center text-sm min-w-0">{pendingValue || "-"}</span>
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-green-600 hover:bg-green-50" onClick={handleConfirm} disabled={saving}>
-          <Check className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={handleCancel} disabled={saving}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  }
+  /** Yazarken gizle; hücrede zaten referans yoksa da gösterme (temizlenecek bir şey yok). */
+  const showEmptyOption =
+    search.trim() === "" && Boolean(sacrifice.foundation?.trim());
 
   return (
     <div className="group relative w-full min-h-[2rem] flex items-center">
-      <span className="flex-1 text-center px-8 pr-9">{displayValue}</span>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
+      <span className="flex-1 text-center px-8 pr-9 truncate" title={displayValue === "-" ? undefined : displayValue}>
+        {displayValue}
+      </span>
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setSearch("");
+        }}
+      >
+        <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Referans düzenle"
+            disabled={saving}
           >
             <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {FOUNDATION_OPTIONS.map((opt) => (
-            <DropdownMenuItem
-              key={opt || "_empty"}
-              onSelect={() => { setPendingValue(opt); setOpen(false); }}
-            >
-              {opt || "— Boş"}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </PopoverTrigger>
+        <PopoverContent className="w-[min(100vw-2rem,22rem)] p-0" align="end">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Ara veya yeni referans yaz…"
+              value={search}
+              onValueChange={setSearch}
+              disabled={saving}
+            />
+            <CommandList>
+              <CommandGroup>
+                {showEmptyOption ? (
+                  <CommandItem
+                    value="__empty__"
+                    onSelect={() => void applyFoundation(null)}
+                  >
+                    Boş
+                  </CommandItem>
+                ) : null}
+                {filteredOptions.map((opt) => (
+                  <CommandItem
+                    key={opt}
+                    value={opt}
+                    onSelect={() => void applyFoundation(opt)}
+                  >
+                    {opt}
+                  </CommandItem>
+                ))}
+                {canSaveCustom ? (
+                  <CommandItem
+                    value={`__new__${search.trim()}`}
+                    onSelect={() => void applyFoundation(search.trim())}
+                    className="border-t mt-1 pt-1 text-muted-foreground"
+                  >
+                    Yeni değer kaydet: &quot;{search.trim()}&quot;
+                  </CommandItem>
+                ) : null}
+              </CommandGroup>
+              {filteredOptions.length === 0 && !canSaveCustom && search.trim() !== "" ? (
+                <div className="py-4 text-center text-sm text-muted-foreground px-2">
+                  Eşleşen referans yok. (En fazla 500 karakter.)
+                </div>
+              ) : null}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

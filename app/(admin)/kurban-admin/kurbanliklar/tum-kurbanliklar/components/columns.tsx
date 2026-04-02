@@ -398,6 +398,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     minSize: 90,
     cell: ({ row }) => <EditableAnimalTypeCell row={row} />,
     enableSorting: true,
+    filterFn: (row, id, filterValues: unknown) => {
+      const vals = filterValues as string[] | undefined;
+      if (!vals?.length) return true;
+      const raw = row.getValue(id) as string | null;
+      const key = raw?.trim() ? raw.trim() : "__empty__";
+      return vals.includes(key);
+    },
   },
   {
     accessorKey: "foundation",
@@ -406,6 +413,13 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     cell: ({ row }) => <EditableFoundationCell row={row} />,
     enableSorting: true,
     enableHiding: true,
+    filterFn: (row, id, filterValues: unknown) => {
+      const vals = filterValues as string[] | undefined;
+      if (!vals?.length) return true;
+      const raw = row.getValue(id) as string | null;
+      const key = raw?.trim() ? raw.trim() : "__empty__";
+      return vals.includes(key);
+    },
   },
   {
     accessorKey: "notes",

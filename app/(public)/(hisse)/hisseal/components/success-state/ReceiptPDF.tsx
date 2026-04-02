@@ -1,9 +1,12 @@
 /* eslint-disable jsx-a11y/alt-text */
 // This file uses react-pdf's Image component which doesn't support alt attributes
 
-import type { TenantBranding } from '@/lib/tenant-branding';
 import { getDeliveryTypeDisplayLabel } from '@/lib/delivery-options';
 import { getLogoBase64ForSlug } from '@/lib/logoBase64';
+import {
+  getElyaCuttingArrivalNoteLines,
+  shouldShowElyaCuttingArrivalNote,
+} from '@/lib/receipt-cutting-note';
 import { formatReceiptKilogramDisplay } from '@/lib/purchase-receipt-data';
 import {
   buildReceiptReminders,
@@ -12,7 +15,11 @@ import {
   IBAN_HOLDER_PAYMENT_ROW_LABEL,
   IBAN_PAYMENT_ROW_LABEL,
   KAPORA_PAYMENT_ROW_LABEL,
+  KAPORA_PAYMENT_ROW_LABEL_FULL,
+  KAPORA_WAIVED_DISPLAY,
+  parseReceiptTlAmountString,
 } from '@/lib/receipt-reminders';
+import type { TenantBranding } from '@/lib/tenant-branding';
 import { DEFAULT_BRANDING } from '@/lib/tenant-branding-defaults';
 import { formatIbanForDisplay } from '@/utils/formatters';
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
@@ -70,6 +77,12 @@ const styles = StyleSheet.create({
   },
   value: {
     flex: 1,
+  },
+  valueSubnote: {
+    marginTop: 2,
+    fontSize: 9,
+    color: '#6b7280',
+    lineHeight: 1.35,
   },
   twoColumnLayout: {
     flexDirection: 'row',
@@ -206,7 +219,23 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
     depositAmountOverride != null && Number.isFinite(Number(depositAmountOverride))
       ? { ...baseBranding, deposit_amount: Number(depositAmountOverride) }
       : baseBranding;
+  const showElyaCuttingNote = shouldShowElyaCuttingArrivalNote(
+    effectiveBranding.logo_slug,
+    data.delivery_type
+  );
+  const [cuttingNoteLine1, cuttingNoteLine2] = getElyaCuttingArrivalNoteLines();
   const logoSlug = effectiveBranding.logo_slug ?? "ankara-kurban";
+
+  const deliveryFeeNum = parseReceiptTlAmountString(data.delivery_fee);
+  const showDeliveryFeeRow = deliveryFeeNum > 0;
+  const isAdminKaporaWaived =
+    depositAmountOverride != null &&
+    Number.isFinite(Number(depositAmountOverride)) &&
+    Number(depositAmountOverride) === 0;
+  const showKaporaRow =
+    isAdminKaporaWaived || (effectiveBranding.deposit_amount ?? 0) > 0;
+  /** Kapora yoksa IBAN satırları (kapora ödemesi için) gösterilmez */
+  const showKaporaIbanRows = (effectiveBranding.deposit_amount ?? 0) > 0;
   const logoBase64 = getLogoBase64ForSlug(logoSlug);
   const logoStyle =
     logoSlug === "elya-hayvancilik" ? styles.logoElya : styles.logo;
@@ -219,168 +248,192 @@ export const ReceiptPDF = ({ data, branding, depositAmountOverride }: ReceiptPDF
   const contactPhone = effectiveBranding.contact_phone || "0552 652 90 00 / 0312 312 44 64";
 
   return (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Logo */}
-      <View style={styles.header}>
-        {/* alt attribute not supported by react-pdf's Image component */}
-        <Image src={logoBase64} style={logoStyle} />
-      </View>
-
-      {/* Title */}
-      <Text style={styles.title}>Kurban Hisse Seçimi İşlem Özeti</Text>
-
-      {/* Intro Message */}
-      <Text style={styles.intro}>
-      Bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.{"\n"}Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.
-      </Text>
-
-      {/* First row of sections: 1 and 3 side by side */}
-      <View style={styles.twoColumnLayout}>
-        {/* 1. Hisse Sahibi Bilgileri */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Hisse Sahibi Bilgileri</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Ad Soyad:</Text>
-            <Text style={styles.value}>{data.shareholder_name}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Telefon:</Text>
-            <Text style={styles.value}>{data.phone_number}</Text>
-          </View>
-          {data.second_phone_number && (
-            <View style={styles.row}>
-              <Text style={styles.label}>İkinci Telefon:</Text>
-              <Text style={styles.value}>{data.second_phone_number}</Text>
-            </View>
-          )}
-          {data.email && (
-            <View style={styles.row}>
-              <Text style={styles.label}>E-posta:</Text>
-              <Text style={styles.value}>{data.email}</Text>
-            </View>
-          )}
-          <View style={styles.row}>
-            <Text style={styles.label}>Teslimat Tercihi:</Text>
-            <Text style={styles.value}>{getDeliveryTypeDisplayLabel(effectiveBranding.logo_slug ?? "ankara-kurban", data.delivery_type, null, false)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Teslimat Yeri:</Text>
-            <Text style={styles.value}>{data.delivery_location && data.delivery_location !== "-" ? data.delivery_location : "-"}</Text>
-          </View>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Logo */}
+        <View style={styles.header}>
+          {/* alt attribute not supported by react-pdf's Image component */}
+          <Image src={logoBase64} style={logoStyle} />
         </View>
 
-        {/* 3. Hayvana Ait Bilgiler */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Kurbanlık Bilgileri</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Hayvan No:</Text>
-            <Text style={styles.value}>{data.sacrifice_no}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Kesim Zamanı:</Text>
-            <Text style={styles.value}>{data.sacrifice_time}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Kilogram:</Text>
-            <Text style={styles.value}>{formatReceiptKilogramDisplay(data.share_weight)}</Text>
-          </View>
-        </View>
-      </View>
+        {/* Title */}
+        <Text style={styles.title}>Kurban Hisse Seçimi İşlem Özeti</Text>
 
-      {/* Second row of sections: 2 and 4 side by side */}
-      <View style={styles.twoColumnLayout}>
-        {/* 2. Hisse ve Ödeme Özeti */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Ödeme Bilgileri</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Hisse Fiyatı:</Text>
-            <Text style={styles.value}>{formatPrice(data.share_price)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Teslimat Ücreti:</Text>
-            <Text style={styles.value}>{formatPrice(data.delivery_fee)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Toplam Tutar:</Text>
-            <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{KAPORA_PAYMENT_ROW_LABEL}:</Text>
-            <Text style={styles.value}>{formatKaporaTlForReceipt(effectiveBranding)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{IBAN_PAYMENT_ROW_LABEL}:</Text>
-            <Text style={styles.value}>{formatIbanForDisplay(brandingForIban.iban)}</Text>
-          </View>
-          {ibanAccountHolderName ? (
-            <View style={styles.row}>
-              <Text style={styles.label}>{IBAN_HOLDER_PAYMENT_ROW_LABEL}:</Text>
-              <Text style={styles.value}>{ibanAccountHolderName}</Text>
-            </View>
-          ) : null}
-          <View style={styles.row}>
-            <Text style={styles.label}>Satın Alma Tarihi:</Text>
-            <Text style={styles.value}>{data.purchase_time}</Text>
-          </View>
-        </View>
-
-        {/* 4. Rezervasyon Takibi ve Güvenlik */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>
-            Rezervasyon Takibi ve Güvenlik
-          </Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Rezervasyon Kodu:</Text>
-            <Text style={styles.value}>{data.transaction_id}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Güvenlik Kodu:</Text>
-            <Text style={styles.value}>{data.security_code}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Warning - at the bottom */}
-      <View style={styles.warning}>
-        <Text style={styles.warningText}>⚠️ Önemli Notlar:</Text>
-        <Text>
-          Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için
-          gerekmektedir.{"\n"}
-          Lütfen kodunuzu kimse ile paylaşmayınız.
+        {/* Intro Message */}
+        <Text style={styles.intro}>
+          Bu güzel ibadeti gönül rahatlığıyla yerine getirmenize yardımcı olmaktan büyük mutluluk duyuyoruz.{"\n"}Aşağıda hisse işleminize ait tüm detayları bulabilirsiniz.
         </Text>
 
-        {/* Add empty line before reminders */}
-        <Text>{"\n"}</Text>
+        {/* First row of sections: 1 and 3 side by side */}
+        <View style={styles.twoColumnLayout}>
+          {/* 1. Hisse Sahibi Bilgileri */}
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Hisse Sahibi Bilgileri</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Ad Soyad:</Text>
+              <Text style={styles.value}>{data.shareholder_name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Telefon:</Text>
+              <Text style={styles.value}>{data.phone_number}</Text>
+            </View>
+            {data.second_phone_number && (
+              <View style={styles.row}>
+                <Text style={styles.label}>İkinci Telefon:</Text>
+                <Text style={styles.value}>{data.second_phone_number}</Text>
+              </View>
+            )}
+            {data.email && (
+              <View style={styles.row}>
+                <Text style={styles.label}>E-posta:</Text>
+                <Text style={styles.value}>{data.email}</Text>
+              </View>
+            )}
+            <View style={styles.row}>
+              <Text style={styles.label}>Teslimat Tercihi:</Text>
+              <Text style={styles.value}>{getDeliveryTypeDisplayLabel(effectiveBranding.logo_slug ?? "ankara-kurban", data.delivery_type, null, false)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Teslimat Yeri:</Text>
+              <Text style={styles.value}>{data.delivery_location && data.delivery_location !== "-" ? data.delivery_location : "-"}</Text>
+            </View>
+          </View>
 
-        {/* Render reminders with bullet points */}
-        {remindersList.map((reminder, index) => (
-          <View key={index} style={{ marginBottom: 5 }}>
-            <Text>
-              • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\/>/g, ' ')}
+          {/* 3. Hayvana Ait Bilgiler */}
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Kurbanlık Bilgileri</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Hayvan No:</Text>
+              <Text style={styles.value}>{data.sacrifice_no}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Kesim Zamanı:</Text>
+              <Text style={styles.value}>
+                {data.sacrifice_time}
+                {showElyaCuttingNote ? (
+                  <Text style={styles.valueSubnote}>
+                    {"\n"}
+                    {cuttingNoteLine1}
+                    {"\n"}
+                    {cuttingNoteLine2}
+                  </Text>
+                ) : null}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Kilogram:</Text>
+              <Text style={styles.value}>{formatReceiptKilogramDisplay(data.share_weight)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Second row of sections: 2 and 4 side by side */}
+        <View style={styles.twoColumnLayout}>
+          {/* 2. Hisse ve Ödeme Özeti */}
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Ödeme Bilgileri</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Hisse Fiyatı:</Text>
+              <Text style={styles.value}>{formatPrice(data.share_price)}</Text>
+            </View>
+            {showDeliveryFeeRow ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>Teslimat Ücreti:</Text>
+                <Text style={styles.value}>{formatPrice(data.delivery_fee)}</Text>
+              </View>
+            ) : null}
+            <View style={styles.row}>
+              <Text style={styles.label}>Toplam Tutar:</Text>
+              <Text style={styles.value}>{formatPrice(data.total_amount)}</Text>
+            </View>
+            {showKaporaRow ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>
+                  {isAdminKaporaWaived
+                    ? `${KAPORA_PAYMENT_ROW_LABEL_FULL}:`
+                    : `${KAPORA_PAYMENT_ROW_LABEL}:`}
+                </Text>
+                <Text style={styles.value}>
+                  {isAdminKaporaWaived
+                    ? KAPORA_WAIVED_DISPLAY
+                    : formatKaporaTlForReceipt(effectiveBranding)}
+                </Text>
+              </View>
+            ) : null}
+            {showKaporaIbanRows ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>{IBAN_PAYMENT_ROW_LABEL}:</Text>
+                <Text style={styles.value}>{formatIbanForDisplay(brandingForIban.iban)}</Text>
+              </View>
+            ) : null}
+            {showKaporaIbanRows && ibanAccountHolderName ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>{IBAN_HOLDER_PAYMENT_ROW_LABEL}:</Text>
+                <Text style={styles.value}>{ibanAccountHolderName}</Text>
+              </View>
+            ) : null}
+            <View style={styles.row}>
+              <Text style={styles.label}>Satın Alma Tarihi:</Text>
+              <Text style={styles.value}>{data.purchase_time}</Text>
+            </View>
+          </View>
+
+          {/* 4. Rezervasyon Takibi ve Güvenlik */}
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>
+              Rezervasyon Takibi ve Güvenlik
             </Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Rezervasyon Kodu:</Text>
+              <Text style={styles.value}>{data.transaction_id}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Güvenlik Kodu:</Text>
+              <Text style={styles.value}>{data.security_code}</Text>
+            </View>
           </View>
-        ))}
-      </View>
+        </View>
 
-      {/* 5. Kapanış Mesajı */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Bu belge bilgilendirme amaçlıdır. Lütfen bilgilerinizi kontrol ediniz.
-        </Text>
-        <Text style={styles.footerText}>
-          Detaylı bilgiler için {' '}
-          <Link src={`https://www.${websiteUrl}/`} style={styles.websiteLink}>
-            www.{websiteUrl}
-          </Link> {' '}
-          adresine göz atınız.
-        </Text>
-        <Text style={styles.contact}>
-          Destek: {contactPhone}
-        </Text>
-      </View>
-    </Page>
-  </Document>
+        {/* Warning - at the bottom */}
+        <View style={styles.warning}>
+          <Text style={styles.warningText}>⚠️ Önemli Notlar:</Text>
+          <Text>
+            Güvenlik kodu hissenizi güvenli bir şekilde sorgulamayabilmeniz için
+            gerekmektedir.{"\n"}
+            Lütfen kodunuzu kimse ile paylaşmayınız.
+          </Text>
+
+          {/* Add empty line before reminders */}
+          <Text>{"\n"}</Text>
+
+          {/* Render reminders with bullet points */}
+          {remindersList.map((reminder, index) => (
+            <View key={index} style={{ marginBottom: 5 }}>
+              <Text>
+                • <Text style={{ fontWeight: 'bold' }}>{reminder.header}:</Text> {reminder.description.replace(/<br\/>/g, ' ')}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* 5. Kapanış Mesajı */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Bu belge bilgilendirme amaçlıdır. Lütfen bilgilerinizi kontrol ediniz.
+          </Text>
+          <Text style={styles.footerText}>
+            Detaylı bilgiler için {' '}
+            <Link src={`https://www.${websiteUrl}/`} style={styles.websiteLink}>
+              www.{websiteUrl}
+            </Link> {' '}
+            adresine göz atınız.
+          </Text>
+          <Text style={styles.contact}>
+            Destek: {contactPhone}
+          </Text>
+        </View>
+      </Page>
+    </Document>
   );
 };
 

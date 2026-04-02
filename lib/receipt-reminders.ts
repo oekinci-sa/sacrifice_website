@@ -63,8 +63,19 @@ export function formatKaporaTlForReceipt(
   );
 }
 
+/** PDF/e-posta `delivery_fee` / `share_price` string alanlarından TL tutarı */
+export function parseReceiptTlAmountString(s: string | null | undefined): number {
+  if (s == null || String(s).trim() === "") return 0;
+  const n = parseFloat(String(s).replace(/[^\d.-]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
 /** PDF/e-posta ödeme tablosu satır etiketleri (ayrı satırlar). */
 export const KAPORA_PAYMENT_ROW_LABEL = "Kapora";
+/** Admin PDF’te kapora 0 seçildiğinde kullanılan satır etiketi */
+export const KAPORA_PAYMENT_ROW_LABEL_FULL = "Kapora Ücreti";
+/** Admin PDF’te özel kapora 0: gösterilecek metin */
+export const KAPORA_WAIVED_DISPLAY = "Kapora alınmayacak";
 export const IBAN_PAYMENT_ROW_LABEL = "IBAN";
 /** Kullanıcı örneğindeki gibi kısa etiket ("IBAN Sahibi Ad Soyad" değil). */
 export const IBAN_HOLDER_PAYMENT_ROW_LABEL = "IBAN Sahibi";

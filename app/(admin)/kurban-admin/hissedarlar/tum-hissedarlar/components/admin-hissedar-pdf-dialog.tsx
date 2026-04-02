@@ -16,7 +16,7 @@ import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { buildPurchaseReceiptData } from "@/lib/purchase-receipt-data";
 import { buildMergedAdminImportantNotesBlock } from "@/lib/receipt-pdf-admin-notes";
 import { shareholderSchema } from "@/types";
-import { BlobProvider } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { FileDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -24,7 +24,7 @@ function parseOptionalDepositTl(input: string): number | undefined {
   const digits = input.replace(/\D/g, "");
   if (!digits) return undefined;
   const n = Number(digits);
-  if (!Number.isFinite(n) || n <= 0) return undefined;
+  if (!Number.isFinite(n) || n < 0) return undefined;
   return n;
 }
 
@@ -52,6 +52,7 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
   const branding = useTenantBranding();
   const { toast } = useToast();
   const [depositInput, setDepositInput] = useState("");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
 
   const receiptData = useMemo(() => {
@@ -95,11 +96,10 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
   };
 
   const titleLine = shareholder
-    ? `${shareholder.shareholder_name}${
-        shareholder.sacrifice?.sacrifice_no != null
-          ? ` — Kurban ${shareholder.sacrifice.sacrifice_no}`
-          : ""
-      }`
+    ? `${shareholder.shareholder_name}${shareholder.sacrifice?.sacrifice_no != null
+      ? ` — Kurban ${shareholder.sacrifice.sacrifice_no}`
+      : ""
+    }`
     : "";
 
   return (
@@ -129,6 +129,7 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
             <p className="text-xs text-muted-foreground">
               Boş bırakırsanız bu tenant için tanımlı kapora (
               {defaultDepositLabel} TL) kullanılır. Özel tutar girmek için rakam yazın.
+              0 da girebilirsiniz.
               Özel kapora ile PDF indirdiğinizde ilgili cümle hissedar notlarına da kaydedilir (mevcut
               not silinmez).
             </p>
@@ -146,85 +147,87 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
             Kapat
           </Button>
           {receiptData && shareholder?.sacrifice ? (
-            <BlobProvider
-              key={`${shareholder.shareholder_id}-${depositInput}`}
-              document={
-                <ReceiptPDF
-                  data={receiptData}
-                  branding={branding}
-                  depositAmountOverride={depositOverride}
-                />
-              }
-            >
-              {({ blob, loading, error }) => (
-                <Button
-                  type="button"
-                  className="gap-2"
-                  disabled={loading || !!error || savingNotes}
-                  onClick={async () => {
-                    if (depositInput.trim() && depositOverride === undefined) {
-                      toast({
-                        variant: "destructive",
-                        title: "Geçersiz tutar",
-                        description:
-                          "Kapora için geçerli pozitif bir tutar girin veya alanı boş bırakın.",
+            <Button
+              type="button"
+              className="gap-2"
+              disabled={savingNotes || generatingPdf}
+              onClick={async () => {
+                if (depositInput.trim() && depositOverride === undefined) {
+                  toast({
+                    variant: "destructive",
+                    title: "Geçersiz tutar",
+                    description:
+                      "Kapora için geçerli bir tutar girin veya alanı boş bırakın.",
+                  });
+                  return;
+                }
+
+                try {
+                  /* Özel kapora girildiyse PDF’teki not metni DB’ye yazılır; boş kapora ile indirmede not silinmez. */
+                  if (depositOverride !== undefined) {
+                    const merged = buildMergedAdminImportantNotesBlock(
+                      shareholder.notes,
+                      depositOverride
+                    );
+                    const currentNotes = (shareholder.notes || "").trim();
+                    if (merged != null && merged !== currentNotes) {
+                      setSavingNotes(true);
+                      const res = await fetch("/api/update-shareholder", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          shareholder_id: shareholder.shareholder_id,
+                          notes: merged,
+                        }),
                       });
-                      return;
-                    }
-                    if (!blob) return;
-
-                    /* Özel kapora girildiyse PDF’teki not metni DB’ye yazılır; boş kapora ile indirmede not silinmez. */
-                    if (depositOverride !== undefined) {
-                      const merged = buildMergedAdminImportantNotesBlock(
-                        shareholder.notes,
-                        depositOverride
-                      );
-                      const currentNotes = (shareholder.notes || "").trim();
-                      if (merged != null && merged !== currentNotes) {
-                        setSavingNotes(true);
-                        try {
-                          const res = await fetch("/api/update-shareholder", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              shareholder_id: shareholder.shareholder_id,
-                              notes: merged,
-                            }),
-                          });
-                          const payload = await res.json().catch(() => ({}));
-                          if (!res.ok) {
-                            toast({
-                              variant: "destructive",
-                              title: "Notlar kaydedilemedi",
-                              description:
-                                typeof payload.error === "string"
-                                  ? payload.error
-                                  : "Hissedar güncellenemedi.",
-                            });
-                            return;
-                          }
-                          window.dispatchEvent(new Event("shareholders-updated"));
-                        } finally {
-                          setSavingNotes(false);
-                        }
+                      const payload = await res.json().catch(() => ({}));
+                      if (!res.ok) {
+                        toast({
+                          variant: "destructive",
+                          title: "Notlar kaydedilemedi",
+                          description:
+                            typeof payload.error === "string"
+                              ? payload.error
+                              : "Hissedar güncellenemedi.",
+                        });
+                        return;
                       }
+                      window.dispatchEvent(new Event("shareholders-updated"));
                     }
+                  }
 
-                    downloadPdfBlob(blob, shareholder.shareholder_name);
-                    handleOpenChange(false);
-                  }}
-                >
-                  <FileDown className="h-4 w-4" />
-                  {loading
-                    ? "Hazırlanıyor…"
-                    : savingNotes
-                      ? "Kaydediliyor…"
-                      : error
-                        ? "Hata"
-                        : "PDF indir"}
-                </Button>
-              )}
-            </BlobProvider>
+                  setGeneratingPdf(true);
+                  const blob = await pdf(
+                    <ReceiptPDF
+                      data={receiptData}
+                      branding={branding}
+                      depositAmountOverride={depositOverride}
+                    />
+                  ).toBlob();
+                  downloadPdfBlob(blob, shareholder.shareholder_name);
+                  handleOpenChange(false);
+                } catch (error) {
+                  toast({
+                    variant: "destructive",
+                    title: "PDF oluşturulamadı",
+                    description:
+                      error instanceof Error
+                        ? error.message
+                        : "PDF hazırlanırken bir hata oluştu.",
+                  });
+                } finally {
+                  setSavingNotes(false);
+                  setGeneratingPdf(false);
+                }
+              }}
+            >
+              <FileDown className="h-4 w-4" />
+              {savingNotes
+                ? "Kaydediliyor…"
+                : generatingPdf
+                  ? "Hazırlanıyor…"
+                  : "PDF indir"}
+            </Button>
           ) : (
             <Button type="button" disabled className="gap-2">
               <FileDown className="h-4 w-4" />

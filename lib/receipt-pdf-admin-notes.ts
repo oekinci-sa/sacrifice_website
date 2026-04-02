@@ -14,7 +14,7 @@ export function buildMergedAdminImportantNotesBlock(
   if (
     depositOverrideTl != null &&
     Number.isFinite(Number(depositOverrideTl)) &&
-    Number(depositOverrideTl) > 0
+    Number(depositOverrideTl) >= 0
   ) {
     const fmt = new Intl.NumberFormat("tr-TR", {
       minimumFractionDigits: 0,

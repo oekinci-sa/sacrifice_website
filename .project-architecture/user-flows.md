@@ -95,18 +95,11 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | 5 | Supabase Realtime: client status='offline' (veya expired/canceled/timed_out) alır → handleTimeoutRedirect (setTimeout(0) ile defer) |
 | 6 | bfCache dönüşü: pageshow ile status kontrol → expired ise handleTimeoutRedirect |
 
-### 3.5 Bizden Kareler (Elya tenant, doğrudan URL)
+### 3.5 Hakkımızda (Elya tenant)
 
 | Adım | Aksiyon |
 |------|---------|
-| 1 | GET `/bizden-kareler` → Elya tenant doğrulaması; galeri + modal embed (nav linki yok) |
-| 2 | Başka tenant → `notFound()` (404) |
-
-### 3.6 Hakkımızda (Elya tenant)
-
-| Adım | Aksiyon |
-|------|---------|
-| 1 | GET `/hakkimizda` → Elya ise `ElyaAboutLanding`: tam metin, görseller, 3’lü video carousel (ok / klavye), müşteri yorumları, modal embed |
+| 1 | GET `/hakkimizda` → Elya ise `ElyaAboutLanding`: tam metin, görseller, **Bizden Kareler** (yatay video + yanında 3 Shorts; oklarla diğer Shorts), müşteri yorumları |
 | 2 | Elya değilse mevcut metin + görsel + `AnimatedCounter` düzeni |
 
 ---

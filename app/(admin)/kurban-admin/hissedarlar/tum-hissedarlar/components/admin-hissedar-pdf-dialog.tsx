@@ -29,13 +29,14 @@ function parseOptionalDepositTl(input: string): number | undefined {
 }
 
 function downloadPdfBlob(blob: Blob, shareholderName: string | undefined) {
-  const safeName = shareholderName
-    ? shareholderName.replace(/\s+/g, "-")
-    : "hissedar";
+  const normalizedName = (shareholderName || "").trim();
+  const safeName = normalizedName
+    ? normalizedName.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ")
+    : "Hissedar";
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `kurban-hisse-bilgilendirme-${safeName}.pdf`;
+  link.download = `Kurban Hisse Bilgilendirme - ${safeName}.pdf`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

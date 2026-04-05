@@ -11,6 +11,7 @@ import {
 } from "react";
 import { ChevronLeft, ChevronRight, Heart, Quote, Star } from "lucide-react";
 
+import { ElyaYoutubeReelSquare } from "@/components/elya/elya-youtube-reel-square";
 import { ElyaYoutubeThumbnailButton } from "@/components/elya/elya-youtube-thumbnail-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ELYA_GALLERY_VIDEOS } from "@/lib/elya-gallery-videos";
+import { BIZDEN_KARELER_VIDEOS } from "@/lib/bizden-kareler-videos";
 import { parseYoutubeVideoId, youtubeEmbedUrl } from "@/lib/youtube";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +65,13 @@ const TESTIMONIALS = [
   },
 ] as const;
 
-const GAP_PX = 24;
+/** Masaüstü: aynı anda görünen kısa video (oklar tek adım kaydırır) */
+const SHORTS_VISIBLE_DESKTOP = 5;
+/** Mobil: aynı anda görünen kısa video */
+const SHORTS_VISIBLE_MOBILE = 2;
+const REEL_GAP_PX = 12;
+/** Bizden Kareler video bloğu — sabit maksimum genişlik */
+const BIZDEN_KARELER_MAX_W = "max-w-[1320px]";
 
 /** Header ile aynı yatay hizalama (`header` → `container`) */
 const contentCol = "container";
@@ -128,64 +135,114 @@ export function ElyaAboutLanding() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [testimonialAutoplayKey, setTestimonialAutoplayKey] = useState(0);
-  const [slideIndex, setSlideIndex] = useState(0);
-  const [viewportW, setViewportW] = useState(0);
-  const viewportRef = useRef<HTMLDivElement>(null);
+  const [shortSlideIndex, setShortSlideIndex] = useState(0);
+  const [ytTitles, setYtTitles] = useState<Record<string, string>>({});
+  /** İlk boyama: mobil (2 sütun); layout effect ile md+ senkronlanır */
+  const [isMdUp, setIsMdUp] = useState(false);
+  const reelTrackRef = useRef<HTMLDivElement>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
 
-  const [galleryDesktop, setGalleryDesktop] = useState(false);
   const [namesDesktopWide, setNamesDesktopWide] = useState(false);
 
   useLayoutEffect(() => {
-    const mqMd = window.matchMedia("(min-width: 768px)");
     const mqLg = window.matchMedia("(min-width: 1024px)");
     const sync = () => {
-      setGalleryDesktop(mqMd.matches);
       setNamesDesktopWide(mqLg.matches);
     };
     sync();
-    mqMd.addEventListener("change", sync);
     mqLg.addEventListener("change", sync);
     return () => {
-      mqMd.removeEventListener("change", sync);
       mqLg.removeEventListener("change", sync);
     };
   }, []);
 
-  const cardsPerView = galleryDesktop ? 3 : 1;
+  useLayoutEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsMdUp(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   const namesVisible = namesDesktopWide ? 4 : 2;
 
-  const rows = useMemo(() => {
-    return ELYA_GALLERY_VIDEOS.map((v) => {
+  const gallery = useMemo(() => {
+    const all = BIZDEN_KARELER_VIDEOS.map((v) => {
       const videoId = parseYoutubeVideoId(v.youtubeUrl);
       if (!videoId) return null;
       return { ...v, videoId };
     }).filter((x): x is typeof x & { videoId: string } => x !== null);
+
+    const landscape = all.find((r) => !r.isShort) ?? null;
+    const shorts = all.filter((r) => r.isShort);
+    return { all, landscape, shorts };
   }, []);
 
-  const cardWidth =
-    viewportW > 0 && cardsPerView > 0
-      ? Math.max(
-          0,
-          (viewportW - Math.max(0, cardsPerView - 1) * GAP_PX) / cardsPerView
-        )
-      : 0;
-  const stepPx = cardWidth + GAP_PX;
-  const maxSlide = Math.max(0, rows.length - cardsPerView);
+  const landVideo = gallery.landscape;
 
-  useEffect(() => {
-    const el = viewportRef.current;
-    if (!el) return;
+  const visibleReelCount = isMdUp ? SHORTS_VISIBLE_DESKTOP : SHORTS_VISIBLE_MOBILE;
+
+  const maxShortSlide = useMemo(
+    () => Math.max(0, gallery.shorts.length - visibleReelCount),
+    [gallery.shorts.length, visibleReelCount]
+  );
+
+  useLayoutEffect(() => {
+    const root = reelTrackRef.current;
+    if (!root) return;
     const ro = new ResizeObserver(() => {
-      setViewportW(el.offsetWidth);
+      setTrackWidth(root.offsetWidth);
     });
-    ro.observe(el);
-    setViewportW(el.offsetWidth);
+    ro.observe(root);
+    setTrackWidth(root.offsetWidth);
     return () => ro.disconnect();
-  }, []);
+  }, [gallery.shorts.length, isMdUp, visibleReelCount]);
 
   useEffect(() => {
-    setSlideIndex((i) => Math.min(i, maxSlide));
-  }, [maxSlide]);
+    setShortSlideIndex((i) => Math.min(i, maxShortSlide));
+  }, [maxShortSlide]);
+
+  const reelCardWidth = useMemo(() => {
+    if (trackWidth <= 0) return 0;
+    const n = visibleReelCount;
+    return (trackWidth - REEL_GAP_PX * (n - 1)) / n;
+  }, [trackWidth, visibleReelCount]);
+
+  const reelStepPx = useMemo(
+    () => (reelCardWidth > 0 ? reelCardWidth + REEL_GAP_PX : 0),
+    [reelCardWidth]
+  );
+
+  const reelTranslateX =
+    reelStepPx > 0 ? -shortSlideIndex * reelStepPx : 0;
+
+  useEffect(() => {
+    const ids = gallery.all.map((r) => r.videoId);
+    if (ids.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/public/youtube-titles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videoIds: ids }),
+        });
+        if (!r.ok) return;
+        const j = (await r.json()) as { titles?: Record<string, string> };
+        if (!cancelled && j.titles) setYtTitles(j.titles);
+      } catch {
+        /* yoksay */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gallery.all]);
+
+  const titleFor = useCallback(
+    (videoId: string, fallback: string) => ytTitles[videoId] ?? fallback,
+    [ytTitles]
+  );
 
   const testimonialWindow = useMemo(
     () =>
@@ -209,11 +266,20 @@ export function ElyaAboutLanding() {
 
   const activeEmbed = activeId ? youtubeEmbedUrl(activeId) : null;
 
-  const goSlide = useCallback(
+  const activeGalleryItem = useMemo(
+    () =>
+      activeId ? gallery.all.find((r) => r.videoId === activeId) : undefined,
+    [activeId, gallery.all]
+  );
+  const activeIsShort = activeGalleryItem?.isShort ?? true;
+
+  const goShortSlide = useCallback(
     (dir: -1 | 1) => {
-      setSlideIndex((i) => Math.max(0, Math.min(maxSlide, i + dir)));
+      setShortSlideIndex((i) =>
+        Math.max(0, Math.min(maxShortSlide, i + dir))
+      );
     },
-    [maxSlide]
+    [maxShortSlide]
   );
 
   const activeTestimonial = TESTIMONIALS[testimonialIndex];
@@ -260,16 +326,19 @@ export function ElyaAboutLanding() {
 
   const onCarouselKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (gallery.shorts.length <= visibleReelCount) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        goSlide(-1);
+        goShortSlide(-1);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        goSlide(1);
+        goShortSlide(1);
       }
     },
-    [goSlide]
+    [goShortSlide, gallery.shorts.length, visibleReelCount]
   );
+
+  const showReelNav = gallery.shorts.length > visibleReelCount;
 
   return (
     <>
@@ -277,144 +346,183 @@ export function ElyaAboutLanding() {
         <motion.section
           className={cn(
             contentCol,
-            "py-8 sm:py-12 md:py-14 lg:py-16"
+            "py-8 text-center sm:py-12 md:py-14 lg:py-16"
           )}
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={ABOUT_VIEWPORT}
         >
-          <motion.p
-            className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary sm:mb-3 sm:text-sm"
-            variants={fadeUp}
-          >
-            Elya Hayvancılık
-          </motion.p>
-          <motion.h1
-            className="font-serif text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
-            variants={fadeUp}
-          >
-            Hakkımızda
-          </motion.h1>
-          {ELYA_ABOUT_FULL_PARAGRAPHS.map((p, i) => (
-            <motion.p
-              key={i}
-              className={cn(
-                "text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl",
-                i === 0 ? "mt-6 sm:mt-8" : "mt-4 sm:mt-5"
-              )}
+          <div className="mx-auto w-full">
+            <motion.h1
+              className="font-serif text-xl font-bold tracking-tight sm:text-2xl md:text-3xl"
               variants={fadeUp}
             >
-              {p}
-            </motion.p>
-          ))}
+              Hakkımızda
+            </motion.h1>
+            {ELYA_ABOUT_FULL_PARAGRAPHS.map((p, i) => (
+              <motion.p
+                key={i}
+                className={cn(
+                  "text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl",
+                  i === 0 ? "mt-6 sm:mt-8" : "mt-4 sm:mt-5"
+                )}
+                variants={fadeUp}
+              >
+                {p}
+              </motion.p>
+            ))}
+          </div>
         </motion.section>
 
-        <section className="bg-muted/25 py-8 sm:py-12 md:py-16">
+        <section className="pt-4 pb-8 sm:pt-6 sm:pb-12 md:pt-8 md:pb-16">
           <div className={contentCol}>
-            <motion.div
+            <div
               className={cn(
                 "rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               )}
               tabIndex={0}
               onKeyDown={onCarouselKeyDown}
-              aria-label="Bizden Kareler videoları. Klavye okları ile kaydırın."
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={ABOUT_VIEWPORT}
+              aria-label="Bizden Kareler videoları. Kısa videolar için klavye okları ile kaydırın."
             >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <motion.div className="min-w-0 flex-1" variants={fadeUp}>
-              <h2 className="font-serif text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
-                Bizden Kareler
-              </h2>
-            </motion.div>
-            <motion.div
-              className="flex shrink-0 gap-2 self-end sm:self-start"
-              variants={fadeUp}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-full sm:h-11 sm:w-11"
-                disabled={slideIndex <= 0}
-                onClick={() => goSlide(-1)}
-                aria-label="Önceki videolar"
-              >
-                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-full sm:h-11 sm:w-11"
-                disabled={slideIndex >= maxSlide}
-                onClick={() => goSlide(1)}
-                aria-label="Sonraki videolar"
-              >
-                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </motion.div>
+          <div className="min-w-0 text-center">
+            <h2 className="font-serif text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+              Bizden Kareler
+            </h2>
           </div>
 
-          <motion.div
-            ref={viewportRef}
-            className="mt-6 w-full min-w-0 overflow-hidden sm:mt-8"
-            variants={fadeUp}
+          <div
+            className={cn("mt-4 w-full min-w-0 sm:mt-6", BIZDEN_KARELER_MAX_W, "mx-auto")}
           >
-            {cardWidth > 0 ? (
-              <div
-                className="flex transition-transform duration-500 ease-out will-change-transform"
-                style={{
-                  gap: GAP_PX,
-                  transform: `translate3d(-${slideIndex * stepPx}px, 0, 0)`,
-                }}
-              >
-                {rows.map((item) => (
-                  <article
-                    key={item.videoId + item.title}
-                    className="flex shrink-0 flex-col overflow-hidden rounded-sm border border-border/60 bg-card"
-                    style={{ width: cardWidth }}
-                  >
+            <div className="flex flex-col gap-6 sm:gap-8">
+              {landVideo ? (
+                <article
+                  key={landVideo.videoId}
+                  className="mx-auto flex w-full max-w-[min(100%,720px)] flex-col"
+                >
+                  <div className="overflow-hidden rounded-lg">
                     <ElyaYoutubeThumbnailButton
-                      videoId={item.videoId}
-                      title={item.title}
-                      onClick={() => openVideo(item.videoId)}
+                      videoId={landVideo.videoId}
+                      title={titleFor(landVideo.videoId, landVideo.title)}
+                      onClick={() => openVideo(landVideo.videoId)}
                       aspectClassName="aspect-video"
                       hideCaption
-                      className="rounded-none rounded-t-sm border-0 shadow-none hover:translate-y-0 hover:shadow-none"
-                      imageSizes={
-                        cardsPerView === 1 ? "100vw" : "(max-width: 1280px) 33vw, 400px"
-                      }
+                      overlay="none"
+                      showWatchLabel
+                      watchLabelClassName="right-3 top-3 left-auto bottom-auto -translate-x-0 rounded-none rounded-bl-md px-4 py-2 text-sm sm:right-4 sm:top-4 sm:px-5 sm:py-2.5 sm:text-base"
+                      className="rounded-none border-0 shadow-none hover:translate-y-0 hover:shadow-none"
+                      imageSizes="960px"
+                      imageClassName="scale-[1.36] object-cover object-center transition-transform duration-300 group-hover:scale-[1.42]"
                     />
-                    <div className="flex flex-1 flex-col gap-2 p-3 sm:gap-3 sm:p-5">
-                      <h3 className="text-base font-semibold leading-snug sm:text-lg">
-                        {item.title}
-                      </h3>
-                      <p className="line-clamp-4 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                        {item.sectionLead}
-                      </p>
-                      <button
+                  </div>
+                </article>
+              ) : null}
+
+              {gallery.shorts.length > 0 ? (
+                <div className="w-full min-w-0">
+                  {showReelNav ? (
+                    <div className="mb-3 flex justify-center gap-2 md:hidden">
+                      <Button
                         type="button"
-                        className="mt-auto text-left text-xs font-medium text-primary hover:underline sm:text-sm"
-                        onClick={() => openVideo(item.videoId)}
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 shrink-0 rounded-full"
+                        disabled={shortSlideIndex <= 0}
+                        onClick={() => goShortSlide(-1)}
+                        aria-label="Önceki kısa videolar"
                       >
-                        Videoyu izle →
-                      </button>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 shrink-0 rounded-full"
+                        disabled={shortSlideIndex >= maxShortSlide}
+                        onClick={() => goShortSlide(1)}
+                        aria-label="Sonraki kısa videolar"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div
-                className="min-h-[200px] w-full rounded-sm bg-muted/30 sm:min-h-[280px]"
-                aria-hidden
-              />
-            )}
-          </motion.div>
-            </motion.div>
+                  ) : null}
+
+                  <div className="flex w-full min-w-0 items-stretch gap-2 md:gap-4">
+                    {showReelNav ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="hidden h-10 w-10 shrink-0 self-center rounded-full md:h-11 md:w-11 md:flex"
+                        disabled={shortSlideIndex <= 0}
+                        onClick={() => goShortSlide(-1)}
+                        aria-label="Önceki kısa videolar"
+                      >
+                        <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+                      </Button>
+                    ) : null}
+
+                    <div
+                      ref={reelTrackRef}
+                      className="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+                    >
+                      <motion.div
+                        className="flex"
+                        style={{ gap: REEL_GAP_PX }}
+                        animate={{ x: reelTranslateX }}
+                        transition={
+                          reduceMotion
+                            ? { duration: 0 }
+                            : {
+                                type: "spring",
+                                stiffness: 380,
+                                damping: 34,
+                                mass: 0.85,
+                              }
+                        }
+                      >
+                        {gallery.shorts.map((item) => (
+                          <div
+                            key={item.videoId}
+                            className="shrink-0"
+                            style={{
+                              width: reelCardWidth,
+                              minWidth: reelCardWidth,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <ElyaYoutubeReelSquare
+                              videoId={item.videoId}
+                              title={titleFor(item.videoId, item.title)}
+                              onPlay={() => openVideo(item.videoId)}
+                              imageSizes={
+                                isMdUp ? "320px" : "50vw"
+                              }
+                            />
+                          </div>
+                        ))}
+                      </motion.div>
+                    </div>
+
+                    {showReelNav ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="hidden h-10 w-10 shrink-0 self-center rounded-full md:h-11 md:w-11 md:flex"
+                        disabled={shortSlideIndex >= maxShortSlide}
+                        onClick={() => goShortSlide(1)}
+                        aria-label="Sonraki kısa videolar"
+                      >
+                        <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+            </div>
           </div>
         </section>
 
@@ -541,12 +649,24 @@ export function ElyaAboutLanding() {
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
-          className="z-[100] max-w-[min(100vw-2rem,56rem)] border-0 bg-black p-0 sm:rounded-lg"
+          className={cn(
+            "z-[100] border-0 bg-black p-0 sm:rounded-lg",
+            activeIsShort
+              ? "max-h-[min(92vh,880px)] max-w-[min(100vw-2rem,22rem)]"
+              : "max-w-[min(100vw-2rem,56rem)]"
+          )}
           overlayClassName="z-[100]"
         >
           <DialogTitle className="sr-only">Video oynatıcı</DialogTitle>
           {activeEmbed ? (
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+            <div
+              className={cn(
+                "relative w-full overflow-hidden rounded-lg bg-black",
+                activeIsShort
+                  ? "aspect-[9/16] max-h-[min(92vh,880px)]"
+                  : "aspect-video"
+              )}
+            >
               <iframe
                 title="YouTube video"
                 src={activeEmbed}

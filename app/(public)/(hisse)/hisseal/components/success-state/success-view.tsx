@@ -27,6 +27,8 @@ interface ShareholderData {
   sacrifice_consent?: boolean;
   proxy_status?: string;
   paid_amount?: number;
+  total_amount?: number;
+  delivery_fee?: number;
   security_code?: string;
   last_edited_time?: string | null;
   /** Kapora notu (“Bu hissedardan X TL kapora”) için */
@@ -154,6 +156,8 @@ export const SuccessView = ({ onPdfDownload }: SuccessViewProps) => {
       delivery_location: shareholder.delivery_location,
       delivery_type: (shareholder as { delivery_type?: string | null }).delivery_type,
       paid_amount: shareholder.paid_amount,
+      total_amount: shareholder.total_amount,
+      delivery_fee: shareholder.delivery_fee,
       remaining_payment: (shareholder as { remaining_payment?: number | null })
         .remaining_payment,
       security_code: shareholder.security_code || generateSecurityCode(),

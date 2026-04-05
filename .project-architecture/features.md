@@ -45,11 +45,8 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Kapora sorusu (id `7`):** İlk paragraf tenant ayarlarından dinamik; ikinci paragraf (20 Mayıs / kesim günü elden bakiye) tüm tenant’larda `FaqKaporaPaymentAnswer` ile gösterilir.
 - **Toplama noktaları sorusu (id `18`):** Yalnızca `logo_slug === "ankara-kurban"` iken listelenir (`filterFaqItemsByTenant`).
 
-### Bizden Kareler (Elya-only public)
-- Sayfa: `/bizden-kareler` — YouTube galeri (opsiyonel doğrudan URL); video verisi `lib/elya-gallery-videos.ts`. Nav menüde link yok; içerik Hakkımızda’da da kullanılıyor.
-
 ### Hakkımızda (Elya tenant)
-- `/hakkimizda`: tam metin, görseller, **Bizden Kareler** başlığı (iki satır), aynı genişlikte 3’lü görünümlü carousel (transform + oklar / klavye okları; bir adımda bir video kayar), müşteri yorumları. `ELYA_GALLERY_VIDEOS`. Bileşen: `app/(public)/hakkimizda/components/elya-about-landing.tsx`. Diğer tenant: Ankara Kurban düzeni.
+- `/hakkimizda`: tam metin, görseller, **Bizden Kareler**: önce yatay tanıtım videosu, yanında 3 dikey Shorts; oklar / klavye ile kısa videolar sayfalanır (3’er grup), müşteri yorumları. Video listesi `lib/bizden-kareler-videos.ts`. Bileşen: `app/(public)/hakkimizda/components/elya-about-landing.tsx`. Diğer tenant: Ankara Kurban düzeni.
 
 ## Tema Davranışı
 - 3001 (kahramankazan): yeşil tema.

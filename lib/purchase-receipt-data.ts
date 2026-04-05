@@ -9,6 +9,7 @@ import {
 } from "@/lib/delivery-options";
 import {
   isLiveScaleSacrifice,
+  perShareFromLiveTotal,
   type SacrificePricingFields,
 } from "@/lib/live-scale-share";
 import { parseDepositTlFromShareholderNotes } from "@/lib/receipt-reminders";
@@ -105,7 +106,10 @@ export function buildPurchaseReceiptData(
     delivery_location?: string | null;
     delivery_type?: string | null;
     paid_amount?: number | null;
+    total_amount?: number | null;
+    delivery_fee?: number | null;
     remaining_payment?: number | null;
+    live_scale_shareholder_count?: number | null;
     security_code?: string | null;
     sacrifice_consent?: boolean | null;
     proxy_status?: string | null;
@@ -122,13 +126,42 @@ export function buildPurchaseReceiptData(
   branding: TenantBranding
 ): PurchaseReceiptPdfLikeData {
   const logoSlug = branding.logo_slug;
-  const livePending =
-    isLiveScaleSacrifice(sacrifice) && sacrifice.live_scale_total_kg == null;
+  const isLiveScale = isLiveScaleSacrifice(sacrifice);
+  const livePricePending =
+    isLiveScale && sacrifice.live_scale_total_price == null;
+  const liveKgPending = isLiveScale && sacrifice.live_scale_total_kg == null;
 
-  const sharePrice = Number(sacrifice.share_price ?? 0);
+  const sharePriceFromSacrifice = Number(sacrifice.share_price ?? 0);
   const rawDelivery = shareholder.delivery_location || "Kesimhane";
-  const deliveryFee = getDeliveryFeeForLocation(logoSlug, rawDelivery);
-  const totalAmount = sharePrice + deliveryFee;
+  const deliveryFeeFromShareholder = Number(shareholder.delivery_fee);
+  const deliveryFee =
+    Number.isFinite(deliveryFeeFromShareholder) && deliveryFeeFromShareholder >= 0
+      ? deliveryFeeFromShareholder
+      : getDeliveryFeeForLocation(logoSlug, rawDelivery);
+
+  const liveScaleShareholderCount = Number(shareholder.live_scale_shareholder_count);
+  const liveScaleDerivedShare = perShareFromLiveTotal(
+    sacrifice.live_scale_total_price,
+    Number.isFinite(liveScaleShareholderCount) ? liveScaleShareholderCount : 0
+  );
+  const shareholderTotalAmount = Number(shareholder.total_amount);
+  const shareFromShareholderTotal =
+    Number.isFinite(shareholderTotalAmount) &&
+    shareholderTotalAmount > 0 &&
+    Number.isFinite(deliveryFee)
+      ? Math.max(0, shareholderTotalAmount - deliveryFee)
+      : null;
+
+  const shouldDeriveLiveScaleShare =
+    isLiveScaleSacrifice(sacrifice) && sharePriceFromSacrifice <= 0;
+  const sharePrice = shouldDeriveLiveScaleShare
+    ? liveScaleDerivedShare ?? shareFromShareholderTotal ?? sharePriceFromSacrifice
+    : sharePriceFromSacrifice;
+
+  const totalAmount =
+    Number.isFinite(shareholderTotalAmount) && shareholderTotalAmount > 0
+      ? shareholderTotalAmount
+      : sharePrice + deliveryFee;
   const paidAmount = Number(shareholder.paid_amount ?? 0);
   const remainingFromDb = shareholder.remaining_payment;
   const remainingPayment =
@@ -156,15 +189,17 @@ export function buildPurchaseReceiptData(
   let shareWeightDisplay: string;
   let totalAmountDisplay: string;
 
-  if (livePending) {
+  if (livePricePending) {
     sharePriceDisplay = MSG_LIVE_PENDING_SHARE;
     shareWeightDisplay = MSG_LIVE_PENDING_KG;
     totalAmountDisplay = MSG_LIVE_PENDING_TOTAL;
   } else {
     sharePriceDisplay = sharePrice.toString();
     totalAmountDisplay = totalAmount.toString();
-    if (isLiveScaleSacrifice(sacrifice) && sacrifice.live_scale_total_kg != null) {
+    if (isLiveScale && !liveKgPending && sacrifice.live_scale_total_kg != null) {
       shareWeightDisplay = `${Number(sacrifice.live_scale_total_kg)} kg`;
+    } else if (isLiveScale && liveKgPending) {
+      shareWeightDisplay = MSG_LIVE_PENDING_KG;
     } else {
       shareWeightDisplay =
         sacrifice.share_weight != null ? String(sacrifice.share_weight) : "";

@@ -559,7 +559,7 @@ export function ElyaAboutLanding() {
                   <Heart className="h-6 w-6 fill-primary/30 sm:h-7 sm:w-7" aria-hidden />
                 </div>
                 <h2 className="font-serif text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
-                  Müşterilerimiz ne söylüyor?
+                  Hissedarlarımız ne söylüyor?
                 </h2>
                 <p className="mt-3 text-sm text-muted-foreground sm:mt-4 sm:text-base">
                   Hissedarlarımızın deneyimlerinden kısa alıntılar. Gerçek isimler gizlilik için

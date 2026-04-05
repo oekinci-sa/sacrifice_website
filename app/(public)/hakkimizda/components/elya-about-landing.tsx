@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, type PanInfo } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -70,6 +70,7 @@ const SHORTS_VISIBLE_DESKTOP = 5;
 /** Mobil: aynı anda görünen kısa video */
 const SHORTS_VISIBLE_MOBILE = 2;
 const REEL_GAP_PX = 12;
+const REEL_SWIPE_THRESHOLD_PX = 44;
 /** Bizden Kareler video bloğu — sabit maksimum genişlik */
 const BIZDEN_KARELER_MAX_W = "max-w-[1320px]";
 
@@ -339,6 +340,18 @@ export function ElyaAboutLanding() {
   );
 
   const showReelNav = gallery.shorts.length > visibleReelCount;
+  const onReelDragEnd = useCallback(
+    (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      if (isMdUp || !showReelNav) return;
+      const deltaX = info.offset.x;
+      if (deltaX <= -REEL_SWIPE_THRESHOLD_PX) {
+        goShortSlide(1);
+      } else if (deltaX >= REEL_SWIPE_THRESHOLD_PX) {
+        goShortSlide(-1);
+      }
+    },
+    [goShortSlide, isMdUp, showReelNav]
+  );
 
   return (
     <>
@@ -470,6 +483,11 @@ export function ElyaAboutLanding() {
                         className="flex"
                         style={{ gap: REEL_GAP_PX }}
                         animate={{ x: reelTranslateX }}
+                        drag={showReelNav && !isMdUp ? "x" : false}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.08}
+                        dragMomentum={false}
+                        onDragEnd={onReelDragEnd}
                         transition={
                           reduceMotion
                             ? { duration: 0 }

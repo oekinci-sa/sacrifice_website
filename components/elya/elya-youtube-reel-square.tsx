@@ -63,7 +63,7 @@ export function ElyaYoutubeReelSquare({
           e.stopPropagation();
           onPlay();
         }}
-        className="absolute bottom-0 left-1/2 z-10 w-fit -translate-x-1/2 rounded-sm bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 sm:px-3 sm:text-sm"
+        className="absolute bottom-0 left-1/2 z-10 w-fit -translate-x-1/2 rounded-sm bg-primary px-2.5 py-1.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 sm:px-3 sm:py-1 sm:text-base"
       >
         İzle
       </button>

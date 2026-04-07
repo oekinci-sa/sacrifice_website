@@ -11,6 +11,7 @@ import {
   formatReceiptKilogramDisplay,
   hasReceiptReservationCode,
   isPurchaseReceiptTotalFinalized,
+  RECEIPT_SACRIFICE_NUMBER_LABEL,
   shouldShowReceiptTotalAmountRow,
 } from '@/lib/purchase-receipt-data';
 import {
@@ -353,7 +354,7 @@ export const ReceiptPDF = ({
           <View style={styles.column}>
             <Text style={styles.sectionTitle}>Kurbanlık Bilgileri</Text>
             <View style={styles.row}>
-              <Text style={styles.label}>Sıra No:</Text>
+              <Text style={styles.label}>{RECEIPT_SACRIFICE_NUMBER_LABEL}:</Text>
               <Text style={styles.value}>{data.sacrifice_no}</Text>
             </View>
             <View style={styles.row}>

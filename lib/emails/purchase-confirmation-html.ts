@@ -18,6 +18,7 @@ import {
   formatReceiptKilogramDisplay,
   hasReceiptReservationCode,
   isPurchaseReceiptTotalFinalized,
+  RECEIPT_SACRIFICE_NUMBER_LABEL,
   shouldShowReceiptTotalAmountRow,
   type PurchaseReceiptPdfLikeData,
 } from "@/lib/purchase-receipt-data";
@@ -193,7 +194,7 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
         ${sectionBlock("Hisse Sahibi Bilgileri", rowsHtml(hisseSahibiRows))}
         ${sectionBlock(
           "Kurbanlık Bilgileri",
-          rowHtml("Sıra No", receipt.sacrifice_no) +
+          rowHtml(RECEIPT_SACRIFICE_NUMBER_LABEL, receipt.sacrifice_no) +
             rowHtmlRawValue("Kesim Zamanı", cuttingTimeValueHtml) +
             rowHtml("Kilogram", formatReceiptKilogramDisplay(receipt.share_weight)) +
             rowHtml("Satın Alma Tarihi", receipt.purchase_time)
@@ -359,7 +360,7 @@ function buildPlainText(params: {
     }`,
     "",
     "--- Kurbanlık Bilgileri ---",
-    `Sıra No: ${receipt.sacrifice_no}`,
+    `${RECEIPT_SACRIFICE_NUMBER_LABEL}: ${receipt.sacrifice_no}`,
     `Kesim Zamanı: ${receipt.sacrifice_time || "-"}`,
     ...(showElyaCuttingNote ? [cuttingNoteLine1, cuttingNoteLine2] : []),
     `Kilogram: ${formatReceiptKilogramDisplay(receipt.share_weight)}`,

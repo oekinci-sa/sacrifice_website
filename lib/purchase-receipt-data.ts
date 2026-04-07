@@ -21,6 +21,9 @@ const MSG_LIVE_PENDING_SHARE = "Hisse bedeli henüz girilmedi.";
 const MSG_LIVE_PENDING_KG = "Toplam kg henüz girilmedi.";
 const MSG_LIVE_PENDING_TOTAL = "Henüz kesinleşmedi.";
 
+/** PDF ve işlem özeti e-postasında (`sacrifice_no`) için ortak satır etiketi */
+export const RECEIPT_SACRIFICE_NUMBER_LABEL = "Sıra No";
+
 /** ReceiptPDF `data` prop ile uyumlu düz alanlar */
 export interface PurchaseReceiptPdfLikeData {
   shareholder_name: string;

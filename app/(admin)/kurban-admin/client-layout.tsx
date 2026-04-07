@@ -46,7 +46,7 @@ interface ShareholderData {
 function UserNav() {
   const { data: session } = useSession();
   const { toast } = useToast();
-  const { data: dbUser, refetch: refetchUser } = useUser(session?.user?.email);
+  const { data: dbUser, refetch: refetchUser } = useUser(session?.user?.id);
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [saving, setSaving] = useState(false);

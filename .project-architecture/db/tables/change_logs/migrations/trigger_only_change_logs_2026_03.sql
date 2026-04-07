@@ -709,6 +709,23 @@ BEGIN
     SET approved_at = NULL
     WHERE ut.user_id = p_user_id AND ut.tenant_id = p_tenant_id;
 
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.user_tenants ut2
+      WHERE ut2.user_id = p_user_id AND ut2.approved_at IS NOT NULL
+    ) THEN
+      UPDATE public.users u
+      SET
+        status = CASE
+          WHEN u.status = 'blacklisted'::public.user_status THEN u.status
+          ELSE 'pending'::public.user_status
+        END,
+        updated_at = now(),
+        last_edited_by = p_actor,
+        last_audit_tenant_id = p_tenant_id
+      WHERE u.id = p_user_id;
+    END IF;
+
     RETURN QUERY SELECT * FROM public.users WHERE id = p_user_id;
     RETURN;
   END IF;

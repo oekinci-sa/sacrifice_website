@@ -8,9 +8,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
-import { useSession } from "next-auth/react";
-import { Ban, Check, ChevronDown, XCircle } from "lucide-react";
 import { Row } from "@tanstack/react-table";
+import { Ban, Check, ChevronDown, XCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface UserType {
   id: string;

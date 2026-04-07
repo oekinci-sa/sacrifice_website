@@ -1,7 +1,7 @@
-import { authOptions } from "@/lib/auth";
 import { getSessionActorEmail } from "@/lib/admin-editor-session";
+import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getTenantId } from "@/lib/tenant";
+import { getTenantIdFromHeaders } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const { id } = params;
-    const tenantId = getTenantId();
+    const tenantId = getTenantIdFromHeaders(request.headers);
     const body = await request.json();
     const { status, addToOtherTenant, revokeApproval } = body;
 

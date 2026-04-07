@@ -217,24 +217,22 @@ export async function PUT(
     }
 }
 
-// DELETE /api/users/[id] - Delete a user
+// DELETE /api/users/[id] - Kullanıcıyı mevcut tenant'tan kaldır (user_tenants satırını sil)
 export async function DELETE(
     request: Request,
     { params }: { params: { id: string } }
 ) {
+    const noCacheHeaders = {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    } as const;
+
     try {
         const session = await getServerSession(authOptions);
 
-        // Check authorization (admin only)
         if (!session?.user || (session.user.role !== "admin" && session.user.role !== "super_admin")) {
-            return NextResponse.json({ error: "Yetkisiz" }, {
-                status: 401,
-                headers: {
-                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            });
+            return NextResponse.json({ error: "Yetkisiz" }, { status: 401, headers: noCacheHeaders });
         }
 
         const userId = params.id;
@@ -242,58 +240,23 @@ export async function DELETE(
 
         const belongsToTenant = await userBelongsToTenant(userId, tenantId);
         if (!belongsToTenant) {
-            return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+            return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404, headers: noCacheHeaders });
         }
 
-        const actor = getSessionActorEmail(session);
-        if (!actor) {
-            return NextResponse.json(
-                { error: "Oturumda e-posta bulunamadı." },
-                { status: 400, headers: { 'Cache-Control': 'no-store', Pragma: 'no-cache', Expires: '0' } }
-            );
+        const { error: utDeleteErr } = await supabaseAdmin
+            .from("user_tenants")
+            .delete()
+            .eq("user_id", userId)
+            .eq("tenant_id", tenantId);
+
+        if (utDeleteErr) {
+            console.error(`user_tenants silme hatası: user=${userId} tenant=${tenantId}`, utDeleteErr);
+            return NextResponse.json({ error: "Kullanıcı tenant'tan kaldırılamadı" }, { status: 500, headers: noCacheHeaders });
         }
 
-        const { error } = await supabaseAdmin.rpc("rpc_delete_user", {
-            p_actor: actor,
-            p_tenant_id: tenantId,
-            p_user_id: userId,
-        });
-
-        if (error) {
-            console.error(`rpc_delete_user id=${userId}`, error);
-            const msg = error.message ?? "";
-            if (msg.includes("user_not_found")) {
-                return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404, headers: { 'Cache-Control': 'no-store', Pragma: 'no-cache', Expires: '0' } });
-            }
-            return NextResponse.json({ error: "Kullanıcı silinemedi" }, {
-                status: 500,
-                headers: {
-                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            });
-        }
-
-        return NextResponse.json({ success: true }, {
-            headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
-        });
+        return NextResponse.json({ success: true }, { headers: noCacheHeaders });
     } catch (error) {
         console.error(`Kullanıcı silme sırasında bilinmeyen hata: id=${params.id}`, error);
-        return NextResponse.json(
-            { error: "Sunucu hatası" },
-            {
-                status: 500,
-                headers: {
-                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            }
-        );
+        return NextResponse.json({ error: "Sunucu hatası" }, { status: 500, headers: noCacheHeaders });
     }
 } 

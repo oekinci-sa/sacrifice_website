@@ -11,17 +11,27 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { LogOut } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useUser } from "@/hooks/useUsers";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import { LogOut, Pencil } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
-import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminIdleTimeout } from "./components/admin-idle-timeout";
 import { AppSidebar } from "./components/layout/app-sidebar";
 import { YearDropdown } from "./components/layout/year-dropdown";
@@ -35,6 +45,40 @@ interface ShareholderData {
 
 function UserNav() {
   const { data: session } = useSession();
+  const { toast } = useToast();
+  const { data: dbUser, refetch: refetchUser } = useUser(session?.user?.email);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const displayName = dbUser?.name || session?.user?.name || "";
+
+  const openProfileDialog = useCallback(() => {
+    setProfileName(displayName);
+    setProfileOpen(true);
+  }, [displayName]);
+
+  const handleSaveProfile = useCallback(async () => {
+    const userId = dbUser?.id || session?.user?.id;
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profileName.trim() }),
+      });
+      if (!res.ok) throw new Error("Güncelleme başarısız");
+      refetchUser();
+      window.dispatchEvent(new CustomEvent("user-updated"));
+      toast({ title: "Profil güncellendi", description: "Adınız başarıyla değiştirildi." });
+      setProfileOpen(false);
+    } catch {
+      toast({ title: "Hata", description: "Profil güncellenirken bir hata oluştu.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [dbUser?.id, session?.user?.id, profileName, refetchUser, toast]);
 
   const handleLogout = async () => {
     await signOut({
@@ -44,29 +88,65 @@ function UserNav() {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || ""} />
-            <AvatarFallback>{session?.user?.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <div className="flex flex-col space-y-1 p-2">
-          <p className="text-sm font-medium leading-none">{session?.user?.name}</p>
-          <p className="text-xs leading-none text-muted-foreground">
-            {session?.user?.email}
-          </p>
-        </div>
-        <Separator className="my-2" />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Çıkış yap</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={session?.user?.image || ""} alt={displayName} />
+              <AvatarFallback>{displayName.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <div className="flex flex-col space-y-1 p-2">
+            <p className="text-sm font-medium leading-none">{displayName}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {session?.user?.email}
+            </p>
+          </div>
+          <Separator className="my-2" />
+          <DropdownMenuItem onClick={openProfileDialog}>
+            <Pencil className="mr-2 h-4 w-4" />
+            <span>Profili Düzenle</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Çıkış yap</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Profili Düzenle</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="profile-name">Ad Soyad</Label>
+              <Input
+                id="profile-name"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="Adınız Soyadınız"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && profileName.trim()) handleSaveProfile();
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setProfileOpen(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveProfile} disabled={saving || !profileName.trim()}>
+              {saving ? "Kaydediliyor…" : "Kaydet"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

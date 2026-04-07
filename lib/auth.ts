@@ -9,11 +9,16 @@ import { UserRole } from "@/types";
 
 /** Auth callback'larda tenant_id: önce x-tenant-id, yoksa host'tan çözümle */
 async function getTenantIdForAuth(): Promise<string | null> {
-  const h = await headers();
-  const fromHeader = h.get("x-tenant-id");
-  if (fromHeader) return fromHeader;
-  const host = h.get("host") ?? h.get("x-forwarded-host") ?? "";
-  return host ? resolveTenantIdFromHost(host) : null;
+  try {
+    const h = await headers();
+    const fromHeader = h.get("x-tenant-id");
+    if (fromHeader) return fromHeader;
+    const host = h.get("host") ?? h.get("x-forwarded-host") ?? "";
+    return host ? resolveTenantIdFromHost(host) : null;
+  } catch (err) {
+    console.error("[auth] getTenantIdForAuth headers() hatası:", err);
+    return null;
+  }
 }
 
 export const authOptions: AuthOptions = {
@@ -92,27 +97,19 @@ export const authOptions: AuthOptions = {
             .eq("tenant_id", tenantId)
             .single();
 
-          if (utRow) {
-            if (utRow.approved_at == null) {
-              // super_admin tüm tenantlara erişebilir
-              if (user.role === "super_admin") return true;
-              return "/giris?error=TenantPendingApproval";
+          if (!utRow) {
+            const isSuperAdmin = user.role === "super_admin";
+            const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
+              {
+                user_id: user.id,
+                tenant_id: tenantId,
+                approved_at: isSuperAdmin ? new Date().toISOString() : null,
+              },
+              { onConflict: "user_id,tenant_id" }
+            );
+            if (utError && process.env.NODE_ENV === "development") {
+              console.error("[auth] user_tenants insert hatası (credentials):", utError);
             }
-            return true;
-          }
-
-          // super_admin için yeni tenant'a otomatik onaylı ekle
-          const isSuperAdmin = user.role === "super_admin";
-          const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
-            {
-              user_id: user.id,
-              tenant_id: tenantId,
-              approved_at: isSuperAdmin ? new Date().toISOString() : null,
-            },
-            { onConflict: "user_id,tenant_id" }
-          );
-          if (utError && process.env.NODE_ENV === "development") {
-            console.error("[auth] user_tenants insert hatası (credentials):", utError);
           }
         }
         return true;
@@ -120,104 +117,74 @@ export const authOptions: AuthOptions = {
 
       // For OAuth (Google) login
       if (account?.type === "oauth") {
-        // supabaseAdmin: RLS anon client ile users okuma engellenebilir
-        const { data: existingUser } = await supabaseAdmin
-          .from("users")
-          .select("*")
-          .eq("email", user.email)
-          .single();
+        try {
+          if (!user?.email) return false;
 
-        // If user doesn't exist, create them with pending status
-        if (!existingUser) {
-          const { data: newUser, error } = await supabaseAdmin
+          let { data: existingUser } = await supabaseAdmin
             .from("users")
-            .insert([
-              {
-                email: user.email,
-                name: user.name,
-                image: user.image,
-                status: "pending",
-                role: null as UserRole,
-              },
-            ])
-            .select("id")
+            .select("*")
+            .eq("email", user.email)
             .single();
-          if (error || !newUser) return false;
-          const tenantId = await getTenantIdForAuth();
-          if (tenantId) {
-            const { error: utError } = await supabaseAdmin.from("user_tenants").insert({
-              user_id: newUser.id,
-              tenant_id: tenantId,
-              approved_at: null,
-            });
-            if (utError && process.env.NODE_ENV === "development") {
-              console.error("[auth] user_tenants insert hatası (OAuth yeni kullanıcı):", utError);
+
+          if (!existingUser) {
+            const { data: newUser, error: insertErr } = await supabaseAdmin
+              .from("users")
+              .insert({
+                email: user.email,
+                name: user.name ?? null,
+                image: user.image ?? null,
+                status: "pending",
+              })
+              .select("*")
+              .single();
+
+            if (insertErr) {
+              console.error("[auth] users INSERT hatası:", insertErr);
+              // Yarış koşulu: bir önceki istek zaten oluşturmuş olabilir
+              const { data: fallbackUser } = await supabaseAdmin
+                .from("users")
+                .select("*")
+                .eq("email", user.email)
+                .single();
+              if (!fallbackUser) {
+                console.error("[auth] users fallback SELECT de bulamadı, giriş reddediliyor");
+                return false;
+              }
+              existingUser = fallbackUser;
+            } else {
+              existingUser = newUser;
             }
           }
-          return "/";
-        }
 
-        // Update user data
-        if (existingUser) {
+          if (!existingUser) return false;
+
           user.id = existingUser.id;
           user.role = existingUser.role as UserRole;
           user.status = existingUser.status;
-        }
 
-        // If user exists but is blacklisted
-        if (existingUser.status === "blacklisted") return false;
+          if (existingUser.status === "blacklisted") return false;
 
-        // user_tenants: Per-tenant erişim ve onay
-        const tenantId = await getTenantIdForAuth();
-        if (tenantId) {
-          const { data: utRow } = await supabaseAdmin
-            .from("user_tenants")
-            .select("tenant_id, approved_at")
-            .eq("user_id", existingUser.id)
-            .eq("tenant_id", tenantId)
-            .single();
-
-          if (utRow) {
-            // Kayıt var: approved_at null ise bu tenant için onay bekliyor
-            if (utRow.approved_at == null) {
-              // super_admin tüm tenantlara erişebilir
-              if (existingUser.role === "super_admin") return true;
-              return "/giris?error=TenantPendingApproval";
+          const tenantId = await getTenantIdForAuth();
+          if (tenantId) {
+            const isSuperAdmin = existingUser.role === "super_admin";
+            const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
+              {
+                user_id: existingUser.id,
+                tenant_id: tenantId,
+                approved_at: isSuperAdmin ? new Date().toISOString() : null,
+              },
+              { onConflict: "user_id,tenant_id" }
+            );
+            if (utError) {
+              console.error("[auth] user_tenants upsert hatası (OAuth):", utError);
             }
-            return true;
           }
 
-          // Kayıt yok: user_tenants'a ekle (super_admin için otomatik onaylı)
-          const { data: otherTenants } = await supabaseAdmin
-            .from("user_tenants")
-            .select("tenant_id, approved_at")
-            .eq("user_id", existingUser.id);
-          const hasApprovedElsewhere =
-            (otherTenants ?? []).some((ut) => ut.approved_at != null);
-
-          const isSuperAdmin = existingUser.role === "super_admin";
-          const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
-            {
-              user_id: existingUser.id,
-              tenant_id: tenantId,
-              approved_at: isSuperAdmin ? new Date().toISOString() : null,
-            },
-            { onConflict: "user_id,tenant_id" }
-          );
-          if (utError && process.env.NODE_ENV === "development") {
-            console.error("[auth] user_tenants upsert hatası (OAuth mevcut kullanıcı):", utError);
-          }
-
-          if (
-            existingUser.status === "approved" &&
-            hasApprovedElsewhere
-          ) {
-            return "/giris?error=TenantAccessDenied";
-          }
-          return "/";
+          return true;
+        } catch (err) {
+          console.error("[auth] signIn OAuth beklenmeyen hata:", err);
+          return false;
         }
-
-        return true;
       }
 
       return false;

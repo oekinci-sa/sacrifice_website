@@ -24,7 +24,7 @@ BEGIN
     VALUES (
       'users',
       NEW.id::text,
-      'Ekleme',
+      'INSERT',
       'Kullanıcı eklendi',
       v_owner,
       NEW.last_audit_tenant_id,

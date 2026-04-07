@@ -73,10 +73,13 @@ export async function GET() {
                 ut.approved_at,
             ])
         );
-        const data = (usersData ?? []).map((u) => ({
-            ...u,
-            tenant_approved_at: utMap.get(u.id) ?? null,
-        }));
+        const isSuperAdmin = session.user.role === "super_admin";
+        const data = (usersData ?? [])
+            .filter((u) => isSuperAdmin || u.role !== "super_admin")
+            .map((u) => ({
+                ...u,
+                tenant_approved_at: utMap.get(u.id) ?? null,
+            }));
 
         return NextResponse.json(data, {
             headers: {

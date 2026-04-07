@@ -1,6 +1,6 @@
+import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import { resolveTenantIdFromHost } from "@/lib/tenant-resolver";
 
 const publicRoutes = ["/giris"];
 
@@ -49,6 +49,10 @@ export default withAuth(
 
     if (!token && isAdminRoute) {
       return NextResponse.redirect(new URL("/giris", req.url));
+    }
+
+    if (token && isAdminRoute && token.status !== "approved" && token.role !== "super_admin") {
+      return NextResponse.redirect(new URL("/", req.url));
     }
 
     if (token?.role !== "admin" && token?.role !== "super_admin" && isUserManagementRoute) {

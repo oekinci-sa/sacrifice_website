@@ -12,11 +12,11 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 |------|-------|---------|-------|
 | 1 | Kullanıcı | /giris → "Google ile Giriş" | Google OAuth başlatılır |
 | 2 | NextAuth | signIn callback | users tablosunda email kontrolü |
-| 3a | Sistem | Kullanıcı yok | users INSERT (status: pending), user_tenants INSERT (approved_at: null), redirect "/" |
-| 3b | Sistem | Kullanıcı var, bu tenant'ta user_tenants yok | user_tenants INSERT (approved_at: null), redirect "/" veya TenantAccessDenied |
-| 3c | Sistem | Kullanıcı var, user_tenants.approved_at null | redirect "/giris?error=TenantPendingApproval" (engellenir) |
-| 3d | Sistem | Kullanıcı var, approved | Giriş başarılı |
-| 4 | Sistem | users.status = blacklisted | Giriş reddedilir |
+| 3a | Sistem | Kullanıcı yok | users INSERT (status: pending), user_tenants INSERT (approved_at: null), giriş izni verilir, middleware admin route'u engeller → "/" |
+| 3b | Sistem | Kullanıcı var, bu tenant'ta user_tenants yok | user_tenants UPSERT (approved_at: null), giriş izni verilir, middleware admin route'u engeller → "/" |
+| 3c | Sistem | Kullanıcı var, user_tenants.approved_at null | Giriş izni verilir, middleware admin route'u engeller → "/" (kullanıcı yönetimi sayfasından admin onaylar) |
+| 3d | Sistem | Kullanıcı var, approved | Giriş başarılı, callbackUrl'e yönlendirilir |
+| 4 | Sistem | users.status = blacklisted | Giriş reddedilir (signIn → false) |
 
 ### 1.2 Credentials ile Giriş
 

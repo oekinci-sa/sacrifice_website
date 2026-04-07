@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { usePublicYearStore } from "@/stores/only-public-pages/usePublicYearStore";
 import { useReservationIDStore } from "@/stores/only-public-pages/useReservationIDStore";
 import { SACRIFICE_UPDATED_EVENT } from "@/stores/global/useSacrificeStore";
@@ -18,6 +19,7 @@ import { useReservationAndWarningManager } from "./hooks/useReservationAndWarnin
 
 const Page = () => {
   const { toast } = useToast();
+  const { logo_slug } = useTenantBranding();
   const { selectedYear } = usePublicYearStore();
   const pathname = usePathname();
   const router = useRouter();
@@ -55,13 +57,12 @@ const Page = () => {
     isLoading
   } = usePageInitialization();
 
-  const showAnimalTypeColumn = useMemo(
-    () =>
-      sacrifices.some(
-        (s) => s.animal_type != null && String(s.animal_type).trim() !== ""
-      ),
-    [sacrifices]
-  );
+  const showAnimalTypeColumn = useMemo(() => {
+    if (logo_slug === "elya-hayvancilik") return false;
+    return sacrifices.some(
+      (s) => s.animal_type != null && String(s.animal_type).trim() !== ""
+    );
+  }, [sacrifices, logo_slug]);
 
   const tableColumns = useMemo(
     () => buildHissealTableColumns(showAnimalTypeColumn, false),

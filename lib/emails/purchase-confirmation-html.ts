@@ -193,7 +193,7 @@ ${EMAIL_INSTRUMENT_SANS_HEAD_LINKS}
         ${sectionBlock("Hisse Sahibi Bilgileri", rowsHtml(hisseSahibiRows))}
         ${sectionBlock(
           "Kurbanlık Bilgileri",
-          rowHtml("Hayvan No", receipt.sacrifice_no) +
+          rowHtml("Sıra No", receipt.sacrifice_no) +
             rowHtmlRawValue("Kesim Zamanı", cuttingTimeValueHtml) +
             rowHtml("Kilogram", formatReceiptKilogramDisplay(receipt.share_weight)) +
             rowHtml("Satın Alma Tarihi", receipt.purchase_time)
@@ -359,7 +359,7 @@ function buildPlainText(params: {
     }`,
     "",
     "--- Kurbanlık Bilgileri ---",
-    `Hayvan No: ${receipt.sacrifice_no}`,
+    `Sıra No: ${receipt.sacrifice_no}`,
     `Kesim Zamanı: ${receipt.sacrifice_time || "-"}`,
     ...(showElyaCuttingNote ? [cuttingNoteLine1, cuttingNoteLine2] : []),
     `Kilogram: ${formatReceiptKilogramDisplay(receipt.share_weight)}`,

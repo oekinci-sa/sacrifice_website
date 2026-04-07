@@ -166,17 +166,28 @@ export const authOptions: AuthOptions = {
 
           const tenantId = await getTenantIdForAuth();
           if (tenantId) {
-            const isSuperAdmin = existingUser.role === "super_admin";
-            const { error: utError } = await supabaseAdmin.from("user_tenants").upsert(
-              {
+            // Mevcut satırı upsert ile güncelleme: approved_at her girişte null yazılır ve
+            // admin onayı silinirdi. Credentials ile aynı — yalnızca kayıt yoksa INSERT.
+            const { data: utRow } = await supabaseAdmin
+              .from("user_tenants")
+              .select("user_id")
+              .eq("user_id", existingUser.id)
+              .eq("tenant_id", tenantId)
+              .maybeSingle();
+
+            if (!utRow) {
+              const isSuperAdmin = existingUser.role === "super_admin";
+              const { error: utError } = await supabaseAdmin.from("user_tenants").insert({
                 user_id: existingUser.id,
                 tenant_id: tenantId,
                 approved_at: isSuperAdmin ? new Date().toISOString() : null,
-              },
-              { onConflict: "user_id,tenant_id" }
-            );
-            if (utError) {
-              console.error("[auth] user_tenants upsert hatası (OAuth):", utError);
+              });
+              if (utError) {
+                // Yarış: paralel istek aynı satırı eklemiş olabilir
+                if (utError.code !== "23505") {
+                  console.error("[auth] user_tenants insert hatası (OAuth):", utError);
+                }
+              }
             }
           }
 

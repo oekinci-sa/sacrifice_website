@@ -13,7 +13,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | 1 | Kullanıcı | /giris → "Google ile Giriş" | Google OAuth başlatılır |
 | 2 | NextAuth | signIn callback | users tablosunda email kontrolü |
 | 3a | Sistem | Kullanıcı yok | users INSERT (status: pending), user_tenants INSERT (approved_at: null), giriş izni verilir, middleware admin route'u engeller → "/" |
-| 3b | Sistem | Kullanıcı var, bu tenant'ta user_tenants yok | user_tenants UPSERT (approved_at: null), giriş izni verilir, middleware admin route'u engeller → "/" |
+| 3b | Sistem | Kullanıcı var | Bu tenant için `user_tenants` **yoksa** INSERT (approved_at: null veya super_admin otomatik onay). **Satır zaten varsa** `user_tenants` dokunulmaz (eski hata: her girişte upsert ile `approved_at` sıfırlanıyordu). |
 | 3c | Sistem | Kullanıcı var, user_tenants.approved_at null | Giriş izni verilir, middleware admin route'u engeller → "/" (kullanıcı yönetimi sayfasından admin onaylar) |
 | 3d | Sistem | Kullanıcı var, approved | Giriş başarılı, callbackUrl'e yönlendirilir |
 | 4 | Sistem | users.status = blacklisted | Giriş reddedilir (signIn → false) |

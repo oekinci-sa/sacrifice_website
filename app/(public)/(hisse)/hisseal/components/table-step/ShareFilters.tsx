@@ -150,7 +150,7 @@ function ClientShareFilters({
         {[
           {
             column: "sacrifice_no",
-            title: "Kurban No",
+            title: "Sıra No",
             options: kurbanNoOptions,
             type: "price" as const,
           },

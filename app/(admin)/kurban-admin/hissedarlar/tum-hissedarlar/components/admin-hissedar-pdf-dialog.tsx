@@ -98,7 +98,7 @@ export function AdminHissedarPdfDialog({ shareholder, open, onOpenChange }: Prop
 
   const titleLine = shareholder
     ? `${shareholder.shareholder_name}${shareholder.sacrifice?.sacrifice_no != null
-      ? ` — Kurban ${shareholder.sacrifice.sacrifice_no}`
+      ? ` — Sıra ${shareholder.sacrifice.sacrifice_no}`
       : ""
     }`
     : "";

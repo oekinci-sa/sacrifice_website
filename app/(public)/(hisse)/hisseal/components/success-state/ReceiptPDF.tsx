@@ -353,7 +353,7 @@ export const ReceiptPDF = ({
           <View style={styles.column}>
             <Text style={styles.sectionTitle}>Kurbanlık Bilgileri</Text>
             <View style={styles.row}>
-              <Text style={styles.label}>Hayvan No:</Text>
+              <Text style={styles.label}>Sıra No:</Text>
               <Text style={styles.value}>{data.sacrifice_no}</Text>
             </View>
             <View style={styles.row}>

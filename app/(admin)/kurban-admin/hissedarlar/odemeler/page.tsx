@@ -12,10 +12,10 @@ import { formatDateMedium } from "@/lib/date-utils";
 import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { ColumnDef } from "@tanstack/react-table";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { ColumnDef, type Table } from "@tanstack/react-table";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Download, X } from "lucide-react";
-import { exportTableToExcel } from "@/lib/export-to-excel";
+import { exportTableToExcel, sacrificeInfoExcelCell } from "@/lib/export-to-excel";
 import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
 import { PaymentFilters } from "./components/payment-filters";
 import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
@@ -28,22 +28,8 @@ import {
 } from "../tum-hissedarlar/components/columns";
 import { getOdemelerPaymentStatusSortValue } from "@/lib/odeme-payment-status";
 import { sortingFunctions } from "@/utils/table-sort-helpers";
-
-const ODEMELER_COLUMN_HEADER_MAP: Record<string, string> = {
-  sacrifice_no: "Kur. Sır.",
-  shareholder_name: "İsim Soyisim",
-  phone_number: "Telefon",
-  sacrifice_info: "Hisse Bedeli",
-  delivery_fee: "Teslimat Ücreti",
-  delivery_location: "Teslimat Tercihi",
-  delivery_location_raw: "Teslimat Yeri",
-  paid_amount: "Ödeme Yapılan Tutar",
-  remaining_payment: "Kalan Tutar",
-  payment_status: "Ödeme",
-  purchase_time: "Kayıt Tarihi",
-  pdf: "PDF",
-  notes: "Notlar",
-};
+import { odemelerColumnHeaderLabels as O } from "@/lib/admin-table-column-labels/odemeler";
+import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
 
 export default function OdemelerPage() {
   const branding = useTenantBranding();
@@ -51,6 +37,8 @@ export default function OdemelerPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [pdfShareholder, setPdfShareholder] = useState<shareholderSchema | null>(null);
+  const [excelConfirmOpen, setExcelConfirmOpen] = useState(false);
+  const tableForExcelRef = useRef<Table<shareholderSchema> | null>(null);
   const {
     shareholders: allShareholders,
     isLoading,
@@ -77,7 +65,7 @@ export default function OdemelerPage() {
       {
         id: "sacrifice_no",
         accessorFn: (row) => row.sacrifice?.sacrifice_no ?? 0,
-        header: "Kur. Sır.",
+        header: O.sacrifice_no,
         cell: ({ row }) => {
           const sacrifice = row.original.sacrifice;
           const sacrificeNo = sacrifice?.sacrifice_no ?? "-";
@@ -86,12 +74,12 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "shareholder_name",
-        header: "İsim Soyisim",
+        header: O.shareholder_name,
         cell: ({ row }) => row.getValue("shareholder_name"),
       },
       {
         accessorKey: "phone_number",
-        header: "Telefon",
+        header: O.phone_number,
         enableSorting: false,
         cell: ({ row }) =>
           formatPhoneForDisplayWithSpacing(row.original.phone_number || ""),
@@ -99,14 +87,14 @@ export default function OdemelerPage() {
       {
         id: "sacrifice_info",
         accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
-        header: "Hisse Bedeli",
+        header: O.sacrifice_info,
         cell: ({ row }) => (
           <AdminSacrificeHisseBedeliTableCell sacrifice={row.original.sacrifice} />
         ),
       },
       {
         accessorKey: "delivery_fee",
-        header: "Teslimat Ücreti",
+        header: O.delivery_fee,
         cell: ({ row }) => {
           const val = parseFloat(row.original.delivery_fee?.toString() ?? "0");
           return (
@@ -122,7 +110,7 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "delivery_location",
-        header: "Teslimat Tercihi",
+        header: O.delivery_location,
         cell: ({ row }) => {
           const type = row.original.delivery_type ?? getDeliverySelectionFromLocation(branding.logo_slug, row.original.delivery_location || "");
           return getDeliveryTypeDisplayLabel(branding.logo_slug, type, null, false);
@@ -131,7 +119,7 @@ export default function OdemelerPage() {
       {
         id: "delivery_location_raw",
         accessorFn: (row) => row.delivery_location ?? "",
-        header: "Teslimat Yeri",
+        header: O.delivery_location_raw,
         cell: ({ row }) => (
           <span title={row.original.delivery_location || undefined}>
             {row.original.delivery_location || "-"}
@@ -140,14 +128,14 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "paid_amount",
-        header: "Ödeme Yapılan Tutar",
+        header: O.paid_amount,
         cell: ({ row }) => (
           <EditablePaidAmountCell row={row} onUpdate={updateShareholder} />
         ),
       },
       {
         accessorKey: "remaining_payment",
-        header: "Kalan Tutar",
+        header: O.remaining_payment,
         cell: ({ row }) => {
           const val = parseFloat(row.original.remaining_payment.toString());
           return (
@@ -163,13 +151,13 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "purchase_time",
-        header: "Kayıt Tarihi",
+        header: O.purchase_time,
         sortingFn: sortingFunctions.date,
         cell: ({ row }) => formatDateMedium(row.getValue("purchase_time")),
       },
       {
         id: "pdf",
-        header: "PDF",
+        header: O.pdf,
         minSize: 72,
         enableSorting: false,
         enableHiding: true,
@@ -177,7 +165,7 @@ export default function OdemelerPage() {
       },
       {
         id: "payment_status",
-        header: "Ödeme",
+        header: O.payment_status,
         minSize: 90,
         accessorFn: (row) =>
           getOdemelerPaymentStatusSortValue(row, branding.deposit_amount),
@@ -187,7 +175,7 @@ export default function OdemelerPage() {
       },
       {
         accessorKey: "notes",
-        header: "Notlar",
+        header: O.notes,
         minSize: 100,
         meta: { align: "left" },
         enableSorting: false,
@@ -272,42 +260,28 @@ export default function OdemelerPage() {
             },
           }}
           filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
+            tableForExcelRef.current = table;
             const hasAnyFilter =
               columnFilters.length > 0 || searchTerm.trim().length > 0;
             return (
               <div className="flex flex-col gap-3 w-full">
-                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
-                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
-                    <PaymentFilters table={table} />
-                  </div>
-                  {hasAnyFilter ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-dashed gap-1.5 shrink-0 ml-auto"
-                      onClick={() => {
-                        table.resetColumnFilters();
-                        setSearchTerm("");
-                      }}
-                    >
-                      <X className="h-4 w-4 shrink-0" />
-                      Tüm filtreleri temizle
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-                  <ShareholderSearch onSearch={setSearchTerm} className="w-96 sm:w-[28rem] max-w-full min-w-0" />
+                {/* Üst satır: arama + Sütunlar + Excel — Tüm Hissedarlar / Kurbanlıklar ile aynı */}
+                <div className="flex items-center justify-between w-full gap-3">
+                  <ShareholderSearch
+                    onSearch={setSearchTerm}
+                    className="w-96 sm:w-[28rem] max-w-full min-w-0"
+                  />
                   <div className="flex items-center gap-2 shrink-0">
                     <ColumnSelectorPopover
                       table={table}
-                      columnHeaderMap={ODEMELER_COLUMN_HEADER_MAP}
+                      columnHeaderMap={O}
                       columnOrder={columnOrder ?? []}
                       onColumnOrderChange={onColumnOrderChange}
                       onResetColumnLayout={resetColumnLayout}
                     />
                     <Button
-                      onClick={() => exportTableToExcel(table, "odemeler", ODEMELER_COLUMN_HEADER_MAP)}
+                      type="button"
+                      onClick={() => setExcelConfirmOpen(true)}
                       variant="outline"
                       size="sm"
                       className="h-8 border-dashed flex items-center gap-2"
@@ -316,6 +290,27 @@ export default function OdemelerPage() {
                       Excel&apos;e Aktar
                     </Button>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                    <PaymentFilters table={table} />
+                  </div>
+                  {hasAnyFilter ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 flex items-center gap-1 shrink-0 ml-auto"
+                      onClick={() => {
+                        table.resetColumnFilters();
+                        setSearchTerm("");
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Tüm filtreleri temizle
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             );
@@ -329,6 +324,23 @@ export default function OdemelerPage() {
         onOpenChange={(open) => {
           setPdfDialogOpen(open);
           if (!open) setPdfShareholder(null);
+        }}
+      />
+      <ExcelExportConfirmDialog
+        open={excelConfirmOpen}
+        onOpenChange={setExcelConfirmOpen}
+        onConfirm={() => {
+          const t = tableForExcelRef.current;
+          if (!t) return;
+          exportTableToExcel(t, "odemeler", O, {
+            excludeColumnIds: ["payment_status"],
+            valueFormatter: {
+              sacrifice_info: sacrificeInfoExcelCell,
+            },
+            splitDatetimeColumns: {
+              purchase_time: ["Kayıt Tarihi", "Kayıt Saati"],
+            },
+          });
         }}
       />
     </div>

@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
+import { hissedarlarColumnHeaderLabels as H } from "@/lib/admin-table-column-labels/hissedarlar";
 import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
@@ -696,7 +697,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     id: "sacrifice_no",
     accessorFn: (row) => row.sacrifice?.sacrifice_no || "-",
-    header: "Kur. Sır.",
+    header: H.sacrifice_no,
     minSize: 70,
     enableSorting: true,
     sortingFn: sortingFunctions.number,
@@ -704,7 +705,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "shareholder_name",
-    header: "İsim Soyisim",
+    header: H.shareholder_name,
     minSize: 120,
     enableSorting: true,
     sortingFn: sortingFunctions.text,
@@ -719,14 +720,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "phone_number",
-    header: "Telefon",
+    header: H.phone_number,
     minSize: 130,
     enableSorting: false,
     cell: ({ row }) => <EditablePhoneCell row={row} />,
   },
   {
     accessorKey: "email",
-    header: "E-posta",
+    header: H.email,
     minSize: 180,
     enableSorting: false,
     enableHiding: true,
@@ -734,14 +735,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "second_phone_number",
-    header: "İkinci Telefon",
+    header: H.second_phone_number,
     minSize: 130,
     enableSorting: false,
     cell: ({ row }) => <EditableSecondPhoneCell row={row} />,
   },
   {
     accessorKey: "contacted_at",
-    header: "Görüşüldü",
+    header: H.contacted_at,
     minSize: 90,
     enableSorting: true,
     sortingFn: (a, b) => {
@@ -763,7 +764,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     id: "sacrifice_info",
     accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
-    header: "Hisse Bedeli",
+    header: H.sacrifice_info,
     minSize: 110,
     enableSorting: false,
     cell: ({ row }) => (
@@ -772,7 +773,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "delivery_location",
-    header: "Teslimat Tercihi",
+    header: H.delivery_location,
     minSize: 120,
     enableSorting: false,
     cell: ({ row }) => <ReadOnlyDeliveryPreferenceCell row={row} />,
@@ -780,14 +781,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   {
     id: "delivery_location_raw",
     accessorFn: (row) => row.delivery_location ?? "",
-    header: "Teslimat Yeri",
+    header: H.delivery_location_raw,
     minSize: 100,
     enableSorting: false,
     cell: ({ row }) => <ReadOnlyDeliveryLocationCell row={row} />,
   },
   {
     id: "payment_status",
-    header: "Ödeme",
+    header: H.payment_status,
     minSize: 90,
     enableSorting: true,
     accessorFn: (row) => {
@@ -800,7 +801,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "purchase_time",
-    header: "Kayıt Tarihi",
+    header: H.purchase_time,
     minSize: 100,
     enableSorting: true,
     sortingFn: sortingFunctions.date,
@@ -808,14 +809,14 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "sacrifice_consent",
-    header: "Vekalet",
+    header: H.sacrifice_consent,
     minSize: 90,
     enableSorting: false,
     cell: ({ row }) => <EditableConsentCell row={row} />,
   },
   {
     accessorKey: "notes",
-    header: "Notlar",
+    header: H.notes,
     minSize: 100,
     meta: { align: "left" },
     enableSorting: false,
@@ -823,7 +824,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "last_edited_time",
-    header: "Son Güncelleme",
+    header: H.last_edited_time,
     minSize: 110,
     enableSorting: true,
     sortingFn: sortingFunctions.date,
@@ -831,7 +832,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     accessorKey: "last_edited_by",
-    header: "Son Güncelleyen",
+    header: H.last_edited_by,
     minSize: 110,
     enableSorting: true,
     cell: ({ row }) => {
@@ -845,7 +846,7 @@ export const columns: ColumnDef<shareholderSchema>[] = [
   },
   {
     id: "pdf",
-    header: "PDF",
+    header: H.pdf,
     minSize: 72,
     enableSorting: false,
     cell: ({ row, table }) => <PdfColumnCell row={row} table={table} />,

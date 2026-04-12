@@ -2,19 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,23 +29,24 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { loadAdminPriceInfoOptions } from "@/lib/admin-price-info-cache";
 import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedeli";
 import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
-import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
-import { triggerSacrificeRefresh } from "@/utils/data-refresh";
-import { sacrificeSchema } from "@/types";
-import { Row } from "@tanstack/react-table";
-import { Check, Pencil, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
-import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
+import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import { sacrificeSchema } from "@/types";
+import { triggerSacrificeRefresh } from "@/utils/data-refresh";
 import {
   mergeHourMinuteToPostgresTime,
   sanitizeHourDigitsInput,
   sanitizeMinuteDigitsInput,
 } from "@/utils/formatters";
+import { Row } from "@tanstack/react-table";
+import { Check, Pencil, X } from "lucide-react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type PriceOption = { kg: string; price: string } | { kg: number; price: number };
 
@@ -111,7 +112,7 @@ function defaultPriceOptionsFromTenant(logoSlug: string): PriceOption[] {
   }));
 }
 
-export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableSharePriceCell = memo(function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const branding = useTenantBranding();
@@ -133,23 +134,13 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
-      try {
-        const url = selectedYear != null ? `/api/price-info?year=${selectedYear}` : "/api/price-info";
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            return data.map((d: { kg: number; price: number }) => ({ kg: d.kg, price: d.price }));
-          }
-        }
-      } catch {}
-      return defaultPriceOptionsFromTenant(branding.logo_slug ?? "ankara-kurban");
-    };
-    load().then((opts) => {
+    const slug = branding.logo_slug ?? "ankara-kurban";
+    loadAdminPriceInfoOptions(selectedYear, slug).then((opts) => {
       if (!cancelled) setOptions(opts);
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [branding.logo_slug, selectedYear]);
 
   /* sacrifice nesnesi yerine primitive alanlar; row.original referansı her render'da değişebilir */
@@ -183,8 +174,8 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
   const allOptions = currentInOptions
     ? options
     : [...options, { kg: sacrifice.share_weight ?? 0, price: sacrifice.share_price ?? 0 }].sort(
-        (a, b) => getPrice(a) - getPrice(b)
-      );
+      (a, b) => getPrice(a) - getPrice(b)
+    );
 
   const handleSaveFixed = useCallback(async () => {
     if (!selectedFixed) {
@@ -333,11 +324,10 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
                   <button
                     key={formatPriceOption(opt)}
                     type="button"
-                    className={`w-full text-left rounded-sm px-3 py-2 text-sm hover:bg-muted ${
-                      selectedFixed && formatPriceOption(selectedFixed) === formatPriceOption(opt)
+                    className={`w-full text-left rounded-sm px-3 py-2 text-sm hover:bg-muted ${selectedFixed && formatPriceOption(selectedFixed) === formatPriceOption(opt)
                         ? "bg-muted font-medium"
                         : ""
-                    }`}
+                      }`}
                     onClick={() => setSelectedFixed(opt)}
                   >
                     {formatPriceOption(opt)}
@@ -390,9 +380,9 @@ export function EditableSharePriceCell({ row }: { row: Row<sacrificeSchema> }) {
       </Dialog>
     </>
   );
-}
+});
 
-export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableEmptyShareCell = memo(function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [saving, setSaving] = useState(false);
@@ -471,14 +461,14 @@ export function EditableEmptyShareCell({ row }: { row: Row<sacrificeSchema> }) {
       </DropdownMenu>
     </div>
   );
-}
+});
 
 const ANIMAL_TYPE_OPTIONS = ["Dana", "Düve", ""] as const;
 
 /** Sık kullanılanlar — listede her zaman dursun; asıl liste tenant yılındaki tüm distinct foundation değerleri. */
 const FOUNDATION_DEFAULT_SUGGESTIONS = ["AKV", "İMH", "AGD"] as const;
 
-export function EditableFoundationCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableFoundationCell = memo(function EditableFoundationCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const sacrifices = useSacrificeStore((s) => s.sacrifices);
@@ -623,9 +613,9 @@ export function EditableFoundationCell({ row }: { row: Row<sacrificeSchema> }) {
       </Popover>
     </div>
   );
-}
+});
 
-export function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableAnimalTypeCell = memo(function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [open, setOpen] = useState(false);
@@ -701,7 +691,7 @@ export function EditableAnimalTypeCell({ row }: { row: Row<sacrificeSchema> }) {
       </DropdownMenu>
     </div>
   );
-}
+});
 
 function effectiveEarTagLabel(s: sacrificeSchema): string {
   return (s.ear_tag ?? "").trim() || "-";
@@ -711,7 +701,7 @@ function effectiveBarnStallOrderLabel(s: sacrificeSchema): string {
   return (s.barn_stall_order_no ?? "").trim() || "-";
 }
 
-export function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableBarnStallOrderCell = memo(function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [editing, setEditing] = useState(false);
@@ -808,7 +798,7 @@ export function EditableBarnStallOrderCell({ row }: { row: Row<sacrificeSchema> 
       </Button>
     </div>
   );
-}
+});
 
 function splitHourMinuteFromDb(t: string | null | undefined): { h: string; m: string } {
   const s = String(t ?? "").trim();
@@ -817,7 +807,7 @@ function splitHourMinuteFromDb(t: string | null | undefined): { h: string; m: st
   return { h: m[1].padStart(2, "0"), m: m[2] };
 }
 
-export function EditablePlannedDeliveryTimeCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditablePlannedDeliveryTimeCell = memo(function EditablePlannedDeliveryTimeCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [editing, setEditing] = useState(false);
@@ -1000,7 +990,7 @@ export function EditablePlannedDeliveryTimeCell({ row }: { row: Row<sacrificeSch
       </Button>
     </div>
   );
-}
+});
 
 function formatPlanTimeDisplay(value: unknown): string {
   const time = value as string | undefined;
@@ -1013,7 +1003,7 @@ function formatPlanTimeDisplay(value: unknown): string {
   }
 }
 
-export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableEarTagCell = memo(function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [editing, setEditing] = useState(false);
@@ -1110,9 +1100,9 @@ export function EditableEarTagCell({ row }: { row: Row<sacrificeSchema> }) {
       </Button>
     </div>
   );
-}
+});
 
-export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
+export const EditableNotesCell = memo(function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
   const { toast } = useToast();
   const updateSacrifice = useSacrificeStore((s) => s.updateSacrifice);
   const [open, setOpen] = useState(false);
@@ -1185,4 +1175,4 @@ export function EditableNotesCell({ row }: { row: Row<sacrificeSchema> }) {
       </Dialog>
     </>
   );
-}
+});

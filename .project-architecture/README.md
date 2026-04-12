@@ -24,7 +24,7 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `db/views/` | View tanımları |
 | `db/migrations/` | Migration SQL dosyaları |
 | `db/rls-and-realtime.md` | RLS ve Realtime durumu |
-| `changelogs/` | Tarihli mimari changelog dosyaları ([changelogs/README.md](changelogs/README.md)) |
+| `changelogs/` | Tarihli mimari changelog dosyaları ([changelogs/README.md](changelogs/README.md)); admin tablo başlık haritaları özeti: [changelogs/changelog-2026-04-admin-table-column-labels.md](changelogs/changelog-2026-04-admin-table-column-labels.md) |
 
 ## Güncelleme
 

@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { kurbanliklarColumnHeaderLabels as KL } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
@@ -23,7 +24,6 @@ import { Check, PlusCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-// Ödeme Durumu filter
 function PaymentStatusFilter({
   table,
   paymentStatusFilter,
@@ -45,7 +45,7 @@ function PaymentStatusFilter({
           className="h-8 border-dashed text-xs whitespace-nowrap flex items-center justify-start"
         >
           <PlusCircle className="mr-2 h-3 w-3 shrink-0" />
-          Ödeme Durumu
+          {KL.payment_status}
           {paymentStatusFilter && (
             <span className="ml-2 bg-muted text-xs px-1.5 py-0.5 rounded">
               {paymentStatusFilter === "completed" ? "Tamamlananlar" : "Tamamlanmayanlar"}
@@ -318,43 +318,31 @@ function DataTableFacetedFilter<TData, TValue>({
 
 interface SacrificeFiltersProps {
   table: Table<sacrificeSchema>;
-  registerResetFunction?: (resetFn: () => void) => void;
+  resetVersion?: number;
 }
 
-export function SacrificeFilters({ table, registerResetFunction }: SacrificeFiltersProps) {
+export function SacrificeFilters({ table, resetVersion = 0 }: SacrificeFiltersProps) {
   const searchParams = useSearchParams();
   const urlSyncDone = useRef(false);
 
   // Add state for "hide filled ones" option
   const [showHideFullOption, setShowHideFullOption] = useState(true);
 
-  // Provide reset function to parent component
+  // Parent "Tüm filtreleri temizle" butonu: sadece yerel UI durumunu sıfırla.
   useEffect(() => {
-    if (registerResetFunction) {
-      registerResetFunction(() => {
-        setShowHideFullOption(true);
-
-        // Reset all relevant column filters
-        table.getColumn("sacrifice_no")?.setFilterValue(undefined);
-        table.getColumn("empty_share")?.setFilterValue(undefined);
-        table.getColumn("share_price")?.setFilterValue(undefined);
-        table.getColumn("payment_status")?.setFilterValue(undefined);
-        table.getColumn("animal_type")?.setFilterValue(undefined);
-        table.getColumn("foundation")?.setFilterValue(undefined);
-      });
-    }
-  }, [registerResetFunction, table]);
+    setShowHideFullOption(true);
+  }, [resetVersion]);
 
   // Reset showHideFullOption when column filters are cleared
+  const columnFilters = table.getState().columnFilters;
   useEffect(() => {
-    const columnFilters = table.getState().columnFilters;
     const emptyShareFilter = columnFilters.find(f => f.id === "empty_share");
 
     // If empty_share filter is removed, reset the option to show "Hide filled ones"
     if (!emptyShareFilter) {
       setShowHideFullOption(true);
     }
-  }, [table]);
+  }, [columnFilters]);
 
   // Generate price options from the data
   const priceOptions = useMemo(() => {
@@ -485,19 +473,19 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
     <div className="flex flex-wrap items-center gap-2">
       <DataTableFacetedFilter
         column={table.getColumn("sacrifice_no")}
-        title="Kurban No"
+        title={KL.sacrifice_no}
         options={kurbanNoOptions}
         type="kurbanNo"
       />
       <DataTableFacetedFilter
         column={table.getColumn("share_price")}
-        title="Hisse Bedeli"
+        title={KL.share_price}
         options={priceOptions}
         type="price"
       />
       <DataTableFacetedFilter
         column={table.getColumn("empty_share")}
-        title="Boş Hisse"
+        title={KL.empty_share}
         options={emptyShareOptions}
         type="share"
         showHideFullOption={showHideFullOption}
@@ -505,13 +493,13 @@ export function SacrificeFilters({ table, registerResetFunction }: SacrificeFilt
       />
       <DataTableFacetedFilter
         column={table.getColumn("animal_type")}
-        title="Cins"
+        title={KL.animal_type}
         options={animalTypeOptions}
         type="textFacet"
       />
       <DataTableFacetedFilter
         column={table.getColumn("foundation")}
-        title="Referans"
+        title={KL.foundation}
         options={foundationOptions}
         type="textFacet"
       />

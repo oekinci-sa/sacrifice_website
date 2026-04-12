@@ -120,7 +120,7 @@ export default function TumKurbanliklarPage() {
   }
 
   return (
-    <div className="space-y-8 min-w-0 max-w-full overflow-x-hidden">
+    <div className="space-y-8 min-w-0 max-w-full">
       <div className="flex items-center justify-between">
         <div className="w-full">
           <h1 className="text-2xl font-semibold tracking-tight">Kurbanlıklar</h1>
@@ -139,7 +139,7 @@ export default function TumKurbanliklarPage() {
           data={filteredData}
           columns={columns}
           storageKey="kurbanliklar"
-          defaultPageSize={200}
+          infiniteScroll={{ initialCount: 50, step: 50 }}
           columnHeaderLabels={kurbanliklarColumnHeaderLabels}
           initialState={{
             columnVisibility: {

@@ -9,6 +9,7 @@ interface CustomTableBodyProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   tableSize?: "small" | "medium" | "large"
   renderExpandedRow?: (row: { original: TData }) => React.ReactNode | null
+  maxRowsToRender?: number
 }
 
 export function CustomTableBody<TData, TValue>({
@@ -16,6 +17,7 @@ export function CustomTableBody<TData, TValue>({
   columns,
   tableSize = "medium",
   renderExpandedRow,
+  maxRowsToRender,
 }: CustomTableBodyProps<TData, TValue>) {
   const rowSizeClasses = {
     small: "text-[10px] md:text-xs",
@@ -25,10 +27,15 @@ export function CustomTableBody<TData, TValue>({
 
   const rowClass = rowSizeClasses[tableSize]
 
+  const rows = table.getRowModel().rows
+  const renderedRows = typeof maxRowsToRender === "number"
+    ? rows.slice(0, maxRowsToRender)
+    : rows
+
   return (
     <TableBody>
-      {table.getRowModel().rows?.length ? (
-        table.getRowModel().rows.map((row, index) => (
+      {rows.length ? (
+        renderedRows.map((row, index) => (
           <>
             <motion.tr
               key={row.id}
@@ -39,18 +46,15 @@ export function CustomTableBody<TData, TValue>({
               className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
             >
               {row.getVisibleCells().map((cell) => (
-                <motion.td
+                <td
                   key={cell.id}
-                  layout
-                  layoutId={`td-${cell.column.id}-${row.id}`}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   style={(cell.column.columnDef as { minSize?: number }).minSize != null
                     ? { minWidth: `${(cell.column.columnDef as { minSize?: number }).minSize}px` }
                     : undefined}
                   className={`p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] ${(cell.column.columnDef.meta as { align?: string })?.align === "left" ? "text-left" : "text-center"} whitespace-nowrap font-sans ${rowClass}`}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </motion.td>
+                </td>
               ))}
             </motion.tr>
             {renderExpandedRow ? renderExpandedRow({ original: row.original }) : null}

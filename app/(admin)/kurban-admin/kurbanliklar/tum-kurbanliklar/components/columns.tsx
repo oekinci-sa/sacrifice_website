@@ -8,10 +8,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { kurbanliklarColumnHeaderLabels as KL } from "@/lib/admin-table-column-labels/kurbanliklar";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
+import { memo } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { ActionCellContent } from "./columns/ActionCell";
 import {
@@ -33,7 +35,7 @@ function getEffectiveBarnStallOrderSortValue(row: sacrificeSchema): string {
   return (row.barn_stall_order_no ?? "").trim();
 }
 
-function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
+const ShareholderBarsCell = memo(function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
   const branding = useTenantBranding();
   const depositAmount = branding.deposit_amount;
   const shareholders = row.original.shareholders || [];
@@ -157,7 +159,7 @@ function ShareholderBarsCell({ row }: { row: Row<sacrificeSchema> }) {
       </TooltipProvider>
     </div>
   );
-}
+});
 
 export const columns: ColumnDef<sacrificeSchema>[] = [
   {
@@ -171,7 +173,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
             className="px-0 hover:bg-muted hover:text-foreground"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Kurban No
+            {KL.sacrifice_no}
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-1 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -202,7 +204,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     id: "ear_tag",
     accessorFn: (row) => getEffectiveEarTagSortValue(row),
     minSize: 100,
-    header: "Küpe No",
+    header: KL.ear_tag,
     cell: ({ row }) => <EditableEarTagCell row={row} />,
     enableSorting: true,
     enableHiding: true,
@@ -211,7 +213,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
     id: "barn_stall_order_no",
     accessorFn: (row) => getEffectiveBarnStallOrderSortValue(row),
     minSize: 110,
-    header: "Padok No",
+    header: KL.barn_stall_order_no,
     cell: ({ row }) => <EditableBarnStallOrderCell row={row} />,
     enableSorting: true,
     enableHiding: true,
@@ -225,7 +227,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         className="px-0 hover:bg-muted hover:text-foreground"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Kesim Saati
+        {KL.sacrifice_time}
         {column.getIsSorted() === "asc" ? (
           <ArrowUp className="ml-1 h-4 w-4" />
         ) : column.getIsSorted() === "desc" ? (
@@ -267,7 +269,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
         className="px-0 hover:bg-muted hover:text-foreground"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Teslim Saati
+        {KL.planned_delivery_time}
         {column.getIsSorted() === "asc" ? (
           <ArrowUp className="ml-1 h-4 w-4" />
         ) : column.getIsSorted() === "desc" ? (
@@ -296,7 +298,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
           className="px-0 hover:bg-muted hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Hisse Bedeli
+          {KL.share_price}
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="ml-1 h-4 w-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -332,7 +334,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
           className="px-0 hover:bg-muted hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Boş Hisse
+          {KL.empty_share}
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="ml-1 h-4 w-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -362,7 +364,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
           onClick={() => column.toggleSorting(isSorted === "asc")}
           className="px-0 font-medium hover:bg-muted hover:text-foreground"
         >
-          Ödeme Durumu
+          {KL.payment_status}
           {isSorted === "asc" ? (
             <ArrowUp className="ml-2 h-4 w-4" />
           ) : isSorted === "desc" ? (
@@ -394,7 +396,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "animal_type",
-    header: "Cins",
+    header: KL.animal_type,
     minSize: 90,
     cell: ({ row }) => <EditableAnimalTypeCell row={row} />,
     enableSorting: true,
@@ -408,7 +410,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "foundation",
-    header: "Referans",
+    header: KL.foundation,
     minSize: 88,
     cell: ({ row }) => <EditableFoundationCell row={row} />,
     enableSorting: true,
@@ -423,7 +425,7 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   },
   {
     accessorKey: "notes",
-    header: "Notlar",
+    header: KL.notes,
     minSize: 280,
     meta: { align: "left" },
     cell: ({ row }) => <EditableNotesCell row={row} />,

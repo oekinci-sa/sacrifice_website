@@ -2,12 +2,13 @@
 
 import { ColumnSelectorPopover } from "@/app/(admin)/kurban-admin/hissedarlar/tum-hissedarlar/components/column-selector-popover";
 import { Button } from "@/components/ui/button";
-import { exportTableToExcel } from "@/lib/export-to-excel";
+import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
+import { exportKurbanliklarToExcel } from "@/lib/excel-export/kurbanliklar-excel";
 import { sacrificeSchema } from "@/types";
 import { Table } from "@tanstack/react-table";
 import { Download, X } from "lucide-react";
-import { useRef, useState } from "react";
-import { kurbanliklarColumnHeaderLabels } from "@/lib/admin-table-column-labels/kurbanliklar";
+import { useState } from "react";
+import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
 import { SacrificeFilters } from "./components/sacrifice-filters";
 import { SacrificeSearch } from "./components/sacrifice-search";
 
@@ -27,12 +28,8 @@ export function ToolbarAndFilters({
   onResetColumnLayout,
 }: ToolbarAndFiltersProps) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const resetFilterStateRef = useRef<(() => void) | null>(null);
-
-  // Register reset function from child component
-  const registerResetFunction = (resetFn: () => void) => {
-    resetFilterStateRef.current = resetFn;
-  };
+  const [resetVersion, setResetVersion] = useState(0);
+  const [excelConfirmOpen, setExcelConfirmOpen] = useState(false);
 
   /** table referansı sabit kaldığı için useMemo([table]) ile sütun filtreleri donuyordu — her render'da oku. */
   const isFiltered =
@@ -46,19 +43,13 @@ export function ToolbarAndFilters({
 
   // Handle reset all filters
   const handleResetFilters = () => {
-    table.resetColumnFilters();
+    table.setColumnFilters([]);
     setGlobalFilter("");
-    table.getColumn("notes")?.setFilterValue("");
-    if (resetFilterStateRef.current) {
-      resetFilterStateRef.current();
-    }
-  };
-
-  const exportToExcel = () => {
-    exportTableToExcel(table, "kurbanliklar", columnHeaderMap);
+    setResetVersion((prev) => prev + 1);
   };
 
   return (
+    <>
     <div className="flex flex-col gap-3 w-full">
       {/* Üst satır: Search (solda) + Sütunlar + Excel (sağda) - Tüm Hissedarlar ile aynı */}
       <div className="flex items-center justify-between w-full gap-3">
@@ -72,7 +63,8 @@ export function ToolbarAndFilters({
             onResetColumnLayout={onResetColumnLayout}
           />
           <Button
-            onClick={exportToExcel}
+            type="button"
+            onClick={() => setExcelConfirmOpen(true)}
             variant="outline"
             size="sm"
             className="h-8 border-dashed flex items-center gap-2"
@@ -83,12 +75,12 @@ export function ToolbarAndFilters({
         </div>
       </div>
 
-      {/* Alt satır: Kurban No, Hisse Bedeli, Boş Hisse filtreleri */}
+      {/* Alt satır: Kurban No, Hisse Bilgisi, Boş Hisse filtreleri */}
       <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
         <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
           <SacrificeFilters
             table={table}
-            registerResetFunction={registerResetFunction}
+            resetVersion={resetVersion}
           />
         </div>
         {isFiltered ? (
@@ -105,5 +97,13 @@ export function ToolbarAndFilters({
         ) : null}
       </div>
     </div>
+    <ExcelExportConfirmDialog
+      open={excelConfirmOpen}
+      onOpenChange={setExcelConfirmOpen}
+      onConfirm={() =>
+        exportKurbanliklarToExcel(table, "kurbanliklar", columnHeaderMap)
+      }
+    />
+    </>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { adminPrimaryCtaClassName } from "@/lib/admin-tenant-accent";
+import { loadAdminPriceInfoOptions } from "@/lib/admin-price-info-cache";
 import { cn } from "@/lib/utils";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { Button } from "@/components/ui/button";
-import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import {
   Dialog,
@@ -105,29 +105,21 @@ export function NewSacrificeAnimal() {
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
-      try {
-        const url = selectedYear != null ? `/api/price-info?year=${selectedYear}` : "/api/price-info";
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            return data.map((d: { kg: number; price: number }) => ({
-              kg: `${d.kg} kg`,
-              price: String(d.price).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-            }));
-          }
-        }
-      } catch {}
-      return getDefaultPriceInfoByTenant(branding.logo_slug);
-    };
-    load().then((opts) => {
-      if (!cancelled && opts.length > 0) {
+    const slug = branding.logo_slug ?? "ankara-kurban";
+    loadAdminPriceInfoOptions(selectedYear, slug).then((rows) => {
+      if (cancelled) return;
+      const opts = rows.map((d) => ({
+        kg: `${d.kg} kg`,
+        price: String(d.price).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+      }));
+      if (opts.length > 0) {
         setPriceOptions(opts);
         setSelectedPriceInfo(opts[0]);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [branding.logo_slug, selectedYear]);
 
   const form = useForm<z.infer<typeof formSchema>>({

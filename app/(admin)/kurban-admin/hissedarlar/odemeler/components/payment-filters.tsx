@@ -16,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { odemelerColumnHeaderLabels as O } from "@/lib/admin-table-column-labels/odemeler";
 import { getOdemelerPaymentStatus } from "@/lib/odeme-payment-status";
 import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
@@ -101,14 +102,14 @@ function PaymentStatusFilter({
           className="h-8 border-dashed text-xs whitespace-nowrap flex items-center justify-start"
         >
           <PlusCircle className="mr-2 h-3 w-3 shrink-0" />
-          Ödeme Durumu
+          {O.payment_status}
           <SelectedFiltersDisplay selectedValues={selectedValues} options={options} />
           <FilterCountBadge count={selectedValues.size} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Ödeme Durumu" />
+          <CommandInput placeholder={O.payment_status} />
           <CommandList>
             <CommandEmpty>Sonuç bulunamadı.</CommandEmpty>
             <CommandGroup>
@@ -237,7 +238,7 @@ export function PaymentFilters({ table }: PaymentFiltersProps) {
       {sacrificeColumn ? (
         <DataTableFacetedFilter
           column={sacrificeColumn}
-          title="Kurban No"
+          title={O.sacrifice_no}
           options={sacrificeOptions}
           type="sacrifice"
         />

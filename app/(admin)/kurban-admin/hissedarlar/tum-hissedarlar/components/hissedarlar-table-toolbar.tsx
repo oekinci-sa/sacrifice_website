@@ -1,38 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { exportTableToExcel } from "@/lib/export-to-excel";
+import { hissedarlarColumnHeaderLabels } from "@/lib/admin-table-column-labels/hissedarlar";
+import { exportHissedarlarToExcel } from "@/lib/excel-export/hissedarlar-excel";
 import { shareholderSchema } from "@/types";
 import { ColumnFiltersState, Table, VisibilityState } from "@tanstack/react-table";
 import { Download, X } from "lucide-react";
-import { memo } from "react";
+import { memo, useState } from "react";
+import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
 import { ColumnSelectorPopover } from "./column-selector-popover";
 import { ShareholderFilters } from "./shareholder-filters";
 import { ShareholderSearch } from "./shareholder-search";
 
-/** Sütun seçici + Excel için başlık eşlemesi (modül düzeyi — toolbar içinde kullanılır) */
-export const SHAREHOLDER_COLUMN_HEADER_MAP: Record<string, string> = {
-  shareholder_name: "İsim Soyisim",
-  contacted_at: "Görüşüldü",
-  phone_number: "Telefon",
-  sacrifice_no: "Kurban No",
-  share_count: "Hisse Sayısı",
-  total_amount: "Toplam Tutar",
-  paid_amount: "Ödenen Tutar",
-  payment_status: "Ödeme Durumu",
-  remaining_payment: "Kalan Ödeme",
-  delivery_location: "Teslimat Tercihi",
-  delivery_location_raw: "Teslimat Yeri",
-  notes: "Notlar",
-  purchase_time: "Kayıt Tarihi",
-  sacrifice_consent: "Vekalet",
-  last_edited_time: "Son Güncelleme Tarihi",
-  last_edited_by: "Son Güncelleyen",
-  sacrifice_info: "Hisse Bedeli",
-  second_phone_number: "İkinci Telefon",
-  email: "E-posta",
-  pdf: "PDF",
-};
+/** Sütun seçici + Excel — tek kaynak: `hissedarlarColumnHeaderLabels` */
+export const SHAREHOLDER_COLUMN_HEADER_MAP = hissedarlarColumnHeaderLabels;
 
 type ToolbarProps = {
   table: Table<shareholderSchema>;
@@ -61,6 +42,7 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
   searchTerm,
   setSearchTerm,
 }: ToolbarProps) {
+  const [excelConfirmOpen, setExcelConfirmOpen] = useState(false);
   const isFiltered = columnFilters.length > 0 || searchTerm.trim().length > 0;
 
   const handleResetFilters = () => {
@@ -70,6 +52,7 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
   };
 
   return (
+    <>
     <div className="flex flex-col gap-3 w-full">
       <div className="flex items-center justify-between w-full gap-3">
         <ShareholderSearch
@@ -85,9 +68,8 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
             onResetColumnLayout={onResetColumnLayout}
           />
           <Button
-            onClick={() =>
-              exportTableToExcel(table, "hissedarlar", SHAREHOLDER_COLUMN_HEADER_MAP)
-            }
+            type="button"
+            onClick={() => setExcelConfirmOpen(true)}
             variant="outline"
             size="sm"
             className="h-8 border-dashed flex items-center gap-2"
@@ -115,6 +97,14 @@ export const HissedarlarTableToolbar = memo(function HissedarlarTableToolbar({
         ) : null}
       </div>
     </div>
+    <ExcelExportConfirmDialog
+      open={excelConfirmOpen}
+      onOpenChange={setExcelConfirmOpen}
+      onConfirm={() =>
+        exportHissedarlarToExcel(table, "hissedarlar", SHAREHOLDER_COLUMN_HEADER_MAP)
+      }
+    />
+    </>
   );
 });
 

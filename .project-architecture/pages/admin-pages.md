@@ -12,6 +12,7 @@ Admin paneli birden fazla admin tarafından yönetilebilir.
 - Liste sayfalarında **`storageKey`** zorunlu: sütun görünürlüğü ve sıra kullanıcıya özel `localStorage`’da tutulur; başlıktan sütun taşıma aktif olur.
 - Uyumsuz hisseler gibi **aynı sayfada iki tablo** varsa sekme başına ayrı `storageKey` (örn. bilinmeyenler / bilinenler).
 - Detay: [changelogs/changelog-2026-03-admin-column-reorder.md](../changelogs/changelog-2026-03-admin-column-reorder.md).
+- **Sütun / filtre / Excel metinleri:** Kurbanlıklar, Tüm Hissedarlar, Ödemeler ve Uyumsuz hisseler listelerinde başlık ve filtre etiketleri `lib/admin-table-column-labels/` altında tek kaynakta tutulur. Detay: [changelogs/changelog-2026-04-admin-table-column-labels.md](../changelogs/changelog-2026-04-admin-table-column-labels.md).
 
 ## Sayfa Listesi
 

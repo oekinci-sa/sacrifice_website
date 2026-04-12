@@ -21,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { hissedarlarColumnHeaderLabels as H } from "@/lib/admin-table-column-labels/hissedarlar";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
 import { Column, Table } from "@tanstack/react-table";
@@ -327,7 +328,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       {table.getColumn("sacrifice_no") && (
         <DataTableFacetedFilter
           column={table.getColumn("sacrifice_no")}
-          title="Kurban No"
+          title={H.sacrifice_no}
           options={sacrificeOptions}
           type="sacrifice"
         />
@@ -335,7 +336,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       {table.getColumn("payment_status") && (
         <DataTableFacetedFilter
           column={table.getColumn("payment_status")}
-          title="Ödeme Durumu"
+          title={H.payment_status}
           options={paymentStatusOptions}
           type="payment"
           paymentStatusCounts={paymentStatusCounts}
@@ -344,7 +345,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       {table.getColumn("delivery_location") && (
         <DataTableFacetedFilter
           column={table.getColumn("delivery_location")}
-          title="Teslimat Noktası"
+          title={H.delivery_location}
           options={deliveryLocationOptions}
           type="delivery"
         />
@@ -352,7 +353,7 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
       {table.getColumn("sacrifice_consent") && (
         <DataTableFacetedFilter
           column={table.getColumn("sacrifice_consent")}
-          title="Vekalet"
+          title={H.sacrifice_consent}
           options={vekaletOptions}
           type="vekalet"
         />

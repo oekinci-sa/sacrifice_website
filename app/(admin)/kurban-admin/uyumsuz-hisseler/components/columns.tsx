@@ -1,5 +1,6 @@
 "use client";
 
+import { uyumsuzHisselerColumnHeaderLabels as U } from "@/lib/admin-table-column-labels/uyumsuz-hisseler";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
@@ -83,7 +84,7 @@ export function createColumns(
     {
       id: "sacrifice_no",
       accessorKey: "sacrifice_no",
-      header: "Kurban No",
+      header: U.sacrifice_no,
       enableSorting: true,
       cell: ({ row }) => (
         <SacrificeNoCell
@@ -94,20 +95,20 @@ export function createColumns(
     },
     {
       accessorKey: "shareholder_count",
-      header: "Hissedar",
+      header: U.shareholder_count,
       enableSorting: true,
       cell: ({ row }) => row.getValue("shareholder_count"),
     },
     {
       accessorKey: "empty_share",
-      header: "Boş Hisse",
+      header: U.empty_share,
       enableSorting: true,
       cell: ({ row }) => row.getValue("empty_share"),
     },
     {
       id: "sacrifice_notes",
       accessorFn: (row) => row.notes ?? "",
-      header: "Kurbanlık Notları",
+      header: U.sacrifice_notes,
       meta: { align: "left" },
       enableSorting: false,
       cell: ({ row }) => {
@@ -123,7 +124,7 @@ export function createColumns(
     {
       id: "acknowledgment",
       accessorFn: (row) => row.acknowledged_at ?? "",
-      header: "Farkındalık",
+      header: U.acknowledgment,
       enableSorting: true,
       cell: ({ row }) => {
         const { acknowledged_at, acknowledged_by } = row.original;

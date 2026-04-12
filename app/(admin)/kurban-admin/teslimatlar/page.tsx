@@ -9,14 +9,15 @@ import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { getDeliverySelectionFromLocation } from "@/lib/delivery-options";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
-import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { ColumnDef, type Table } from "@tanstack/react-table";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EditableDeliveryCell, EditableDeliveryLocationCell, EditableSecondPhoneCell } from "../components/editable-delivery-cells";
 import { ShareholderSearch } from "../hissedarlar/tum-hissedarlar/components/shareholder-search";
 import { TeslimatFilters } from "./components/teslimat-filters";
 import { Button } from "@/components/ui/button";
 import { Download, X } from "lucide-react";
 import { exportTableToExcel } from "@/lib/export-to-excel";
+import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
 import { ColumnSelectorPopover } from "../hissedarlar/tum-hissedarlar/components/column-selector-popover";
 
 const TESLIMATLAR_COLUMN_HEADER_MAP: Record<string, string> = {
@@ -32,6 +33,8 @@ export default function TeslimatlarPage() {
   const branding = useTenantBranding();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [searchTerm, setSearchTerm] = useState("");
+  const [excelConfirmOpen, setExcelConfirmOpen] = useState(false);
+  const tableForExcelRef = useRef<Table<shareholderSchema> | null>(null);
   const {
     shareholders: allShareholders,
     isLoading,
@@ -188,6 +191,7 @@ export default function TeslimatlarPage() {
           tableSize="medium"
           pageSizeOptions={[20, 50, 100, 200]}
           filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
+            tableForExcelRef.current = table;
             const hasAnyFilter =
               columnFilters.length > 0 || searchTerm.trim().length > 0;
             return (
@@ -203,7 +207,8 @@ export default function TeslimatlarPage() {
                       onResetColumnLayout={resetColumnLayout}
                     />
                     <Button
-                      onClick={() => exportTableToExcel(table, "teslimatlar", TESLIMATLAR_COLUMN_HEADER_MAP)}
+                      type="button"
+                      onClick={() => setExcelConfirmOpen(true)}
                       variant="outline"
                       size="sm"
                       className="h-8 border-dashed flex items-center gap-2"
@@ -238,6 +243,15 @@ export default function TeslimatlarPage() {
           }}
         />
       )}
+      <ExcelExportConfirmDialog
+        open={excelConfirmOpen}
+        onOpenChange={setExcelConfirmOpen}
+        onConfirm={() => {
+          const t = tableForExcelRef.current;
+          if (!t) return;
+          exportTableToExcel(t, "teslimatlar", TESLIMATLAR_COLUMN_HEADER_MAP);
+        }}
+      />
     </div>
   );
 }

@@ -1,0 +1,70 @@
+# İletim Raporu (DLR) Sorgulama
+
+- SMS gönderimi yapıldıktan hemen sonra DLR isteği yaparsanız hata alabilirsiniz. Sistem mesajı göndermekle ilgileniyor olabilir ve DLR raporunu oluşturacak olan veriler henüz hazır olmayabilir.
+- DLR isteğini, ilk olarak SMS gönderiminden sonraki 90. veya 180. saniyede yapmanızı tavsiye ederiz. (Sistem ilk olarak 60. saniyede DLR içeriğini güncelleyen bir görevi başlatır. 48 saat içinde başlarda daha sık olmak üzere sonlara doğru daha da seyrekleşen bir kural üstünden DLR içeriği güncellenmektedir)
+- Eğer belirttiğiniz tüm numaralara SMS ulaşmış ise DLR raporu 48 saat dolmadan önce tamamlanabilir, yani son halini alabilir. Bunu başarılı dönüş koduna bakarak anlayabilirsiniz.
+- Eğer gönderim listenizdeki numaralardan en az biri 48 saat boyunca kapalı kalmış ise DLR raporunun son halini alması toplamda 48 saat + 10 dakika gibi bir zaman alır. Bu 48 saat boyunca, DLR raporunun henüz son halini almadığı bilgisini başarılı dönüş koduna bakarak anlayabilirsiniz.
+
+## Örnek
+
+| Alan | Değer |
+|---|---|
+| İstek Adresi | `http://sms.bizimsms.mobi:8080/api/dlr/v1?username=test&password=test&id=123456` |
+| Cevap (Başarısız) | `93` |
+| Cevap (Başarılı) | `25 905559998877 0\|905559998866 5\|905559998855 6\|905559998844 9` |
+
+# Giden Parametreler
+
+## Parametreler
+
+| Parametre | Tip | Açıklama |
+|---|---|---|
+| username | String | Web kullanıcı adınız |
+| password | String | Api Hesabı bölümünde görüntülenen API SECRET ifadesi |
+| id | Integer | SMS gönderimi sonrası sistem tarafından oluşturulan ve istemciye gönderilen dlrId isimli özgün (unique) sayısal ifade. |
+
+# Dönüş Değerleri
+
+- Tüm dönüş kodları 2 basamaklı sayılardan oluşur.
+- Başarısız dönüş veya bilgilendirme dönüşü olduğunda sadece kodun kendisini geri döner.
+- Başarılı dönüşlerde, dönüş kodu sonrasında birbirinden “|” karakteri ile ayrılmış bloklar döner. Bu bloklar GSM no ve SMS iletim durumu bilgisini içerir. (Detaylar sayfa sonunda)
+
+## Başarısız Dönüşler 1
+
+- Normal şartlarda asla karşılaşmamanız gereken bir hata kodudur. Hatanın kaynağı sunucu veya istemci taraflı olabilir. Yoğun olarak bu hatayı alırsanız lütfen iletişime geçiniz.
+
+| Kod | İsim | Açıklama |
+|---|---|---|
+| 99 | UNKNOWN_ERROR | Henüz dökümante edilmemiş bir hatayı belirtir. |
+
+## Başarısız Dönüşler 2
+
+- Aşağıdaki hata kodları isteği yapan tarafın düzeltmesi gereken durumları belirtir.
+
+| Kod | İsim | Açıklama |
+|---|---|---|
+| 95 | USE_GET_METHOD | İsteği HTTP GET ile yollayınız |
+| 93 | MISSING_GET_PARAMS | GET parametrelerinde eksik var |
+| 87 | WRONG_USER_OR_PASSWORD | Kullanıcı adı veya şifre hatalı |
+| 79 | DLR_ID_NOT_FOUND | Böyle bir dlrId değeri bulunamadı, yok |
+
+## Bilgilendirme Dönüşleri
+
+| Kod | İsim | Açıklama |
+|---|---|---|
+| 29 | MESSAGE_WAITING_TO_SEND | Mesaj henüz yollanmamış, yollanmak üzere |
+| 27 | MESSAGE_SEND_ERROR | Mesaj yollanırken beklenmeyen bir hata oluşmuş |
+
+## Başarılı Dönüşler
+
+| Kod | İsim | Açıklama |
+|---|---|---|
+| 25 | DLR_OPERATION_STARTED | DLR raporu güncellenmeye başlamış |
+| 23 | DLR_OPERATION_COMPLETED | DLR raporu artık güncellenmeyecek, tüm bilgiler toplanmış, rapor son halini almış |
+
+## SMS İletim Durum Kodları
+
+| Kod | İsim | Açıklama | Kod | İsim | Açıklama |
+|---|---|---|---|---|---|
+| 0 | WAITING | SMS gönderim için bekliyor | 6 | FAIL | SMS Ulaşmadı |
+| 5 | PENDING | SMS gönderilmiş, bilgi bekleniyor | 9 | SUCCESS | SMS İletildi |

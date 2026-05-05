@@ -1,0 +1,50 @@
+# SMS Karakter Seti ve Boy Hesaplamaları
+
+* Bu bölümde bir SMS metninin kaç SMS olarak ücretlendirileceği, yani kaç boy olacağı ile ilgili hesaplamalara değinilecektir. Ayrıca gönderimine izin verilen karakterler hakkında da bilgi sahibi olacaksınız.
+* Sistemimiz max 6 boy SMS kabul etmektedir. Mesaj içeriği 6 boydan fazla ise otomatik olarak sondaki karakterlerden gereken kadarı silinerek mesaj 6 boy'a indirgenir.
+* Sistemimiz yollanacak olan her mesaj için boy hesabını otomatik olarak yapar, hesaplanan bu değerleri web arayüzünden görebilirsiniz.
+
+---
+
+## Karakter Sınıfları
+
+* İlk olarak kullanılan karakterlere bakılarak mesajın Türkçe mi yoksa İngilizce mi olduğu belirlenir. En az 1 adet Türkçe karakter kullanılmış ise mesaj Türkçe olur, aksi halde İngilizce olacaktır.
+* Eğer mesajı İngilizce mesaj olarak göndermek istiyorsanız aşağıdaki tabloda Türkçe olarak belirtilen karakterleri mesaj içeriğinden kaldırmanız veya İngilizce karakter sınıfından benzer karakterler ile yer değiştirdikten sonra mesajı yollamanız gerekmektedir.
+* Mesaj içeriğindeki Türkçe karakterlerin bazıları 1, bazıları ise 2 karakter yer kaplar. İlgili bilgiler aşağıdaki tabloda belirtilmiştir.
+* Bu aşamada mesajın İngilizce veya Türkçe mesaj olması ile birlikte mesajın kaç karakter olduğu hesaplanır. Dikkat ediniz, örneğin SMS içeriğindeki 'ğ' 2 karakter olarak hesaplanır.
+
+### Karakter Sınıfları Tablosu
+
+| Karakter Sınıfları            | Liste                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| İngilizce (Tamamı 1-Karakter) | 'i', 'I', 'a', 'A', 'b', 'B', ... 'x', 'X', 'w', 'W'... '0', '1'... '$', '!', '+'... vs |
+| Türkçe 1-Karakter olanlar     | 'ü', 'Ü', 'ö', 'Ö', 'Ç'                                                                 |
+| Türkçe 2-Karakter olanlar     | 'ğ', 'Ğ', 'ş', 'Ş', 'ı', 'İ', 'ç'                                                       |
+
+---
+
+## Boyların Hesaplanması
+
+* Mesajın dili ve karakter sayısı dikkate alınarak boy aşağıdaki tablo yardımıyla belirlenebilir. Dikkat ederseniz İngilizce mesajlar Türkçe mesajlara göre birkaç karakter daha fazla bilgi taşıyabilmektedir.
+* Tablodaki değerler aralık belirtir. Başlangıç ve bitiş değerleri de o aralığa dahildir.
+
+### Boy Hesaplama Tablosu
+
+|           | 1 boy    | 2 boy      | 3 boy      | 4 boy      | 5 boy      | 6 boy      |
+| --------- | -------- | ---------- | ---------- | ---------- | ---------- | ---------- |
+| İngilizce | [1, 160] | [161, 306] | [307, 459] | [460, 612] | [613, 765] | [766, 917] |
+| Türkçe    | [1, 155] | [156, 292] | [293, 439] | [440, 587] | [588, 735] | [736, 882] |
+
+---
+
+## Mesaj Yollanmadan Önce Yaptığımız İçerik Dönüşümleri
+
+* İlk olarak şunlar yer değiştirir:
+  `| => I, ^ => ', € => E, { => (, [ => (, } => ), ] => ), \ => /`
+
+* Sonrasında, mesaj içeriğinde aşağıdaki karakterler dışında bir karaktere rastlanırsa ilgili karakter `' '` (yani boşluk karakteri) olarak kabul edilir ve mesaj öyle yollanır:
+
+```
+ABCDEFGĞHIİJKLMNOPRSŞTUVYZOÖÜQWXÇ
+abcdefgğhıijklmnöprsştuvyzöüqwx@*:!$_#+-;,.<>?"/%^&0123456789
+```

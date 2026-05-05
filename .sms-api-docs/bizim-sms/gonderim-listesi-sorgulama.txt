@@ -1,0 +1,53 @@
+# Gönderim Listesi Sorgulama
+
+*(GÖNDERİM ID’LERİNİN LİSTESİNİ 50’ŞERLİ GRUPLARLA VERİR)*
+
+## Örnek:
+
+| İstek Adresi      | [http://sms.bizimsms.mobi:8080/api/campaignidlist/v1?username=test&password=test&page=0](http://sms.bizimsms.mobi:8080/api/campaignidlist/v1?username=test&password=test&page=0) |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cevap (Başarısız) | 87                                                                                                                                                                               |
+| Cevap (Başarılı)  | 00 123|456|789                                                                                                                                                                   |
+
+---
+
+## Giden Parametreler
+
+### Parametreler:
+
+| Parametre | Tip    | Açıklama                                             |
+| --------- | ------ | ---------------------------------------------------- |
+| username  | String | Web kullanıcı adınız                                 |
+| password  | String | Api Hesabı bölümünde görüntülenen API SECRET ifadesi |
+| page      | Int    | Hangi sayfadan başlanılacağı (ilk sayfa için 0)      |
+
+---
+
+## Dönüş Değerleri
+
+* Tüm dönüş kodları metinden oluşur.
+* Başarısız dönüş olduğunda sadece kodun kendisini geri döner.
+* Başarılı dönüşlerde koddan sonra bir boşluk karakteri bırakılır ve `|` (pipe) işareti ile ayrılmış biçimde gönderim numaraları döner. Eğer tek gönderim varsa, içerikte `|` işareti bulunmaz.
+* Dönüşler yeniden eskiye göre sıralıdır.
+
+---
+
+## Başarısız Dönüşler:
+
+* Aşağıdaki hata kodları isteği yapan tarafın düzeltmesi gereken durumları belirtir.
+
+| Kod | İsim                   | Açıklama                        |
+| --- | ---------------------- | ------------------------------- |
+| 95  | USE_GET_METHOD         | İsteği HTTP GET ile yollayınız  |
+| 93  | MISSING_GET_PARAMS     | GET parametrelerinde eksik var  |
+| 87  | WRONG_USER_OR_PASSWORD | Kullanıcı adı veya şifre hatalı |
+
+---
+
+## Başarılı Dönüşler:
+
+| Kod | İsim    | Açıklama                   |
+| --- | ------- | -------------------------- |
+| 00  | SUCCESS | İşlem başarı ile sonlandı. |
+
+---

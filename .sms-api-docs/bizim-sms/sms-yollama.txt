@@ -1,0 +1,120 @@
+# SMS Yollama
+
+* **1-N tipi mesajlaşma** aynı mesaj metnini bir veya daha fazla numaraya yollamak amacıyla tercih edilir.
+* **N-N tipi mesajlaşma** ise her numaraya farklı mesaj metni gönderebilir.
+* Aşağıdaki gri arkaplana sahip olan satırlar opsiyonel özellikleri ifade eder. Bu özellikler kullanılmayacaksa XML yapısından kaldırılmalıdır, sadece gerekli olduğunda eklenmelidir.
+* Son 2 dakika içinde aynı SMS'i göndermeye çalışırsanız hata alırsınız. (Sistem bunu engeller)
+* Boş SMS gönderilemez.
+
+---
+
+## Örnek
+
+| Alan              | Değer                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| **İstek Adresi**  | [http://sms.bizimsms.mobi:8080/api/smspost/v1](http://sms.bizimsms.mobi:8080/api/smspost/v1) |
+| **İstek Tipi**    | **1-N TipiMesajlaşma**                                                                       |
+| **İstek İçeriği** | ```xml                                                                                       |
+
+<sms>
+  <username>test</username>
+  <password>test</password>
+  <header>BAŞLIK</header>
+  <validity>2880</validity>
+  <sendDateTime>2015.7.23.9.30.0</sendDateTime>
+  <message>
+    <gsm>
+      <no>905559998877</no>
+      <no>905559998866</no>
+    </gsm>
+    <msg><![CDATA[-MESAJ-METNİ-1-]]></msg>
+  </message>
+</sms>
+``` |
+
+---
+
+| Alan              | Değer                  |
+| ----------------- | ---------------------- |
+| **İstek Tipi**    | **N-N TipiMesajlaşma** |
+| **İstek İçeriği** | ```xml                 |
+
+<sms>
+  <username>test</username>
+  <password>test</password>
+  <header>BAŞLIK</header>
+  <validity>2880</validity>
+  <sendDateTime>2015.7.23.9.30.0</sendDateTime>
+  <messages>
+    <mb>
+      <no>905559998877</no>
+      <msg><![CDATA[-MESAJ-METNİ-1-]]></msg>
+    </mb>
+    <mb>
+      <no>905559998866</no>
+      <msg><![CDATA[-MESAJ-METNİ-2-]]></msg>
+    </mb>
+  </messages>
+</sms>
+``` |
+
+---
+
+| Durum                 | Kod         |
+| --------------------- | ----------- |
+| **Cevap (Başarısız)** | 89          |
+| **Cevap (Başarılı)**  | 00 77300600 |
+
+---
+
+## Giden Parametreler
+
+* Parametreler boş bırakılmamalıdır, aksi halde **89** yani **WRONG_XML_FORMAT** hatası ile karşılaşılır.
+
+### Parametreler:
+
+| Parametre    | Tip     | Açıklama                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| username     | String  | Web kullanıcı adınız                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| password     | String  | Api Hesabı bölümünde görüntülenen API SECRET ifadesi                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| header       | String  | Onaylanmış mesaj başlıklarınızdan biri. Bu ifade büyük-küçük harf duyarlıdır. Max 11 karakterdir.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| validity     | Integer | Mesajın geçerlilik süresi. (dakika cinsinden) Min 1, Max 2880 olabilir. 2880 değeri 48*60 şeklinde hesaplanır, yani 48 saate tekabül eder. Hatalı değerler sistem tarafından 2880 olarak değiştirilir ve öyle kullanılır.                                                                                                                                                                                                                                                                                          |
+| sendDateTime | String  | Opsiyonel bir parametredir. Mesajın gönderileceği ileri bir tarihi işaret eder. Örneğin: “2015.7.23.9.30.0” ifadesi 2015 yılı, 7. ay, 23. gün, saat 09:30:00 manasına gelir. Tüm parametreler “.” (nokta) karakteri ile birbirinden ayrılmıştır. Zamanı geldiğinde sistem mesajı otomatik olarak yollar. Eğer geçmiş zamanı gösteren bir tarih bilgisi yollanırsa sistem SMS'i bekletmeden gönderir. Mesajın gönderim tarihi gelmeden önce yönetim panelinden mesaja ulaşıp müdahale etme imkanınız bulunmaktadır. |
+| no           | String  | Telefon numarası. Tüm numaralar Türkiye içi numaralardır. Numaralar 10, 11 veya 12 karakter olabilir. Sistem bu numaraları 12 karaktere tamamlar ve öyle kullanır. İletim raporlarında da 12 karakter olarak raporlar. Bu belirtilenler dışında, daha farklı uzunluklara sahip olan numaralara mesaj gönderilmez, iletim raporlarında numara aynen belirtilir, iletim durumu ise başarısız olarak yansıtılır.                                                                                                      |
+| msg          | String  | Gönderilecek olan mesaj metnidir. Metin içinde XML'e has özel karakterler bulunabilir. Böyle durumlarda hataların önüne geçmek amacıyla mesaj metninin soluna `<![CDATA[` ve sağına `]]>` ifadelerinin eklenmesini tavsiye etmekteyiz. Karakter seti ve boy hesaplamaları ile ilgili detaylar için dokümanın sonlarında özel bir başlık yer almaktadır, detaylar için ilgili bölüme bakınız.                                                                                                                       |
+
+## Dönüş Değerleri
+
+* Tüm dönüş kodları 2 basamaklı sayılardan oluşur.
+* Başarısız dönüş olduğunda sadece kodun kendisini geri döner.
+* Başarılı dönüşlerde koddan sonra bir boşluk karakteri bırakılır ve daha sonra bu gönderim ile ilgili iletim raporu sorgusunda kullanılacak olan özgün (unique) bir sayısal ifade döner. (Kısaca buna dlrId diyoruz.) Gelecekte iletim raporu sorgulanacaksa bu ifadeyi kaydetmeniz ve sorgu sırasında parametre olarak göndermeniz gerekmektedir.
+
+## Başarısız Dönüşler 1:
+
+* Normal şartlarda asla karşılaşmamanız gereken bir hata kodudur. Hatanın kaynağı sunucu veya istemci taraflı olabilir. Yoğun olarak bu hatayı alırsanız lütfen iletişime geçiniz.
+
+| Kod | İsim          | Açıklama                                       |
+| --- | ------------- | ---------------------------------------------- |
+| 99  | UNKNOWN_ERROR | Henüz dokümante edilmemiş bir hatayı belirtir. |
+
+## Başarısız Dönüşler 2:
+
+* Aşağıdaki hata kodları isteği yapan tarafın düzeltmesi gereken durumları belirtir.
+
+| Kod | İsim                   | Açıklama                                                                                                                                                                                                                          |
+| --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 97  | USE_POST_METHOD        | İsteği HTTP POST ile yollayınız                                                                                                                                                                                                   |
+| 91  | MISSING_POST_DATA      | POST verisi okunamadı veya yok                                                                                                                                                                                                    |
+| 89  | WRONG_XML_FORMAT       | POST verisi XML olarak parse edilemedi                                                                                                                                                                                            |
+| 87  | WRONG_USER_OR_PASSWORD | Kullanıcı adı veya şifre hatalı                                                                                                                                                                                                   |
+| 85  | WRONG_SMS_HEADER       | Belirttiğiniz mesaj başlığı bulunamadı veya onaylanmamış                                                                                                                                                                          |
+| 84  | WRONG_SEND_DATE_TIME   | İleri tarihli gönderim zamanı hatalı bir formata sahip veya 1 yıldan daha ileri bir zamanı gösteriyor                                                                                                                             |
+| 83  | EMPTY_SMS              | Mesaj metni ve numaralar incelendikten sonra sistem yollanacak bir SMS oluşturmaya yetecek en az 1 numara ve en az 1 karakterden oluşan mesaj metnine sahip olamadı. Gönderim yapılacak verilerin yeterli olmadığına karar verdi. |
+| 81  | NOT_ENOUGH_CREDITS     | Gönderilecek olan mesaj için yeterli krediye sahip değilsiniz.                                                                                                                                                                    |
+| 77  | DUPLICATED_MESSAGE     | Son 2 dakika içinde aynı SMS'in gönderilmesi durumu (Sistem bunu engeller)                                                                                                                                                        |
+
+## Başarılı Dönüşler:
+
+| Kod | İsim    | Açıklama                   |
+| --- | ------- | -------------------------- |
+| 00  | SUCCESS | İşlem başarı ile sonlandı. |

@@ -1,0 +1,51 @@
+
+# Kredi Sorgulama
+
+## Örnek :
+
+| Alan              | Değer                                                                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| İstek Adresi      | [http://sms.bizimsms.mobi:8080/api/credit/v1?username=test&password=test](http://sms.bizimsms.mobi:8080/api/credit/v1?username=test&password=test) |
+| Cevap (Başarısız) | 87                                                                                                                                                 |
+| Cevap (Başarılı)  | 00 15600                                                                                                                                           |
+
+---
+
+## Giden Parametreler
+
+### Parametreler :
+
+| Parametre | Tip    | Açıklama                                             |
+| --------- | ------ | ---------------------------------------------------- |
+| username  | String | Web kullanıcı adınız                                 |
+| password  | String | Api Hesabı bölümünde görüntülenen API SECRET ifadesi |
+
+---
+
+## Dönüş Değerleri
+
+* Tüm dönüş kodları 2 basamaklı sayılardan oluşur.
+* Başarısız dönüş olduğunda sadece kodun kendisini geri döner.
+* Başarılı dönüşlerde koddan sonra bir boşluk karakteri bırakılır ve kredi miktarı döner.
+
+---
+
+## Başarısız Dönüşler :
+
+* Aşağıdaki hata kodları isteği yapan tarafın düzeltmesi gereken durumları belirtir.
+
+| Kod | İsim                   | Açıklama                        |
+| --- | ---------------------- | ------------------------------- |
+| 95  | USE_GET_METHOD         | İsteği HTTP GET ile yollayınız  |
+| 93  | MISSING_GET_PARAMS     | GET parametrelerinde eksik var  |
+| 87  | WRONG_USER_OR_PASSWORD | Kullanıcı adı veya şifre hatalı |
+
+---
+
+## Başarılı Dönüşler :
+
+| Kod | İsim    | Açıklama                   |
+| --- | ------- | -------------------------- |
+| 00  | SUCCESS | İşlem başarı ile sonlandı. |
+
+---

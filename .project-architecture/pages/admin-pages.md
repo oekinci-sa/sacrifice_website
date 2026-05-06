@@ -50,6 +50,21 @@ Uyumsuz hisseler (mismatched_shares). Aktif rezervasyonu olan hayvanlar listeden
 ### /kurban-admin/reminder-talepleri
 Bana Haber Ver talepleri.
 
+### /kurban-admin/sms-islemleri (yalnızca ankarakurban)
+Tekil ve toplu SMS gönderimi. Hedef tipi: kurbanlık tümü, hayvan no sonrası, tekil. Şablon seçici, karakter sayacı, önizleme dialogu (dedup özeti, boş değişken uyarısı).
+
+### /kurban-admin/sms-islemleri/sablonlari
+SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle. Soft delete.
+
+### /kurban-admin/sms-islemleri/kayitli-toplu-gonderimleri
+Hazırlayıp kaydedilen toplu gönderimler (`status=draft`). Staleness uyarısı (>2 gün). Gönder butonu.
+
+### /kurban-admin/sms-islemleri/gecmis
+Gönderim geçmişi tablosu. Detay sheet: per-recipient durum, atlanma sebebi. Not: "Operatöre gönderildi" — DLR Faz 2'de.
+
+### /kurban-admin/sms-islemleri/ayarlar (super_admin)
+API yapılandırma bilgisi + kara liste yönetimi (ekle/soft-remove).
+
 ### /kurban-admin/mail-islemleri
 Panel ve hissedar e-posta listeleri; konu/HTML ile toplu gönderim (`GET /api/admin/email-recipients`, `POST /api/admin/send-email`). Ortam: `RESEND_API_KEY`, isteğe bağlı `RESEND_FROM_EMAIL`.
 

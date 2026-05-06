@@ -67,6 +67,24 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - Dar modda ikonlar görünür.
 - Badge'ler (Rezervasyonlar, Uyumsuzluklar vb.) tenant renginde; realtime güncelleme.
 
+## SMS İşlemleri (Bizim SMS) — Faz 1
+
+- **Kapsam:** Yalnızca `ankarakurban` tenantında görünür (`allowedTenantIds` sidebar filtresi).
+- **Sayfalar:** `/kurban-admin/sms-islemleri` (gönder), `/sablonlari` (şablon CRUD), `/kayitli-toplu-gonderimleri`, `/gecmis`, `/ayarlar` (super_admin)
+- **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu (max 200 alıcı), dedup, kredi hard-block, `idempotency_key` zorunlu, Bizim SMS 1-N/N-N XML
+- **Şablon değişkenleri:** `{{ad_soyad}}`, `{{hayvan_no}}`, `{{kalan_tutar}}`, `{{kesim_saati}}` vb. (16 değişken)
+- **Durum:** "Operatöre gönderildi" (operatöre iletim).
+- **Detay:** `.project-architecture/sms-operations.md`
+
+## SMS İşlemleri (Bizim SMS) — Faz 2
+
+- **Gönderim iptali:** `POST /api/admin/sms/sends/[id]/cancel` — yalnızca `status=draft`. UI'da tamamlanmış/başarısız kayıtlar için buton gösterilmez.
+- **Retry:** `POST /api/admin/sms/sends/[id]/retry` — başarısız alıcılar için **yeni** `sms_sends` kaydı açılır; `target_params.retry_of` referansı tutulur. Kredi kontrolü tekrar yapılır.
+- **Kredi / Originator / Test SMS:** `GET /api/admin/sms/credit`, `GET /api/admin/sms/originators`, test SMS `target_params.is_test=true` — tamamı `super_admin` API kontrolü.
+- **İstatistikler:** `GET /api/admin/sms/stats` — gönderim ve alıcı metrikleri; `excludeTest=true` ile test gönderimleri dışarıda bırakılabilir. Aylık bar chart (son 6 ay).
+- **Hissedar iletişim geçmişi:** `GET /api/admin/sms/shareholder-history?shareholderId=`
+- **Detay:** `.project-architecture/sms-operations.md`
+
 ## Mail İşlemleri (Resend)
 - Sayfa: `/kurban-admin/mail-islemleri` — konu + **TipTap** WYSIWYG mesaj (ham etiket görünmez); gövde HTML olarak `POST /api/admin/send-email` (`body`); sunucuda `isomorphic-dompurify` ile sanitize. Alıcılar: `GET /api/admin/email-recipients?year=`. Ortam: `RESEND_API_KEY` (tek anahtar). Gönderen varsayılan: `iletisim@ankarakurban.com.tr` / `iletisim@elyahayvancilik.com.tr` (tenant’a göre; env ile override).
 - **Otomatik teşekkür e-postası:** Hisse alımı tamamlanıp teşekkür / PDF sayfasına düşünce `POST /api/purchase-confirmation-email` (e-posta adresi girilmiş hissedarlara; `reservation_transactions.purchase_confirmation_email_sent_at` ile idempotency).

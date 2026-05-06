@@ -1,7 +1,10 @@
 "use client";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminShareholderDetailPageSkeleton } from "../../../components/admin-page-skeletons";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
@@ -9,7 +12,8 @@ import { useDeleteShareholder, useGetShareholders, useUpdateShareholder } from "
 import { formatDate } from "@/lib/date-utils";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDB } from "@/utils/formatters";
-import { ArrowLeft, Check, Edit, Trash2, X } from "lucide-react";
+import { SmsSendStatusBadge } from "../../../sms-islemleri/components/sms-send-status-badge";
+import { ArrowLeft, Check, Edit, MessageSquare, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +25,18 @@ interface PageProps {
   };
 }
 
+interface SmsHistoryEntry {
+  id: string;
+  send_id: string | null;
+  send_title: string | null;
+  message_summary: string;
+  status: string;
+  dlr_status: number | null;
+  sms_parts: number | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
 export default function ShareholderDetailsPage({ params }: PageProps) {
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -28,6 +44,9 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
   const [shareholder, setShareholder] = useState<shareholderSchema | null>(null);
   // State for delete dialog
   const [isDeleting, setIsDeleting] = useState(false);
+  // State for SMS history
+  const [smsHistory, setSmsHistory] = useState<SmsHistoryEntry[]>([]);
+  const [loadingSmsHistory, setLoadingSmsHistory] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -54,6 +73,17 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
 
   const branding = useTenantBranding();
   const { data: shareholders, isLoading } = useGetShareholders();
+
+  // SMS geçmişini yükle
+  useEffect(() => {
+    if (!params.id) return;
+    setLoadingSmsHistory(true);
+    fetch(`/api/admin/sms/shareholder-history?shareholderId=${params.id}`)
+      .then((r) => r.json())
+      .then((d) => setSmsHistory(d.history ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingSmsHistory(false));
+  }, [params.id]);
 
   const { data: session } = useSession();
 
@@ -291,6 +321,64 @@ export default function ShareholderDetailsPage({ params }: PageProps) {
         onSave={handleSave}
         onCancel={handleCancel}
       />
+
+      {/* İletişim Geçmişi */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            İletişim Geçmişi
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingSmsHistory ? (
+            <div className="text-sm text-muted-foreground py-4 text-center">Yükleniyor...</div>
+          ) : smsHistory.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-4 text-center">
+              Bu hissedar için henüz SMS gönderimi yapılmadı.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tarih</TableHead>
+                  <TableHead>Gönderim Başlığı</TableHead>
+                  <TableHead>Mesaj</TableHead>
+                  <TableHead>Gönderim</TableHead>
+                  <TableHead>DLR</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {smsHistory.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {entry.sent_at
+                        ? new Date(entry.sent_at).toLocaleString("tr-TR")
+                        : new Date(entry.created_at).toLocaleString("tr-TR")}
+                    </TableCell>
+                    <TableCell className="text-sm max-w-[150px] truncate">
+                      {entry.send_title ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                      {entry.message_summary}
+                    </TableCell>
+                    <TableCell>
+                      <SmsSendStatusBadge status={entry.status} type="recipient" />
+                    </TableCell>
+                    <TableCell>
+                      {entry.status === "sent" ? (
+                        <SmsSendStatusBadge status={entry.dlr_status} type="dlr" />
+                      ) : (
+                        <Badge variant="outline" className="text-xs">—</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>

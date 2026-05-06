@@ -23,12 +23,15 @@ import {
   Home,
   Mail,
   MessageSquare,
+  NotebookText,
   PanelLeft,
   Receipt,
   Settings,
+  Send,
   Truck,
   UserCog
 } from "lucide-react"
+import { KAHRAMANKAZAN_TENANT_ID } from "@/lib/tenant-resolver"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
@@ -42,6 +45,8 @@ type NavItem = {
   icon: React.ElementType;
   items?: NavItem[];
   roles: Exclude<UserRole, null>[];
+  /** Belirtilirse yalnızca bu tenant ID'lerinde görünür. */
+  allowedTenantIds?: string[];
 };
 
 const mainNavItems: NavItem[] = [
@@ -55,6 +60,21 @@ const mainNavItems: NavItem[] = [
   { id: "reservations", title: "Rezervasyonlar", url: "/kurban-admin/rezervasyonlar", icon: Receipt, roles: ["admin", "editor", "super_admin"] },
   { id: "contact-messages", title: "İletişim Mesajları", url: "/kurban-admin/iletisim-mesajlari", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
   { id: "reminder-requests", title: "Bana Haber Ver Talepleri", url: "/kurban-admin/reminder-talepleri", icon: Bell, roles: ["admin", "editor", "super_admin"] },
+  {
+    id: "sms-operations",
+    title: "SMS İşlemleri",
+    url: "/kurban-admin/sms-islemleri",
+    icon: MessageSquare,
+    roles: ["admin", "editor", "super_admin"],
+    allowedTenantIds: [KAHRAMANKAZAN_TENANT_ID],
+    items: [
+      { id: "sms-send", title: "SMS Gönder", url: "/kurban-admin/sms-islemleri", icon: Send, roles: ["admin", "editor", "super_admin"] },
+      { id: "sms-templates", title: "SMS Şablonları", url: "/kurban-admin/sms-islemleri/sablonlari", icon: NotebookText, roles: ["admin", "editor", "super_admin"] },
+      { id: "sms-bulk", title: "Kayıtlı Toplu Gönderimler", url: "/kurban-admin/sms-islemleri/kayitli-toplu-gonderimleri", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
+      { id: "sms-history", title: "Gönderim Geçmişi", url: "/kurban-admin/sms-islemleri/gecmis", icon: History, roles: ["admin", "editor", "super_admin"] },
+      { id: "sms-settings", title: "SMS Ayarları", url: "/kurban-admin/sms-islemleri/ayarlar", icon: Settings, roles: ["super_admin"] },
+    ],
+  },
   { id: "mail-operations", title: "Mail İşlemleri", url: "/kurban-admin/mail-islemleri", icon: Mail, roles: ["admin", "editor", "super_admin"] },
 ];
 
@@ -67,7 +87,7 @@ const separatorAfterIds = ["all-shareholders", "teslimatlar", "reservations"];
 
 export function AppSidebar() {
   const { data: session } = useSession()
-  const { logo_slug: logoSlug } = useTenantBranding()
+  const { logo_slug: logoSlug, tenant_id: currentTenantId } = useTenantBranding()
   const pathname = usePathname()
   const selectedYear = useAdminYearStore((s) => s.selectedYear)
   const { count: unreadContactCount, isLoading: unreadContactLoading } = useUnreadContactMessagesCount(selectedYear)
@@ -110,9 +130,11 @@ export function AppSidebar() {
   // Badge rengi: tenant teması (yeşil/mavi)
   const badgeColorClass = "admin-tenant-accent bg-primary text-primary-foreground";
 
-  const filteredMainItems = mainNavItems.filter(item =>
-    !item.roles || (session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>))
-  )
+  const filteredMainItems = mainNavItems.filter(item => {
+    const roleOk = !item.roles || (session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>))
+    const tenantOk = !item.allowedTenantIds || item.allowedTenantIds.includes(currentTenantId ?? "")
+    return roleOk && tenantOk
+  })
   const filteredBottomItems = bottomNavItems.filter(item =>
     !item.roles || (session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>))
   )
@@ -155,13 +177,17 @@ export function AppSidebar() {
         </div>
         {!isCollapsed && hasSubItems && isOpen && (
           <div className="ml-6 space-y-1">
-            {item.items?.map((subItem) => (
+            {item.items
+              ?.filter(subItem => !subItem.roles || (session?.user?.role && subItem.roles.includes(session.user.role as Exclude<UserRole, null>)))
+              .map((subItem) => (
               <Link
                 key={subItem.id}
                 href={subItem.url}
                 className={cn(
                   "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === subItem.url ? "bg-muted text-foreground" : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
+                  pathname === subItem.url || (subItem.id === "sms-send" && pathname === "/kurban-admin/sms-islemleri")
+                    ? "bg-muted text-foreground"
+                    : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
                 )}
               >
                 <subItem.icon className="h-4 w-4" />

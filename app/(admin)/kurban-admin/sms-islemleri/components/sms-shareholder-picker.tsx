@@ -50,6 +50,23 @@ export function SmsShareholderPicker({ year, value, onChange, disabled }: Props)
     [value]
   );
 
+  const sortedResults = useMemo(() => {
+    return [...results].sort((a, b) => {
+      const na =
+        a.sacrifice_no != null && Number.isFinite(a.sacrifice_no)
+          ? a.sacrifice_no
+          : Number.POSITIVE_INFINITY;
+      const nb =
+        b.sacrifice_no != null && Number.isFinite(b.sacrifice_no)
+          ? b.sacrifice_no
+          : Number.POSITIVE_INFINITY;
+      if (na !== nb) return na - nb;
+      return (a.shareholder_name ?? "").localeCompare(b.shareholder_name ?? "", "tr", {
+        sensitivity: "base",
+      });
+    });
+  }, [results]);
+
   const fetchResults = useCallback(
     async (search: string) => {
       setLoading(true);
@@ -128,7 +145,7 @@ export function SmsShareholderPicker({ year, value, onChange, disabled }: Props)
                 {loading ? "Aranıyor…" : "Sonuç yok. Farklı kelime deneyin."}
               </CommandEmpty>
               <CommandGroup>
-                {results.map((r) => {
+                {sortedResults.map((r) => {
                   const k = pickKey(r);
                   const checked = selectedSet.has(k);
                   return (

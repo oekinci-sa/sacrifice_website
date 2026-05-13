@@ -10,10 +10,13 @@
  *   sacrificeNoFrom    — Kurban no aralığı başlangıcı (sacrificeNoTo ile birlikte)
  *   sacrificeNoTo      — Kurban no aralığı sonu
  *   afterSacrificeNo   — bu hayvan no'sundan **büyük** hayvanların hissedarları (sınır dışı)
+ *   deliveryFilter        — all | slaughterhouse | other (teslimat tercihine göre süzme; varsayılan all)
+ *   slaughterhouseDeliveryOnly — (geriye dönük) true ≡ deliveryFilter=slaughterhouse
  */
 import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { isSlaughterhouseDeliveryType } from "@/lib/sms-shareholder-delivery-filter";
 import { isValidPhone } from "@/lib/sms-phone-normalizer";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -45,6 +48,16 @@ export async function GET(request: NextRequest) {
     const sacrificeNoFrom = sp.get("sacrificeNoFrom");
     const sacrificeNoTo = sp.get("sacrificeNoTo");
     const afterSacrificeNo = sp.get("afterSacrificeNo");
+    const deliveryFilterParam = sp.get("deliveryFilter");
+    const slaughterhouseDeliveryOnly =
+      sp.get("slaughterhouseDeliveryOnly") === "true" ||
+      sp.get("slaughterhouseDeliveryOnly") === "1";
+    const deliveryFilter: "all" | "slaughterhouse" | "other" =
+      deliveryFilterParam === "slaughterhouse" || deliveryFilterParam === "other"
+        ? deliveryFilterParam
+        : slaughterhouseDeliveryOnly
+          ? "slaughterhouse"
+          : "all";
     const tenantId = getTenantId();
 
     /** Aralık veya tek numara ile filtre: ilgili sacrifice_id kümesi */
@@ -196,6 +209,12 @@ export async function GET(request: NextRequest) {
           return eligibleSacrificeIds.has(sh.sacrifice_id as string);
         }
         return true;
+      })
+      .filter((sh) => {
+        if (deliveryFilter === "all") return true;
+        const isSlaughter = isSlaughterhouseDeliveryType(sh.delivery_type as string | null);
+        if (deliveryFilter === "slaughterhouse") return isSlaughter;
+        return !isSlaughter;
       })
       .map((sh) => {
         const sac = sh.sacrifice as { sacrifice_no?: number } | null;

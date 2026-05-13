@@ -22,6 +22,7 @@ export const hissedarlarColumnHeaderLabels: Record<string, string> = {
   total_amount: "Toplam Tutar",
   paid_amount: "Ödenen Tutar",
   remaining_payment: "Kalan Ödeme",
+  sms_history: "SMS",
   pdf: "PDF",
   actions: "",
 };

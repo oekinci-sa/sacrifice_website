@@ -40,18 +40,22 @@ export function SmsPreviewDialog({
 }: Props) {
   const smsInfo = calculateSmsInfo(stats.messageContent);
   const estimatedCredits = stats.willSend * smsInfo.parts;
+  const rawPreview = stats.messageContent;
+  const hasPreview = Boolean(rawPreview.trim());
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Gönderim Önizlemesi</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Mesaj önizleme */}
-          <div className="rounded-md bg-muted p-3 text-sm font-mono whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
-            {stats.messageContent || <span className="text-muted-foreground italic">Mesaj boş</span>}
+        <div className="space-y-4 overflow-y-auto min-h-0 pr-1">
+          {/* Mesaj önizleme — Keep benzeri: tam metin aşağıya doğru uzar */}
+          <div className="rounded-md bg-muted p-3 text-sm font-normal leading-relaxed whitespace-pre-wrap break-words">
+            {hasPreview ? rawPreview : (
+              <span className="text-muted-foreground italic font-normal">Mesaj boş</span>
+            )}
           </div>
 
           {/* Alıcı özeti */}
@@ -68,8 +72,10 @@ export function SmsPreviewDialog({
             )}
             {stats.deduplicateEnabled && stats.duplicates > 0 && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Tekrar (aynı kurbanlıkta birleşen)</span>
-                <span className="font-medium">-{stats.duplicates}</span>
+                <span className="pr-3">
+                  Aynı kurbanlıkta aynı cep (isim dikkate alınmaz, yalnızca numara)
+                </span>
+                <span className="font-medium shrink-0">-{stats.duplicates}</span>
               </div>
             )}
             <div className="border-t pt-1.5 flex justify-between font-semibold">
@@ -81,12 +87,12 @@ export function SmsPreviewDialog({
           </div>
 
           {/* SMS teknik bilgisi */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground bg-muted/50 rounded p-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground bg-muted/50 rounded p-2">
             <span>{smsInfo.parts} SMS boyu/alıcı</span>
             <span>·</span>
-            <span>Tahmini kredi: <strong>{estimatedCredits}</strong></span>
-            <span>·</span>
-            <span>{smsInfo.language === "TR" ? "Türkçe" : "İngilizce"}</span>
+            <span>
+              Tahmini kredi: <strong>{estimatedCredits}</strong>
+            </span>
           </div>
 
           {/* Boş değişken uyarıları */}
@@ -122,7 +128,7 @@ export function SmsPreviewDialog({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             İptal
           </Button>

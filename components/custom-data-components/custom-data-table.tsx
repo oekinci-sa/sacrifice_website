@@ -236,7 +236,6 @@ export function CustomDataTable<TData, TValue>({
     }
   }, [dataVersion, infiniteEnabled]);
 
-  // Effective column order: default order + stored order (last-opened columns at end)
   const defaultColumnIds = React.useMemo(
     () =>
       (tableColumns as { id?: string; accessorKey?: string }[])
@@ -244,7 +243,10 @@ export function CustomDataTable<TData, TValue>({
         .filter(Boolean) as string[],
     [tableColumns]
   );
-  /** TanStack’e her zaman açık sıra verilir; böylece ekran + Excel aynı columnOrder ile uyumlu kalır. */
+  /**
+   * localStorage sırasında olmayan yeni kolonlar, kolon tanımı sırasına göre ara konuma yerleşir.
+   * Eski `[...missing, ...stored]` birleşimi tüm eksik kolonları listenin başına taşıdığı için SMS gibi sonra eklenen sütunlar yanlışlıkla en başa gidiyordu.
+   */
   const effectiveColumnOrder = React.useMemo(() => {
     const actions = defaultColumnIds.includes("actions") ? ["actions"] : [];
     const rest = defaultColumnIds.filter((id) => id !== "actions");
@@ -253,11 +255,25 @@ export function CustomDataTable<TData, TValue>({
     if (columnOrder.length === 0) {
       return defaultOrder;
     }
-    const notInStored = defaultColumnIds.filter(
-      (id) => !columnOrder.includes(id) && id !== "actions"
+
+    const storedMiddle = columnOrder.filter(
+      (id) => defaultColumnIds.includes(id) && id !== "actions"
     );
-    const inStored = columnOrder.filter((id) => defaultColumnIds.includes(id));
-    return [...notInStored, ...inStored, ...actions];
+    const defaultIdx = Object.fromEntries(rest.map((id, i) => [id, i]));
+
+    const missing = rest.filter((id) => !storedMiddle.includes(id));
+    if (missing.length === 0) {
+      return [...storedMiddle, ...actions];
+    }
+
+    const merged = [...storedMiddle];
+    const missingSorted = [...missing].sort((a, b) => defaultIdx[a] - defaultIdx[b]);
+    for (const m of missingSorted) {
+      const insertAt = merged.findIndex((x) => defaultIdx[x] > defaultIdx[m]);
+      const pos = insertAt === -1 ? merged.length : insertAt;
+      merged.splice(pos, 0, m);
+    }
+    return [...merged, ...actions];
   }, [columnOrder, defaultColumnIds]);
 
   const tableScrollRef = React.useRef<HTMLDivElement>(null);

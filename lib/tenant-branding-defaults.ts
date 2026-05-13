@@ -13,6 +13,8 @@ export interface AgreementTerm {
 export interface TenantBranding {
   tenant_id?: string | null;
   logo_slug: string;
+  /** SMS modülü bu tenant için aktif mi? tenant_settings.sms_enabled */
+  sms_enabled: boolean;
   iban: string;
   /** IBAN sahibi; doluysa sitede/PDF/e-postada gösterilir. */
   iban_account_holder: string | null;
@@ -99,6 +101,7 @@ export const DEFAULT_AGREEMENT_TERMS: AgreementTerm[] = [
 /** Kod yedeği; iletişim metinleri tenant_settings’tan gelmeli (boş fallback). */
 export const DEFAULT_BRANDING: TenantBranding = {
   logo_slug: "ankara-kurban",
+  sms_enabled: false,
   iban: "Kapora için IBAN bilgisi daha sonra sizlerle paylaşılacaktır.",
   iban_account_holder: null,
   website_url: "",

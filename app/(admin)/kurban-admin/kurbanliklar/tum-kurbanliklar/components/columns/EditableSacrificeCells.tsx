@@ -35,6 +35,7 @@ import { AdminSacrificeHisseBedeliCell } from "@/lib/admin-sacrifice-hisse-bedel
 import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { getDefaultPriceInfoByTenant } from "@/lib/price-info-by-tenant";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
+import { SmsTruncatedInlineTip } from "@/components/sms-truncated-hover-tooltip";
 import { useSacrificeStore } from "@/stores/global/useSacrificeStore";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { sacrificeSchema } from "@/types";
@@ -291,7 +292,7 @@ export const EditableSharePriceCell = memo(function EditableSharePriceCell({ row
   return (
     <>
       <div className="group relative w-full min-h-[2.5rem] flex items-center justify-center px-1">
-        <div className="text-center px-7 pr-9 max-w-full whitespace-normal w-full">
+        <div className="text-center px-7 pr-9 max-w-fit mx-auto whitespace-normal">
           <AdminSacrificeHisseBedeliCell sacrifice={sacrifice} />
         </div>
         <Button
@@ -786,8 +787,13 @@ export const EditableBarnStallOrderCell = memo(function EditableBarnStallOrderCe
   }
 
   return (
-    <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
-      <span className="text-sm px-8 pr-9 py-1 text-center">{display}</span>
+    <div className="group relative w-full min-h-[2rem] flex items-center justify-center min-w-0 px-1">
+      <div className="mx-auto max-w-[11.5rem] min-w-0 pl-2 pr-9 py-1 text-center text-sm">
+        <SmsTruncatedInlineTip
+          fullText={(sacrifice.barn_stall_order_no ?? "").trim()}
+          display={display}
+        />
+      </div>
       <Button
         variant="ghost"
         size="icon"
@@ -1088,8 +1094,10 @@ export const EditableEarTagCell = memo(function EditableEarTagCell({ row }: { ro
   }
 
   return (
-    <div className="group relative w-full min-h-[2rem] flex items-center justify-center">
-      <span className="tabular-nums text-sm px-8 pr-9 py-1 text-center">{display}</span>
+    <div className="group relative w-full min-h-[2rem] flex items-center justify-center min-w-0 px-1">
+      <div className="mx-auto max-w-[11rem] min-w-0 pl-2 pr-9 py-1 text-center text-sm tabular-nums">
+        <SmsTruncatedInlineTip fullText={(sacrifice.ear_tag ?? "").trim()} display={display} />
+      </div>
       <Button
         variant="ghost"
         size="icon"

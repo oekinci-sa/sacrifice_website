@@ -40,7 +40,7 @@ import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { formatDateMedium } from "@/lib/date-utils";
 import { getOdemelerPaymentStatus } from "@/lib/odeme-payment-status";
-import { AlertCircle, Check, CheckCircle2, Clock, Download, Loader2, Pencil, Phone, UserMinus, X } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Clock, Download, Loader2, MessageSquare, Pencil, Phone, UserMinus, X } from "lucide-react";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { EditableSecondPhoneCell } from "@/app/(admin)/kurban-admin/components/editable-delivery-cells";
 import {
@@ -52,6 +52,7 @@ import { EditableSacrificeNumberCell } from "./editable-sacrifice-number-cell";
 
 type HissedarlarTableMeta = {
   openPdfForShareholder?: (sh: shareholderSchema) => void;
+  openSmsHistory?: (sh: shareholderSchema) => void;
 };
 
 export function PdfColumnCell({
@@ -75,6 +76,32 @@ export function PdfColumnCell({
         onClick={() => onOpen?.(row.original)}
       >
         <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+export function SmsHistoryColumnCell({
+  row,
+  table,
+}: {
+  row: Row<shareholderSchema>;
+  table: Table<shareholderSchema>;
+}) {
+  const meta = table.options.meta as HissedarlarTableMeta | undefined;
+  const onOpen = meta?.openSmsHistory;
+  return (
+    <div className="flex justify-center">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0"
+        aria-label="SMS geçmişi"
+        disabled={!onOpen}
+        onClick={() => onOpen?.(row.original)}
+      >
+        <MessageSquare className="h-4 w-4" />
       </Button>
     </div>
   );
@@ -693,7 +720,7 @@ const ActionCellContent = ({ row }: { row: Row<shareholderSchema> }) => {
   );
 };
 
-export const columns: ColumnDef<shareholderSchema>[] = [
+const BASE_COLUMNS: ColumnDef<shareholderSchema>[] = [
   {
     id: "sacrifice_no",
     accessorFn: (row) => row.sacrifice?.sacrifice_no || "-",
@@ -859,3 +886,24 @@ export const columns: ColumnDef<shareholderSchema>[] = [
     cell: ({ row }) => <ActionCellContent row={row} />,
   },
 ];
+
+const SMS_COLUMN: ColumnDef<shareholderSchema> = {
+  id: "sms_history",
+  header: H.sms_history,
+  minSize: 56,
+  enableSorting: false,
+  cell: ({ row, table }) => <SmsHistoryColumnCell row={row} table={table} />,
+};
+
+/**
+ * Hissedarlar tablo sütunları.
+ * smsEnabled false ise SMS sütunu dahil edilmez.
+ */
+export function getColumns(smsEnabled: boolean): ColumnDef<shareholderSchema>[] {
+  if (!smsEnabled) return BASE_COLUMNS;
+  // SMS sütununu PDF sütunundan önce ekle
+  const pdfIndex = BASE_COLUMNS.findIndex((c) => (c as { id?: string }).id === "pdf");
+  const result = [...BASE_COLUMNS];
+  result.splice(pdfIndex, 0, SMS_COLUMN);
+  return result;
+}

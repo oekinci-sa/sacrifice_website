@@ -4,6 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -22,7 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SmsEditor } from "../components/sms-editor";
 
@@ -62,29 +72,59 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function SmsTemplatesPage() {
-  const [templates, setTemplates] = useState<SmsTemplate[]>([]);
+  const [activeTemplates, setActiveTemplates] = useState<SmsTemplate[]>([]);
+  const [inactiveTemplates, setInactiveTemplates] = useState<SmsTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInactive, setShowInactive] = useState(false);
+  const [loadingInactive, setLoadingInactive] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  /** Pasife alma onayı (native confirm yerine) */
+  const [deactivateTemplateId, setDeactivateTemplateId] = useState<string | null>(null);
 
-  const loadTemplates = useCallback(async () => {
-    setLoading(true);
+  const loadActiveTemplates = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/sms/templates?active=false");
+      const res = await fetch("/api/admin/sms/templates");
       const data = await res.json();
-      setTemplates(data.templates ?? []);
+      setActiveTemplates(data.templates ?? []);
     } catch {
       toast({ title: "Şablonlar yüklenemedi", variant: "destructive" });
-    } finally {
-      setLoading(false);
     }
   }, []);
 
+  const loadInactiveTemplates = useCallback(async () => {
+    setLoadingInactive(true);
+    try {
+      const res = await fetch("/api/admin/sms/templates?inactive=true");
+      const data = await res.json();
+      setInactiveTemplates(data.templates ?? []);
+    } catch {
+      toast({ title: "Pasif şablonlar yüklenemedi", variant: "destructive" });
+      setInactiveTemplates([]);
+    } finally {
+      setLoadingInactive(false);
+    }
+  }, []);
+
+  const reloadVisibleLists = useCallback(async () => {
+    await loadActiveTemplates();
+    if (showInactive) await loadInactiveTemplates();
+  }, [loadActiveTemplates, loadInactiveTemplates, showInactive]);
+
+  const loadTemplatesInitial = useCallback(async () => {
+    setLoading(true);
+    try {
+      await loadActiveTemplates();
+    } finally {
+      setLoading(false);
+    }
+  }, [loadActiveTemplates]);
+
   useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
+    loadTemplatesInitial();
+  }, [loadTemplatesInitial]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -133,7 +173,7 @@ export default function SmsTemplatesPage() {
 
       toast({ title: editingId ? "Şablon güncellendi" : "Şablon oluşturuldu" });
       setDialogOpen(false);
-      loadTemplates();
+      reloadVisibleLists();
     } catch {
       toast({ title: "Bağlantı hatası", variant: "destructive" });
     } finally {
@@ -141,8 +181,10 @@ export default function SmsTemplatesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Bu şablon pasife alınacak. Onaylıyor musunuz?")) return;
+  const confirmDeactivateTemplate = async () => {
+    const id = deactivateTemplateId;
+    if (!id) return;
+    setDeactivateTemplateId(null);
     try {
       const res = await fetch(`/api/admin/sms/templates/${id}`, { method: "DELETE" });
       const data = await res.json();
@@ -151,7 +193,7 @@ export default function SmsTemplatesPage() {
         return;
       }
       toast({ title: "Şablon pasife alındı" });
-      loadTemplates();
+      reloadVisibleLists();
     } catch {
       toast({ title: "Bağlantı hatası", variant: "destructive" });
     }
@@ -162,73 +204,126 @@ export default function SmsTemplatesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">SMS Şablonları</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Yeniden kullanılabilir SMS mesaj içerikleri.
           </p>
         </div>
-        <Button onClick={openCreate} className="admin-tenant-accent">
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Yeni Şablon
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            type="button"
+            variant={showInactive ? "secondary" : "outline"}
+            size="sm"
+            disabled={loadingInactive}
+            className={showInactive ? "" : "border-dashed"}
+            onClick={() => {
+              void (async () => {
+                if (!showInactive) {
+                  await loadInactiveTemplates();
+                  setShowInactive(true);
+                } else setShowInactive(false);
+              })();
+            }}
+          >
+            {loadingInactive
+              ? "Yükleniyor…"
+              : showInactive
+                ? "Pasif şablonları gizle"
+                : "Pasif şablonları da göster"}
+          </Button>
+          <Button onClick={openCreate} className="admin-tenant-accent" size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Yeni Şablon
+          </Button>
+        </div>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">Yükleniyor...</div>
-      ) : templates.length === 0 ? (
+      ) : activeTemplates.length === 0 && !showInactive ? (
         <div className="text-center py-12 text-muted-foreground">
-          Henüz şablon oluşturulmadı.
+          Henüz aktif şablon yok.
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {templates.map((t) => (
-            <Card
-              key={t.id}
-              className={cn("shadow-none rounded-md", !t.is_active && "opacity-50")}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-sm font-semibold leading-tight">
-                    {t.title}
-                  </CardTitle>
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => openEdit(t)}
-                    >
-                      <PencilIcon className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(t.id)}
-                    >
-                      <TrashIcon className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+        <>
+          {activeTemplates.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {activeTemplates.map((t) => (
+                <Card key={t.id} className="shadow-none rounded-md">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-sm font-semibold leading-tight">{t.title}</CardTitle>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => setDeactivateTemplateId(t.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {categoryLabel(t.category)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+                      {t.content}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {showInactive && (
+            <div className="space-y-3 pt-2">
+              <h2 className="text-sm font-medium text-muted-foreground">Pasif şablonlar</h2>
+              {inactiveTemplates.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Pasif şablon kaydı yok.</p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {inactiveTemplates.map((t) => (
+                    <Card key={t.id} className={cn("shadow-none rounded-md opacity-70")}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-sm font-semibold leading-tight">{t.title}</CardTitle>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5 flex-wrap mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {categoryLabel(t.category)}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Pasif
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+                          {t.content}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="flex gap-1.5 flex-wrap mt-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {categoryLabel(t.category)}
-                  </Badge>
-                  {!t.is_active && (
-                    <Badge variant="outline" className="text-xs">Pasif</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground line-clamp-3 font-mono whitespace-pre-wrap">
-                  {t.content}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={(v) => !v && setDialogOpen(false)}>
@@ -294,6 +389,26 @@ export default function SmsTemplatesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deactivateTemplateId !== null}
+        onOpenChange={(o) => !o && setDeactivateTemplateId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Şablonu pasife al</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu şablon pasife alınacak. Gönderim geçmişi korunur. Devam etmek istiyor musunuz?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void confirmDeactivateTemplate()}>
+              Pasife al
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

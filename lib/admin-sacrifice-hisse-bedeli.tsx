@@ -50,7 +50,7 @@ export function AdminSacrificeHisseBedeliCell({
     return (
       <div
         className={cn(
-          "flex flex-col gap-0.5 max-w-[min(100%,22rem)] w-full",
+          "flex flex-col gap-0.5 max-w-[min(100%,13rem)] w-full",
           align === "center" && "mx-auto",
           cellTextBase,
           alignLive,

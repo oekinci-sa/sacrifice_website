@@ -203,7 +203,9 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     id: "ear_tag",
     accessorFn: (row) => getEffectiveEarTagSortValue(row),
-    minSize: 100,
+    minSize: 148,
+    size: 148,
+    maxSize: 176,
     header: KL.ear_tag,
     cell: ({ row }) => <EditableEarTagCell row={row} />,
     enableSorting: true,
@@ -212,7 +214,9 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     id: "barn_stall_order_no",
     accessorFn: (row) => getEffectiveBarnStallOrderSortValue(row),
-    minSize: 110,
+    minSize: 156,
+    size: 156,
+    maxSize: 184,
     header: KL.barn_stall_order_no,
     cell: ({ row }) => <EditableBarnStallOrderCell row={row} />,
     enableSorting: true,
@@ -310,8 +314,10 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
       );
     },
     cell: ({ row }) => <EditableSharePriceCell row={row} />,
-    minSize: 268,
-    size: 268,
+    /** İçerik kadar genişlik; metin satırları taşmasın */
+    minSize: 128,
+    size: 152,
+    maxSize: 220,
     enableSorting: true,
     filterFn: (row, id, filterValues: (string | number)[]) => {
       if (!filterValues || filterValues.length === 0) return true;
@@ -426,7 +432,8 @@ export const columns: ColumnDef<sacrificeSchema>[] = [
   {
     accessorKey: "notes",
     header: KL.notes,
-    minSize: 280,
+    minSize: 208,
+    size: 208,
     meta: { align: "left" },
     cell: ({ row }) => <EditableNotesCell row={row} />,
     enableSorting: false,

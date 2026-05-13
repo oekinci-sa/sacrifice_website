@@ -63,13 +63,15 @@ function matchesSearch(row: RecipientTableRow, q: string): boolean {
   return name.includes(q) || (qd.length > 0 && digits.includes(qd));
 }
 
-/** İsim ile telefon arasındaki boşluğu azaltmak için (hücre içi yatay padding) */
+/** İsim hücresi sağında telefondan önce ~12px boşluk (pr-3) */
 const CELL_SAC = "py-2 px-2";
-const CELL_NAME = "py-2 pl-2 pr-1";
-const CELL_PHONE = "py-2 pr-2 pl-1";
+const CELL_NAME = "min-w-0 py-2 pl-2 pr-3";
+const CELL_PHONE = "py-2 pr-2 pl-0";
 
 const SUMMARY_CHIP_GAP_PX = 6;
 const SUMMARY_EXPAND_BTN_RESERVE_PX = 108;
+/** Rozet satırında her öğe için X butonu ayrılan yatay alan (görünür ölçümde rozet tek başına ölçülüyor) */
+const SUMMARY_CHIP_ACTION_RESERVE_PX = 28;
 
 interface Props {
   recipients: RecipientTableRow[];
@@ -90,7 +92,8 @@ export function SmsRecipientTable({
   const summaryRowRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [summaryRowWidth, setSummaryRowWidth] = useState(0);
-  const [collapsedVisibleCount, setCollapsedVisibleCount] = useState(0);
+  /** null: genişlik henüz ölçülmedi — taşma düğmesini yanlışlıkla gösterme */
+  const [collapsedVisibleCount, setCollapsedVisibleCount] = useState<number | null>(null);
 
   const sorted = useMemo(
     () => [...recipients].sort(sortBySacrificeOrder),
@@ -110,6 +113,7 @@ export function SmsRecipientTable({
     }
   }
   const sacrificeNos = Array.from(bySacrifice.keys()).sort((a, b) => a - b);
+  const sacrificeNosKey = sacrificeNos.join(",");
   const excludedStaged = recipients.filter((r) => !r.include_in_send).length;
 
   useLayoutEffect(() => {
@@ -143,11 +147,14 @@ export function SmsRecipientTable({
       return;
     }
 
+    const actionReserve = onRemoveSacrificeGroup ? SUMMARY_CHIP_ACTION_RESERVE_PX : 0;
+
     let used = 0;
     let n = 0;
     for (let i = 0; i < chipEls.length; i++) {
       const cw = chipEls[i].offsetWidth;
-      const step = cw + (n > 0 ? SUMMARY_CHIP_GAP_PX : 0);
+      const step =
+        cw + actionReserve + (n > 0 ? SUMMARY_CHIP_GAP_PX : 0);
       if (used + step + SUMMARY_EXPAND_BTN_RESERVE_PX <= W) {
         used += step;
         n++;
@@ -157,14 +164,25 @@ export function SmsRecipientTable({
     }
 
     setCollapsedVisibleCount(Math.min(n, sacrificeNos.length));
-  }, [summaryExpanded, sacrificeNos, summaryRowWidth, recipients.length]);
+  }, [
+    summaryExpanded,
+    sacrificeNosKey,
+    sacrificeNos.length,
+    summaryRowWidth,
+    recipients.length,
+    onRemoveSacrificeGroup,
+  ]);
 
+  const effectiveCollapsedCount =
+    collapsedVisibleCount ?? sacrificeNos.length;
   const needsSummaryExpand =
-    !summaryExpanded && collapsedVisibleCount < sacrificeNos.length;
+    !summaryExpanded &&
+    sacrificeNos.length > 0 &&
+    effectiveCollapsedCount < sacrificeNos.length;
   const visibleSacrificeNos =
     summaryExpanded || !needsSummaryExpand
       ? sacrificeNos
-      : sacrificeNos.slice(0, collapsedVisibleCount);
+      : sacrificeNos.slice(0, effectiveCollapsedCount);
 
   return (
     <div className="space-y-3">
@@ -283,13 +301,15 @@ export function SmsRecipientTable({
       </div>
 
       <div className="max-h-[min(55vh,420px)] overflow-auto rounded-md border">
-        <Table>
+        <Table className="w-full min-w-0 table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead className="w-10" />
               <TableHead className="w-[4.5rem] text-center">Kur. Sır.</TableHead>
-              <TableHead>İsim Soyisim</TableHead>
-              <TableHead className="text-center">Telefon</TableHead>
+              <TableHead className="min-w-0">İsim Soyisim</TableHead>
+              <TableHead className="w-[12rem] text-center whitespace-nowrap">
+                Telefon
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -307,7 +327,7 @@ export function SmsRecipientTable({
                   <TableCell className={`text-center ${CELL_SAC}`}>
                     <span className="line-clamp-2 block">{r.sacrifice_no ?? "—"}</span>
                   </TableCell>
-                  <TableCell className={`max-w-[200px] ${CELL_NAME}`} title={r.recipient_name}>
+                  <TableCell className={CELL_NAME} title={r.recipient_name}>
                     <span className="line-clamp-2">{r.recipient_name || "—"}</span>
                   </TableCell>
                   <TableCell className={`text-center ${CELL_PHONE}`}>

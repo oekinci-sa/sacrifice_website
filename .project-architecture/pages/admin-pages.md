@@ -26,11 +26,12 @@ Genel bilgiler: hayvan sayısı, toplanan para vb. Grafik ve tablo görselleşti
 - Ödeme durumu popup: 2 sütun, 1-2-3-4 etiketleri; hissedarı olmayan hayvanda popup açılmaz
 
 ### /kurban-admin/kurbanliklar/ayrintilar/[id]
-Belirli kurbanlığın hissedarlar tablosu ve hissedar detay sayfalarına erişim.
+Belirli kurbanlığın hissedar özeti; **Tüm Hissedarlar** ve SMS geçmişine yönlendirme.
 
-### /kurban-admin/hissedarlar
-- Grafikler
-- **Hissedarlar** tablosu (menü adı = sayfa başlığı) ve detay sayfalarına erişim
+### /kurban-admin/hissedarlar/tum-hissedarlar
+- **Menü ile eş**: **Hissedarlar** başlığı; liste `CustomDataTable` (`storageKey="hissedarlar"`).
+- **SMS görünümü:** Yalnız `tenant_settings.sms_enabled === true` iken `sms_history` sütunu tablo tanımına eklenir (`getColumns(smsEnabled)`). **Varsayılan sütun sırası:** SMS sütunu **PDF sütununun solunda**; kullanıcı sütun sırasını yerel olarak değiştirebilir (localStorage).
+- **SMS geçmiş paneli:** Satır aksiyonu / SMS hücresi → sağdan sheet (`shareholder-sms-timeline-sheet`). Veri `GET /api/admin/sms/shareholder-history`. Listede `skipped` alıcı satırları gösterilmez; tam kişisel metin; durum rozeti ve SMS boy sayısı gösterimi yok. Yeni SMS: şablon veya elle → `POST /api/admin/sms/send` tekil hissedar.
 
 ### /kurban-admin/hissedarlar/odemeler
 Ödeme analizi ve filtreleri.
@@ -50,20 +51,21 @@ Uyumsuz hisseler (mismatched_shares). Aktif rezervasyonu olan hayvanlar listeden
 ### /kurban-admin/reminder-talepleri
 Bana Haber Ver talepleri.
 
-### /kurban-admin/sms-islemleri (yalnızca ankarakurban)
-Tekil ve toplu SMS gönderimi. Hedef tipi: kurbanlık tümü, hayvan no sonrası, tekil. Şablon seçici, karakter sayacı, önizleme dialogu (dedup özeti, boş değişken uyarısı).
+### /kurban-admin/sms-islemleri
+
+Görünür yalnızca `tenant_settings.sms_enabled === true` ise (sidebar). Tekil/toplu gönderim; şablon; önizleme diyalogu (mükerrer açıklaması cep numarası + kurban kapsamı, isim kullanılmaz); gönderim sonrası toast’ta geçersiz/mükerrer dışlanma sayıları. Gerçek API gönderimi `lib/sms-config.ts` + env ile bağlıdır (`getSmsCredentials`).
 
 ### /kurban-admin/sms-islemleri/sablonlari
-SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle. Soft delete.
+SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle. Soft delete. İlk yüklemede yalnız aktif şablonlar; «Pasif şablonları da göster» ile pasifler aktiflerin altında listelenir (`GET /api/admin/sms/templates?inactive=true`).
 
 ### /kurban-admin/sms-islemleri/kayitli-toplu-gonderimleri
-Hazırlayıp kaydedilen toplu gönderimler (`status=draft`). Staleness uyarısı (>2 gün). Gönder butonu.
+Hazırlayıp kaydedilen toplu gönderimler (`status=draft`). **Menüde yok**; doğrudan URL ile erişim. Staleness uyarısı (>2 gün). Gönder butonu.
 
 ### /kurban-admin/sms-islemleri/gecmis
-Gönderim geçmişi tablosu. Detay sheet: per-recipient durum, atlanma sebebi. Not: "Operatöre gönderildi" — DLR Faz 2'de.
+Gönderim geçmişi tablosu. Detay sheet: per-recipient durum, atlanma sebebi. Durumlar operatöre iletimi ifade eder (DLR takibi yok).
 
 ### /kurban-admin/sms-islemleri/ayarlar (super_admin)
-API yapılandırma bilgisi + kara liste yönetimi (ekle/soft-remove).
+API özeti (`api.sms.bizimsms.mobi`), kredi/originator, test gönderimi. Bazı bloklar klasik monospace yerine tema fontunda tutulmuş olabilir (env’de kullanıcı adı gösterilmez).
 
 ### /kurban-admin/mail-islemleri
 Panel ve hissedar e-posta listeleri; konu/HTML ile toplu gönderim (`GET /api/admin/email-recipients`, `POST /api/admin/send-email`). Ortam: `RESEND_API_KEY`, isteğe bağlı `RESEND_FROM_EMAIL`.
@@ -78,4 +80,8 @@ Değişiklik kayıtlarının görüntülendiği sayfa.
 **Aşama Metrikleri** tablosu (`stage_metrics`). Okuma: GET /api/get-stage-metrics. Sıra numarası güncelleme: POST /api/update-stage-metrics (`rpc_update_stage_metrics`, değişiklik kaydı).
 
 ### /kurban-admin/tenant-ayarlari
-Organizasyon ayarları (sadece super_admin).
+**Sadece super_admin.** Tenant başına tema, iletişim, IBAN, sözleşme metni, kapora tarihleri vb. Liste: `GET /api/admin/tenant-settings`. Satır güncelleme: `PATCH /api/admin/tenant-settings/[tenantId]`.
+
+**SMS modülü (`sms_enabled`):** Tabloda **SMS** sütunu — `SmsEnabledToggleCell` ile anahtarlama; PATCH ile kalıcı. Bu bayrak sidebar’daki **SMS İşlemleri** menüsünü ve Tüm Hissedarlar’da **`sms_history` sütununu** kontrol eder (varsayılan konum PDF’in solunda). Gönderimin çalışması ayrıca `lib/sms-config.ts` + Bizim SMS env ile mümkündür.
+
+Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md).

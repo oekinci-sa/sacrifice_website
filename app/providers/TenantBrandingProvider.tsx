@@ -41,6 +41,7 @@ export function TenantBrandingProvider({
           setBranding({
             tenant_id: data.branding.tenant_id ?? null,
             logo_slug: data.branding.logo_slug ?? DEFAULT_BRANDING.logo_slug,
+            sms_enabled: Boolean(data.branding.sms_enabled ?? false),
             iban: data.branding.iban ?? DEFAULT_BRANDING.iban,
             iban_account_holder:
               typeof data.branding.iban_account_holder === "string" &&

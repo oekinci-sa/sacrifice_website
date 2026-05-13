@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,13 +28,17 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
-import { ExternalLink, RefreshCw, RotateCcw, XCircle } from "lucide-react";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+import { ExternalLink, RefreshCw, RotateCcw, Trash2, XCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { SmsSendStatusBadge } from "../components/sms-send-status-badge";
+import { SmsTruncatedHoverTip } from "@/components/sms-truncated-hover-tooltip";
 
 interface SmsSend {
   id: string;
   title: string;
+  message_content: string | null;
   status: string;
   total_recipients: number;
   sent_count: number;
@@ -32,6 +46,8 @@ interface SmsSend {
   excluded_count: number;
   sacrifice_year: number;
   created_by: string;
+  /** users.name veya bilinen e-posta eşlemesi; yoksa e-posta ile aynı */
+  created_by_display?: string | null;
   created_at: string;
   completed_at: string | null;
   target_params: Record<string, unknown> | null;
@@ -46,21 +62,16 @@ interface SmsRecipient {
   status: string;
   skip_reason: string | null;
   error_code: string | null;
-  dlr_status: number | null;
-  dlr_completed: boolean;
   sent_at: string | null;
 }
 
 interface SmsStats {
-  total_sends: number;
   total_operator_delivered: number;
   total_failed: number;
-  dlr_phone_delivered: number;
-  dlr_phone_failed: number;
-  dlr_pending: number;
 }
 
 export default function SmsGecmisPage() {
+  const { data: session } = useSession();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [sends, setSends] = useState<SmsSend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +84,13 @@ export default function SmsGecmisPage() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<
+    | null
+    | { type: "cancel"; id: string; title: string }
+    | { type: "delete"; id: string; title: string }
+    | { type: "retry"; id: string }
+  >(null);
 
   const loadSends = useCallback(async () => {
     setLoading(true);
@@ -87,7 +105,10 @@ export default function SmsGecmisPage() {
       setSends(sendsData.sends ?? []);
       if (statsRes.ok) {
         const statsData = await statsRes.json();
-        setStats(statsData);
+        setStats({
+          total_operator_delivered: statsData.total_operator_delivered ?? 0,
+          total_failed: statsData.total_failed ?? 0,
+        });
       }
     } catch {
       toast({ title: "Gönderim geçmişi yüklenemedi", variant: "destructive" });
@@ -114,8 +135,7 @@ export default function SmsGecmisPage() {
     }
   };
 
-  const handleCancel = async (id: string, title: string) => {
-    if (!confirm(`"${title}" gönderimini iptal etmek istiyor musunuz?`)) return;
+  const executeCancelSend = async (id: string) => {
     setCancellingId(id);
     try {
       const res = await fetch(`/api/admin/sms/sends/${id}/cancel`, { method: "POST" });
@@ -133,8 +153,33 @@ export default function SmsGecmisPage() {
     }
   };
 
-  const handleRetry = async (id: string) => {
-    if (!confirm("Başarısız alıcılar yeni bir gönderim kaydıyla tekrar denenecek. Devam edilsin mi?")) return;
+  const executeDeletePermanent = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/sms/sends/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ title: "Gönderim kaydı silindi" });
+        loadSends();
+        if (detailId === id) {
+          setDetailId(null);
+          setDetailData(null);
+        }
+      } else {
+        toast({
+          title: "Silinemedi",
+          description: data.error,
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({ title: "Bağlantı hatası", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const executeRetrySend = async (id: string) => {
     setRetryingId(id);
     try {
       const res = await fetch(`/api/admin/sms/sends/${id}/retry`, { method: "POST" });
@@ -159,10 +204,36 @@ export default function SmsGecmisPage() {
     }
   };
 
+  const requestCancel = (id: string, title: string) =>
+    setConfirmDialog({ type: "cancel", id, title });
+
+  const requestDelete = (id: string, title: string) =>
+    setConfirmDialog({ type: "delete", id, title });
+
+  const requestRetry = (id: string) => setConfirmDialog({ type: "retry", id });
+
+  const runPendingConfirm = () => {
+    setConfirmDialog((d) => {
+      if (!d) return null;
+      const payload = d;
+      queueMicrotask(() => {
+        if (payload.type === "cancel") void executeCancelSend(payload.id);
+        else if (payload.type === "delete") void executeDeletePermanent(payload.id);
+        else void executeRetrySend(payload.id);
+      });
+      return null;
+    });
+  };
+
   const formatDate = (d: string | null) =>
     d ? new Date(d).toLocaleString("tr-TR") : "—";
 
   const failedCount = (s: SmsSend) => s.failed_count ?? 0;
+
+  const senderLabel = (s: SmsSend) =>
+    (s.created_by_display && s.created_by_display.trim()) || s.created_by || "—";
+
+  const canDeleteHistoryRow = session?.user?.role === "super_admin";
 
   return (
     <div className="space-y-6">
@@ -170,7 +241,7 @@ export default function SmsGecmisPage() {
         <div>
           <h1 className="text-2xl font-bold">Gönderim Geçmişi</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Geçmiş SMS gönderimlerini, alıcı detaylarını ve iletim raporlarını görüntüleyin.
+            Geçmiş SMS gönderimlerini ve alıcı özeti için detayı açın.
           </p>
         </div>
         <Button variant="outline" onClick={loadSends} disabled={loading}>
@@ -179,27 +250,17 @@ export default function SmsGecmisPage() {
         </Button>
       </div>
 
-      {/* İstatistik Kartları */}
+      {/* İstatistik özeti */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Card className="shadow-none rounded-md">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground font-medium">
-                Toplam Gönderim
+                Operatöre iletilen (toplam gönderilen)
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-3">
-              <div className="text-2xl font-bold">{stats.total_sends}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-none rounded-md">
-            <CardHeader className="pb-1 pt-3 px-4">
-              <CardTitle className="text-xs text-muted-foreground font-medium">
-                Operatöre İletilen
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-3">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 tabular-nums">
                 {stats.total_operator_delivered.toLocaleString("tr-TR")}
               </div>
             </CardContent>
@@ -207,36 +268,12 @@ export default function SmsGecmisPage() {
           <Card className="shadow-none rounded-md">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground font-medium">
-                Telefona Ulaşan
+                Gönderilemeyen alıcı
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-3">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.dlr_phone_delivered.toLocaleString("tr-TR")}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-none rounded-md">
-            <CardHeader className="pb-1 pt-3 px-4">
-              <CardTitle className="text-xs text-muted-foreground font-medium">
-                Ulaşmayan SMS
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-3">
-              <div className="text-2xl font-bold text-destructive">
-                {(stats.total_failed + stats.dlr_phone_failed).toLocaleString("tr-TR")}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-none rounded-md">
-            <CardHeader className="pb-1 pt-3 px-4">
-              <CardTitle className="text-xs text-muted-foreground font-medium">
-                Bekleyen DLR
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-3">
-              <div className="text-2xl font-bold text-muted-foreground">
-                {stats.dlr_pending.toLocaleString("tr-TR")}
+              <div className="text-2xl font-bold text-destructive tabular-nums">
+                {stats.total_failed.toLocaleString("tr-TR")}
               </div>
             </CardContent>
           </Card>
@@ -255,24 +292,33 @@ export default function SmsGecmisPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Başlık</TableHead>
-                <TableHead>Durum</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[140px]">Tarih</TableHead>
+                <TableHead className="min-w-[120px] max-w-[260px]">Mesaj</TableHead>
+                <TableHead className="min-w-[96px]">Gönderen</TableHead>
                 <TableHead className="text-right">Toplam</TableHead>
                 <TableHead className="text-right">Gönderilen</TableHead>
                 <TableHead className="text-right">Başarısız</TableHead>
                 <TableHead className="text-right">Dışlanan</TableHead>
-                <TableHead>Tarih</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sends.map((s) => (
                 <TableRow key={s.id}>
-                  <TableCell className="font-medium max-w-[200px] truncate">
-                    {s.title}
+                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap align-top">
+                    {formatDate(s.created_at)}
                   </TableCell>
-                  <TableCell>
-                    <SmsSendStatusBadge status={s.status} />
+                  <TableCell className="max-w-[260px] align-top">
+                    <SmsTruncatedHoverTip fullText={(s.message_content ?? "").trim()}>
+                      <span className="line-clamp-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                        {(s.message_content ?? "").trim() || "—"}
+                      </span>
+                    </SmsTruncatedHoverTip>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] text-sm truncate">
+                    <SmsTruncatedHoverTip fullText={senderLabel(s)}>
+                      <span className="truncate block">{senderLabel(s)}</span>
+                    </SmsTruncatedHoverTip>
                   </TableCell>
                   <TableCell className="text-right">{s.total_recipients}</TableCell>
                   <TableCell className="text-right text-green-600">{s.sent_count}</TableCell>
@@ -282,10 +328,7 @@ export default function SmsGecmisPage() {
                   <TableCell className="text-right text-muted-foreground">
                     {s.excluded_count}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatDate(s.created_at)}
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="align-top">
                     <div className="flex items-center gap-1">
                       {s.status === "draft" && (
                         <Button
@@ -293,10 +336,22 @@ export default function SmsGecmisPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           disabled={cancellingId === s.id}
-                          onClick={() => handleCancel(s.id, s.title)}
-                          title="Gönderimi İptal Et"
+                          onClick={() => requestCancel(s.id, s.title)}
+                          title="Taslağı iptal et"
                         >
                           <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDeleteHistoryRow && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          disabled={deletingId === s.id}
+                          onClick={() => requestDelete(s.id, s.title)}
+                          title="Kaydı kalıcı sil (süper yönetici)"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
                       {(s.status === "completed" || s.status === "partial_fail" || s.status === "failed") &&
@@ -306,7 +361,7 @@ export default function SmsGecmisPage() {
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
                             disabled={retryingId === s.id}
-                            onClick={() => handleRetry(s.id)}
+                            onClick={() => requestRetry(s.id)}
                             title="Başarısızları Tekrar Dene"
                           >
                             <RotateCcw className="h-4 w-4" />
@@ -343,12 +398,8 @@ export default function SmsGecmisPage() {
               {/* Özet bilgiler */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Durum: </span>
-                  <SmsSendStatusBadge status={detailData.send.status} />
-                </div>
-                <div>
                   <span className="text-muted-foreground">Gönderen: </span>
-                  {detailData.send.created_by}
+                  {senderLabel(detailData.send)}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Toplam alıcı: </span>
@@ -361,34 +412,16 @@ export default function SmsGecmisPage() {
                 </div>
               </div>
 
-              {/* DLR özeti */}
-              {(() => {
-                const r = detailData.recipients;
-                const operatorDelivered = r.filter((x) => x.status === "sent").length;
-                const phoneDelivered = r.filter((x) => x.dlr_status === 9).length;
-                const notDelivered = r.filter((x) => x.dlr_status === 6).length;
-                const waitingDlr = r.filter(
-                  (x) => x.status === "sent" && x.dlr_status == null
-                ).length;
-                const pending = r.filter(
-                  (x) => x.dlr_status === 0 || x.dlr_status === 5
-                ).length;
-                if (operatorDelivered === 0) return null;
-                return (
-                  <div className="rounded-md bg-muted/50 px-4 py-3 text-sm grid grid-cols-2 gap-2">
-                    <div className="text-muted-foreground">Operatöre iletildi:</div>
-                    <div className="font-medium">{operatorDelivered}</div>
-                    <div className="text-muted-foreground">Telefona ulaştı (DLR):</div>
-                    <div className="font-medium text-blue-600">{phoneDelivered}</div>
-                    <div className="text-muted-foreground">Ulaşmadı (DLR):</div>
-                    <div className="font-medium text-destructive">{notDelivered}</div>
-                    <div className="text-muted-foreground">DLR bekliyor:</div>
-                    <div className="font-medium text-muted-foreground">
-                      {waitingDlr + pending}
-                    </div>
+              {(detailData.send.message_content ?? "").trim().length > 0 && (
+                <div className="rounded-md border bg-muted/20 p-3 text-sm">
+                  <div className="text-xs font-medium text-muted-foreground mb-1">
+                    Gönderilen metin
                   </div>
-                );
-              })()}
+                  <p className="whitespace-pre-wrap break-words">
+                    {(detailData.send.message_content ?? "").trim()}
+                  </p>
+                </div>
+              )}
 
               {/* Retry butonu (detay içinde) */}
               {(detailData.send.status === "completed" ||
@@ -399,7 +432,7 @@ export default function SmsGecmisPage() {
                     variant="outline"
                     size="sm"
                     disabled={retryingId === detailData.send.id}
-                    onClick={() => handleRetry(detailData.send.id)}
+                    onClick={() => requestRetry(detailData.send.id)}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     {retryingId === detailData.send.id
@@ -416,7 +449,6 @@ export default function SmsGecmisPage() {
                       <TableHead>Ad Soyad</TableHead>
                       <TableHead>Telefon</TableHead>
                       <TableHead>Gönderim</TableHead>
-                      <TableHead>DLR</TableHead>
                       <TableHead>Sebep</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -424,19 +456,11 @@ export default function SmsGecmisPage() {
                     {detailData.recipients.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>{r.recipient_name ?? "—"}</TableCell>
-                        <TableCell className="font-mono text-xs">{r.phone_number}</TableCell>
-                        <TableCell>
-                          <SmsSendStatusBadge status={r.status} type="recipient" />
+                        <TableCell className="text-sm tabular-nums">
+                          {formatPhoneForDisplayWithSpacing(r.phone_number)}
                         </TableCell>
                         <TableCell>
-                          {r.status === "sent" ? (
-                            <SmsSendStatusBadge
-                              status={r.dlr_status}
-                              type="dlr"
-                            />
-                          ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
-                          )}
+                          <SmsSendStatusBadge status={r.status} type="recipient" />
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {r.skip_reason ?? r.error_code ?? "—"}
@@ -450,6 +474,45 @@ export default function SmsGecmisPage() {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={confirmDialog !== null}
+        onOpenChange={(o) => !o && setConfirmDialog(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog?.type === "cancel" && "Taslağı iptal et"}
+              {confirmDialog?.type === "delete" && "Gönderimi kalıcı olarak sil"}
+              {confirmDialog?.type === "retry" && "Başarısız alıcıları tekrar dene"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog?.type === "cancel" && (
+                <>
+                  <span className="font-medium text-foreground">
+                    {confirmDialog.title}
+                  </span>{" "}
+                  başlıklı taslak iptal edilecek. Emin misiniz?
+                </>
+              )}
+              {confirmDialog?.type === "delete" && (
+                <>
+                  <span className="font-medium text-foreground">
+                    {confirmDialog.title}
+                  </span>{" "}
+                  kaydı kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+                </>
+              )}
+              {confirmDialog?.type === "retry" &&
+                "Başarısız alıcılar yeni bir gönderim kaydıyla tekrar denenecek."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runPendingConfirm()}>Onayla</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

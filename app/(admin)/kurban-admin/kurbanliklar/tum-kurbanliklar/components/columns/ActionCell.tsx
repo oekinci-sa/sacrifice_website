@@ -143,7 +143,11 @@ export function ActionCellContent({ row }: { row: Row<sacrificeSchema> }) {
               {shareholders.map((shareholder, index) => (
                 <div key={index}>
                   <div
-                    onClick={() => router.push(`/kurban-admin/hissedarlar/ayrintilar/${shareholder.shareholder_id}`)}
+                    onClick={() =>
+                      router.push(
+                        `/kurban-admin/hissedarlar/tum-hissedarlar?smsHistory=${shareholder.shareholder_id}`
+                      )
+                    }
                     className="transition-all duration-200 hover:bg-gray-50 rounded-lg p-4 cursor-pointer"
                   >
                     <div className="grid grid-cols-[auto_1fr_1fr] gap-6 items-center">

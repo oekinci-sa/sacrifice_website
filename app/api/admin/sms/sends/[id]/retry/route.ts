@@ -226,17 +226,15 @@ export async function POST(
     let sentCount: number;
     let failedCount: number;
     let finalStatus: string;
-    let dlrId: number | null = null;
 
     if (smsResult.ok) {
       sentCount = toSend.length;
       failedCount = 0;
       finalStatus = "completed";
-      dlrId = smsResult.dlrId;
 
       await supabaseAdmin
         .from("sms_send_recipients")
-        .update({ status: "sent", sent_at: new Date().toISOString(), dlr_id: dlrId || null })
+        .update({ status: "sent", sent_at: new Date().toISOString() })
         .eq("send_id", newSendId)
         .eq("status", "queued");
     } else {
@@ -288,7 +286,6 @@ export async function POST(
       sent: sentCount,
       failed: failedCount,
       excluded: excludedCount,
-      dlrId,
     });
   } catch (e) {
     console.error("[sms/retry]", e);

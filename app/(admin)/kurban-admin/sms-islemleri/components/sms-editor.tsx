@@ -29,6 +29,8 @@ interface Props {
   label?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Varsayılan `sms-editor-textarea`; iki editör yan yana ise benzersiz verin. */
+  textareaId?: string;
 }
 
 export function SmsEditor({
@@ -37,9 +39,10 @@ export function SmsEditor({
   label = "Mesaj İçeriği",
   placeholder = "SMS mesajını buraya yazın...",
   disabled,
+  textareaId = "sms-editor-textarea",
 }: Props) {
   const insertVariable = (variable: string) => {
-    const textarea = document.getElementById("sms-editor-textarea") as HTMLTextAreaElement | null;
+    const textarea = document.getElementById(textareaId) as HTMLTextAreaElement | null;
     if (!textarea) {
       onChange(value + variable);
       return;
@@ -58,7 +61,7 @@ export function SmsEditor({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="sms-editor-textarea">{label}</Label>
+      <Label htmlFor={textareaId}>{label}</Label>
       <div className="flex flex-wrap gap-1 mb-2">
         {VARIABLES.map((v) => (
           <Button
@@ -75,13 +78,13 @@ export function SmsEditor({
         ))}
       </div>
       <Textarea
-        id="sms-editor-textarea"
+        id={textareaId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={5}
+        rows={10}
         disabled={disabled}
-        className="font-mono text-sm resize-none"
+        className="text-sm resize-none min-h-[12rem]"
         maxLength={882}
       />
       <SmsCharacterCounterDisplay text={value} />

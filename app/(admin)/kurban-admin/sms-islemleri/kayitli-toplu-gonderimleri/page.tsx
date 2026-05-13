@@ -181,7 +181,7 @@ export default function KayitliTopluGonderimleriPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xs text-muted-foreground font-mono line-clamp-3 whitespace-pre-wrap">
+                  <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
                     {d.message_content}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">

@@ -5,6 +5,10 @@
 import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  buildEmailToEditorDisplayMap,
+  editorDisplayFromRaw,
+} from "@/lib/resolve-editor-display";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,8 +51,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Gönderim geçmişi alınamadı" }, { status: 500 });
     }
 
+    const sends = data ?? [];
+    const emailMap = await buildEmailToEditorDisplayMap(
+      supabaseAdmin,
+      sends.map((s: { created_by?: string | null }) => s.created_by)
+    );
+    const enriched = sends.map((s: Record<string, unknown>) => ({
+      ...s,
+      created_by_display: editorDisplayFromRaw(String(s.created_by ?? ""), emailMap),
+    }));
+
     return NextResponse.json(
-      { sends: data ?? [] },
+      { sends: enriched },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (e) {

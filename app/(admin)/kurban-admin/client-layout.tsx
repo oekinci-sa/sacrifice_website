@@ -27,21 +27,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/useUsers";
-import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { LogOut, Pencil } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { AdminIdleTimeout } from "./components/admin-idle-timeout";
 import { AppSidebar } from "./components/layout/app-sidebar";
 import { YearDropdown } from "./components/layout/year-dropdown";
-
-// Type for shareholder data from API
-interface ShareholderData {
-  shareholder_id: string;
-  shareholder_name: string;
-  [key: string]: unknown;
-}
 
 function UserNav() {
   const { data: session } = useSession();
@@ -152,9 +144,6 @@ function UserNav() {
 
 function DynamicBreadcrumb() {
   const pathname = usePathname();
-  const selectedYear = useAdminYearStore((s) => s.selectedYear);
-  const [shareholderName, setShareholderName] = useState<string>("");
-  const [isLoadingShareholder, setIsLoadingShareholder] = useState(false);
 
   // Türkçe karakter düzeltmeleri için eşleştirme fonksiyonu
   const turkishCorrections = (text: string): string => {
@@ -196,72 +185,12 @@ function DynamicBreadcrumb() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // API çağrıları ile sacrifice_no ve shareholder_name'i al
-  useEffect(() => {
-    const paths = pathname.split('/').filter(Boolean);
-
-    // Hissedar detay sayfası kontrolü: /kurban-admin/hissedarlar/ayrintilar/[id]
-    if (paths.length === 4 &&
-      paths[0] === 'kurban-admin' &&
-      paths[1] === 'hissedarlar' &&
-      paths[2] === 'ayrintilar') {
-      const shareholderId = paths[3];
-
-      setIsLoadingShareholder(true);
-      setShareholderName(""); // Reset previous value
-
-      // Shareholder API çağrısı - tüm hissedarları al ve ID ile eşleştir
-      const url = selectedYear != null
-        ? `/api/get-shareholders?year=${selectedYear}`
-        : '/api/get-shareholders';
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if (data.shareholders) {
-            const shareholder = data.shareholders.find((s: ShareholderData) => s.shareholder_id === shareholderId);
-            if (shareholder && shareholder.shareholder_name) {
-              setShareholderName(shareholder.shareholder_name);
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching shareholder data:', error);
-        })
-        .finally(() => {
-          setIsLoadingShareholder(false);
-        });
-    }
-
-    // Diğer sayfalarda state'i temizle
-    if (!(paths.length === 4 && paths[0] === 'kurban-admin' && paths[1] === 'hissedarlar' && paths[2] === 'ayrintilar')) {
-      setShareholderName("");
-      setIsLoadingShareholder(false);
-    }
-  }, [pathname, selectedYear]);
-
   const breadcrumbs = useMemo(() => {
     const paths = pathname.split('/').filter(Boolean);
 
     const pathItems = paths.map((path, index) => {
-      let formattedPath = turkishCorrections(path);
-      let shouldShowItem = true;
-
-      // Son path elementi ise (detay sayfası), özel isim kullan
-      if (index === paths.length - 1) {
-        // Hissedar detay sayfası için shareholder_name kullan
-        if (paths.length === 4 &&
-          paths[0] === 'kurban-admin' &&
-          paths[1] === 'hissedarlar' &&
-          paths[2] === 'ayrintilar') {
-          if (isLoadingShareholder) {
-            shouldShowItem = false; // Loading sırasında gösterme
-          } else if (shareholderName) {
-            formattedPath = shareholderName;
-          } else {
-            shouldShowItem = false; // Veri yoksa gösterme
-          }
-        }
-      }
+      const formattedPath = turkishCorrections(path);
+      const shouldShowItem = true;
 
       const fullPath = `/${paths.slice(0, index + 1).join('/')}`;
       const isActive = index === paths.length - 1;
@@ -275,7 +204,7 @@ function DynamicBreadcrumb() {
     });
 
     return pathItems;
-  }, [pathname, shareholderName, isLoadingShareholder]);
+  }, [pathname]);
 
   return (
     <Breadcrumb>

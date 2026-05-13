@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/sms/sends/[id]/cancel
  *
- * Yalnızca `draft` statüsündeki gönderimler iptal edilebilir.
+ * Yalnızca `draft` statüsündeki gönderimler iptal edilebilir (`admin` | `editor` | `super_admin`).
  * completed / partial_fail / failed durumlarında 400 döner.
  */
 import { authOptions } from "@/lib/auth";
@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_ROLES = new Set(["admin", "super_admin"]);
+const ALLOWED_ROLES = new Set(["admin", "editor", "super_admin"]);
 
 export async function POST(
   _request: NextRequest,

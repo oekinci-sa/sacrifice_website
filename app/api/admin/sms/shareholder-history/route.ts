@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
         `id,
          personalized_message,
          status,
-         dlr_status,
          sent_at,
          created_at,
          sms_parts,
@@ -56,16 +55,14 @@ export async function GET(request: NextRequest) {
 
     const history = (data ?? []).map((r) => {
       const send = r.sms_sends as unknown as { id: string; title: string };
+      const msg =
+        typeof r.personalized_message === "string" ? r.personalized_message : "";
       return {
         id: r.id,
         send_id: send?.id ?? null,
         send_title: send?.title ?? null,
-        message_summary:
-          typeof r.personalized_message === "string" && r.personalized_message.length > 80
-            ? r.personalized_message.slice(0, 80) + "…"
-            : r.personalized_message,
+        personalized_message: msg,
         status: r.status,
-        dlr_status: r.dlr_status ?? null,
         sms_parts: r.sms_parts ?? null,
         sent_at: r.sent_at ?? null,
         created_at: r.created_at,

@@ -3,9 +3,8 @@
  *
  * SMS istatistiklerini döner.
  *
- * İstatistik ayrımı:
+ * Metrikler:
  * - Operatöre iletilen SMS: sms_sends.sent_count toplamı (Bizim SMS API kabul etti)
- * - Telefona ulaşan SMS: sms_send_recipients.dlr_status=9 sayısı (DLR onaylı)
  *
  * excludeTest=true ise target_params.is_test=true olan gönderimler hariç tutulur.
  */
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get("year") ? parseInt(searchParams.get("year")!, 10) : null;
     const excludeTest = searchParams.get("excludeTest") === "true";
 
-    // sms_sends sorgusu
     let sendsQuery = supabaseAdmin
       .from("sms_sends")
       .select("id, status, sent_count, failed_count, total_recipients, created_at, target_params")
@@ -57,29 +55,6 @@ export async function GET(request: NextRequest) {
         })
       : allSends;
 
-    const sendIds = filteredSends.map((s) => s.id as string);
-
-    // DLR istatistikleri (sms_send_recipients)
-    let dlrPhoneDelivered = 0;
-    let dlrPhoneFailed = 0;
-    let dlrPending = 0;
-
-    if (sendIds.length > 0) {
-      const { data: dlrData, error: dlrError } = await supabaseAdmin
-        .from("sms_send_recipients")
-        .select("dlr_status, dlr_completed, dlr_id")
-        .in("send_id", sendIds);
-
-      if (!dlrError && dlrData) {
-        for (const r of dlrData) {
-          if (r.dlr_status === 9) dlrPhoneDelivered++;
-          else if (r.dlr_status === 6) dlrPhoneFailed++;
-          else if (r.dlr_id && !r.dlr_completed) dlrPending++;
-        }
-      }
-    }
-
-    // Toplam agregat
     const totalSends = filteredSends.length;
     const totalOperatorDelivered = filteredSends.reduce(
       (sum, s) => sum + (s.sent_count ?? 0),
@@ -90,9 +65,8 @@ export async function GET(request: NextRequest) {
       0
     );
 
-    // Aylık dağılım (son 6 ay)
     const now = new Date();
-    const monthlyMap: Record<string, { month: string; operator_delivered: number; phone_delivered: number }> = {};
+    const monthlyMap: Record<string, { month: string; operator_delivered: number }> = {};
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -100,7 +74,6 @@ export async function GET(request: NextRequest) {
       monthlyMap[key] = {
         month: d.toLocaleString("tr-TR", { month: "short", year: "numeric" }),
         operator_delivered: 0,
-        phone_delivered: 0,
       };
     }
 
@@ -112,17 +85,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // DLR başarı durumunu aylara dağıtmak için sms_send_recipients sent_at gerekir;
-    // şimdilik sms_sends'in created_at'ına göre tahmin etmiyoruz — istatistik kartında
-    // toplam phone_delivered gösterilir, grafik sadece operator_delivered üzerinden çalışır.
-
     return NextResponse.json({
       total_sends: totalSends,
       total_operator_delivered: totalOperatorDelivered,
       total_failed: totalFailed,
-      dlr_phone_delivered: dlrPhoneDelivered,
-      dlr_phone_failed: dlrPhoneFailed,
-      dlr_pending: dlrPending,
       monthly: Object.values(monthlyMap),
     });
   } catch (e) {

@@ -6,17 +6,44 @@ import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { VisibilityState } from "@tanstack/react-table";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AdminHissedarPdfDialog } from "./components/admin-hissedar-pdf-dialog";
-import { columns } from "./components/columns";
+import { getColumns } from "./components/columns";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { HissedarlarTableToolbar } from "./components/hissedarlar-table-toolbar";
+import { ShareholderSmsTimelineSheet } from "./components/shareholder-sms-timeline-sheet";
 import type { shareholderSchema } from "@/types";
+
+function ShareholderSmsHistoryFromQuery({
+  shareholders,
+  onMatch,
+}: {
+  shareholders: shareholderSchema[];
+  onMatch: (sh: shareholderSchema) => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    const id = searchParams.get("smsHistory");
+    if (!id || shareholders.length === 0) return;
+    const sh = shareholders.find((s) => s.shareholder_id === id);
+    if (!sh) return;
+    onMatch(sh);
+    router.replace("/kurban-admin/hissedarlar/tum-hissedarlar", { scroll: false });
+  }, [searchParams, shareholders, router, onMatch]);
+  return null;
+}
 
 export default function TumHissedarlarPage() {
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
+  const { sms_enabled: smsEnabled } = useTenantBranding();
+  const columns = useMemo(() => getColumns(smsEnabled), [smsEnabled]);
   const [searchTerm, setSearchTerm] = useState("");
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [pdfShareholder, setPdfShareholder] = useState<shareholderSchema | null>(null);
+  const [smsSheetOpen, setSmsSheetOpen] = useState(false);
+  const [smsSheetShareholder, setSmsSheetShareholder] = useState<shareholderSchema | null>(null);
   // Default column visibility - Vekalet gizli, Kayıt Tarihi ve Ödeme görünür (sonda)
   const [columnVisibility] = useState<VisibilityState>({
     notes: false,
@@ -58,6 +85,18 @@ export default function TumHissedarlarPage() {
   }, [selectedYear, isInitialized, allShareholders.length, fetchShareholders, enableRealtime, realtimeEnabled]);
 
   // Filter the data client-side based on search term
+  const openSmsHistory = useCallback((sh: shareholderSchema) => {
+    setSmsSheetShareholder(sh);
+    setSmsSheetOpen(true);
+  }, []);
+
+  const onSmsQueryMatch = useCallback(
+    (sh: shareholderSchema) => {
+      openSmsHistory(sh);
+    },
+    [openSmsHistory]
+  );
+
   const filteredShareholders = useMemo(() => {
     if (!allShareholders || !searchTerm.trim()) {
       return allShareholders || [];
@@ -113,6 +152,7 @@ export default function TumHissedarlarPage() {
               setPdfShareholder(sh);
               setPdfDialogOpen(true);
             },
+            openSmsHistory,
           }}
           initialState={{
             columnVisibility: columnVisibility
@@ -140,6 +180,20 @@ export default function TumHissedarlarPage() {
         onOpenChange={(open) => {
           setPdfDialogOpen(open);
           if (!open) setPdfShareholder(null);
+        }}
+      />
+      <Suspense fallback={null}>
+        <ShareholderSmsHistoryFromQuery
+          shareholders={allShareholders}
+          onMatch={onSmsQueryMatch}
+        />
+      </Suspense>
+      <ShareholderSmsTimelineSheet
+        shareholder={smsSheetShareholder}
+        open={smsSheetOpen}
+        onOpenChange={(open) => {
+          setSmsSheetOpen(open);
+          if (!open) setSmsSheetShareholder(null);
         }}
       />
     </div>

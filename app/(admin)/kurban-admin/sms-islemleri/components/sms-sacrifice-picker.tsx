@@ -15,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -37,7 +36,6 @@ interface Props {
 }
 
 const ALL_VALUE = "__sms_sac_all__";
-const PICK_ALL_VALUE = "__sms_pick_all_nos__";
 
 export function SmsSacrificePicker({
   options,
@@ -54,12 +52,18 @@ export function SmsSacrificePicker({
     [pickedSacrificeNos]
   );
 
-  const allOptionNos = useMemo(
+  const allSacrificeNos = useMemo(
     () => options.map((o) => o.sacrifice_no).sort((a, b) => a - b),
     [options]
   );
 
   const toggleNo = (no: number) => {
+    if (scope === "all") {
+      const next = allSacrificeNos.filter((n) => n !== no);
+      onScopeChange("picked");
+      onPickedNosChange(next);
+      return;
+    }
     onScopeChange("picked");
     const next = new Set(pickedSacrificeNos);
     if (next.has(no)) next.delete(no);
@@ -70,11 +74,6 @@ export function SmsSacrificePicker({
   const selectEntireYear = () => {
     onScopeChange("all");
     onPickedNosChange([]);
-  };
-
-  const selectAllListedNos = () => {
-    onScopeChange("picked");
-    onPickedNosChange([...allOptionNos]);
   };
 
   const triggerLabel =
@@ -128,22 +127,12 @@ export function SmsSacrificePicker({
                   </div>
                   <span>Tüm kurbanlıklar (seçili yıl)</span>
                 </CommandItem>
-                <CommandItem
-                  value={PICK_ALL_VALUE}
-                  onSelect={() => {
-                    selectAllListedNos();
-                    setOpen(false);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <span className="pl-6 text-sm">Listeden tümünü seç</span>
-                </CommandItem>
               </CommandGroup>
-              <Separator className="my-1" />
               <CommandGroup heading="Kurbanlık no">
                 {options.map((o) => {
                   const selected =
-                    scope === "picked" && pickedSet.has(o.sacrifice_no);
+                    scope === "all" ||
+                    (scope === "picked" && pickedSet.has(o.sacrifice_no));
                   return (
                     <CommandItem
                       key={o.sacrifice_id}

@@ -7,7 +7,6 @@
  * SMS gönderim: POST /api/smspost/v1  (XML body)
  * Kredi sorgu:  GET  /api/credit/v1
  * Originator:   GET  /api/originator/v1
- * DLR sorgu:    GET  /api/dlr/v1 (Faz 2)
  */
 
 export interface SmsSendMessage {
@@ -24,7 +23,6 @@ export interface SmsSendParams {
 
 export interface SmsSendSuccess {
   ok: true;
-  dlrId: number;
 }
 
 export interface SmsError {
@@ -54,6 +52,99 @@ const SMS_ERROR_MESSAGES: Record<string, string> = {
 
 function getSmsErrorMessage(code: string): string {
   return SMS_ERROR_MESSAGES[code] ?? `SMS API hatası (kod: ${code})`;
+}
+
+/** Varsayılan üretim adresi (`sms-config` ile aynı host). */
+const BIZIM_HTTPS_HOST_PREFIX = "https://api.sms.bizimsms.mobi";
+/** Bazı yerel ortamlarda Node/fetch ile HTTPS zaman zaman düşüyor; dokümantasyon örneği. */
+const BIZIM_DOC_HTTP_PREFIX = "http://sms.bizimsms.mobi:8080";
+
+/** Yalnızca development + varsayılan HTTPS tabanı için tek denemelik yedek URL. */
+function bizimSmsDevFallbackUrl(url: string): string | null {
+  if (process.env.NODE_ENV !== "development") return null;
+  if (!url.startsWith(BIZIM_HTTPS_HOST_PREFIX)) return null;
+  return url.replace(BIZIM_HTTPS_HOST_PREFIX, BIZIM_DOC_HTTP_PREFIX);
+}
+
+type BizimFetched = { ok: true; res: Response; text: string } | SmsError;
+
+async function fetchBizimGet(url: string, errorPrefix: string): Promise<BizimFetched> {
+  const headers = {
+    Accept: "text/plain, */*",
+    "User-Agent": "ankarakurban-sms/1.0",
+  } as const;
+
+  const attempt = async (u: string) => {
+    const res = await fetch(u, { method: "GET", headers });
+    const text = await res.text();
+    return { res, text };
+  };
+
+  try {
+    const { res, text } = await attempt(url);
+    return { ok: true, res, text };
+  } catch (e1) {
+    const alt = bizimSmsDevFallbackUrl(url);
+    if (!alt) {
+      return {
+        ok: false,
+        code: "NETWORK",
+        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}`,
+      };
+    }
+    try {
+      const { res, text } = await attempt(alt);
+      return { ok: true, res, text };
+    } catch {
+      return {
+        ok: false,
+        code: "NETWORK",
+        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}. Yerelde yedek HTTP adresi da başarısız. \`.env.local\` içinde BIZIM_SMS_API_BASE=http://sms.bizimsms.mobi:8080 deneyebilirsiniz.`,
+      };
+    }
+  }
+}
+
+async function fetchBizimPostXml(
+  url: string,
+  xml: string,
+  errorPrefix: string
+): Promise<BizimFetched> {
+  const init = {
+    method: "POST" as const,
+    headers: { "Content-Type": "text/xml; charset=utf-8" },
+    body: xml,
+  };
+
+  const attempt = async (u: string) => {
+    const res = await fetch(u, init);
+    const text = await res.text();
+    return { res, text };
+  };
+
+  try {
+    const { res, text } = await attempt(url);
+    return { ok: true, res, text };
+  } catch (e1) {
+    const alt = bizimSmsDevFallbackUrl(url);
+    if (!alt) {
+      return {
+        ok: false,
+        code: "NETWORK",
+        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}`,
+      };
+    }
+    try {
+      const { res, text } = await attempt(alt);
+      return { ok: true, res, text };
+    } catch {
+      return {
+        ok: false,
+        code: "NETWORK",
+        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}. Yerelde yedek HTTP adresi da başarısız. \`.env.local\` içinde BIZIM_SMS_API_BASE=http://sms.bizimsms.mobi:8080 deneyebilirsiniz.`,
+      };
+    }
+  }
 }
 
 /** 1-N veya N-N XML oluşturur. */
@@ -87,7 +178,7 @@ function buildSmsXml(params: SmsSendParams): string {
   return `<sms>\n  ${header}${dateTimeTag}\n  <messages>\n${mbTags}\n  </messages>\n</sms>`;
 }
 
-/** SMS gönderir. Başarıda dlrId döner; hata durumunda SmsError. */
+/** SMS gönderir. Başarıda Bizim SMS `00 …` yanıtı doğrulanır (iletim raporu uygulamada tutulmaz). */
 export async function sendSms(params: SmsSendParams): Promise<SmsSendResult> {
   if (!params.messages.length) {
     return { ok: false, code: "83", message: "Gönderilecek alıcı yok" };
@@ -96,26 +187,13 @@ export async function sendSms(params: SmsSendParams): Promise<SmsSendResult> {
   const xml = buildSmsXml(params);
   const url = `${params.credentials.apiBase}/api/smspost/v1`;
 
-  let responseText: string;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "text/xml; charset=utf-8" },
-      body: xml,
-    });
-    responseText = await res.text();
-  } catch (err) {
-    return {
-      ok: false,
-      code: "NETWORK",
-      message: `SMS API'ye bağlanılamadı: ${err instanceof Error ? err.message : String(err)}`,
-    };
-  }
+  const fetched = await fetchBizimPostXml(url, xml, "SMS API'ye bağlanılamadı");
+  if (!fetched.ok) return fetched;
 
+  const responseText = fetched.text;
   const trimmed = responseText.trim();
   if (trimmed.startsWith("00 ")) {
-    const dlrId = parseInt(trimmed.slice(3).trim(), 10);
-    return { ok: true, dlrId: isNaN(dlrId) ? 0 : dlrId };
+    return { ok: true };
   }
 
   const code = trimmed.split(" ")[0];
@@ -130,24 +208,10 @@ export async function queryCredit(credentials: {
 }): Promise<SmsCreditResult> {
   const url = `${credentials.apiBase}/api/credit/v1?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}`;
 
-  let res: Response;
-  let responseText: string;
-  try {
-    res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "text/plain, */*",
-        "User-Agent": "ankarakurban-sms/1.0",
-      },
-    });
-    responseText = await res.text();
-  } catch (err) {
-    return {
-      ok: false,
-      code: "NETWORK",
-      message: `Kredi sorgusu başarısız: ${err instanceof Error ? err.message : String(err)}`,
-    };
-  }
+  const fetched = await fetchBizimGet(url, "Kredi sorgusu başarısız");
+  if (!fetched.ok) return fetched;
+
+  const { res, text: responseText } = fetched;
 
   if (!res.ok) {
     return {
@@ -172,81 +236,6 @@ export async function queryCredit(credentials: {
   return { ok: false, code, message: getSmsErrorMessage(code) };
 }
 
-// ─── DLR (İletim Raporu) ───────────────────────────────────────────────────
-
-export interface DlrEntry {
-  /** API'den dönen ham telefon numarası (normalize edilmemiş). */
-  phone: string;
-  /** 0=Bekliyor, 5=Operatöre iletildi, 6=Ulaşmadı, 9=Telefona ulaştı */
-  status: 0 | 5 | 6 | 9;
-}
-
-export interface SmsQueryDlrSuccess {
-  ok: true;
-  /** 25=DLR güncellenmeye devam ediyor, 23=Rapor finalize */
-  operationCode: 25 | 23;
-  /** operationCode=23 ise true — dlr_completed=true yapılabilir */
-  isFinal: boolean;
-  entries: DlrEntry[];
-}
-
-export type SmsQueryDlrResult = SmsQueryDlrSuccess | SmsError;
-
-/**
- * Belirli bir dlrId için iletim raporu sorgular.
- *
- * Başarılı yanıt formatı: `25 905551234567 9|905557654321 6|...`
- * Operasyon kodu (25/23) ayrı, alıcı durum kodu (0/5/6/9) ayrı parse edilir.
- */
-export async function queryDlr(
-  credentials: { username: string; password: string; apiBase: string },
-  dlrId: number
-): Promise<SmsQueryDlrResult> {
-  const url = `${credentials.apiBase}/api/dlr/v1?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}&id=${dlrId}`;
-
-  let responseText: string;
-  try {
-    const res = await fetch(url, { method: "GET" });
-    responseText = await res.text();
-  } catch (err) {
-    return {
-      ok: false,
-      code: "NETWORK",
-      message: `DLR sorgusu başarısız: ${err instanceof Error ? err.message : String(err)}`,
-    };
-  }
-
-  const trimmed = responseText.trim();
-  const spaceIdx = trimmed.indexOf(" ");
-  const codeStr = spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx);
-  const rest = spaceIdx === -1 ? "" : trimmed.slice(spaceIdx + 1);
-  const opCode = parseInt(codeStr, 10);
-
-  if (opCode === 25 || opCode === 23) {
-    const entries: DlrEntry[] = [];
-    if (rest) {
-      for (const block of rest.split("|")) {
-        const parts = block.trim().split(/\s+/);
-        if (parts.length >= 2) {
-          const phone = parts[0];
-          const statusNum = parseInt(parts[parts.length - 1], 10);
-          if ([0, 5, 6, 9].includes(statusNum)) {
-            entries.push({ phone, status: statusNum as 0 | 5 | 6 | 9 });
-          }
-        }
-      }
-    }
-    return {
-      ok: true,
-      operationCode: opCode as 25 | 23,
-      isFinal: opCode === 23,
-      entries,
-    };
-  }
-
-  return { ok: false, code: codeStr, message: getSmsErrorMessage(codeStr) };
-}
-
 /** Onaylı SMS başlıklarını sorgular. */
 export async function queryOriginators(credentials: {
   username: string;
@@ -255,24 +244,10 @@ export async function queryOriginators(credentials: {
 }): Promise<{ ok: true; originators: string[] } | SmsError> {
   const url = `${credentials.apiBase}/api/originator/v1?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}`;
 
-  let res: Response;
-  let responseText: string;
-  try {
-    res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "text/plain, */*",
-        "User-Agent": "ankarakurban-sms/1.0",
-      },
-    });
-    responseText = await res.text();
-  } catch (err) {
-    return {
-      ok: false,
-      code: "NETWORK",
-      message: `Originator sorgusu başarısız: ${err instanceof Error ? err.message : String(err)}`,
-    };
-  }
+  const fetched = await fetchBizimGet(url, "Originator sorgusu başarısız");
+  if (!fetched.ok) return fetched;
+
+  const { res, text: responseText } = fetched;
 
   if (!res.ok) {
     return {

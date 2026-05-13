@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
     }
 
     const seenDedup = new Set<string>();
-    let totalRecipients = recipients.length;
+    const totalRecipients = recipients.length;
     let excludedCount = 0;
     const allEmptyVarsByName = new Map<string, number>();
 
@@ -317,6 +317,11 @@ export async function POST(request: NextRequest) {
         sacrifice_id_db: r.sacrifice_id ?? null,
       };
     });
+
+    const excludedInvalidPhone = processedRecipients.filter(
+      (r) => r.skipReason === "invalid_phone"
+    ).length;
+    const excludedDuplicatePhone = processedRecipients.filter((r) => r.skipReason === "duplicate").length;
 
     const toSend = processedRecipients.filter((r) => !r.skipReason && r.normalized);
 
@@ -425,6 +430,8 @@ export async function POST(request: NextRequest) {
           sent: 0,
           failed: 0,
           excluded: excludedCount,
+          excluded_invalid_phone: excludedInvalidPhone,
+          excluded_duplicate_phone: excludedDuplicatePhone,
           warnings,
         },
         { status: 400 }
@@ -441,20 +448,17 @@ export async function POST(request: NextRequest) {
     let sentCount = 0;
     let failedCount = 0;
     let finalStatus: string;
-    let dlrId: number | null = null;
 
     if (smsResult.ok) {
       sentCount = toSend.length;
       failedCount = 0;
       finalStatus = "completed";
-      dlrId = smsResult.dlrId;
 
       await supabaseAdmin
         .from("sms_send_recipients")
         .update({
           status: "sent",
           sent_at: new Date().toISOString(),
-          dlr_id: dlrId || null,
         })
         .eq("send_id", sendId)
         .eq("status", "queued");
@@ -494,6 +498,8 @@ export async function POST(request: NextRequest) {
           sent: 0,
           failed: failedCount,
           excluded: excludedCount,
+          excluded_invalid_phone: excludedInvalidPhone,
+          excluded_duplicate_phone: excludedDuplicatePhone,
           warnings,
         },
         { status: 502 }
@@ -506,7 +512,8 @@ export async function POST(request: NextRequest) {
       sent: sentCount,
       failed: failedCount,
       excluded: excludedCount,
-      dlrId,
+      excluded_invalid_phone: excludedInvalidPhone,
+      excluded_duplicate_phone: excludedDuplicatePhone,
       warnings,
     });
   } catch (e) {

@@ -13,6 +13,8 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `pages/` | Sayfa açıklamaları (public, admin) |
 | `db/` | Veritabanı şeması: tablolar, view'lar, trigger'lar, operational script'ler |
 | `tools-versions.md` | Kullanılan paketler ve versiyonları |
+| `sms-operations.md` | Bizim SMS backend akışı, API listesi, dedup mantığı özeti |
+| `sms-admin-and-tenant-flag.md` | Tenant `sms_enabled`; sidebar/Hissedar sütunu; PDF sırası; süper admin toggle; hissedar SMS sheet davranışı |
 
 ## db/ Alt Yapısı
 

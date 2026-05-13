@@ -1,5 +1,7 @@
 /**
- * Aynı kurbanlıkta aynı numara → tek mesaj; farklı kurbanlıkta aynı numara → ayrı mesaj.
+ * Tekilleştirme yalnızca normalize cep numarası ile yapılır; isim kullanılmaz.
+ * Aynı kurbanlıkta aynı cebe → tek gönderim. Farklı kurbanlıkta aynı cebe → ayrı gönderim.
+ * Kurban bağlamı yoksa hissedar kimliği; o da yoksa yalnızca telefon ile anahtar.
  */
 export function smsRecipientDedupKey(
   normalizedPhone: string,

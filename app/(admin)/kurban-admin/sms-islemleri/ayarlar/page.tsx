@@ -126,10 +126,8 @@ export default function SmsAyarlarPage() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               <span className="text-muted-foreground">Sağlayıcı</span>
               <span className="font-medium">Bizim SMS</span>
-              <span className="text-muted-foreground">API Adresi</span>
-              <span className="font-mono text-xs">api.sms.bizimsms.mobi</span>
-              <span className="text-muted-foreground">Kullanıcı adı / başlık</span>
-              <span className="font-mono text-xs text-muted-foreground">(sunucu ortamında)</span>
+              <span className="text-muted-foreground">API adresi</span>
+              <span className="text-xs break-all">api.sms.bizimsms.mobi</span>
             </div>
           </CardContent>
         </Card>
@@ -187,7 +185,7 @@ export default function SmsAyarlarPage() {
           ) : (
             <div className="flex flex-wrap gap-2">
               {originators.map((o) => (
-                <Badge key={o} variant="secondary" className="font-mono">
+                <Badge key={o} variant="secondary">
                   {o}
                 </Badge>
               ))}

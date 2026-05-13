@@ -2,12 +2,15 @@
 
 Admin panelinde SMS gönderim modülü — Bizim SMS API entegrasyonu.
 
+**UI, `sms_enabled`, Tüm Hissedarlar SMS sütunu / PDF sırası, hissedar zaman çizelgesi:** [sms-admin-and-tenant-flag.md](./sms-admin-and-tenant-flag.md)
+
 ## Genel Bilgi
 
-- **Başlangıç tenantı:** Yalnızca `ankarakurban` (`KAHRAMANKAZAN_TENANT_ID`)
 - **Sağlayıcı:** [Bizim SMS](https://api.sms.bizimsms.mobi)
 - **API Belgeler:** `.sms-api-docs/bizim-sms/`
-- **Faz durumu:** Faz 1 tamamlandı, Faz 2 tamamlandı
+- **Faz durumu:** Faz 1 ve Faz 2 tamamlandı. Bizim SMS iletim raporu (DLR) uygulama ve veritabanında takip edilmez.
+- **Gerçek gönderim kimliği:** `lib/sms-config.ts` → `getSmsCredentials(tenantId)` şu an yalnızca **`KAHRAMANKAZAN_TENANT_ID`** için Bizim SMS kullanıcı/şifre/originator döndürür; diğer tenant’larda `null` olur ve `POST …/sms/send` 503 ile düşer (env eksik olduğunda da aynı).
+- **Modül görünürlüğü (sidebar + hissedar SMS sütunu):** `tenant_settings.sms_enabled`. Düzenleme: süper admin, Organizasyon Ayarları (`PATCH /api/admin/tenant-settings/[tenantId]` ile `sms_enabled`). Detay: [sms-admin-and-tenant-flag.md](./sms-admin-and-tenant-flag.md).
 
 ## Ortam Değişkenleri
 
@@ -22,9 +25,10 @@ BIZIM_SMS_API_BASE=https://api.sms.bizimsms.mobi  # opsiyonel, varsayılan bu
 
 | Tablo | Açıklama |
 |---|---|
-| `sms_templates` | Yeniden kullanılabilir SMS şablonları (kategori, değişken listesi) |
+| `tenant_settings.sms_enabled` | Bu tenant için admin’de SMS menüsü ve Tüm Hissedarlar SMS sütununun görünürlüğü (`BOOLEAN DEFAULT FALSE`; DDL bkz. `db/tables/tenant_settings/table.sql`). |
+| `sms_templates` | Yeniden kullanılabilir SMS şablonları (kategori, değişken listesi); `DELETE` route soft delete |
 | `sms_sends` | Her gönderim grubu (tekil/toplu, durum, sayılar, idempotency) |
-| `sms_send_recipients` | Her gönderimin bireysel alıcıları |
+| `sms_send_recipients` | Her gönderimin bireysel alıcıları (`personalized_message`, `status`, `skip_reason`) |
 | `sms_auto_rules` | **Faz 3'te eklenecek** |
 
 Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
@@ -33,18 +37,20 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 
 | Dosya | İşlev |
 |---|---|
-| `lib/sms-client.ts` | Bizim SMS API wrapper (sendSms, queryCredit, queryOriginators, queryDlr) |
+| `lib/sms-client.ts` | Bizim SMS API wrapper (sendSms, queryCredit, queryOriginators) |
 | `lib/sms-character-counter.ts` | TR/EN karakter sayma ve SMS boy hesaplama |
-| `lib/sms-config.ts` | Tenant bazlı kimlik bilgisi çözümleme |
-| `lib/sms-phone-normalizer.ts` | Ham telefon → 12 hane Bizim SMS formatı |
+| `lib/sms-config.ts` | Tenant bazlı Bizim SMS kimlik bilgisi çözümleme |
+| `lib/sms-phone-normalizer.ts` | Ham telefon → 12 hane Bizim SMS formatı (`normalizePhone`, `isValidPhone`) |
+| `lib/sms-dedup.ts` | Mükerrer alıcı anahtarı: normalize cep + kurban bağlamı; **isim yok** |
+| `lib/sms-send-title-display.ts` | Hissedar zaman çizelgesinde otomatik başlıktaki tekrar tarih kalıplarını kısaltır |
 
 ## API Routes — Faz 1
 
 | Route | Method | Açıklama |
 |---|---|---|
-| `/api/admin/sms/templates` | GET, POST | Şablon listesi ve oluşturma |
+| `/api/admin/sms/templates` | GET, POST | Şablon listesi (`active=true` varsayılan; pasifler için `inactive=true`) ve oluşturma |
 | `/api/admin/sms/templates/[id]` | PUT, DELETE | Şablon güncelleme ve soft delete |
-| `/api/admin/sms/recipients` | GET | SMS alıcı listesi (yıl/kurban bazlı) |
+| `/api/admin/sms/recipients` | GET | SMS alıcı listesi (yıl/kurban bazlı); `deliveryFilter=all\|slaughterhouse\|other` ile teslimat tercihi süzme |
 | `/api/admin/sms/send` | POST | SMS gönderimi (validasyon + kredi + dedup + API) |
 | `/api/admin/sms/sends` | GET | Gönderim geçmişi |
 | `/api/admin/sms/sends/[id]` | GET | Gönderim detayı (per-recipient) |
@@ -55,10 +61,10 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 |---|---|---|
 | `/api/admin/sms/credit` | GET | Canlı kredi bakiyesi (super_admin) |
 | `/api/admin/sms/originators` | GET | Onaylı SMS başlıkları (super_admin) |
-| `/api/admin/sms/stats` | GET | İstatistikler |
+| `/api/admin/sms/stats` | GET | Operatör kabul / başarısız özeti ve aylık dağılım (telefon ulaşım DLR saklanmaz) |
 | `/api/admin/sms/sends/[id]/cancel` | POST | Taslak gönderim iptali (admin/super_admin) |
 | `/api/admin/sms/sends/[id]/retry` | POST | Başarısız alıcıları yeni kayıtla yeniden dene |
-| `/api/admin/sms/shareholder-history` | GET | Hissedar bazlı SMS geçmişi |
+| `/api/admin/sms/shareholder-history` | GET | Hissedar bazlı son 50 gönderim alıcı satırı; yanıtta `personalized_message` |
 
 ## `POST /api/admin/sms/send` İş Akışı
 
@@ -74,6 +80,21 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 10. Sonuçlar DB'ye yazılır
 
 **Test SMS:** `target_params.is_test: true` işaretlenerek gönderilir. İstatistiklerde `excludeTest=true` ile hariç tutulabilir.
+
+### Başarılı yanıtta dışlanma kırılımı
+
+Başarılı veya bazı hata cevaplarında (örn. bazı gönderilerde gönderilecek kalmadan 400):
+
+- `excluded`: toplam dışlanan alıcı
+- `excluded_invalid_phone`: geçersiz telefon nedeniyle
+- `excluded_duplicate_phone`: dedup nedeniyle (aynı kurbanlıkta aynı normalize cep ile ikinci kayıt; **isim dikkate alınmaz**)
+
+İstemci (SMS Gönder sayfası) toast’ta bu alanları Türkçe açıklar.
+
+## Tenant ayarları ve organizasyon yüzeyi
+
+- `sms_enabled`: [sms-admin-and-tenant-flag.md](./sms-admin-and-tenant-flag.md) ve `tenant_settings` DDL.
+- Super admin güncelleme: `PATCH /api/admin/tenant-settings/[tenantId]` gövdesinde `{ "sms_enabled": true|false }`.
 
 ## Retry Akışı (Faz 2)
 
@@ -162,10 +183,14 @@ Hedef: `905xxxxxxxxx` (12 hane)
 | Retry (başarısız) | — | ✓ | ✓ |
 | SMS Ayarları (kredi/originator/test) | — | — | ✓ |
 
-## Tenant Genişletme
+## Tenant genişletme (yeni marka veya kurum)
 
-SMS modülü başlangıçta `KAHRAMANKAZAN_TENANT_ID` ile kısıtlı.  
-Elya için aktifleştirmek: `app-sidebar.tsx` → `sms-operations` → `allowedTenantIds` dizisine `GOLBASI_TENANT_ID` ekle. `lib/sms-config.ts`'e Elya kimlik bilgilerini ekle.
+Eski yaklaşım (`app-sidebar.tsx` ile sabit UUID listesi) kaldırılmıştır. Yapılması gerekenler:
+
+1. **DB:** İlgili `tenant_settings` satırında `sms_enabled = true` (Organizasyon Ayarları ile veya SQL).
+2. **Kimlik:** `lib/sms-config.ts` içinde ilgili `tenant_id` için Bizim SMS `username` / şifre / originator döndürün; gerekiyorsa ortam değişkeni adları ekleyin (`getSmsCredentials`).
+
+Yalnızca (1) yapılıp (2) yapılmazsa menü açılabilir ancak gönderim **SMS API yapılandırması eksik** ile 503 verir.
 
 ## Faz 3 — Otomasyon (Gelecek)
 

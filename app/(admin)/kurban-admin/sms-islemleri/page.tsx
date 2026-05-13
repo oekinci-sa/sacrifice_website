@@ -42,6 +42,8 @@ type TargetType =
   | "single_phone"
   | "shareholder_pick";
 
+type DeliveryRecipientScope = "all" | "slaughterhouse" | "other";
+
 type Recipient = RecipientTableRow;
 
 interface SmsTemplate {
@@ -55,6 +57,38 @@ const BULK_LOADING_TARGETS: TargetType[] = [
   "sacrifice_range",
   "after_sacrifice_no",
 ];
+
+/** Sunucunun döndürdüğü dışlanma kırılımıyla tamamlayıcı toast metni */
+function formatSmsSentToastDescription(data: {
+  sent: number;
+  excluded?: number;
+  excluded_invalid_phone?: number;
+  excluded_duplicate_phone?: number;
+  warnings?: string[];
+}): string {
+  const extras: string[] = [];
+  extras.push(`${data.sent} ileti operatöre iletildi.`);
+  const excluded = Number(data.excluded ?? 0);
+  if (excluded > 0) {
+    const inv =
+      typeof data.excluded_invalid_phone === "number" ? data.excluded_invalid_phone : null;
+    const dup =
+      typeof data.excluded_duplicate_phone === "number"
+        ? data.excluded_duplicate_phone
+        : null;
+    if (inv !== null && dup !== null) {
+      extras.push(
+        `Dışlanan: ${excluded} (${inv} geçersiz telefon, ${dup} mükerrer cep — aynı kurbanlıkta aynı numara; isim kullanılmaz.)`
+      );
+    } else {
+      extras.push(`Dışlanan: ${excluded}.`);
+    }
+  }
+  if (data.warnings?.length) {
+    extras.push(`⚠️ ${data.warnings[0]}`);
+  }
+  return extras.join(" ");
+}
 
 function mapTargetTypeForApi(tt: TargetType): string {
   switch (tt) {
@@ -96,6 +130,9 @@ export default function SmsGonderPage() {
   const [pickedShareholders, setPickedShareholders] = useState<ShareholderPickValue[]>([]);
   const [messageContent, setMessageContent] = useState("");
   const [deduplicatePhones, setDeduplicatePhones] = useState(true);
+  /** Toplu hedeflerde teslimat tercihine göre alıcı süzme */
+  const [deliveryRecipientScope, setDeliveryRecipientScope] =
+    useState<DeliveryRecipientScope>("all");
   const [templates, setTemplates] = useState<SmsTemplate[]>([]);
   const [sacrificeOptions, setSacrificeOptions] = useState<SacrificeOptionRow[]>([]);
   const [recipients, setRecipients] = useState<Recipient[]>([]);
@@ -200,6 +237,9 @@ export default function SmsGonderPage() {
           params.set("sacrificeNoFrom", rangeFrom.trim());
           params.set("sacrificeNoTo", rangeTo.trim());
         }
+        if (deliveryRecipientScope !== "all") {
+          params.set("deliveryFilter", deliveryRecipientScope);
+        }
 
         const res = await fetch(`/api/admin/sms/recipients?${params}`);
         const data = await res.json();
@@ -231,6 +271,7 @@ export default function SmsGonderPage() {
       afterSacrificeNo,
       rangeFrom,
       rangeTo,
+      deliveryRecipientScope,
     ]
   );
 
@@ -241,7 +282,17 @@ export default function SmsGonderPage() {
       void loadRecipients({ silent: true });
     }, 450);
     return () => window.clearTimeout(id);
-  }, [selectedYear, targetType, loadRecipients, kurbanScope, pickedSacrificeNos, afterSacrificeNo, rangeFrom, rangeTo]);
+  }, [
+    selectedYear,
+    targetType,
+    loadRecipients,
+    kurbanScope,
+    pickedSacrificeNos,
+    afterSacrificeNo,
+    rangeFrom,
+    rangeTo,
+    deliveryRecipientScope,
+  ]);
 
   useEffect(() => {
     if (targetType !== "shareholder_pick") return;
@@ -400,6 +451,9 @@ export default function SmsGonderPage() {
       target_params.sacrifice_no_from = parseInt(rangeFrom, 10);
       target_params.sacrifice_no_to = parseInt(rangeTo, 10);
     }
+    if (BULK_LOADING_TARGETS.includes(targetType) && deliveryRecipientScope !== "all") {
+      target_params.delivery_recipient_scope = deliveryRecipientScope;
+    }
 
     try {
       const res = await fetch("/api/admin/sms/send", {
@@ -423,7 +477,7 @@ export default function SmsGonderPage() {
       if (res.ok && data.ok) {
         toast({
           title: "SMS gönderildi",
-          description: `${data.sent} kişiye operatöre iletildi. Dışlanan: ${data.excluded}.${data.warnings?.length ? ` ⚠️ ${data.warnings[0]}` : ""}`,
+          description: formatSmsSentToastDescription(data),
         });
         setMessageContent("");
         setRecipients([]);
@@ -462,12 +516,24 @@ export default function SmsGonderPage() {
           description: `${removed} satır gönderim listesinden çıkarıldı.`,
         });
       }
+      if (targetType === "sacrifice_all" && kurbanScope === "picked") {
+        const present = new Set<number>();
+        for (const r of next) {
+          if (r.sacrifice_no != null && Number.isFinite(r.sacrifice_no)) {
+            present.add(r.sacrifice_no);
+          }
+        }
+        setPickedSacrificeNos(Array.from(present).sort((a, b) => a - b));
+      }
       return next;
     });
   };
 
   const removeSacrificeGroup = (sacrificeNo: number) => {
     setRecipients((prev) => prev.filter((r) => r.sacrifice_no !== sacrificeNo));
+    if (targetType === "sacrifice_all" && kurbanScope === "picked") {
+      setPickedSacrificeNos((p) => p.filter((n) => n !== sacrificeNo));
+    }
     toast({
       title: "Kurbanlık çıkarıldı",
       description: `Kurbanlık ${sacrificeNo} için tüm satırlar listeden kaldırıldı.`,
@@ -625,6 +691,30 @@ export default function SmsGonderPage() {
 
           {showDedup && (
             <>
+              {BULK_LOADING_TARGETS.includes(targetType) && (
+                <div className="space-y-2 pt-2 border-t">
+                  <Label htmlFor="sms-delivery-scope">Teslimat kapsamı</Label>
+                  <Select
+                    value={deliveryRecipientScope}
+                    onValueChange={(v) =>
+                      setDeliveryRecipientScope(v as DeliveryRecipientScope)
+                    }
+                  >
+                    <SelectTrigger id="sms-delivery-scope" className="max-w-md">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Herkese (tüm teslim tercihleri)</SelectItem>
+                      <SelectItem value="slaughterhouse">
+                        Yalnızca kesimhanede teslim alacaklar
+                      </SelectItem>
+                      <SelectItem value="other">
+                        Yalnızca kesimhane dışında teslim (Ulus, adrese teslim vb.)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2 pt-2 border-t">
                 <Label htmlFor="dedup-toggle" className="text-sm leading-snug">
                   Aynı kurbanlıkta tekrarlayan numarayı birleştir
@@ -636,8 +726,9 @@ export default function SmsGonderPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Açıkken: aynı kurbanlıkta aynı numaraya tek SMS. Farklı
-                kurbanlıklarda aynı kişiye ayrı SMS gider.
+                Açıkken: yalnızca normalize cep numarası kullanılır (isim kullanılmaz). Aynı
+                kurbanlıkta aynı cebe tek SMS; farklı numaralı ayrı iletileri gider. Farklı
+                kurbanlıklarda aynı cep için ayrı SMS kaydı oluşur.
               </p>
             </>
           )}

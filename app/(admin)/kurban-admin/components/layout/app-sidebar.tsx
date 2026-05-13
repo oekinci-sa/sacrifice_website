@@ -31,7 +31,6 @@ import {
   Truck,
   UserCog
 } from "lucide-react"
-import { KAHRAMANKAZAN_TENANT_ID } from "@/lib/tenant-resolver"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
@@ -66,12 +65,10 @@ const mainNavItems: NavItem[] = [
     url: "/kurban-admin/sms-islemleri",
     icon: MessageSquare,
     roles: ["admin", "editor", "super_admin"],
-    allowedTenantIds: [KAHRAMANKAZAN_TENANT_ID],
     items: [
       { id: "sms-send", title: "SMS Gönder", url: "/kurban-admin/sms-islemleri", icon: Send, roles: ["admin", "editor", "super_admin"] },
-      { id: "sms-templates", title: "SMS Şablonları", url: "/kurban-admin/sms-islemleri/sablonlari", icon: NotebookText, roles: ["admin", "editor", "super_admin"] },
-      { id: "sms-bulk", title: "Kayıtlı Toplu Gönderimler", url: "/kurban-admin/sms-islemleri/kayitli-toplu-gonderimleri", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
       { id: "sms-history", title: "Gönderim Geçmişi", url: "/kurban-admin/sms-islemleri/gecmis", icon: History, roles: ["admin", "editor", "super_admin"] },
+      { id: "sms-templates", title: "SMS Şablonları", url: "/kurban-admin/sms-islemleri/sablonlari", icon: NotebookText, roles: ["admin", "editor", "super_admin"] },
       { id: "sms-settings", title: "SMS Ayarları", url: "/kurban-admin/sms-islemleri/ayarlar", icon: Settings, roles: ["super_admin"] },
     ],
   },
@@ -87,7 +84,7 @@ const separatorAfterIds = ["all-shareholders", "teslimatlar", "reservations"];
 
 export function AppSidebar() {
   const { data: session } = useSession()
-  const { logo_slug: logoSlug, tenant_id: currentTenantId } = useTenantBranding()
+  const { logo_slug: logoSlug, tenant_id: currentTenantId, sms_enabled: smsEnabled } = useTenantBranding()
   const pathname = usePathname()
   const selectedYear = useAdminYearStore((s) => s.selectedYear)
   const { count: unreadContactCount, isLoading: unreadContactLoading } = useUnreadContactMessagesCount(selectedYear)
@@ -132,6 +129,7 @@ export function AppSidebar() {
 
   const filteredMainItems = mainNavItems.filter(item => {
     const roleOk = !item.roles || (session?.user?.role && item.roles.includes(session.user.role as Exclude<UserRole, null>))
+    if (item.id === "sms-operations") return roleOk && smsEnabled
     const tenantOk = !item.allowedTenantIds || item.allowedTenantIds.includes(currentTenantId ?? "")
     return roleOk && tenantOk
   })

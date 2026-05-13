@@ -26,6 +26,8 @@ CREATE TABLE tenant_settings (
   agreement_footer_text TEXT,
   agreement_notice_after_term_title TEXT,
   agreement_notice_after_term_body TEXT,
+  -- SMS modülü bu tenant için etkin mi (Bizim SMS entegrasyonu). Varsayılan: FALSE.
+  sms_enabled     BOOLEAN NOT NULL DEFAULT FALSE,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

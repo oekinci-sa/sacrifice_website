@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
     const tenantId = getTenantId();
     const category =
       request.nextUrl.searchParams.get("category") ?? undefined;
+    const inactiveOnly =
+      request.nextUrl.searchParams.get("inactive") === "true";
     const activeOnly =
       request.nextUrl.searchParams.get("active") !== "false";
 
@@ -39,7 +41,11 @@ export async function GET(request: NextRequest) {
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
-    if (activeOnly) query = query.eq("is_active", true);
+    if (inactiveOnly) {
+      query = query.eq("is_active", false);
+    } else if (activeOnly) {
+      query = query.eq("is_active", true);
+    }
     if (category) query = query.eq("category", category);
 
     const { data, error } = await query;

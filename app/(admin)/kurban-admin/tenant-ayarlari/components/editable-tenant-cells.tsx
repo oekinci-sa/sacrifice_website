@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrencyForInput, formatPhoneForInput, parseCurrencyFromInput } from "@/utils/formatters";
 import { Row } from "@tanstack/react-table";
@@ -399,6 +400,57 @@ export function EditableHomepageModeCell({
 
   return (
     <EditableCellWrapper display={display} onEdit={() => { setValue(current); setEditing(true); }} />
+  );
+}
+
+/** SMS aktif/pasif toggle hücresi — anlık kayıt. */
+export function SmsEnabledToggleCell({
+  row,
+  onSuccess,
+}: {
+  row: Row<TenantSettingRow>;
+  onSuccess: () => void;
+}) {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const current = Boolean(row.original.sms_enabled);
+
+  const toggle = useCallback(async () => {
+    const next = !current;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/tenant-settings/${row.original.tenant_id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sms_enabled: next }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Güncelleme başarısız");
+      }
+      toast({ title: next ? "SMS modülü aktif edildi" : "SMS modülü pasif edildi" });
+      onSuccess();
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: err instanceof Error ? err.message : "Güncelleme başarısız",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [current, row.original.tenant_id, onSuccess, toast]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <Switch
+        checked={current}
+        onCheckedChange={() => void toggle()}
+        disabled={saving}
+        aria-label="SMS modülü"
+      />
+      {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+    </div>
   );
 }
 

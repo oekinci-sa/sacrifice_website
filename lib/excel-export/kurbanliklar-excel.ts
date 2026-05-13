@@ -102,7 +102,7 @@ function buildKurbanliklarRow(
   return cells;
 }
 
-function cellToString(value: unknown, original: sacrificeSchema): string {
+function cellToString(value: unknown, _original: sacrificeSchema): string {
   if (value == null || value === "") return "";
   if (typeof value === "object" && value !== null && "sacrifice_no" in value) {
     return String((value as { sacrifice_no?: number }).sacrifice_no ?? "");

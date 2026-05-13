@@ -69,21 +69,23 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 
 ## SMS İşlemleri (Bizim SMS) — Faz 1
 
-- **Kapsam:** Yalnızca `ankarakurban` tenantında görünür (`allowedTenantIds` sidebar filtresi).
-- **Sayfalar:** `/kurban-admin/sms-islemleri` (gönder), `/sablonlari` (şablon CRUD), `/kayitli-toplu-gonderimleri`, `/gecmis`, `/ayarlar` (super_admin)
-- **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu (max 200 alıcı), dedup, kredi hard-block, `idempotency_key` zorunlu, Bizim SMS 1-N/N-N XML
-- **Şablon değişkenleri:** `{{ad_soyad}}`, `{{hayvan_no}}`, `{{kalan_tutar}}`, `{{kesim_saati}}` vb. (16 değişken)
-- **Durum:** "Operatöre gönderildi" (operatöre iletim).
-- **Detay:** `.project-architecture/sms-operations.md`
+- **Görünürlük:** `tenant_settings.sms_enabled` ile kontrol (`TenantBranding`); sidebar’daki SMS menüsü ve Tüm Hissedarlar’daki SMS sütunu. Super admin düzenlemesi: Organizasyon Ayarları. Dokümantasyon: `.project-architecture/sms-admin-and-tenant-flag.md`
+- **Sütun sırası:** SMS kolonunun **varsayılan** konumu PDF kolonunun **solunda** (`getColumns` + `columns.tsx`).
+- **Sayfalar:** `/kurban-admin/sms-islemleri`, `/sablonlari`, `/gecmis`, `/ayarlar` (`super_admin`). `/kayitli-toplu-gonderimleri` doğrudan URL (sidebar’da kalemi yok).
+- **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu (max 200), dedup, kredi blok, `idempotency_key` zorunlu; Bizim SMS 1-N/N-N XML; başarılı cevaplarda `excluded_invalid_phone` / `excluded_duplicate_phone`.
+- **Şablon listesi / silme:** Pasifler `GET …/templates?inactive=true`; `DELETE …/templates/[id]` satır silmez, `is_active=false` (soft delete).
+- **Şablon değişkenleri:** 16 kalıp; bkz. `sms-operations.md`.
+- **Durum ifadesi:** Operatöre iletim (DLR takibi uygulanmıyor).
+- **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
 
 ## SMS İşlemleri (Bizim SMS) — Faz 2
 
-- **Gönderim iptali:** `POST /api/admin/sms/sends/[id]/cancel` — yalnızca `status=draft`. UI'da tamamlanmış/başarısız kayıtlar için buton gösterilmez.
-- **Retry:** `POST /api/admin/sms/sends/[id]/retry` — başarısız alıcılar için **yeni** `sms_sends` kaydı açılır; `target_params.retry_of` referansı tutulur. Kredi kontrolü tekrar yapılır.
-- **Kredi / Originator / Test SMS:** `GET /api/admin/sms/credit`, `GET /api/admin/sms/originators`, test SMS `target_params.is_test=true` — tamamı `super_admin` API kontrolü.
-- **İstatistikler:** `GET /api/admin/sms/stats` — gönderim ve alıcı metrikleri; `excludeTest=true` ile test gönderimleri dışarıda bırakılabilir. Aylık bar chart (son 6 ay).
-- **Hissedar iletişim geçmişi:** `GET /api/admin/sms/shareholder-history?shareholderId=`
-- **Detay:** `.project-architecture/sms-operations.md`
+- **Gönderim iptali:** `POST /api/admin/sms/sends/[id]/cancel` — yalnızca `status=draft`. UI'da tamamlanmış/başarısız kayıtlar için iptal gösterilmez.
+- **Retry:** `POST /api/admin/sms/sends/[id]/retry` — başarısız alıcılar için **yeni** `sms_sends` kaydı; `target_params.retry_of`; kredi yeniden kontrol.
+- **Kredi / Originator / Test SMS:** `GET /api/admin/sms/credit`, `GET /api/admin/sms/originators`; test için `target_params.is_test=true` — **super_admin** API.
+- **İstatistikler:** `GET /api/admin/sms/stats`; `excludeTest=true` seçeneği. DLR saklanmaz.
+- **Hissedar iletişim geçmişi:** `GET /api/admin/sms/shareholder-history?shareholderId=` — her satırda `personalized_message`. Zaman çizelgesinde `skipped` gizlenir; tam metin + başlık; panelde durum rozeti ve SMS boy satırı yok (`shareholder-sms-timeline-sheet.tsx`).
+- **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
 
 ## Mail İşlemleri (Resend)
 - Sayfa: `/kurban-admin/mail-islemleri` — konu + **TipTap** WYSIWYG mesaj (ham etiket görünmez); gövde HTML olarak `POST /api/admin/send-email` (`body`); sunucuda `isomorphic-dompurify` ile sanitize. Alıcılar: `GET /api/admin/email-recipients?year=`. Ortam: `RESEND_API_KEY` (tek anahtar). Gönderen varsayılan: `iletisim@ankarakurban.com.tr` / `iletisim@elyahayvancilik.com.tr` (tenant’a göre; env ile override).

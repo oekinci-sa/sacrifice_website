@@ -31,6 +31,7 @@ const UPDATABLE_FIELDS = [
   "agreement_footer_text",
   "agreement_notice_after_term_title",
   "agreement_notice_after_term_body",
+  "sms_enabled",
 ] as const;
 
 /**

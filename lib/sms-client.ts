@@ -2,7 +2,7 @@
  * Bizim SMS API istemcisi.
  *
  * API belgeleri: .sms-api-docs/bizim-sms/
- * Base URL: https://api.sms.bizimsms.mobi (credential-info.txt)
+ * Taban URL: `sms-config` → `apiBase` (env `BIZIM_SMS_API_BASE`; varsayılan dokümantasyon HTTPS adresi).
  *
  * SMS gönderim: POST /api/smspost/v1  (XML body)
  * Kredi sorgu:  GET  /api/credit/v1
@@ -54,18 +54,7 @@ function getSmsErrorMessage(code: string): string {
   return SMS_ERROR_MESSAGES[code] ?? `SMS API hatası (kod: ${code})`;
 }
 
-/** Varsayılan üretim adresi (`sms-config` ile aynı host). */
-const BIZIM_HTTPS_HOST_PREFIX = "https://api.sms.bizimsms.mobi";
-/** Bazı yerel ortamlarda Node/fetch ile HTTPS zaman zaman düşüyor; dokümantasyon örneği. */
-const BIZIM_DOC_HTTP_PREFIX = "http://sms.bizimsms.mobi:8080";
-
-/** Yalnızca development + varsayılan HTTPS tabanı için tek denemelik yedek URL. */
-function bizimSmsDevFallbackUrl(url: string): string | null {
-  if (process.env.NODE_ENV !== "development") return null;
-  if (!url.startsWith(BIZIM_HTTPS_HOST_PREFIX)) return null;
-  return url.replace(BIZIM_HTTPS_HOST_PREFIX, BIZIM_DOC_HTTP_PREFIX);
-}
-
+/** Tek taban URL (`sms-config` → `credentials.apiBase`, env: `BIZIM_SMS_API_BASE`). İkinci adres denemesi yok. */
 type BizimFetched = { ok: true; res: Response; text: string } | SmsError;
 
 async function fetchBizimGet(url: string, errorPrefix: string): Promise<BizimFetched> {
@@ -74,34 +63,16 @@ async function fetchBizimGet(url: string, errorPrefix: string): Promise<BizimFet
     "User-Agent": "ankarakurban-sms/1.0",
   } as const;
 
-  const attempt = async (u: string) => {
-    const res = await fetch(u, { method: "GET", headers });
-    const text = await res.text();
-    return { res, text };
-  };
-
   try {
-    const { res, text } = await attempt(url);
+    const res = await fetch(url, { method: "GET", headers });
+    const text = await res.text();
     return { ok: true, res, text };
-  } catch (e1) {
-    const alt = bizimSmsDevFallbackUrl(url);
-    if (!alt) {
-      return {
-        ok: false,
-        code: "NETWORK",
-        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}`,
-      };
-    }
-    try {
-      const { res, text } = await attempt(alt);
-      return { ok: true, res, text };
-    } catch {
-      return {
-        ok: false,
-        code: "NETWORK",
-        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}. Yerelde yedek HTTP adresi da başarısız. \`.env.local\` içinde BIZIM_SMS_API_BASE=http://sms.bizimsms.mobi:8080 deneyebilirsiniz.`,
-      };
-    }
+  } catch (e) {
+    return {
+      ok: false,
+      code: "NETWORK",
+      message: `${errorPrefix}: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 }
 
@@ -110,40 +81,20 @@ async function fetchBizimPostXml(
   xml: string,
   errorPrefix: string
 ): Promise<BizimFetched> {
-  const init = {
-    method: "POST" as const,
-    headers: { "Content-Type": "text/xml; charset=utf-8" },
-    body: xml,
-  };
-
-  const attempt = async (u: string) => {
-    const res = await fetch(u, init);
-    const text = await res.text();
-    return { res, text };
-  };
-
   try {
-    const { res, text } = await attempt(url);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/xml; charset=utf-8" },
+      body: xml,
+    });
+    const text = await res.text();
     return { ok: true, res, text };
-  } catch (e1) {
-    const alt = bizimSmsDevFallbackUrl(url);
-    if (!alt) {
-      return {
-        ok: false,
-        code: "NETWORK",
-        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}`,
-      };
-    }
-    try {
-      const { res, text } = await attempt(alt);
-      return { ok: true, res, text };
-    } catch {
-      return {
-        ok: false,
-        code: "NETWORK",
-        message: `${errorPrefix}: ${e1 instanceof Error ? e1.message : String(e1)}. Yerelde yedek HTTP adresi da başarısız. \`.env.local\` içinde BIZIM_SMS_API_BASE=http://sms.bizimsms.mobi:8080 deneyebilirsiniz.`,
-      };
-    }
+  } catch (e) {
+    return {
+      ok: false,
+      code: "NETWORK",
+      message: `${errorPrefix}: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 }
 

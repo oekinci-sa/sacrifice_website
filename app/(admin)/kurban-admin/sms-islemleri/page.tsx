@@ -105,6 +105,15 @@ function mapTargetTypeForApi(tt: TargetType): string {
   }
 }
 
+/** Aynı kurban sıra numaraları kümesi ise `true` — gereksiz state güncellemesi yapılmamalı (refetch tetiklenmesin). */
+function sameSortedNumberArray(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 function recipientFromPick(p: ShareholderPickValue): Recipient {
   return {
     shareholder_id: p.shareholder_id,
@@ -523,7 +532,10 @@ export default function SmsGonderPage() {
             present.add(r.sacrifice_no);
           }
         }
-        setPickedSacrificeNos(Array.from(present).sort((a, b) => a - b));
+        const newNos = Array.from(present).sort((a, b) => a - b);
+        setPickedSacrificeNos((current) =>
+          sameSortedNumberArray(current, newNos) ? current : newNos
+        );
       }
       return next;
     });

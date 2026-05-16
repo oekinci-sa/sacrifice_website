@@ -33,10 +33,10 @@ function PriceCard({
   return (
     <motion.div
       className={`flex flex-col items-center transition-all duration-300 ${effectiveSoldOut
-          ? "cursor-not-allowed"
-          : disableHissealNavigation
-            ? "cursor-default"
-            : "cursor-pointer hover:scale-105"
+        ? "cursor-not-allowed"
+        : disableHissealNavigation
+          ? "cursor-default"
+          : "cursor-pointer hover:scale-105"
         }`}
       onClick={() => {
         if (disableHissealNavigation || effectiveSoldOut) return;
@@ -70,7 +70,7 @@ function PriceCard({
           className="inline-flex items-center justify-center bg-sac-red text-white text-xs md:text-base font-semibold px-2 py-0.5 rounded-b-md -mt-px mx-auto"
           variants={boxVariant}
         >
-          Son {remaining} Hisse
+          SON {remaining} HISSE
         </motion.div>
       )}
     </motion.div>

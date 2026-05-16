@@ -22,6 +22,7 @@ export interface ShareholderVarSource {
     sacrifice_no: number;
     sacrifice_time: string | null;
     planned_delivery_time?: string | null;
+    ear_tag?: string | null;
   } | null;
 }
 
@@ -59,6 +60,8 @@ export function buildSmsVariablesFromShareholderRow(
   const no = sac?.sacrifice_no;
   const hayvanNo = no != null && Number.isFinite(no) ? String(no) : "";
 
+  const kupeNo = (sac?.ear_tag ?? "").trim();
+
   const lookupUrl = lookupBaseUrl.replace(/\/$/, "") + "/hissesorgula";
 
   return {
@@ -66,6 +69,7 @@ export function buildSmsVariablesFromShareholderRow(
     telefon: (row.phone_number ?? "").trim(),
     hayvan_no: hayvanNo,
     kurban_no: hayvanNo,
+    kupe_no: kupeNo,
     kalan_tutar: fmtTl(row.remaining_payment),
     odenen_tutar: fmtTl(row.paid_amount),
     toplam_tutar: fmtTl(row.total_amount),

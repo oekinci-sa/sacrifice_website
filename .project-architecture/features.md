@@ -71,8 +71,8 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 
 - **Görünürlük:** `tenant_settings.sms_enabled` ile kontrol (`TenantBranding`); sidebar’daki SMS menüsü ve Tüm Hissedarlar’daki SMS sütunu. Super admin düzenlemesi: Organizasyon Ayarları. Dokümantasyon: `.project-architecture/sms-admin-and-tenant-flag.md`
 - **Sütun sırası:** SMS kolonunun **varsayılan** konumu PDF kolonunun **solunda** (`getColumns` + `columns.tsx`).
-- **Sayfalar:** `/kurban-admin/sms-islemleri`, `/sablonlari`, `/gecmis`, `/ayarlar` (`super_admin`). `/kayitli-toplu-gonderimleri` doğrudan URL (sidebar’da kalemi yok).
-- **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu (max 200), dedup, kredi blok, `idempotency_key` zorunlu; Bizim SMS 1-N/N-N XML; başarılı cevaplarda `excluded_invalid_phone` / `excluded_duplicate_phone`.
+- **Sayfalar:** `/kurban-admin/sms-islemleri`, `/sablonlari`, `/gecmis`, `/ayarlar` (sidebar: admin, editor, süper admin). `/kayitli-toplu-gonderimleri` doğrudan URL (sidebar’da kalemi yok).
+- **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu, dedup, kredi blok, `idempotency_key` zorunlu; Bizim SMS 1-N/N-N XML; başarılı cevaplarda `excluded_invalid_phone` / `excluded_duplicate_phone`.
 - **Şablon listesi / silme:** Pasifler `GET …/templates?inactive=true`; `DELETE …/templates/[id]` satır silmez, `is_active=false` (soft delete).
 - **Şablon değişkenleri:** 16 kalıp; bkz. `sms-operations.md`.
 - **Durum ifadesi:** Operatöre iletim (DLR takibi uygulanmıyor).

@@ -113,7 +113,7 @@ export default function SmsAyarlarPage() {
       <div>
         <h1 className="text-2xl font-bold">SMS Ayarları</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          SMS API özeti, kredi bakiyesi ve test gönderimi (yalnızca süper admin).
+          SMS API özeti, kredi bakiyesi ve test gönderimi.
         </p>
       </div>
 

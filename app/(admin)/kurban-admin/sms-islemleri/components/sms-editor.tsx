@@ -10,6 +10,7 @@ const VARIABLES: { label: string; value: string }[] = [
   { label: "Ad Soyad", value: "{{ad_soyad}}" },
   { label: "Telefon", value: "{{telefon}}" },
   { label: "Kurbanlık No", value: "{{hayvan_no}}" },
+  { label: "Küpe No", value: "{{kupe_no}}" },
   { label: "Kalan Tutar", value: "{{kalan_tutar}}" },
   { label: "Ödenen Tutar", value: "{{odenen_tutar}}" },
   { label: "Toplam Tutar", value: "{{toplam_tutar}}" },

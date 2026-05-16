@@ -1,35 +1,35 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
+import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { ColumnSelectorPopover } from "../tum-hissedarlar/components/column-selector-popover";
-import { AdminOdemelerTeslimatSkeleton } from "../../components/admin-page-skeletons";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { odemelerColumnHeaderLabels as O } from "@/lib/admin-table-column-labels/odemeler";
+import { formatDateMedium } from "@/lib/date-utils";
+import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
+import { exportTableToExcel, sacrificeInfoExcelCell } from "@/lib/export-to-excel";
+import { getOdemelerPaymentStatusSortValue } from "@/lib/odeme-payment-status";
+import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { shareholderSchema } from "@/types";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { formatDateMedium } from "@/lib/date-utils";
-import { getDeliverySelectionFromLocation, getDeliveryTypeDisplayLabel } from "@/lib/delivery-options";
-import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
-import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { sortingFunctions } from "@/utils/table-sort-helpers";
 import { ColumnDef, type Table } from "@tanstack/react-table";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Download, X } from "lucide-react";
-import { exportTableToExcel, sacrificeInfoExcelCell } from "@/lib/export-to-excel";
-import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
-import { PaymentFilters } from "./components/payment-filters";
-import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
-import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { AdminOdemelerTeslimatSkeleton } from "../../components/admin-page-skeletons";
 import { AdminHissedarPdfDialog } from "../tum-hissedarlar/components/admin-hissedar-pdf-dialog";
+import { ColumnSelectorPopover } from "../tum-hissedarlar/components/column-selector-popover";
 import {
   EditableNotesCell,
   PaymentStatusCell,
   PdfColumnCell,
 } from "../tum-hissedarlar/components/columns";
-import { getOdemelerPaymentStatusSortValue } from "@/lib/odeme-payment-status";
-import { sortingFunctions } from "@/utils/table-sort-helpers";
-import { odemelerColumnHeaderLabels as O } from "@/lib/admin-table-column-labels/odemeler";
-import { ExcelExportConfirmDialog } from "@/components/excel-export/excel-export-confirm-dialog";
+import { ShareholderSearch } from "../tum-hissedarlar/components/shareholder-search";
+import { EditablePaidAmountCell } from "./components/editable-paid-amount-cell";
+import { PaymentFilters } from "./components/payment-filters";
 
 export default function OdemelerPage() {
   const branding = useTenantBranding();
@@ -130,7 +130,7 @@ export default function OdemelerPage() {
         accessorKey: "paid_amount",
         header: O.paid_amount,
         cell: ({ row }) => (
-          <EditablePaidAmountCell row={row} onUpdate={updateShareholder} />
+          <EditablePaidAmountCell row={row} onUpdate={updateShareholder} smsEnabled={branding.sms_enabled} />
         ),
       },
       {
@@ -237,85 +237,85 @@ export default function OdemelerPage() {
         <AdminOdemelerTeslimatSkeleton rows={12} />
       ) : (
         <Suspense fallback={<AdminOdemelerTeslimatSkeleton rows={12} />}>
-        <CustomDataTable
-          columns={columns}
-          data={sortedData}
-          getRowId={(row) => row.shareholder_id}
-          storageKey="odemeler"
-          tableSize="medium"
-          pageSizeOptions={[20, 50, 100, 200]}
-          meta={{
-            openPdfForShareholder: (sh: shareholderSchema) => {
-              setPdfShareholder(sh);
-              setPdfDialogOpen(true);
-            },
-          }}
-          initialState={{
-            columnVisibility: {
-              phone_number: false,
-              purchase_time: false,
-              notes: false,
-              delivery_location: false,
-              delivery_location_raw: false,
-            },
-          }}
-          filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
-            tableForExcelRef.current = table;
-            const hasAnyFilter =
-              columnFilters.length > 0 || searchTerm.trim().length > 0;
-            return (
-              <div className="flex flex-col gap-3 w-full">
-                {/* Üst satır: arama + Sütunlar + Excel — Tüm Hissedarlar / Kurbanlıklar ile aynı */}
-                <div className="flex items-center justify-between w-full gap-3">
-                  <ShareholderSearch
-                    onSearch={setSearchTerm}
-                    className="w-96 sm:w-[28rem] max-w-full min-w-0"
-                  />
-                  <div className="flex items-center gap-2 shrink-0">
-                    <ColumnSelectorPopover
-                      table={table}
-                      columnHeaderMap={O}
-                      columnOrder={columnOrder ?? []}
-                      onColumnOrderChange={onColumnOrderChange}
-                      onResetColumnLayout={resetColumnLayout}
+          <CustomDataTable
+            columns={columns}
+            data={sortedData}
+            getRowId={(row) => row.shareholder_id}
+            storageKey="odemeler"
+            tableSize="medium"
+            pageSizeOptions={[20, 50, 100, 200]}
+            meta={{
+              openPdfForShareholder: (sh: shareholderSchema) => {
+                setPdfShareholder(sh);
+                setPdfDialogOpen(true);
+              },
+            }}
+            initialState={{
+              columnVisibility: {
+                phone_number: false,
+                purchase_time: false,
+                notes: false,
+                delivery_location: false,
+                delivery_location_raw: false,
+              },
+            }}
+            filters={({ table, columnOrder, onColumnOrderChange, columnFilters, resetColumnLayout }) => {
+              tableForExcelRef.current = table;
+              const hasAnyFilter =
+                columnFilters.length > 0 || searchTerm.trim().length > 0;
+              return (
+                <div className="flex flex-col gap-3 w-full">
+                  {/* Üst satır: arama + Sütunlar + Excel — Tüm Hissedarlar / Kurbanlıklar ile aynı */}
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <ShareholderSearch
+                      onSearch={setSearchTerm}
+                      className="w-96 sm:w-[28rem] max-w-full min-w-0"
                     />
-                    <Button
-                      type="button"
-                      onClick={() => setExcelConfirmOpen(true)}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-dashed flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Excel&apos;e Aktar
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <ColumnSelectorPopover
+                        table={table}
+                        columnHeaderMap={O}
+                        columnOrder={columnOrder ?? []}
+                        onColumnOrderChange={onColumnOrderChange}
+                        onResetColumnLayout={resetColumnLayout}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => setExcelConfirmOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 border-dashed flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Excel&apos;e Aktar
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
-                  <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
-                    <PaymentFilters table={table} />
+                  <div className="flex flex-wrap items-center gap-3 w-full min-w-0">
+                    <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                      <PaymentFilters table={table} />
+                    </div>
+                    {hasAnyFilter ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 flex items-center gap-1 shrink-0 ml-auto"
+                        onClick={() => {
+                          table.resetColumnFilters();
+                          setSearchTerm("");
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Tüm filtreleri temizle
+                      </Button>
+                    ) : null}
                   </div>
-                  {hasAnyFilter ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 flex items-center gap-1 shrink-0 ml-auto"
-                      onClick={() => {
-                        table.resetColumnFilters();
-                        setSearchTerm("");
-                      }}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Tüm filtreleri temizle
-                    </Button>
-                  ) : null}
                 </div>
-              </div>
-            );
-          }}
-        />
+              );
+            }}
+          />
         </Suspense>
       )}
       <AdminHissedarPdfDialog

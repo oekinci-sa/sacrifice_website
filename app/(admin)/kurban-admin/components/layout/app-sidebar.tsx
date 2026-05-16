@@ -26,8 +26,8 @@ import {
   NotebookText,
   PanelLeft,
   Receipt,
-  Settings,
   Send,
+  Settings,
   Truck,
   UserCog
 } from "lucide-react"
@@ -69,7 +69,7 @@ const mainNavItems: NavItem[] = [
       { id: "sms-send", title: "SMS Gönder", url: "/kurban-admin/sms-islemleri", icon: Send, roles: ["admin", "editor", "super_admin"] },
       { id: "sms-history", title: "Gönderim Geçmişi", url: "/kurban-admin/sms-islemleri/gecmis", icon: History, roles: ["admin", "editor", "super_admin"] },
       { id: "sms-templates", title: "SMS Şablonları", url: "/kurban-admin/sms-islemleri/sablonlari", icon: NotebookText, roles: ["admin", "editor", "super_admin"] },
-      { id: "sms-settings", title: "SMS Ayarları", url: "/kurban-admin/sms-islemleri/ayarlar", icon: Settings, roles: ["super_admin"] },
+      { id: "sms-settings", title: "SMS Ayarları", url: "/kurban-admin/sms-islemleri/ayarlar", icon: Settings, roles: ["admin", "editor", "super_admin"] },
     ],
   },
   { id: "mail-operations", title: "Mail İşlemleri", url: "/kurban-admin/mail-islemleri", icon: Mail, roles: ["admin", "editor", "super_admin"] },
@@ -178,20 +178,20 @@ export function AppSidebar() {
             {item.items
               ?.filter(subItem => !subItem.roles || (session?.user?.role && subItem.roles.includes(session.user.role as Exclude<UserRole, null>)))
               .map((subItem) => (
-              <Link
-                key={subItem.id}
-                href={subItem.url}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === subItem.url || (subItem.id === "sms-send" && pathname === "/kurban-admin/sms-islemleri")
-                    ? "bg-muted text-foreground"
-                    : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
-                )}
-              >
-                <subItem.icon className="h-4 w-4" />
-                <span>{subItem.title}</span>
-              </Link>
-            ))}
+                <Link
+                  key={subItem.id}
+                  href={subItem.url}
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    pathname === subItem.url || (subItem.id === "sms-send" && pathname === "/kurban-admin/sms-islemleri")
+                      ? "bg-muted text-foreground"
+                      : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
+                  )}
+                >
+                  <subItem.icon className="h-4 w-4" />
+                  <span>{subItem.title}</span>
+                </Link>
+              ))}
           </div>
         )}
       </div>

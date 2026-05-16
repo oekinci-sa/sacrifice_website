@@ -10,7 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import { smsRecipientDedupKey } from "@/lib/sms-dedup";
+import { isValidPhone, normalizePhone } from "@/lib/sms-phone-normalizer";
+import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import { useCallback, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { SmsAdminSection } from "./components/sms-admin-section";
+import { SmsEditor } from "./components/sms-editor";
+import { SmsPreviewDialog, type SmsPreviewStats } from "./components/sms-preview-dialog";
 import {
   SmsRecipientTable,
   recipientRowKey,
@@ -25,15 +34,6 @@ import {
   SmsShareholderPicker,
   type ShareholderPickValue,
 } from "./components/sms-shareholder-picker";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
-import { smsRecipientDedupKey } from "@/lib/sms-dedup";
-import { isValidPhone, normalizePhone } from "@/lib/sms-phone-normalizer";
-import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
-import { useCallback, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { SmsEditor } from "./components/sms-editor";
-import { SmsPreviewDialog, type SmsPreviewStats } from "./components/sms-preview-dialog";
 
 type TargetType =
   | "sacrifice_all"
@@ -139,6 +139,7 @@ export default function SmsGonderPage() {
   const [pickedShareholders, setPickedShareholders] = useState<ShareholderPickValue[]>([]);
   const [messageContent, setMessageContent] = useState("");
   const [deduplicatePhones, setDeduplicatePhones] = useState(true);
+  const [deduplicateAcrossSacrifices, setDeduplicateAcrossSacrifices] = useState(false);
   /** Toplu hedeflerde teslimat tercihine göre alıcı süzme */
   const [deliveryRecipientScope, setDeliveryRecipientScope] =
     useState<DeliveryRecipientScope>("all");
@@ -154,7 +155,7 @@ export default function SmsGonderPage() {
     fetch("/api/admin/sms/templates?active=true")
       .then((r) => r.json())
       .then((d) => setTemplates(d.templates ?? []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const loadSacrificeOptions = useCallback(async () => {
@@ -337,6 +338,8 @@ export default function SmsGonderPage() {
 
     const seen = new Set<string>();
     let duplicates = 0;
+    const dedupMode =
+      deduplicatePhones && deduplicateAcrossSacrifices ? "global" : "per_sacrifice";
     const deduped = validPhones.filter((r) => {
       const norm = normalizePhone(r.phone_number);
       if (!norm) return true;
@@ -344,7 +347,8 @@ export default function SmsGonderPage() {
       const dk = smsRecipientDedupKey(
         norm,
         r.sacrifice_id,
-        r.shareholder_id ?? null
+        r.shareholder_id ?? null,
+        dedupMode
       );
       if (seen.has(dk)) {
         duplicates++;
@@ -476,6 +480,7 @@ export default function SmsGonderPage() {
           target_type: mapTargetTypeForApi(targetType),
           target_params: Object.keys(target_params).length ? target_params : null,
           deduplicate_phone_numbers: deduplicatePhones,
+          deduplicate_across_sacrifices: deduplicateAcrossSacrifices,
           idempotency_key: uuidv4(),
         }),
       });
@@ -590,20 +595,18 @@ export default function SmsGonderPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sacrifice_all">
-                  Kurbanlığa göre (tüm yıl veya seçili kurbanlıklar)
-                </SelectItem>
+                <SelectItem value="sacrifice_all">Kurbanlığa göre</SelectItem>
                 <SelectItem value="sacrifice_range">
                   Kurbanlık numarası aralığı
                 </SelectItem>
                 <SelectItem value="after_sacrifice_no">
                   Kurbanlık numarasından sonrakiler
                 </SelectItem>
-                <SelectItem value="single_phone">
-                  Tekil telefon (manuel)
-                </SelectItem>
                 <SelectItem value="shareholder_pick">
                   Hissedarlardan seç
+                </SelectItem>
+                <SelectItem value="single_phone">
+                  Tekil telefon (manuel)
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -704,7 +707,7 @@ export default function SmsGonderPage() {
           {showDedup && (
             <>
               {BULK_LOADING_TARGETS.includes(targetType) && (
-                <div className="space-y-2 pt-2 border-t">
+                <div className="space-y-2">
                   <Label htmlFor="sms-delivery-scope">Teslimat kapsamı</Label>
                   <Select
                     value={deliveryRecipientScope}
@@ -727,21 +730,43 @@ export default function SmsGonderPage() {
                   </Select>
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2 pt-2 border-t">
-                <Label htmlFor="dedup-toggle" className="text-sm leading-snug">
-                  Aynı kurbanlıkta tekrarlayan numarayı birleştir
-                </Label>
-                <Switch
-                  id="dedup-toggle"
-                  checked={deduplicatePhones}
-                  onCheckedChange={setDeduplicatePhones}
-                />
+              <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tekrarlayan numara</p>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="dedup-toggle" className="text-sm">
+                      Aynı kurbanlıkta birleştir
+                    </Label>
+                    <p className="text-xs text-muted-foreground leading-snug">
+                      Bir kurbanlıkta aynı cep numarasına tek SMS gider.
+                    </p>
+                  </div>
+                  <Switch
+                    id="dedup-toggle"
+                    checked={deduplicatePhones}
+                    onCheckedChange={(v) => {
+                      setDeduplicatePhones(v);
+                      if (!v) setDeduplicateAcrossSacrifices(false);
+                    }}
+                  />
+                </div>
+                <div className={`flex items-center justify-between gap-2 ${!deduplicatePhones ? "opacity-40 pointer-events-none" : ""}`}>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="dedup-global-toggle" className="text-sm">
+                      Farklı kurbanlıklarda da birleştir
+                    </Label>
+                    <p className="text-xs text-muted-foreground leading-snug">
+                      Tüm kurbanlıklar genelinde aynı cep numarasına tek SMS gider.
+                    </p>
+                  </div>
+                  <Switch
+                    id="dedup-global-toggle"
+                    checked={deduplicateAcrossSacrifices}
+                    onCheckedChange={setDeduplicateAcrossSacrifices}
+                    disabled={!deduplicatePhones}
+                  />
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Açıkken: yalnızca normalize cep numarası kullanılır (isim kullanılmaz). Aynı
-                kurbanlıkta aynı cebe tek SMS; farklı numaralı ayrı iletileri gider. Farklı
-                kurbanlıklarda aynı cep için ayrı SMS kaydı oluşur.
-              </p>
             </>
           )}
         </SmsAdminSection>

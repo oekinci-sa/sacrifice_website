@@ -71,13 +71,12 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 1. Auth + rol (toplu: admin/super_admin; tekil: tüm roller)
 2. Zod validasyon
 3. `idempotency_key` **zorunlu** — çift gönderim 409 döner
-4. Alıcı limiti: max 200
-5. Kredi kontrolü: hard block — `allowCreditCheckFailure: true` ile bypass
-6. Telefon normalize → geçersizler `skipped`
-7. Dedup (varsayılan: açık) → `skipped`
-8. Değişken çözümleme → boş değişken `warnings` listesinde döner (gönderimi bloklamaz)
-9. Bizim SMS API çağrısı (1-N veya N-N XML)
-10. Sonuçlar DB'ye yazılır
+4. Kredi kontrolü: hard block — `allowCreditCheckFailure: true` ile bypass
+5. Telefon normalize → geçersizler `skipped`
+6. Dedup (varsayılan: açık) → `skipped`
+7. Değişken çözümleme → boş değişken `warnings` listesinde döner (gönderimi bloklamaz)
+8. Bizim SMS API çağrısı (1-N veya N-N XML)
+9. Sonuçlar DB'ye yazılır
 
 **Test SMS:** `target_params.is_test: true` işaretlenerek gönderilir. İstatistiklerde `excludeTest=true` ile hariç tutulabilir.
 
@@ -143,7 +142,7 @@ Başarılı veya bazı hata cevaplarında (örn. bazı gönderilerde gönderilec
 ## Şablon Değişkenleri
 
 ```
-{{ad_soyad}}  {{telefon}}  {{hayvan_no}}  {{kurban_no}}  {{hisse_no}}
+{{ad_soyad}}  {{telefon}}  {{hayvan_no}}  {{kurban_no}}  {{kupe_no}}  {{hisse_no}}
 {{kesim_saati}}  {{kesim_tarihi}}
 {{kalan_tutar}}  {{odenen_tutar}}  {{toplam_tutar}}  {{kapora_tutari}}
 {{teslimat_tercihi}}  {{teslimat_adresi}}  {{sorgulama_linki}}

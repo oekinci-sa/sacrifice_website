@@ -5,15 +5,14 @@
  * 1. Auth + rol kontrolü (toplu: admin/super_admin; tekil: tüm admin rolleri)
  * 2. Zod validasyon
  * 3. idempotency_key kontrolü (zorunlu — çift gönderim engeli)
- * 4. Alıcı limiti: max 200
- * 5. Hissedarlar için şablon değişkenleri sunucuda doldurulur
- * 6. Telefon normalize → geçersizler skipped
- * 7. Dedup (açıksa): aynı kurbanlıkta aynı numara → tek SMS; farklı kurbanlıkta aynı numara → ayrı SMS
- * 8. Değişken çözümleme → hâlâ boş kalanlar için uyarı (gönderimi bloklamaz)
- * 9. Kredi kontrolü (tahmini SMS boyu ile)
- * 10. DB'ye sms_sends + sms_send_recipients yaz
- * 11. Bizim SMS API çağrısı
- * 12. Sonuçları güncelle
+ * 4. Hissedarlar için şablon değişkenleri sunucuda doldurulur
+ * 5. Telefon normalize → geçersizler skipped
+ * 6. Dedup (açıksa): aynı kurbanlıkta aynı numara → tek SMS; farklı kurbanlıkta aynı numara → ayrı SMS
+ * 7. Değişken çözümleme → hâlâ boş kalanlar için uyarı (gönderimi bloklamaz)
+ * 8. Kredi kontrolü (tahmini SMS boyu ile)
+ * 9. DB'ye sms_sends + sms_send_recipients yaz
+ * 10. Bizim SMS API çağrısı
+ * 11. Sonuçları güncelle
  */
 import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
@@ -35,7 +34,6 @@ export const dynamic = "force-dynamic";
 
 const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
 const BULK_ROLES = new Set(["admin", "super_admin"]);
-const MAX_RECIPIENTS = 200;
 
 /** Değişken kalıpları: {{variable_name}} */
 const VARIABLE_REGEX = /\{\{([a-z_]+)\}\}/g;
@@ -54,8 +52,7 @@ const sendSchema = z.object({
   message_content: z.string().min(1, "Mesaj içeriği zorunlu").max(882),
   recipients: z
     .array(recipientSchema)
-    .min(1, "En az 1 alıcı gerekli")
-    .max(MAX_RECIPIENTS, `En fazla ${MAX_RECIPIENTS} alıcı gönderilebilir`),
+    .min(1, "En az 1 alıcı gerekli"),
   sacrifice_year: z.number().int().min(2000).max(2100).optional().nullable(),
   template_id: z.string().uuid().optional().nullable(),
   target_type: z
@@ -72,6 +69,8 @@ const sendSchema = z.object({
     .default("custom"),
   target_params: z.record(z.string(), z.unknown()).optional().nullable(),
   deduplicate_phone_numbers: z.boolean().default(true),
+  /** Tüm kurbanlıklar genelinde aynı numaraya tek SMS. Yalnızca deduplicate_phone_numbers=true iken etkili. */
+  deduplicate_across_sacrifices: z.boolean().default(false),
   idempotency_key: z.string().uuid("idempotency_key geçerli bir UUID olmalı"),
   allowCreditCheckFailure: z.boolean().default(false),
 });
@@ -129,6 +128,7 @@ export async function POST(request: NextRequest) {
       target_type,
       target_params,
       deduplicate_phone_numbers,
+      deduplicate_across_sacrifices,
       idempotency_key,
       allowCreditCheckFailure,
     } = parsed.data;
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
           .select(
             `shareholder_id, shareholder_name, phone_number, paid_amount, total_amount, remaining_payment,
              delivery_type, delivery_location, security_code,
-             sacrifice:sacrifice_animals(sacrifice_no, sacrifice_time, planned_delivery_time)`
+             sacrifice:sacrifice_animals(sacrifice_no, sacrifice_time, planned_delivery_time, ear_tag)`
           )
           .eq("tenant_id", tenantId)
           .in("shareholder_id", shareholderIds),
@@ -216,11 +216,13 @@ export async function POST(request: NextRequest) {
               sacrifice_no: number;
               sacrifice_time: string | null;
               planned_delivery_time: string | null;
+              ear_tag: string | null;
             }
           | {
               sacrifice_no: number;
               sacrifice_time: string | null;
               planned_delivery_time: string | null;
+              ear_tag: string | null;
             }[]
           | null;
         const sac = Array.isArray(sacRel) ? sacRel[0] ?? null : sacRel;
@@ -239,6 +241,7 @@ export async function POST(request: NextRequest) {
                   sacrifice_no: sac.sacrifice_no,
                   sacrifice_time: sac.sacrifice_time,
                   planned_delivery_time: sac.planned_delivery_time,
+                  ear_tag: sac.ear_tag,
                 }
               : null,
           },
@@ -272,10 +275,13 @@ export async function POST(request: NextRequest) {
       const sacrificeIdForDedup = r.sacrifice_id ?? null;
 
       if (deduplicate_phone_numbers) {
+        const dedupMode =
+          deduplicate_across_sacrifices ? "global" : "per_sacrifice";
         const dk = smsRecipientDedupKey(
           normalized,
           sacrificeIdForDedup,
-          r.shareholder_id ?? null
+          r.shareholder_id ?? null,
+          dedupMode
         );
         if (seenDedup.has(dk)) {
           excludedCount++;

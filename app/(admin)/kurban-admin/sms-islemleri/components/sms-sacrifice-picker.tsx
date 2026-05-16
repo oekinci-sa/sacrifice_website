@@ -76,9 +76,19 @@ export function SmsSacrificePicker({
     onPickedNosChange([]);
   };
 
+  /** İkinci tıkta "tüm yıl" tikini kaldır; tekrar tıkta yine seç. */
+  const toggleEntireYear = () => {
+    if (scope === "all") {
+      onScopeChange("picked");
+      onPickedNosChange([]);
+      return;
+    }
+    selectEntireYear();
+  };
+
   const triggerLabel =
     scope === "all"
-      ? "Tüm kurbanlıklar (seçili yıl)"
+      ? "Tüm kurbanlıklar"
       : pickedSacrificeNos.length === 0
         ? "Kurbanlık seçin…"
         : pickedSacrificeNos.length === 1
@@ -111,7 +121,7 @@ export function SmsSacrificePicker({
                 <CommandItem
                   value={ALL_VALUE}
                   onSelect={() => {
-                    selectEntireYear();
+                    toggleEntireYear();
                   }}
                   className="cursor-pointer"
                 >
@@ -125,7 +135,7 @@ export function SmsSacrificePicker({
                   >
                     <Check className="h-3.5 w-3.5" />
                   </div>
-                  <span>Tüm kurbanlıklar (seçili yıl)</span>
+                  <span>Tüm kurbanlıklar</span>
                 </CommandItem>
               </CommandGroup>
               <CommandGroup heading="Kurbanlık no">

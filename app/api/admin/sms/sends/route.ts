@@ -3,12 +3,12 @@
  * Gönderim geçmişini döner (son 100 kayıt, yıl bazlı filtre opsiyonel).
  */
 import { authOptions } from "@/lib/auth";
-import { getTenantId } from "@/lib/tenant";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   buildEmailToEditorDisplayMap,
   editorDisplayFromRaw,
 } from "@/lib/resolve-editor-display";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 

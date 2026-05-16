@@ -13,13 +13,13 @@
  * 6. Sonuçlar güncellenir
  */
 import { authOptions } from "@/lib/auth";
-import { getTenantId } from "@/lib/tenant";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getSmsCredentials } from "@/lib/sms-config";
-import { sendSms, queryCredit } from "@/lib/sms-client";
-import { normalizePhone } from "@/lib/sms-phone-normalizer";
 import { calculateSmsInfo } from "@/lib/sms-character-counter";
+import { queryCredit, sendSms } from "@/lib/sms-client";
+import { getSmsCredentials } from "@/lib/sms-config";
 import { smsRecipientDedupKey } from "@/lib/sms-dedup";
+import { normalizePhone } from "@/lib/sms-phone-normalizer";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";

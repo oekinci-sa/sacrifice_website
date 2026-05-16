@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 
 type PriceItem = PriceInfoItem;
 
+const LOW_STOCK_THRESHOLD = 10;
+
 function PriceCard({
   item,
   disableHissealNavigation,
@@ -24,6 +26,10 @@ function PriceCard({
   boxVariant: Variants;
 }) {
   const effectiveSoldOut = item.soldOut && !hideSoldOutBadge;
+  const remaining = item.remainingShares;
+  const showLowStock =
+    !item.soldOut && remaining > 0 && remaining < LOW_STOCK_THRESHOLD;
+  const badgeAttachedBelow = effectiveSoldOut || showLowStock;
   return (
     <motion.div
       className={`flex flex-col items-center transition-all duration-300 ${effectiveSoldOut
@@ -45,7 +51,7 @@ function PriceCard({
         {item.kg} KG
       </motion.div>
       <motion.div
-        className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${effectiveSoldOut ? "rounded-t-md" : "rounded-md"
+        className={`flex items-center justify-center bg-primary text-white text-base md:text-2xl font-semibold px-2 py-1 w-full text-center ${badgeAttachedBelow ? "rounded-t-md" : "rounded-md"
           }`}
         variants={boxVariant}
       >
@@ -57,6 +63,14 @@ function PriceCard({
           variants={boxVariant}
         >
           TÜKENDİ
+        </motion.div>
+      )}
+      {showLowStock && (
+        <motion.div
+          className="inline-flex items-center justify-center bg-sac-red text-white text-xs md:text-base font-semibold px-2 py-0.5 rounded-b-md -mt-px mx-auto"
+          variants={boxVariant}
+        >
+          Son {remaining} Hisse
         </motion.div>
       )}
     </motion.div>

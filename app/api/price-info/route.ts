@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
         kg: item.kg,
         price: item.price,
         soldOut: item.totalEmptyShare === 0,
+        remainingShares: item.totalEmptyShare,
       }));
 
     return NextResponse.json(items, {

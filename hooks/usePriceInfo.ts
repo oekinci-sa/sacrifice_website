@@ -6,6 +6,8 @@ export interface PriceInfoItem {
   kg: number;
   price: number;
   soldOut: boolean;
+  /** Aynı kg+fiyat dilimindeki boş (satılabilir) hisselerin toplamı */
+  remainingShares: number;
 }
 
 export function usePriceInfo() {

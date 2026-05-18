@@ -53,6 +53,8 @@ export default function TumHissedarlarPage() {
     delivery_location_raw: false, // Teslimat Yeri - default gizli
     second_phone_number: false, // İkinci Telefon - default gizli
     email: false, // E-posta — sütun seçiciden açılır
+    sacrifice_time: false, // Kesim Saati - default gizli
+    planned_delivery_time: false, // Teslim Saati - default gizli
   });
 
   // Use shareholder store instead of React Query

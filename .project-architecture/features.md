@@ -78,6 +78,14 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Durum ifadesi:** Operatöre iletim (DLR takibi uygulanmıyor).
 - **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
 
+## SMS — Kurban günü otomatik gönderim
+
+- **Bayrak:** `tenant_settings.sms_auto_enabled` — `sms_enabled`’dan **ayrı**; Organizasyon Ayarları tablosunda **Oto. SMS** sütunu (`SmsAutoEnabledToggleCell`). Tam form: aynı sayfa düzenleme diyalogu (offset alanları).
+- **Motor:** `lib/sms-auto-sender.ts` — takip ekranında kesim/parçalama/teslimat tamamlanınca (`POST /api/update-sacrifice-timing`, `is_completed`).
+- **Şablonlar:** `sms_templates.event_key` + aktif şablon; idempotency: `sms_notification_events`.
+- **Admin şablon listesi:** `/kurban-admin/sms-islemleri/sablonlari` — **Otomatik SMS** popover ile `event_key`’e göre filtre.
+- **Changelog:** [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
+
 ## SMS İşlemleri (Bizim SMS) — Faz 2
 
 - **Gönderim iptali:** `POST /api/admin/sms/sends/[id]/cancel` — yalnızca `status=draft`. UI'da tamamlanmış/başarısız kayıtlar için iptal gösterilmez.
@@ -112,6 +120,7 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 ## Admin Tablo Sayfaları
 - **Sütun başlıkları (tek kaynak):** Kurbanlıklar, Tüm Hissedarlar, Ödemeler ve Uyumsuz hisseler için tablo `header`, filtre butonları, **Sütunlar** popover ve Excel çıktısı aynı `Record` haritalarından beslenir: `lib/admin-table-column-labels/kurbanliklar.ts`, `hissedarlar.ts`, `odemeler.ts`, `uyumsuz-hisseler.ts`. Örnek birleşik terimler: **Kurban No**, **Hisse Bilgisi** (fiyat+kg), **Ödeme**, **Notlar**. Detay: [changelogs/changelog-2026-04-admin-table-column-labels.md](changelogs/changelog-2026-04-admin-table-column-labels.md).
 - **Hissedar kurban sırası (taşıma):** Tüm Hissedarlar tablosunda «Kurban No» sütunu ve hissedar detayındaki «Kurban Sırası» alanından hissedar başka bir kurbanlığa taşınabilir (hedef sıra seçimi + onay). API: `POST /api/admin/shareholders/[id]/move-sacrifice` (`target_sacrifice_no`); DB: `rpc_move_shareholder_to_sacrifice` (boş hisse dengesi, `total_amount` / `remaining_payment` güncellemesi, `change_logs`).
+- **Kesim / teslim saati (gizli sütunlar):** `sacrifice_time`, `planned_delivery_time` — `sacrifice_animals` join; varsayılan gizli; Sütunlar popover’dan açılır. Etiketler: `lib/admin-table-column-labels/hissedarlar.ts` («Kesim Saati», «Teslim Saati»).
 - **Sütun sırası:** Tüm admin `CustomDataTable` sayfalarında `storageKey` ile kullanıcı bazlı kalıcılık; başlık satırından sürükle-bırak (hedef hücrenin sol/sağ yarısı = önce/sonra; bırakma yeri dikey çizgi ile gösterilir). Toolbar’lı sayfalarda `ColumnSelectorPopover` içinde **varsayılan sütun düzenine dön** (`[]` sıra). Ayrıntı: [changelogs/changelog-2026-03-admin-column-reorder.md](changelogs/changelog-2026-03-admin-column-reorder.md).
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı); tabloda **İşlem Bitişi** (`completed_at`) — aktif → tamamlandı / iptal / zaman aşımı / süre doldu geçişinde trigger ile set edilir. Tablo üstünde **Kurban No**, **Hisse Sayısı**, **Durum** çoklu seçim filtreleri + tümünü temizle. **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
 - **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
@@ -157,6 +166,7 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 - Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 
 ## Changelog
+- **2026-05 Otomatik SMS + hissedar saat sütunları**: [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
 - **2026-03 Homepage evre yönetimi**: [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 - **2026-03 Admin audit RPC (Faz 6–7)**: [changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md](changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md)
 - **2025-03 UI iyileştirmeleri**: [changelogs/changelog-2025-03-ui-improvements.md](changelogs/changelog-2025-03-ui-improvements.md)

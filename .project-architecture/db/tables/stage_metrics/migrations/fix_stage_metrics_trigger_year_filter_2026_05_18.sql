@@ -1,14 +1,8 @@
--- ===============================================
--- Fonksiyonlar: sacrifice_animals tablosundaki slaughter_time, butcher_time,
---              delivery_time değişikliklerinde stage_metrics tablosunu günceller.
--- Açıklama   : Her aşama için ortalama ilerleme süresini (saniye) ve güncel
---              kurban numarasını hesaplar. Frontend'de kuyruk ilerlemesini
---              takip etmek için kullanılır.
--- Trigger'lar: trg_update_slaughter_metrics, trg_update_butcher_metrics,
---              trg_update_delivery_metrics
--- ===============================================
+-- stage_metrics tetikleyicileri: sacrifice_animals sorgularında tenant_id + sacrifice_year filtresi.
+-- Supabase: fix_stage_metrics_trigger_sacrifice_year_filter, _butcher_, _delivery_ (20260518044819–47)
+-- Kaynak (tek dosya): ../functions_and_triggers/update_stage_metrics.sql
 
--- 1. Fonksiyon: slaughter_time değiştiğinde stage_metrics güncelle
+-- 1. slaughter_time
 CREATE OR REPLACE FUNCTION update_slaughter_stage_metrics()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -31,7 +25,6 @@ BEGIN
         EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;
@@ -55,7 +48,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 2. Fonksiyon: butcher_time değiştiğinde stage_metrics güncelle
+-- 2. butcher_time
 CREATE OR REPLACE FUNCTION update_butcher_stage_metrics()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -78,7 +71,6 @@ BEGIN
         EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;
@@ -102,7 +94,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 3. Fonksiyon: delivery_time değiştiğinde stage_metrics güncelle
+-- 3. delivery_time
 CREATE OR REPLACE FUNCTION update_delivery_stage_metrics()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -125,7 +117,6 @@ BEGIN
         EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;
@@ -148,21 +139,3 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
--- Trigger 1: slaughter_time için
-CREATE TRIGGER trg_update_slaughter_metrics
-AFTER UPDATE OF slaughter_time ON sacrifice_animals
-FOR EACH ROW
-EXECUTE FUNCTION update_slaughter_stage_metrics();
-
--- Trigger 2: butcher_time için
-CREATE TRIGGER trg_update_butcher_metrics
-AFTER UPDATE OF butcher_time ON sacrifice_animals
-FOR EACH ROW
-EXECUTE FUNCTION update_butcher_stage_metrics();
-
--- Trigger 3: delivery_time için
-CREATE TRIGGER trg_update_delivery_metrics
-AFTER UPDATE OF delivery_time ON sacrifice_animals
-FOR EACH ROW
-EXECUTE FUNCTION update_delivery_stage_metrics();

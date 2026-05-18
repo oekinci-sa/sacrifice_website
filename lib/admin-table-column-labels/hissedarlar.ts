@@ -10,6 +10,8 @@ export const hissedarlarColumnHeaderLabels: Record<string, string> = {
   email: "E-posta",
   second_phone_number: "İkinci Telefon",
   sacrifice_info: "Hisse Bilgisi",
+  sacrifice_time: "Kesim Saati",
+  planned_delivery_time: "Teslim Saati",
   delivery_location: "Teslimat Tercihi",
   delivery_location_raw: "Teslimat Yeri",
   payment_status: "Ödeme",

@@ -50,11 +50,20 @@ function fmtTimeTr(iso: string | null | undefined): string {
   return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 }
 
+/** Otomatik SMS için ek bağlam verisi. */
+export interface AutoSmsContext {
+  /** Şu an kesilen/işlenen kurbanlığın sacrifice_no'su (hedef değil, tetikleyici). */
+  triggered_sacrifice_no?: number;
+  /** Hissedarın kurbanlığı için tahmini kalan süre (dakika). */
+  estimated_minutes?: number;
+}
+
 /** Hissedar sorgu satırından (shareholders + sacrifice join) değişken map'i üretir. */
 export function buildSmsVariablesFromShareholderRow(
   row: ShareholderVarSource,
   tenant: TenantSmsBranding,
-  lookupBaseUrl: string
+  lookupBaseUrl: string,
+  context?: AutoSmsContext
 ): Record<string, string> {
   const sac = row.sacrifice;
   const no = sac?.sacrifice_no;
@@ -63,6 +72,17 @@ export function buildSmsVariablesFromShareholderRow(
   const kupeNo = (sac?.ear_tag ?? "").trim();
 
   const lookupUrl = lookupBaseUrl.replace(/\/$/, "") + "/hissesorgula";
+  const takipUrl = (tenant.website_url ?? lookupBaseUrl).replace(/\/$/, "") + "/takip";
+
+  const kesilenNo =
+    context?.triggered_sacrifice_no != null
+      ? String(context.triggered_sacrifice_no)
+      : "";
+
+  const tahminiDakika =
+    context?.estimated_minutes != null
+      ? String(Math.round(context.estimated_minutes))
+      : "";
 
   return {
     ad_soyad: (row.shareholder_name ?? "").trim(),
@@ -79,7 +99,10 @@ export function buildSmsVariablesFromShareholderRow(
     teslimat_tercihi: (row.delivery_type ?? "").trim(),
     teslimat_adresi: (row.delivery_location ?? "").trim(),
     sorgulama_linki: lookupUrl,
+    takip_linki: takipUrl,
     guvenlik_kodu: (row.security_code ?? "").trim(),
     iban: (tenant.iban ?? "").trim(),
+    kesilen_kurban_no: kesilenNo,
+    tahmini_dakika: tahminiDakika,
   };
 }

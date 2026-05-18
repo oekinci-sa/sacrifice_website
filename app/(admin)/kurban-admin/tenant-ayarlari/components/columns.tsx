@@ -10,6 +10,7 @@ import {
   EditablePhoneCell,
   EditableTextCell,
   EditableYearCell,
+  SmsAutoEnabledToggleCell,
   SmsEnabledToggleCell,
 } from "./editable-tenant-cells";
 
@@ -43,6 +44,9 @@ export type TenantSettingRow = {
   agreement_notice_after_term_title: string | null;
   agreement_notice_after_term_body: string | null;
   sms_enabled: boolean | null;
+  sms_auto_enabled: boolean | null;
+  sms_slaughter_approach_offset: number | null;
+  sms_delivery_pickup_offset: number | null;
   tenants?: { name?: string; slug?: string } | null;
 };
 
@@ -172,6 +176,12 @@ export function createColumns(
       id: "sms_enabled",
       header: "SMS",
       cell: ({ row }) => <SmsEnabledToggleCell row={row} onSuccess={onRefresh} />,
+    },
+    {
+      accessorKey: "sms_auto_enabled",
+      id: "sms_auto_enabled",
+      header: "Oto. SMS",
+      cell: ({ row }) => <SmsAutoEnabledToggleCell row={row} onSuccess={onRefresh} />,
     },
     {
       accessorKey: "agreement_terms",

@@ -40,9 +40,13 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
     // Function to check if switch should be on and enabled based on database
     const checkSwitchState = useCallback(async (number: number): Promise<boolean> => {
+        if (!number || number <= 0) {
+            setIsCompleted(false);
+            setIsSwitchDisabled(true);
+            return true;
+        }
         try {
-            const sacrificeId = `SAC${number.toString().padStart(3, '0')}`;
-            const response = await fetch(`/api/check-sacrifice-timing?sacrifice_id=${sacrificeId}`);
+            const response = await fetch(`/api/check-sacrifice-timing?sacrifice_no=${number}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -91,8 +95,10 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             // Only update localNumber if it's currently synced with previous dbNumber or is initial load
             if (localNumber === 0 || localNumber === dbNumber) {
                 setLocalNumber(newDbNumber);
-                // Check switch state for the new number
-                checkSwitchState(newDbNumber);
+                // Check switch state only when there is a valid sacrifice number
+                if (newDbNumber > 0) {
+                    checkSwitchState(newDbNumber);
+                }
             }
         }
     }, [currentStageMetric, dbNumber, localNumber, checkSwitchState]);
@@ -108,10 +114,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     useEffect(() => {
         if (localNumber === 0) return; // Don't subscribe if no number is set
 
-        const sacrificeId = `SAC${localNumber.toString().padStart(3, '0')}`;
-
         // Create a unique channel name for this component instance
-        const channelName = `sacrifice-timing-${sacrificeId}-${stage}-${Date.now()}`;
+        const channelName = `sacrifice-timing-no${localNumber}-${stage}-${Date.now()}`;
 
         const channel = supabase
             .channel(channelName)
@@ -121,25 +125,25 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     event: 'UPDATE',
                     schema: 'public',
                     table: 'sacrifice_animals',
-                    filter: `sacrifice_id=eq.${sacrificeId}`
+                    filter: `sacrifice_no=eq.${localNumber}`
                 },
                 (payload) => {
-                    console.log(`[QueueCardWithButtons] Received realtime update for ${sacrificeId}:`, payload);
+                    console.log(`[QueueCardWithButtons] Received realtime update for sacrifice_no=${localNumber}:`, payload);
 
                     // Re-check switch state when sacrifice_animals table is updated
                     checkSwitchState(localNumber);
                 }
             )
             .subscribe((status, err) => {
-                console.log(`[QueueCardWithButtons] Subscription status for ${sacrificeId}:`, status);
+                console.log(`[QueueCardWithButtons] Subscription status for sacrifice_no=${localNumber}:`, status);
                 if (err) {
-                    console.error(`[QueueCardWithButtons] Subscription error for ${sacrificeId}:`, err);
+                    console.error(`[QueueCardWithButtons] Subscription error for sacrifice_no=${localNumber}:`, err);
                 }
             });
 
         // Cleanup subscription on unmount or when localNumber changes
         return () => {
-            console.log(`[QueueCardWithButtons] Cleaning up subscription for ${sacrificeId}`);
+            console.log(`[QueueCardWithButtons] Cleaning up subscription for sacrifice_no=${localNumber}`);
             supabase.removeChannel(channel);
         };
     }, [localNumber, stage, checkSwitchState]);
@@ -147,7 +151,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     const handleDecrement = async () => {
         if (isLoading) return;
 
-        const newNumber = Math.max(0, localNumber - 1);
+        const newNumber = Math.max(1, localNumber - 1);
 
         setIsLoading(true);
 
@@ -218,9 +222,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         setIsCompleted(checked);
         setIsLoading(true);
 
-        // Generate sacrifice_id based on current local number
-        const sacrificeId = `SAC${localNumber.toString().padStart(3, '0')}`;
-
         try {
             const response = await fetch('/api/update-sacrifice-timing', {
                 method: 'POST',
@@ -228,7 +229,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    sacrifice_id: sacrificeId,
+                    sacrifice_no: localNumber,
                     stage,
                     is_completed: checked
                 })

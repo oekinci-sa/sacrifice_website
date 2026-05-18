@@ -14,11 +14,26 @@ export async function GET(request: NextRequest) {
         const tenantId = getTenantId();
         const sacrificeYear = getDefaultSacrificeYear();
         const { searchParams } = new URL(request.url);
-        const sacrifice_id = searchParams.get('sacrifice_id');
+        const sacrificeNoRaw = searchParams.get('sacrifice_no');
 
-        if (!sacrifice_id) {
+        if (!sacrificeNoRaw) {
             return NextResponse.json(
-                { error: "sacrifice_id is required" },
+                { error: "sacrifice_no is required" },
+                {
+                    status: 400,
+                    headers: {
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                }
+            );
+        }
+
+        const sacrificeNo = parseInt(sacrificeNoRaw, 10);
+        if (isNaN(sacrificeNo) || sacrificeNo <= 0) {
+            return NextResponse.json(
+                { error: "sacrifice_no geçersiz" },
                 {
                     status: 400,
                     headers: {
@@ -34,7 +49,7 @@ export async function GET(request: NextRequest) {
             .from("sacrifice_animals")
             .select("slaughter_time, butcher_time, delivery_time")
             .eq("tenant_id", tenantId)
-            .eq("sacrifice_id", sacrifice_id)
+            .eq("sacrifice_no", sacrificeNo)
             .eq("sacrifice_year", sacrificeYear)
             .single();
 

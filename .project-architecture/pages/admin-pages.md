@@ -35,6 +35,7 @@ Belirli kurbanlığın hissedar özeti; **Tüm Hissedarlar** ve SMS geçmişine 
 
 - **Menü ile eş**: **Hissedarlar** başlığı; liste `CustomDataTable` (`storageKey="hissedarlar"`).
 - **SMS görünümü:** Yalnız `tenant_settings.sms_enabled === true` iken `sms_history` sütunu tablo tanımına eklenir (`getColumns(smsEnabled)`). **Varsayılan sütun sırası:** SMS sütunu **PDF sütununun solunda**; kullanıcı sütun sırasını yerel olarak değiştirebilir (localStorage).
+- **Kesim / teslim saati:** `sacrifice_time`, `planned_delivery_time` — kurban join’inden `HH:MM`; **varsayılan gizli** (`columnVisibility`); Sütunlar popover ile açılır.
 - **SMS geçmiş paneli:** Satır aksiyonu / SMS hücresi → sağdan sheet (`shareholder-sms-timeline-sheet`). Veri `GET /api/admin/sms/shareholder-history`. Listede `skipped` alıcı satırları gösterilmez; tam kişisel metin; durum rozeti ve SMS boy sayısı gösterimi yok. Yeni SMS: şablon veya elle → `POST /api/admin/sms/send` tekil hissedar.
 
 ### /kurban-admin/hissedarlar/odemeler
@@ -67,7 +68,7 @@ Görünür yalnızca `tenant_settings.sms_enabled === true` ise (sidebar). Tekil
 
 ### /kurban-admin/sms-islemleri/sablonlari
 
-SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle. Soft delete. İlk yüklemede yalnız aktif şablonlar; «Pasif şablonları da göster» ile pasifler aktiflerin altında listelenir (`GET /api/admin/sms/templates?inactive=true`).
+SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle, **otomatik gönderim** (`event_key` — manuel veya 5 kurban günü event’i). Soft delete. İlk yüklemede yalnız aktif şablonlar; «Pasif şablonları da göster» ile pasifler aktiflerin altında listelenir (`GET /api/admin/sms/templates?inactive=true`). Toolbar: **Otomatik SMS** popover — seçilen `event_key`’lere göre aktif şablonları süzer (çoklu tik). Kurban günü otomatik gönderimin açık/kapalı ayarı bu sayfada değil; Organizasyon Ayarları **Oto. SMS** sütunu.
 
 ### /kurban-admin/sms-islemleri/kayitli-toplu-gonderimleri
 
@@ -101,6 +102,8 @@ Değişiklik kayıtlarının görüntülendiği sayfa.
 
 **Sadece super_admin.** Tenant başına tema, iletişim, IBAN, sözleşme metni, kapora tarihleri vb. Liste: `GET /api/admin/tenant-settings`. Satır güncelleme: `PATCH /api/admin/tenant-settings/[tenantId]`.
 
-**SMS modülü (`sms_enabled`):** Tabloda **SMS** sütunu — `SmsEnabledToggleCell` ile anahtarlama; PATCH ile kalıcı. Bu bayrak sidebar’daki **SMS İşlemleri** menüsünü ve Tüm Hissedarlar’da **`sms_history` sütununu** kontrol eder (varsayılan konum PDF’in solunda). Gönderimin çalışması ayrıca `lib/sms-config.ts` + Bizim SMS env ile mümkündür.
+**SMS modülü (`sms_enabled`):** Tabloda **SMS** sütunu — `SmsEnabledToggleCell`. Sidebar **SMS İşlemleri** + Tüm Hissedarlar `sms_history` (PDF’in solunda varsayılan).
 
-Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md).
+**Otomatik SMS (`sms_auto_enabled`):** Tabloda **Oto. SMS** sütunu — `SmsAutoEnabledToggleCell`. Kesim/parçalama/teslimat takip ekranlarında aşama tamamlanınca `lib/sms-auto-sender` (ayrıca `sms_enabled` açık ve eşleşen aktif şablon gerekir). Offset’ler: düzenleme diyalogu (`sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
+
+Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md), [sms-operations.md](../sms-operations.md).

@@ -28,6 +28,12 @@ CREATE TABLE tenant_settings (
   agreement_notice_after_term_body TEXT,
   -- SMS modülü bu tenant için etkin mi (Bizim SMS entegrasyonu). Varsayılan: FALSE.
   sms_enabled     BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Otomatik SMS gönderimi aktif mi? Varsayılan: FALSE.
+  sms_auto_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Kesim yaklaşıyor SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 20.
+  sms_slaughter_approach_offset SMALLINT NOT NULL DEFAULT 20,
+  -- Teslim almaya çağrı SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 2.
+  sms_delivery_pickup_offset SMALLINT NOT NULL DEFAULT 2,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

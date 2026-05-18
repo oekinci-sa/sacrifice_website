@@ -799,6 +799,40 @@ const BASE_COLUMNS: ColumnDef<shareholderSchema>[] = [
     ),
   },
   {
+    id: "sacrifice_time",
+    accessorFn: (row) => row.sacrifice?.sacrifice_time ?? null,
+    header: H.sacrifice_time,
+    minSize: 100,
+    enableSorting: true,
+    sortingFn: (a, b) => {
+      const aVal = a.original.sacrifice?.sacrifice_time ?? "";
+      const bVal = b.original.sacrifice?.sacrifice_time ?? "";
+      return aVal.localeCompare(bVal);
+    },
+    cell: ({ row }) => {
+      const t = row.original.sacrifice?.sacrifice_time;
+      if (!t) return "-";
+      return t.slice(0, 5);
+    },
+  },
+  {
+    id: "planned_delivery_time",
+    accessorFn: (row) => row.sacrifice?.planned_delivery_time ?? null,
+    header: H.planned_delivery_time,
+    minSize: 100,
+    enableSorting: true,
+    sortingFn: (a, b) => {
+      const aVal = a.original.sacrifice?.planned_delivery_time ?? "";
+      const bVal = b.original.sacrifice?.planned_delivery_time ?? "";
+      return aVal.localeCompare(bVal);
+    },
+    cell: ({ row }) => {
+      const t = row.original.sacrifice?.planned_delivery_time;
+      if (!t) return "-";
+      return t.slice(0, 5);
+    },
+  },
+  {
     accessorKey: "delivery_location",
     header: H.delivery_location,
     minSize: 120,

@@ -9,6 +9,14 @@ export const dynamic = "force-dynamic";
 
 const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
 
+const EVENT_KEYS = [
+  "slaughter_approaching",
+  "slaughter_completed",
+  "butcher_started",
+  "delivery_pickup_approaching",
+  "external_delivery_notice",
+] as const;
+
 const templateSchema = z.object({
   title: z.string().min(1, "Başlık zorunlu").max(200),
   description: z.string().max(500).optional().nullable(),
@@ -18,6 +26,7 @@ const templateSchema = z.object({
   content: z.string().min(1, "Mesaj içeriği zorunlu").max(882),
   variables: z.array(z.string()).optional().nullable(),
   is_active: z.boolean().default(true),
+  event_key: z.enum(EVENT_KEYS).optional().nullable(),
 });
 
 export async function GET(request: NextRequest) {
@@ -37,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("sms_templates")
-      .select("id, title, description, category, content, variables, is_active, created_by, created_at, updated_at")
+      .select("id, title, description, category, content, variables, is_active, event_key, created_by, created_at, updated_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
@@ -79,13 +88,14 @@ export async function POST(request: NextRequest) {
     }
 
     const tenantId = getTenantId();
-    const { variables, ...rest } = parsed.data;
+    const { variables, event_key, ...rest } = parsed.data;
 
     const { data, error } = await supabaseAdmin
       .from("sms_templates")
       .insert({
         ...rest,
         variables: variables ?? null,
+        event_key: event_key ?? null,
         tenant_id: tenantId,
         created_by: session.user.email ?? session.user.name ?? "Bilinmeyen",
       })

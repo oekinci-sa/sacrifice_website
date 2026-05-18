@@ -121,6 +121,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Kurbanlık listesi | GET /api/sacrifices (getSacrificeAnimals) |
 | Kurbanlık ekleme | POST /api/create-sacrifice (editor+; `last_edited_by` sunucuda oturum e-postası) |
 | Kurbanlık güncelleme | PUT /api/update-sacrifice; POST /api/update-sacrifice-share, /api/update-sacrifice-timing |
+| Takip — aşama tamamlama + otomatik SMS | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` → `POST /api/update-sacrifice-timing` (`is_completed: true`) → `handleAutoSms` (`sms_enabled` + `sms_auto_enabled` + aktif `event_key` şablonu). Organizasyon: **Oto. SMS** sütunu |
 | Kurbanlık silme | DELETE /api/sacrifices/[id] (`rpc_delete_sacrifice`, oturum e-postası = `app.actor`) |
 | Hissedar ekleme | POST /api/create-shareholders (`last_edited_by` sunucuda: oturum e-postası veya `hisseal-akisi`; `purchased_by` müşteri) |
 | Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Tüm Hissedarlar** tablosu (satır içi hücreler); teslimat tercihi hisse alımındaki seçimle uyumlu |
@@ -141,6 +142,8 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
 | Mail (admin) | `/kurban-admin/mail-islemleri` → GET /api/admin/email-recipients?year=, POST /api/admin/send-email (Resend; editor+; alıcılar panel + seçili yıl hissedar allowlist) |
 | Mail (otomatik) | Hisseal teşekkür sayfası → POST /api/purchase-confirmation-email { transaction_id } (hissedar e-postası varsa; bir kez / işlem) |
+| SMS (otomatik, kurban günü) | Takip sıra ekranları → bkz. §5 «Takip — aşama tamamlama»; şablonlar `/kurban-admin/sms-islemleri/sablonlari` |
+| SMS (manuel) | `/kurban-admin/sms-islemleri` — `sms_enabled` gerekir |
 
 ---
 

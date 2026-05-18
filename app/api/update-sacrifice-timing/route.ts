@@ -6,6 +6,7 @@ import {
 import { getDefaultSacrificeYear } from '@/lib/constants/sacrifice-year';
 import { getTenantId } from '@/lib/tenant';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { handleAutoSms, type StageType } from '@/lib/sms-auto-sender';
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -21,11 +22,11 @@ export async function POST(request: NextRequest) {
         const tenantId = getTenantId();
         const sacrificeYear = getDefaultSacrificeYear();
         const body = await request.json();
-        const { sacrifice_id, stage, is_completed } = body;
+        const { sacrifice_no, stage, is_completed } = body;
 
-        if (!sacrifice_id || !stage) {
+        if (!sacrifice_no || !stage) {
             return NextResponse.json(
-                { error: "sacrifice_id ve stage gerekli" },
+                { error: "sacrifice_no ve stage gerekli" },
                 {
                     status: 400,
                     headers: {
@@ -36,6 +37,46 @@ export async function POST(request: NextRequest) {
                 }
             );
         }
+
+        const sacrificeNoInt = parseInt(String(sacrifice_no), 10);
+        if (isNaN(sacrificeNoInt) || sacrificeNoInt <= 0) {
+            return NextResponse.json(
+                { error: "sacrifice_no geçersiz" },
+                {
+                    status: 400,
+                    headers: {
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                }
+            );
+        }
+
+        // sacrifice_no → sacrifice_id (UUID) çözümle
+        const { data: animalRow, error: resolveError } = await supabaseAdmin
+            .from("sacrifice_animals")
+            .select("sacrifice_id")
+            .eq("tenant_id", tenantId)
+            .eq("sacrifice_no", sacrificeNoInt)
+            .eq("sacrifice_year", sacrificeYear)
+            .single();
+
+        if (resolveError || !animalRow) {
+            return NextResponse.json(
+                { error: "Kurban kaydı bulunamadı" },
+                {
+                    status: 404,
+                    headers: {
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                }
+            );
+        }
+
+        const sacrifice_id: string = animalRow.sacrifice_id;
 
         // Determine which field to update based on stage
         let timeField: 'slaughter_time' | 'butcher_time' | 'delivery_time';
@@ -109,6 +150,17 @@ export async function POST(request: NextRequest) {
                     }
                 }
             );
+        }
+
+        // Başarılı güncelleme sonrası otomatik SMS — hata response'u bloklamaz
+        if (is_completed) {
+            handleAutoSms({
+                tenantId,
+                sacrificeYear,
+                sacrificeNo: sacrificeNoInt,
+                stage: stage as StageType,
+                isCompleted: true,
+            }).catch((err: unknown) => console.error('[auto-sms]', err));
         }
 
         // Return the updated data (önceki API tek satır yerine dizi dönüyordu — uyum için dizi)

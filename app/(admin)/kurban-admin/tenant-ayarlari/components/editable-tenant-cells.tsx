@@ -403,32 +403,40 @@ export function EditableHomepageModeCell({
   );
 }
 
-/** SMS aktif/pasif toggle hücresi — anlık kayıt. */
-export function SmsEnabledToggleCell({
-  row,
+function SmsToggleCell({
+  tenantId,
+  field,
+  current,
+  labelOn,
+  labelOff,
+  ariaLabel,
   onSuccess,
 }: {
-  row: Row<TenantSettingRow>;
+  tenantId: string;
+  field: string;
+  current: boolean;
+  labelOn: string;
+  labelOff: string;
+  ariaLabel: string;
   onSuccess: () => void;
 }) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const current = Boolean(row.original.sms_enabled);
 
   const toggle = useCallback(async () => {
     const next = !current;
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/tenant-settings/${row.original.tenant_id}`, {
+      const res = await fetch(`/api/admin/tenant-settings/${tenantId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sms_enabled: next }),
+        body: JSON.stringify({ [field]: next }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error ?? "Güncelleme başarısız");
       }
-      toast({ title: next ? "SMS modülü aktif edildi" : "SMS modülü pasif edildi" });
+      toast({ title: next ? labelOn : labelOff });
       onSuccess();
     } catch (err) {
       toast({
@@ -439,7 +447,7 @@ export function SmsEnabledToggleCell({
     } finally {
       setSaving(false);
     }
-  }, [current, row.original.tenant_id, onSuccess, toast]);
+  }, [current, tenantId, field, labelOn, labelOff, onSuccess, toast]);
 
   return (
     <div className="flex items-center gap-2">
@@ -447,10 +455,52 @@ export function SmsEnabledToggleCell({
         checked={current}
         onCheckedChange={() => void toggle()}
         disabled={saving}
-        aria-label="SMS modülü"
+        aria-label={ariaLabel}
       />
       {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
     </div>
+  );
+}
+
+/** SMS aktif/pasif toggle hücresi — anlık kayıt. */
+export function SmsEnabledToggleCell({
+  row,
+  onSuccess,
+}: {
+  row: Row<TenantSettingRow>;
+  onSuccess: () => void;
+}) {
+  return (
+    <SmsToggleCell
+      tenantId={row.original.tenant_id}
+      field="sms_enabled"
+      current={Boolean(row.original.sms_enabled)}
+      labelOn="SMS modülü aktif edildi"
+      labelOff="SMS modülü pasif edildi"
+      ariaLabel="SMS modülü"
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+/** Otomatik SMS toggle hücresi — kurban günü otomatik gönderim. */
+export function SmsAutoEnabledToggleCell({
+  row,
+  onSuccess,
+}: {
+  row: Row<TenantSettingRow>;
+  onSuccess: () => void;
+}) {
+  return (
+    <SmsToggleCell
+      tenantId={row.original.tenant_id}
+      field="sms_auto_enabled"
+      current={Boolean(row.original.sms_auto_enabled)}
+      labelOn="Otomatik SMS aktif edildi"
+      labelOff="Otomatik SMS devre dışı bırakıldı"
+      ariaLabel="Otomatik SMS"
+      onSuccess={onSuccess}
+    />
   );
 }
 

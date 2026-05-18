@@ -10,6 +10,14 @@ export const dynamic = "force-dynamic";
 const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
 const CAN_DELETE = new Set(["admin", "super_admin"]);
 
+const EVENT_KEYS = [
+  "slaughter_approaching",
+  "slaughter_completed",
+  "butcher_started",
+  "delivery_pickup_approaching",
+  "external_delivery_notice",
+] as const;
+
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(500).optional().nullable(),
@@ -19,6 +27,7 @@ const updateSchema = z.object({
   content: z.string().min(1).max(882).optional(),
   variables: z.array(z.string()).optional().nullable(),
   is_active: z.boolean().optional(),
+  event_key: z.enum(EVENT_KEYS).optional().nullable(),
 });
 
 export async function PUT(

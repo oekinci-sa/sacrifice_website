@@ -29,9 +29,22 @@ BIZIM_SMS_API_BASE=https://api.sms.bizimsms.mobi  # opsiyonel, varsayılan bu
 | `sms_templates` | Yeniden kullanılabilir SMS şablonları (kategori, değişken listesi); `DELETE` route soft delete |
 | `sms_sends` | Her gönderim grubu (tekil/toplu, durum, sayılar, idempotency) |
 | `sms_send_recipients` | Her gönderimin bireysel alıcıları (`personalized_message`, `status`, `skip_reason`) |
-| `sms_auto_rules` | **Faz 3'te eklenecek** |
+| `sms_notification_events` | Otomatik SMS idempotency (tenant + yıl + hissedar + `event_key`) |
+| `tenant_settings.sms_auto_enabled` | Kurban günü otomatik gönderim bayrağı (`sms_enabled`’dan ayrı) |
+| `tenant_settings.sms_slaughter_approach_offset` | «Kesim yaklaşıyor» kaç kurban öncesi (default 20) |
+| `tenant_settings.sms_delivery_pickup_offset` | «Teslim çağrısı» kaç kurban öncesi (default 2) |
 
 Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
+
+**Migration kaynakları (`.project-architecture/db/tables/`):**
+
+| Konu | Migration dosyası |
+|------|-------------------|
+| `sms_enabled` | `tenant_settings/migrations/add_sms_enabled_to_tenant_settings_2026_05_13.sql` |
+| Otomatik SMS bayrak + offset | `tenant_settings/migrations/tenant_settings_add_sms_auto_columns_2026_05_18.sql` |
+| `sms_templates` + `event_key` | `sms_templates/migrations/create_sms_templates_2026_05_06.sql`, `sms_templates_add_event_key_2026_05_18.sql` |
+| `sms_notification_events` | `sms_notification_events/migrations/create_sms_notification_events_2026_05_18.sql` |
+| `stage_metrics` yıl filtresi | `stage_metrics/migrations/fix_stage_metrics_trigger_year_filter_2026_05_18.sql` |
 
 ## Kütüphaneler (`lib/`)
 
@@ -43,6 +56,8 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 | `lib/sms-phone-normalizer.ts` | Ham telefon → 12 hane Bizim SMS formatı (`normalizePhone`, `isValidPhone`) |
 | `lib/sms-dedup.ts` | Mükerrer alıcı anahtarı: normalize cep + kurban bağlamı; **isim yok** |
 | `lib/sms-send-title-display.ts` | Hissedar zaman çizelgesinde otomatik başlıktaki tekrar tarih kalıplarını kısaltır |
+| `lib/sms-auto-sender.ts` | Kurban günü otomatik SMS — `handleAutoSms`, şablon + idempotency + Bizim SMS gönderimi |
+| `lib/sms-template-variables.ts` | Şablon değişkenleri (`buildSmsVariablesFromShareholderRow`) |
 
 ## API Routes — Faz 1
 
@@ -191,8 +206,46 @@ Eski yaklaşım (`app-sidebar.tsx` ile sabit UUID listesi) kaldırılmıştır. 
 
 Yalnızca (1) yapılıp (2) yapılmazsa menü açılabilir ancak gönderim **SMS API yapılandırması eksik** ile 503 verir.
 
-## Faz 3 — Otomasyon (Gelecek)
+## Kurban günü otomatik SMS (uygulandı)
 
-- `sms_auto_rules` tablosu
-- Zamanlanmış SMS (`scheduled_at` alanı DB'de hazır)
-- Cron: scheduled-send, auto-rules
+**Bayraklar (ikisi de gerekli):**
+
+| Alan | Nerede açılır |
+|------|----------------|
+| `sms_enabled` | Organizasyon Ayarları — **SMS** sütunu |
+| `sms_auto_enabled` | Organizasyon Ayarları — **Oto. SMS** sütunu |
+
+**Tetikleyici:** Takip ekranlarında aşama tamamlanınca `POST /api/update-sacrifice-timing` (`stage`: `slaughter_stage` \| `butcher_stage` \| `delivery_stage`, `is_completed: true`) → RPC başarılıysa `handleAutoSms({ tenantId, sacrificeYear, sacrificeNo, stage, isCompleted })` (hata route’u bloklamaz).
+
+**Sayfalar:** `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` — `StageQueuePage` → `QueueCardWithButtons`.
+
+### `sms_templates.event_key`
+
+| `event_key` | Ne zaman | Hedef hissedar |
+|-------------|----------|----------------|
+| `slaughter_approaching` | Kesim aşaması tamamlandı | `sacrifice_no + sms_slaughter_approach_offset`, yalnız **Kesimhane** |
+| `slaughter_completed` | Kesim aşaması tamamlandı | Aynı kurban, tümü |
+| `butcher_started` | Parçalama tamamlandı | Aynı kurban, **Kesimhane** |
+| `delivery_pickup_approaching` | Teslimat tamamlandı | `sacrifice_no + sms_delivery_pickup_offset`, **Kesimhane** |
+| `external_delivery_notice` | Teslimat tamamlandı | Aynı kurban, Kesimhane **dışı** |
+
+`event_key` NULL → yalnızca manuel gönderimde kullanılan şablon. Tenant başına aktif şablonda aynı `event_key` en fazla bir kez (`uq_sms_templates_tenant_event_key`).
+
+### Idempotency ve kayıt
+
+1. Gönderim öncesi `sms_notification_events` ile hissedar + `event_key` kontrolü.
+2. `sms_sends` + `idempotency_key`: `auto:{event_key}:{tenant_id}:{sacrifice_id}:{year}`.
+3. Sonrasında `sms_notification_events` upsert (tekrar gönderim engeli).
+
+DDL: [db/tables/sms_notification_events/table.sql](./db/tables/sms_notification_events/table.sql).
+
+### Admin — şablon yönetimi
+
+- Sayfa: `/kurban-admin/sms-islemleri/sablonlari`
+- Düzenleme diyalogu: `event_key` Select — manuel = `none` (boş string Radix’te yasak); otomatik seçenekler gruplu.
+- Liste filtresi: toolbar **Otomatik SMS** popover — çoklu `event_key` seçimi ile aktif şablonları süzme.
+
+### Gelecek (henüz yok)
+
+- `sms_auto_rules` tablosu / kural motoru
+- Zamanlanmış SMS cron (`scheduled_at` vb.)

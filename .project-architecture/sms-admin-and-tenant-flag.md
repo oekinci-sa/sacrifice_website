@@ -45,11 +45,21 @@ Kullanıcı sütun sırasını `localStorage` (`storageKey="hissedarlar"`) ile d
 
 ---
 
-## Organizasyon Ayarları (`sms_enabled` düzenleme)
+## Organizasyon Ayarları — SMS sütunları
 
-- Sayfa: `/kurban-admin/tenant-ayarlari`
-- **`PATCH /api/admin/tenant-settings/[tenantId]`** — `UPDATABLE_FIELDS` içinde `sms_enabled` ([route.ts](../app/api/admin/tenant-settings/[tenantId]/route.ts))
-- Tablo: `SmsEnabledToggleCell` — [editable-tenant-cells.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/editable-tenant-cells.tsx), sütun [columns.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/columns.tsx) «SMS» başlığı
+Sayfa: `/kurban-admin/tenant-ayarlari`  
+API: **`PATCH /api/admin/tenant-settings/[tenantId]`** — [route.ts](../app/api/admin/tenant-settings/[tenantId]/route.ts)
+
+| Sütun | DB alanı | Bileşen | Anlam |
+|-------|----------|---------|--------|
+| **SMS** | `sms_enabled` | `SmsEnabledToggleCell` | SMS modülü: sidebar **SMS İşlemleri**, Tüm Hissedarlar `sms_history` sütunu, manuel gönderim yüzeyi |
+| **Oto. SMS** | `sms_auto_enabled` | `SmsAutoEnabledToggleCell` | Kurban günü otomatik SMS: kesim/parçalama/teslimat aşaması tamamlanınca `event_key` eşleşen şablonlar (`lib/sms-auto-sender.ts`) |
+
+**İkisi birlikte:** Otomatik gönderim için `sms_enabled` **ve** `sms_auto_enabled` açık olmalı; ayrıca aktif şablon (`sms_templates.event_key`) ve Bizim SMS kimliği (`lib/sms-config.ts`) gerekir.
+
+Tam form (offset’ler dahil): [tenant-settings-edit-dialog.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/tenant-settings-edit-dialog.tsx) — «Otomatik SMS Gönderimi» bölümü (`sms_auto_enabled`, `sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
+
+Ortak toggle mantığı: [editable-tenant-cells.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/editable-tenant-cells.tsx) — `SmsToggleCell` + `SmsEnabledToggleCell` / `SmsAutoEnabledToggleCell`.
 
 ---
 
@@ -84,5 +94,6 @@ Dosya: [shareholder-sms-timeline-sheet.tsx](../app/(admin)/kurban-admin/hissedar
 |------|-------|
 | Sidebar | `components/layout/app-sidebar.tsx` |
 | Hissedar kolon sırası | `hissedarlar/tum-hissedarlar/components/columns.tsx` |
-| Organizasyon toggle | `tenant-ayarlari/components/editable-tenant-cells.tsx`, `tenant-settings/[tenantId]/route.ts` |
+| Organizasyon SMS / Oto. SMS | `tenant-ayarlari/components/editable-tenant-cells.tsx`, `columns.tsx`, `tenant-settings/[tenantId]/route.ts` |
+| Otomatik SMS motoru | `lib/sms-auto-sender.ts`, `api/update-sacrifice-timing/route.ts` |
 | Kimlik (Bizim SMS) | `lib/sms-config.ts` |

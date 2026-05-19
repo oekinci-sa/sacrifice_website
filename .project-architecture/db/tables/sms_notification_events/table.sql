@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS public.sms_notification_events (
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
   sacrifice_year INT2 NOT NULL,
   sacrifice_id UUID NOT NULL REFERENCES public.sacrifice_animals(sacrifice_id),
-  shareholder_id UUID NOT NULL REFERENCES public.shareholders(shareholder_id),
+  shareholder_id UUID NOT NULL REFERENCES public.shareholders(shareholder_id) ON DELETE CASCADE,
   -- slaughter_approaching | slaughter_completed | butcher_started |
   -- delivery_pickup_approaching | external_delivery_notice
   event_key TEXT NOT NULL,

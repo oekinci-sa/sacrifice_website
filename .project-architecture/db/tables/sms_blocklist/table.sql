@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.sms_blocklist (
   -- Normalize edilmiş format: 905xxxxxxxxx
   phone_number VARCHAR(13) NOT NULL,
   -- Hissedar bazlı kara liste için (nullable)
-  shareholder_id UUID REFERENCES public.shareholders(shareholder_id),
+  shareholder_id UUID REFERENCES public.shareholders(shareholder_id) ON DELETE CASCADE,
   reason TEXT,
   -- Soft delete: FALSE = pasif (kara listeden çıkarıldı)
   is_active BOOLEAN NOT NULL DEFAULT TRUE,

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS public.sms_send_recipients (
   send_id UUID NOT NULL REFERENCES public.sms_sends(id) ON DELETE CASCADE,
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
   -- NULL: panel kullanıcısı veya dışarıdan girilen numara
-  shareholder_id UUID REFERENCES public.shareholders(shareholder_id),
+  shareholder_id UUID REFERENCES public.shareholders(shareholder_id) ON DELETE CASCADE,
   -- Kurban bazlı dedup / raporlama (toplu gönderim)
   sacrifice_id UUID REFERENCES public.sacrifice_animals(sacrifice_id),
   recipient_name TEXT,

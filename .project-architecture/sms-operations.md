@@ -156,13 +156,47 @@ Başarılı veya bazı hata cevaplarında (örn. bazı gönderilerde gönderilec
 
 ## Şablon Değişkenleri
 
-```
-{{ad_soyad}}  {{telefon}}  {{hayvan_no}}  {{kurban_no}}  {{kupe_no}}  {{hisse_no}}
-{{kesim_saati}}  {{kesim_tarihi}}
-{{kalan_tutar}}  {{odenen_tutar}}  {{toplam_tutar}}  {{kapora_tutari}}
-{{teslimat_tercihi}}  {{teslimat_adresi}}  {{sorgulama_linki}}
-{{guvenlik_kodu}}  {{iban}}
-```
+Tüm manuel ve otomatik SMS şablonlarında kullanılabilecek değişkenler:
+
+### Genel (her şablonda)
+
+| Değişken | Açıklama |
+|---|---|
+| `{{ad_soyad}}` | Hissedarın adı soyadı |
+| `{{telefon}}` | Telefon numarası |
+| `{{guvenlik_kodu}}` | Güvenlik / takip kodu |
+| `{{kurban_no}}` | Kurbanlık sıra numarası (**birincil**) |
+| `{{kupe_no}}` | Küpe numarası |
+| `{{kesim_saati}}` | Kurbanlığın kesim saati (HH:MM) |
+| `{{kesim_tarihi}}` | Kurbanlığın kesim tarihi (gün.ay.yıl) |
+| `{{kalan_tutar}}` | Kalan ödeme tutarı (TL) |
+| `{{odenen_tutar}}` | Ödenen tutar (TL) |
+| `{{toplam_tutar}}` | Toplam hisse tutarı (TL) |
+| `{{kapora_tutari}}` | Kapora miktarı (TL) |
+| `{{iban}}` | Ödeme IBAN'ı |
+| `{{teslimat_tercihi}}` | Teslimat tipi |
+| `{{teslimat_adresi}}` | Teslimat adresi |
+| `{{sorgulama_linki}}` | Hisse sorgulama sayfası linki |
+| `{{takip_linki}}` | Takip sayfası linki |
+
+### Sadece Otomatik SMS (`event_key` olan şablonlar)
+
+| Değişken | Açıklama |
+|---|---|
+| `{{kesilen_kurban_no}}` | Şu an tamamlanan/kesilen kurbanlığın no'su (tetikleyici) |
+| `{{kesim_ortalama_suresi}}` | Kesim aşaması ham ortalama süresi (dakika, stage_metrics'ten) |
+| `{{kesim_tahmini_sure}}` | Kesim bekleme tahmini: `ortalama × sms_slaughter_approach_offset` |
+| `{{parcalama_ortalama_suresi}}` | Parçalama ham ortalama süresi (dakika) |
+| `{{parcalama_tahmini_sure}}` | Parçalama bekleme tahmini (dakika) |
+| `{{teslimat_ortalama_suresi}}` | Teslimat ham ortalama süresi (dakika) |
+| `{{teslimat_tahmini_sure}}` | Teslimat bekleme tahmini: `ortalama × sms_delivery_pickup_offset` |
+
+### Backward-compat alias'lar (silinmeyecek)
+
+| Alias | Eşdeğer |
+|---|---|
+| `{{hayvan_no}}` | `{{kurban_no}}` ile aynı değer |
+| `{{tahmini_dakika}}` | İlk doldurulan tahmini süre değişkeniyle aynı değer |
 
 Boş kalan değişkenler gönderimi bloklamaz; mesajda `{{variable_name}}` olarak kalır ve `warnings` döner.
 

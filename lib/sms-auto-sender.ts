@@ -419,7 +419,7 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
   // ── Kesim aşaması ───────────────────────────────────────────────────────────
   if (stage === "slaughter_stage") {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "slaughter_stage");
-    const estMinutes = avgSeconds > 0 ? Math.round((avgSeconds / 60) * slaughterOffset) : 0;
+    const avgSlaughterMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
     // SMS-1: slaughter_approaching → sacrifice_no + offset, sadece Kesimhane
     const approachTpl = templateMap.get("slaughter_approaching");
@@ -449,7 +449,11 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
             templateId: approachTpl.id,
             tenantBranding,
             sacrificeId: targetAnimal.sacrifice_id,
-            context: { triggered_sacrifice_no: sacrificeNo, estimated_minutes: estMinutes },
+            context: {
+              triggered_sacrifice_no: sacrificeNo,
+              avg_slaughter_minutes: avgSlaughterMinutes,
+              slaughter_offset: slaughterOffset,
+            },
           });
         }
       }
@@ -468,7 +472,11 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
         templateId: completedTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: { triggered_sacrifice_no: sacrificeNo },
+        context: {
+          triggered_sacrifice_no: sacrificeNo,
+          avg_slaughter_minutes: avgSlaughterMinutes,
+          slaughter_offset: slaughterOffset,
+        },
       });
     }
   }
@@ -476,7 +484,7 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
   // ── Parçalama aşaması ───────────────────────────────────────────────────────
   if (stage === "butcher_stage") {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "butcher_stage");
-    const estMinutes = avgSeconds > 0 ? Math.round(avgSeconds / 60) : 0;
+    const avgButcherMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
     // SMS-3: butcher_started → aynı kurban, sadece Kesimhane
     const butcherTpl = templateMap.get("butcher_started");
@@ -491,7 +499,10 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
         templateId: butcherTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: { triggered_sacrifice_no: sacrificeNo, estimated_minutes: estMinutes },
+        context: {
+          triggered_sacrifice_no: sacrificeNo,
+          avg_butcher_minutes: avgButcherMinutes,
+        },
       });
     }
   }
@@ -499,9 +510,7 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
   // ── Teslimat aşaması ────────────────────────────────────────────────────────
   if (stage === "delivery_stage") {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "delivery_stage");
-    const estMinutesDelivery = avgSeconds > 0
-      ? Math.round((avgSeconds / 60) * deliveryOffset)
-      : 0;
+    const avgDeliveryMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
     // SMS-4: delivery_pickup_approaching → sacrifice_no + offset, sadece Kesimhane
     const pickupTpl = templateMap.get("delivery_pickup_approaching");
@@ -530,7 +539,11 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
             templateId: pickupTpl.id,
             tenantBranding,
             sacrificeId: targetAnimal.sacrifice_id,
-            context: { triggered_sacrifice_no: sacrificeNo, estimated_minutes: estMinutesDelivery },
+            context: {
+              triggered_sacrifice_no: sacrificeNo,
+              avg_delivery_minutes: avgDeliveryMinutes,
+              delivery_offset: deliveryOffset,
+            },
           });
         }
       }
@@ -549,7 +562,11 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
         templateId: extTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: { triggered_sacrifice_no: sacrificeNo },
+        context: {
+          triggered_sacrifice_no: sacrificeNo,
+          avg_delivery_minutes: avgDeliveryMinutes,
+          delivery_offset: deliveryOffset,
+        },
       });
     }
   }

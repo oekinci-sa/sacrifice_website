@@ -101,6 +101,11 @@ export function TenantBrandingProvider({
               typeof data.branding.agreement_notice_after_term_body === "string" && data.branding.agreement_notice_after_term_body.trim() !== ""
                 ? data.branding.agreement_notice_after_term_body
                 : null,
+            incident_banner_enabled: Boolean(data.branding.incident_banner_enabled ?? false),
+            incident_banner_message:
+              typeof data.branding.incident_banner_message === "string"
+                ? data.branding.incident_banner_message
+                : "",
           });
         }
       })

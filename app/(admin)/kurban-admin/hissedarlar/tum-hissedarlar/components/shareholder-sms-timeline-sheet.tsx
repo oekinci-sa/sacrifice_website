@@ -26,6 +26,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { SmsEditor } from "../../../sms-islemleri/components/sms-editor";
 import { shortenSmsSendDisplayTitle } from "@/lib/sms-send-title-display";
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
 import { isValidPhone } from "@/lib/sms-phone-normalizer";
 import type { shareholderSchema } from "@/types";
 import { useCallback, useEffect, useState } from "react";
@@ -187,6 +188,9 @@ export function ShareholderSmsTimelineSheet({ shareholder, open, onOpenChange }:
               {shareholder?.shareholder_name ?? "—"}
               {shareholder?.sacrifice?.sacrifice_no != null
                 ? ` · Kurban no ${shareholder.sacrifice.sacrifice_no}`
+                : ""}
+              {shareholder?.phone_number
+                ? ` · ${formatPhoneForDisplayWithSpacing(shareholder.phone_number)}`
                 : ""}
             </SheetDescription>
           </SheetHeader>

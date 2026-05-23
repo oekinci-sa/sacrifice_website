@@ -1,5 +1,6 @@
 'use client';
 
+import { normalizeQueueDisplayNumber, QUEUE_NUMBER_MIN } from '@/lib/queue-display-number';
 import { useStageMetricsStore } from '@/stores/global/useStageMetricsStore';
 import { StageType } from '@/types/stage-metrics';
 import { motion } from 'framer-motion';
@@ -13,28 +14,24 @@ interface QueueCardProps {
 }
 
 const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration = true }) => {
-  const [currentNumber, setCurrentNumber] = useState<number>(0);
+  const [currentNumber, setCurrentNumber] = useState<number>(QUEUE_NUMBER_MIN);
   const [isLocalLoading, setIsLocalLoading] = useState(true);
 
-  // Direct store subscription - this will trigger React re-renders
   const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
   const isStoreInitialized = useStageMetricsStore(state => state.isInitialized);
   const isStoreLoading = useStageMetricsStore(state => state.isLoading);
 
-  // Update local number when store data changes
   useEffect(() => {
-    if (isStoreInitialized && currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
-      const newNumber = currentStageMetric.current_sacrifice_number;
-      setCurrentNumber(newNumber);
-      setIsLocalLoading(false);
-    } else if (isStoreInitialized) {
-      // Store is initialized but no data for this stage
-      setCurrentNumber(0);
-      setIsLocalLoading(false);
+    if (!isStoreInitialized) return;
+
+    if (currentStageMetric?.current_sacrifice_number !== undefined) {
+      setCurrentNumber(normalizeQueueDisplayNumber(currentStageMetric.current_sacrifice_number));
+    } else {
+      setCurrentNumber(QUEUE_NUMBER_MIN);
     }
+    setIsLocalLoading(false);
   }, [currentStageMetric, isStoreInitialized, isStoreLoading, stage]);
 
-  // Determine what to display
   const shouldShowLoading = !isStoreInitialized || isStoreLoading || isLocalLoading;
   const displayNumber = shouldShowLoading ? '...' : currentNumber;
 
@@ -47,7 +44,6 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration
       }}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Queue Card */}
       <motion.div
         className='flex flex-col items-center justify-center w-40 md:w-60'
         initial={{ rotateY: -5 }}
@@ -79,7 +75,6 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration
         </motion.div>
       </motion.div>
 
-      {/* Conditionally render Average Duration */}
       {showAverageDuration && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}

@@ -23,7 +23,7 @@ export async function getTenantBranding(): Promise<TenantBranding> {
   const { data } = await supabaseAdmin
     .from("tenant_settings")
     .select(
-      "logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, contact_address_label, contact_email_label, contact_phone_label, contact_social_links, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body, sms_enabled"
+      "logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, contact_address_label, contact_email_label, contact_phone_label, contact_social_links, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body, sms_enabled, incident_banner_enabled, incident_banner_message"
     )
     .eq("tenant_id", tenantId)
     .single();
@@ -88,5 +88,10 @@ export async function getTenantBranding(): Promise<TenantBranding> {
         ? data.agreement_notice_after_term_body
         : null,
     sms_enabled: Boolean(data.sms_enabled ?? false),
+    incident_banner_enabled: Boolean(data.incident_banner_enabled ?? false),
+    incident_banner_message:
+      typeof data.incident_banner_message === "string"
+        ? data.incident_banner_message
+        : "",
   };
 }

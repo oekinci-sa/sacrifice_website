@@ -12,7 +12,7 @@
 - [../features.md](../features.md): Faz 6–7 maddeleri + changelog linki.
 - [../role-permissions.md](../role-permissions.md): `POST /api/update-stage-metrics` yetki tablosu + ilgili dosya satırı.
 - [../user-flows.md](../user-flows.md): Aşama metrikleri akışı; kurban güncelleme yöntemleri (PUT/POST) düzeltmesi.
-- [../pages/admin-pages.md](../pages/admin-pages.md): `/kurban-admin/asama-metrikleri` bölümü.
+- [../pages/admin-pages.md](../pages/admin-pages.md): Kurban Günü İstatistikleri (`/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri`; eski `asama-metrikleri` kaldırıldı).
 
 ## Önceki fazlar (özet)
 

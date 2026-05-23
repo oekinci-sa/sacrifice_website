@@ -47,6 +47,10 @@ export interface TenantBranding {
    */
   agreement_notice_after_term_title: string | null;
   agreement_notice_after_term_body: string | null;
+  /** Acil/arıza banner aktif mi? tenant_settings.incident_banner_enabled */
+  incident_banner_enabled: boolean;
+  /** Banner metni. tenant_settings.incident_banner_message */
+  incident_banner_message: string;
 }
 
 /** Kod yedeği — DB’de ilgili sütunlar NULL ise kullanılır. */
@@ -124,4 +128,6 @@ export const DEFAULT_BRANDING: TenantBranding = {
   agreement_footer_text: DEFAULT_AGREEMENT_COPY.agreement_footer_text,
   agreement_notice_after_term_title: null,
   agreement_notice_after_term_body: null,
+  incident_banner_enabled: false,
+  incident_banner_message: "",
 };

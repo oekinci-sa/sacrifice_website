@@ -8,8 +8,9 @@ Bu dosya projede oluşturulan özel bileşenleri ve özelliklerini listeler. `co
 
 ### CustomDataTable
 - **Amaç:** Sayfalama, sıralama, filtreleme destekli veri tablosu
-- **Props:** `columns`, `data`, `pageSizeOptions`, `tableSize`, `filters`, `initialState`, **`storageKey`** (admin’de zorunlu), `columnHeaderLabels` (özel header’larda sürükleme etiketi)
+- **Props:** `columns`, `data`, `pageSizeOptions`, `tableSize`, `filters`, `initialState`, **`storageKey`** (admin’de zorunlu), `columnHeaderLabels` (özel header’larda sürükleme etiketi), **`infiniteScroll`** (`{ initialCount?, step? }` — opsiyonel)
 - **Özellikler:** TanStack Table, sütun görünürlüğü, sayfa boyutu seçimi; `storageKey` ile kullanıcı bazlı görünürlük + **sütun sırası** (`localStorage`, `…-order` anahtarı)
+- **Infinite scroll:** `infiniteScroll` verildiğinde sayfalama footer’ı yerine kaydırınca satır batch’i artar; tablo altında «Toplam X adet sonuç bulundu» (+ isteğe bağlı «Y satır görüntüleniyor»). Kullanım: Tüm Kurbanlıklar (`initialCount: 50`, `step: 50`).
 - **Kullanım:** Tüm ana admin liste sayfaları (kurbanlıklar, hissedarlar, rezervasyonlar, değişiklik kayıtları, uyumsuzluklar sekmeleri, vb.)
 
 ### CustomTableHeader / CustomTableBody
@@ -19,7 +20,8 @@ Bu dosya projede oluşturulan özel bileşenleri ve özelliklerini listeler. `co
 
 ### CustomDataTableFooter
 - Sayfa navigasyonu, sayfa boyutu seçimi
-- "X-Y / Toplam" formatında bilgi gösterimi
+- «Toplam X adet sonuç bulundu» (filtrelenmiş satır sayısı)
+- **Not:** `infiniteScroll` aktifken bu footer gösterilmez; bunun yerine `CustomDataTable` sadece toplam/görünen satır metnini render eder.
 
 ### CustomLink
 - **Amaç:** Standart link stili (font-medium, hover:text-primary)

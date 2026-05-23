@@ -55,7 +55,9 @@ API: **`PATCH /api/admin/tenant-settings/[tenantId]`** — [route.ts](../app/api
 | **SMS** | `sms_enabled` | `SmsEnabledToggleCell` | SMS modülü: sidebar **SMS İşlemleri**, Tüm Hissedarlar `sms_history` sütunu, manuel gönderim yüzeyi |
 | **Oto. SMS** | `sms_auto_enabled` | `SmsAutoEnabledToggleCell` | Kurban günü otomatik SMS: kesim/parçalama/teslimat aşaması tamamlanınca `event_key` eşleşen şablonlar (`lib/sms-auto-sender.ts`) |
 
-**İkisi birlikte:** Otomatik gönderim için `sms_enabled` **ve** `sms_auto_enabled` açık olmalı; ayrıca aktif şablon (`sms_templates.event_key`) ve Bizim SMS kimliği (`lib/sms-config.ts`) gerekir.
+**İkisi birlikte:** Kurban günü otomatik gönderim için `sms_enabled` **ve** `sms_auto_enabled` açık olmalı; ayrıca aktif şablon (`sms_templates.event_key`) ve Bizim SMS kimliği (`lib/sms-config.ts`) gerekir.
+
+**Ödeme otomatik SMS** (`payment_amount_updated`, ödenen tutar güncellenince): yalnızca **`sms_enabled`** yeterli; `sms_auto_enabled` gerekmez. Şablon: `/kurban-admin/sms-islemleri/sablonlari`.
 
 Tam form (offset’ler dahil): [tenant-settings-edit-dialog.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/tenant-settings-edit-dialog.tsx) — «Otomatik SMS Gönderimi» bölümü (`sms_auto_enabled`, `sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
 

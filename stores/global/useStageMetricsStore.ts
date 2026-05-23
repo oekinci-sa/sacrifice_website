@@ -1,4 +1,5 @@
 import { StageMetrics, StageType } from '@/types/stage-metrics';
+import { normalizeQueueDisplayNumber, QUEUE_NUMBER_MIN } from '@/lib/queue-display-number';
 import RealtimeManager from '@/utils/RealtimeManager';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -6,6 +7,7 @@ import { devtools } from 'zustand/middleware';
 export interface StageMetricsState {
     // State - keyed by stage type
     stageMetrics: Record<StageType, StageMetrics>;
+    maxSacrificeNumber: number;
     isLoading: boolean;
     error: Error | null;
     isInitialized: boolean;
@@ -25,6 +27,7 @@ export const useStageMetricsStore = create<StageMetricsState>()(
         (set, get) => ({
             // State
             stageMetrics: {} as Record<StageType, StageMetrics>,
+            maxSacrificeNumber: QUEUE_NUMBER_MIN,
             isLoading: false,
             error: null,
             isInitialized: false,
@@ -42,17 +45,29 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                         throw new Error("Failed to fetch stage metrics");
                     }
 
-                    const data: StageMetrics[] = await response.json();
+                    const json = await response.json();
+                    const data: StageMetrics[] = Array.isArray(json)
+                        ? json
+                        : (json.metrics ?? []);
+                    const maxSacrificeNumber = normalizeQueueDisplayNumber(
+                        Array.isArray(json) ? undefined : json.max_sacrifice_number
+                    );
 
                     // Convert array to keyed object
                     const stageMetrics: Record<StageType, StageMetrics> = {} as Record<StageType, StageMetrics>;
 
                     data.forEach(metric => {
-                        stageMetrics[metric.stage] = metric;
+                        stageMetrics[metric.stage] = {
+                            ...metric,
+                            current_sacrifice_number: normalizeQueueDisplayNumber(
+                                metric.current_sacrifice_number
+                            ),
+                        };
                     });
 
                     set({
                         stageMetrics,
+                        maxSacrificeNumber,
                         isLoading: false,
                         isInitialized: true,
                     });
@@ -69,8 +84,13 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                 set((state) => ({
                     stageMetrics: {
                         ...state.stageMetrics,
-                        [stageMetric.stage]: stageMetric
-                    }
+                        [stageMetric.stage]: {
+                            ...stageMetric,
+                            current_sacrifice_number: normalizeQueueDisplayNumber(
+                                stageMetric.current_sacrifice_number
+                            ),
+                        },
+                    },
                 }));
             },
 

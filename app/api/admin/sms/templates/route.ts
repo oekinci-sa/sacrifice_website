@@ -9,13 +9,9 @@ export const dynamic = "force-dynamic";
 
 const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
 
-const EVENT_KEYS = [
-  "slaughter_approaching",
-  "slaughter_completed",
-  "butcher_started",
-  "delivery_pickup_approaching",
-  "external_delivery_notice",
-] as const;
+import { SMS_AUTO_EVENT_KEYS } from "@/lib/sms-event-keys";
+
+const EVENT_KEYS = SMS_AUTO_EVENT_KEYS;
 
 const templateSchema = z.object({
   title: z.string().min(1, "Başlık zorunlu").max(200),
@@ -24,6 +20,7 @@ const templateSchema = z.object({
     .enum(["genel", "odeme", "kesim", "teslimat", "bilgilendirme"])
     .default("genel"),
   content: z.string().min(1, "Mesaj içeriği zorunlu").max(882),
+  content_external: z.string().max(882).optional().nullable(),
   variables: z.array(z.string()).optional().nullable(),
   is_active: z.boolean().default(true),
   event_key: z.enum(EVENT_KEYS).optional().nullable(),
@@ -46,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from("sms_templates")
-      .select("id, title, description, category, content, variables, is_active, event_key, created_by, created_at, updated_at")
+      .select("id, title, description, category, content, content_external, variables, is_active, event_key, created_by, created_at, updated_at")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
@@ -83,6 +80,16 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Geçersiz veri", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    if (
+      parsed.data.event_key === "delivery_completed" &&
+      (!parsed.data.content_external || !parsed.data.content_external.trim())
+    ) {
+      return NextResponse.json(
+        { error: "Teslim edildi şablonunda kesimhane dışı mesaj metni zorunlu" },
         { status: 400 }
       );
     }

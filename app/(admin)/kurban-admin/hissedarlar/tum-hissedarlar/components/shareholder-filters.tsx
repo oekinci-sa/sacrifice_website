@@ -265,6 +265,22 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
     { label: "Alınmadı", value: "false" }
   ], []);
 
+  const sharePriceOptions = useMemo(() => {
+    const prices = new Set<number>();
+    table.getPreFilteredRowModel().rows.forEach((row) => {
+      const price = row.original.sacrifice?.share_price;
+      if (price != null && Number.isFinite(Number(price))) {
+        prices.add(Number(price));
+      }
+    });
+    return Array.from(prices)
+      .sort((a, b) => a - b)
+      .map((price) => ({
+        label: `${price.toLocaleString("tr-TR")} TL`,
+        value: price.toString(),
+      }));
+  }, [table]);
+
   // Filter column setup for payment status
   useEffect(() => {
     const paymentColumn = table.getColumn("payment_status");
@@ -340,6 +356,14 @@ export function ShareholderFilters({ table }: ShareholderFiltersProps) {
           options={paymentStatusOptions}
           type="payment"
           paymentStatusCounts={paymentStatusCounts}
+        />
+      )}
+      {table.getColumn("sacrifice_info") && sharePriceOptions.length > 0 && (
+        <DataTableFacetedFilter
+          column={table.getColumn("sacrifice_info")}
+          title={H.sacrifice_info}
+          options={sharePriceOptions}
+          type="price"
         />
       )}
       {table.getColumn("delivery_location") && (

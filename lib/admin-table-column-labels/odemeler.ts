@@ -4,7 +4,7 @@
 export const odemelerColumnHeaderLabels: Record<string, string> = {
   sacrifice_no: "Kurban No",
   shareholder_name: "İsim Soyisim",
-  phone_number: "Telefon",
+  phone_number: "Cep Telefonu",
   sacrifice_info: "Hisse Bilgisi",
   delivery_fee: "Teslimat Ücreti",
   delivery_location: "Teslimat Tercihi",

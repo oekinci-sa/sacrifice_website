@@ -3,15 +3,19 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  normalizeQueueDisplayNumber,
+  QUEUE_NUMBER_MIN,
+} from "@/lib/queue-display-number";
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
 import { supabase } from "@/utils/supabaseClient";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface QueueCardWithButtonsProps {
     title: string;
     stage: StageType;
-    enableAnimation?: boolean; // New prop to control animation
+    enableAnimation?: boolean;
 }
 
 interface SacrificeTimingData {
@@ -29,18 +33,20 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     enableAnimation = false
 }) => {
     const [isCompleted, setIsCompleted] = useState(false);
-    const [localNumber, setLocalNumber] = useState<number>(0);
+    const [localNumber, setLocalNumber] = useState<number>(QUEUE_NUMBER_MIN);
     const [isSwitchDisabled, setIsSwitchDisabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const syncedDbNumberRef = useRef<number>(QUEUE_NUMBER_MIN);
 
-    // Direct store subscription - this will trigger React re-renders
     const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
-    const dbNumber = currentStageMetric?.current_sacrifice_number || 0;
+    const maxSacrificeNumber = useStageMetricsStore(state => state.maxSacrificeNumber);
+    const normalizedDbNumber = normalizeQueueDisplayNumber(
+        currentStageMetric?.current_sacrifice_number
+    );
 
-    // Function to check if switch should be on and enabled based on database
     const checkSwitchState = useCallback(async (number: number): Promise<boolean> => {
-        if (!number || number <= 0) {
+        if (!number || number < QUEUE_NUMBER_MIN) {
             setIsCompleted(false);
             setIsSwitchDisabled(true);
             return true;
@@ -54,28 +60,27 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
             const data: SacrificeTimingData = await response.json();
 
-            // Set completion status based on current stage
             let currentStageCompleted = false;
             let canBeEnabled = true;
 
             switch (stage) {
                 case 'slaughter_stage':
                     currentStageCompleted = data.slaughter_completed;
-                    canBeEnabled = true; // Slaughter can always be enabled
+                    canBeEnabled = true;
                     break;
                 case 'butcher_stage':
                     currentStageCompleted = data.butcher_completed;
-                    canBeEnabled = data.slaughter_completed; // Butcher requires slaughter to be completed
+                    canBeEnabled = data.slaughter_completed;
                     break;
                 case 'delivery_stage':
                     currentStageCompleted = data.delivery_completed;
-                    canBeEnabled = data.slaughter_completed && data.butcher_completed; // Delivery requires both slaughter and butcher
+                    canBeEnabled = data.slaughter_completed && data.butcher_completed;
                     break;
             }
 
             setIsCompleted(currentStageCompleted);
             setIsSwitchDisabled(!canBeEnabled);
-            return true; // Success
+            return true;
         } catch (error) {
             console.error(`Error checking switch state for ${stage}:`, error);
             toast({
@@ -83,38 +88,34 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 title: "Bağlantı Hatası",
                 description: "Veritabanı ile bağlantı kurulamadı. Lütfen internet bağlantınızı kontrol edin.",
             });
-            return false; // Failure
+            return false;
         }
     }, [stage, toast]);
 
-    // Update local number when store data changes
     useEffect(() => {
-        if (currentStageMetric && currentStageMetric.current_sacrifice_number !== undefined) {
-            const newDbNumber = currentStageMetric.current_sacrifice_number;
+        if (currentStageMetric?.current_sacrifice_number === undefined) return;
 
-            // Only update localNumber if it's currently synced with previous dbNumber or is initial load
-            if (localNumber === 0 || localNumber === dbNumber) {
-                setLocalNumber(newDbNumber);
-                // Check switch state only when there is a valid sacrifice number
-                if (newDbNumber > 0) {
-                    checkSwitchState(newDbNumber);
-                }
+        const newDbNumber = normalizedDbNumber;
+        setLocalNumber((prev) => {
+            if (prev === syncedDbNumberRef.current || prev < QUEUE_NUMBER_MIN) {
+                syncedDbNumberRef.current = newDbNumber;
+                void checkSwitchState(newDbNumber);
+                return newDbNumber;
             }
-        }
-    }, [currentStageMetric, dbNumber, localNumber, checkSwitchState]);
+            syncedDbNumberRef.current = newDbNumber;
+            return prev;
+        });
+    }, [currentStageMetric?.current_sacrifice_number, normalizedDbNumber, checkSwitchState]);
 
-    // Initial setup - check switch state for the initial number
     useEffect(() => {
-        if (localNumber > 0) {
-            checkSwitchState(localNumber);
+        if (localNumber >= QUEUE_NUMBER_MIN) {
+            void checkSwitchState(localNumber);
         }
     }, [localNumber, checkSwitchState]);
 
-    // Realtime subscription for sacrifice_animals table to detect timing changes
     useEffect(() => {
-        if (localNumber === 0) return; // Don't subscribe if no number is set
+        if (localNumber < QUEUE_NUMBER_MIN) return;
 
-        // Create a unique channel name for this component instance
         const channelName = `sacrifice-timing-no${localNumber}-${stage}-${Date.now()}`;
 
         const channel = supabase
@@ -127,23 +128,13 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     table: 'sacrifice_animals',
                     filter: `sacrifice_no=eq.${localNumber}`
                 },
-                (payload) => {
-                    console.log(`[QueueCardWithButtons] Received realtime update for sacrifice_no=${localNumber}:`, payload);
-
-                    // Re-check switch state when sacrifice_animals table is updated
-                    checkSwitchState(localNumber);
+                () => {
+                    void checkSwitchState(localNumber);
                 }
             )
-            .subscribe((status, err) => {
-                console.log(`[QueueCardWithButtons] Subscription status for sacrifice_no=${localNumber}:`, status);
-                if (err) {
-                    console.error(`[QueueCardWithButtons] Subscription error for sacrifice_no=${localNumber}:`, err);
-                }
-            });
+            .subscribe();
 
-        // Cleanup subscription on unmount or when localNumber changes
         return () => {
-            console.log(`[QueueCardWithButtons] Cleaning up subscription for sacrifice_no=${localNumber}`);
             supabase.removeChannel(channel);
         };
     }, [localNumber, stage, checkSwitchState]);
@@ -151,19 +142,22 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     const handleDecrement = async () => {
         if (isLoading) return;
 
-        const newNumber = Math.max(1, localNumber - 1);
+        if (localNumber <= QUEUE_NUMBER_MIN) {
+            toast({
+                title: "Sınır",
+                description: "Sıra numarası 1'den küçük olamaz.",
+            });
+            return;
+        }
 
+        const newNumber = localNumber - 1;
         setIsLoading(true);
 
         try {
-            // Check switch state for the new number BEFORE changing the display
             const success = await checkSwitchState(newNumber);
-
             if (success) {
-                // Only update the number if DB call was successful
                 setLocalNumber(newNumber);
             } else {
-                // Don't change the number if DB call failed
                 toast({
                     variant: "destructive",
                     title: "İşlem Başarısız",
@@ -184,20 +178,22 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     const handleIncrement = async () => {
         if (isLoading) return;
 
-        // Limit to maximum 135
-        const newNumber = Math.min(135, localNumber + 1);
+        if (localNumber >= maxSacrificeNumber) {
+            toast({
+                title: "Sınır",
+                description: `Bu tenant için en yüksek kurban numarası ${maxSacrificeNumber}. Daha fazla artırılamaz.`,
+            });
+            return;
+        }
 
+        const newNumber = localNumber + 1;
         setIsLoading(true);
 
         try {
-            // Check switch state for the new number BEFORE changing the display
             const success = await checkSwitchState(newNumber);
-
             if (success) {
-                // Only update the number if DB call was successful
                 setLocalNumber(newNumber);
             } else {
-                // Don't change the number if DB call failed
                 toast({
                     variant: "destructive",
                     title: "İşlem Başarısız",
@@ -239,7 +235,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            // Show success message
             const actionText = getActionText();
             toast({
                 title: "Başarılı",
@@ -248,10 +243,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
         } catch (error) {
             console.error(`Error updating sacrifice timing for ${stage}:`, error);
-
-            // Revert switch state on error
             setIsCompleted(previousState);
-
             toast({
                 variant: "destructive",
                 title: "Güncelleme Başarısız",
@@ -262,7 +254,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         }
     };
 
-    // Get action text based on stage
     const getActionText = () => {
         switch (stage) {
             case 'slaughter_stage':
@@ -276,7 +267,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         }
     };
 
-    // Get display text based on stage and completion status
     const getDisplayText = () => {
         const action = getActionText();
 
@@ -297,14 +287,12 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
     return (
         <div className="flex flex-col items-center justify-center gap-8 md:gap-12">
-            {/* Counter */}
             <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
                 <i
                     className={`bi bi-dash flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     onClick={handleDecrement}
                 ></i>
 
-                {/* Custom QueueCard that shows local number */}
                 <div className="flex flex-col items-center justify-center gap-4">
                     <div className='flex flex-col items-center justify-center w-40 md:w-60'>
                         <div className="bg-primary py-1 md:py-2 text-center text-white w-full text-lg md:text-2xl font-bold">
@@ -323,7 +311,6 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 ></i>
             </div>
 
-            {/* Switch */}
             <div className="flex items-start space-x-4 md:space-x-6">
                 <div className={`transform scale-110 md:scale-125 origin-left transition-opacity ${isLoading ? 'opacity-50' : ''}`}>
                     <Switch

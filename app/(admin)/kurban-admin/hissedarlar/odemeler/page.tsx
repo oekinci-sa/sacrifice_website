@@ -130,7 +130,7 @@ export default function OdemelerPage() {
         accessorKey: "paid_amount",
         header: O.paid_amount,
         cell: ({ row }) => (
-          <EditablePaidAmountCell row={row} onUpdate={updateShareholder} smsEnabled={branding.sms_enabled} />
+          <EditablePaidAmountCell row={row} onUpdate={updateShareholder} />
         ),
       },
       {
@@ -252,7 +252,7 @@ export default function OdemelerPage() {
             }}
             initialState={{
               columnVisibility: {
-                phone_number: false,
+                phone_number: true,
                 purchase_time: false,
                 notes: false,
                 delivery_location: false,

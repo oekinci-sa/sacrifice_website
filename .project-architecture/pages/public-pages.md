@@ -45,3 +45,12 @@ Kurban ibadeti hakkında yazılar (blog).
 
 ### /iletisim
 Kurumla iletişim bilgileri.
+
+## Takip ve sıra sayfaları
+
+| Route | Açıklama |
+|-------|----------|
+| `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` | Operatör sıra ekranları; Realtime `stage_metrics` |
+| `/takip`, `homepage_mode: follow_up` | Halka açık takip kartları |
+
+**Arıza duyurusu:** Admin **Kurban Günü İstatistikleri** sayfasından açıldığında tüm public ve takip sayfalarında önce modal, sonra üst sticky banner (`components/layout/incident-banner.tsx`; 60 sn polling). Detay: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](../changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md).

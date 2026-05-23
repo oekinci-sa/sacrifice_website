@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { TenantBrandingProvider } from "@/app/providers/TenantBrandingProvider";
 import Footer from "../../components/layout/footer/footer";
 import Header from "../../components/layout/header/header";
+import { IncidentBannerWrapper } from "@/components/layout/incident-banner";
 import { getTenantBranding } from "@/lib/tenant-branding";
 import { PublicYearProvider } from "./components/PublicYearProvider";
 
@@ -27,6 +28,7 @@ export default async function PublicLayout({
   return (
     <TenantBrandingProvider initialBranding={branding}>
       <div className={`${instrumentSans.variable} min-h-screen flex flex-col`}>
+        <IncidentBannerWrapper />
         <Header />
         <main className="flex-1">
           <Suspense fallback={null}>

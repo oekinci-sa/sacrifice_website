@@ -121,12 +121,14 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Kurbanlık listesi | GET /api/sacrifices (getSacrificeAnimals) |
 | Kurbanlık ekleme | POST /api/create-sacrifice (editor+; `last_edited_by` sunucuda oturum e-postası) |
 | Kurbanlık güncelleme | PUT /api/update-sacrifice; POST /api/update-sacrifice-share, /api/update-sacrifice-timing |
-| Takip — aşama tamamlama + otomatik SMS | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` → `POST /api/update-sacrifice-timing` (`is_completed: true`) → `handleAutoSms` (`sms_enabled` + `sms_auto_enabled` + aktif `event_key` şablonu). Organizasyon: **Oto. SMS** sütunu |
+| Kurban günü arıza kaydı | `/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri` → CRUD `/api/admin/stage-downtime` (`stage_downtime_events`; yıl + tenant) |
+| Kurban günü arıza duyurusu | Aynı sayfa → `PUT /api/admin/incident-banner` (`incident_banner_enabled`, `incident_banner_message`) |
+| Takip — aşama tamamlama + otomatik SMS | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` → `POST /api/update-sacrifice-timing` (`is_completed: true`) → `handleAutoSms` (`sms_enabled` + `sms_auto_enabled` + aktif `event_key` şablonu). Kesimde: yaklaşan (+20) ve kesilmek üzere (+3) ayrı uyarılar. Teslimatta: aynı kurbana teslim edildi, sonraki sıraya teslim almaya çağrı. Organizasyon: **Oto. SMS** sütunu |
 | Kurbanlık silme | DELETE /api/sacrifices/[id] (`rpc_delete_sacrifice`, oturum e-postası = `app.actor`) |
 | Hissedar ekleme | POST /api/create-shareholders (`last_edited_by` sunucuda: oturum e-postası veya `hisseal-akisi`; `purchased_by` müşteri) |
-| Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Tüm Hissedarlar** tablosu (satır içi hücreler); teslimat tercihi hisse alımındaki seçimle uyumlu |
+| Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Tüm Hissedarlar** tablosu (satır içi hücreler); teslimat tercihi hisse alımındaki seçimle uyumlu. `paid_amount` güncellenince → `payment_amount_updated` SMS (`sms_enabled`, aktif şablon) |
 | Hissedar kurban sırası (başka kurbanlığa taşıma) | POST /api/admin/shareholders/[id]/move-sacrifice (`target_sacrifice_no`; `rpc_move_shareholder_to_sacrifice`); **Tüm Hissedarlar** «Kur. Sır.» sütunu |
-| Hissedar silme | POST /api/delete-shareholder |
+| Hissedar silme | POST /api/delete-shareholder — SMS FK CASCADE ile ilişkili kayıtlar silinir |
 
 ---
 
@@ -137,12 +139,15 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Genel Bakış | useSacrificeStore, useShareholderStore |
 | Satış grafikleri | shareholders.purchase_time |
 | Rezervasyonlar | GET /api/get-reservation-transactions (kolonlar: `completed_at` işlem bitişi); tablo üstü filtreler: Kurban No, Hisse Sayısı, Durum; **Realtime**: Supabase `postgres_changes` (reservation_transactions) ile badge ve tablo anında güncellenir |
-| Aşama metrikleri | GET /api/get-stage-metrics (takip + admin okuma); **POST /api/update-stage-metrics** — anlık kurban no (editor+; RPC + `change_logs` satırı) |
+| Aşama metrikleri | GET /api/get-stage-metrics (takip + admin okuma); **POST /api/update-stage-metrics** — anlık kurban no (editor+; RPC + `change_logs` satırı). Ortalama süre: `sacrifice_animals` tetikleyicileri + `stage_downtime_events` kesintisi |
+| Kurban günü istatistikleri | `/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri` — arıza CRUD, duyuru; bkz. [changelog-2026-05-kurban-gunu-istatistikleri.md](changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md) |
+| Public arıza duyurusu | `GET /api/public/incident-banner` (60 sn polling) → `IncidentBannerWrapper` (public + takip layout) |
 | Değişiklik kayıtları | GET /api/get-change-logs |
 | Uyumsuz hisseler | GET /api/admin/mismatched-shares (aktif rezervasyonu olan sacrifice_id'ler çıkarılır), POST /api/admin/mismatched-shares/acknowledge; shareholders AFTER INSERT trigger farkındalığı sıfırlar |
 | Mail (admin) | `/kurban-admin/mail-islemleri` → GET /api/admin/email-recipients?year=, POST /api/admin/send-email (Resend; editor+; alıcılar panel + seçili yıl hissedar allowlist) |
 | Mail (otomatik) | Hisseal teşekkür sayfası → POST /api/purchase-confirmation-email { transaction_id } (hissedar e-postası varsa; bir kez / işlem) |
 | SMS (otomatik, kurban günü) | Takip sıra ekranları → bkz. §5 «Takip — aşama tamamlama»; şablonlar `/kurban-admin/sms-islemleri/sablonlari` |
+| SMS (otomatik, ödeme) | Ödemeler / Tüm Hissedarlar → `paid_amount` güncelleme → `payment_amount_updated` şablonu (`sms_enabled`) |
 | SMS (manuel) | `/kurban-admin/sms-islemleri` — `sms_enabled` gerekir |
 
 ---

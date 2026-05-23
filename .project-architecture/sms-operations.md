@@ -28,7 +28,7 @@ BIZIM_SMS_API_BASE=https://api.sms.bizimsms.mobi  # opsiyonel, varsayılan bu
 | `tenant_settings.sms_enabled` | Bu tenant için admin’de SMS menüsü ve Tüm Hissedarlar SMS sütununun görünürlüğü (`BOOLEAN DEFAULT FALSE`; DDL bkz. `db/tables/tenant_settings/table.sql`). |
 | `sms_templates` | Yeniden kullanılabilir SMS şablonları (kategori, değişken listesi); `DELETE` route soft delete |
 | `sms_sends` | Her gönderim grubu (tekil/toplu, durum, sayılar, idempotency) |
-| `sms_send_recipients` | Her gönderimin bireysel alıcıları (`personalized_message`, `status`, `skip_reason`) |
+| `sms_send_recipients` | Her gönderimin bireysel alıcıları; `shareholder_id` → `shareholders` **ON DELETE CASCADE** |
 | `sms_notification_events` | Otomatik SMS idempotency (tenant + yıl + hissedar + `event_key`) |
 | `tenant_settings.sms_auto_enabled` | Kurban günü otomatik gönderim bayrağı (`sms_enabled`’dan ayrı) |
 | `tenant_settings.sms_slaughter_approach_offset` | «Kesim yaklaşıyor» kaç kurban öncesi (default 20) |
@@ -45,6 +45,7 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 | `sms_templates` + `event_key` | `sms_templates/migrations/create_sms_templates_2026_05_06.sql`, `sms_templates_add_event_key_2026_05_18.sql` |
 | `sms_notification_events` | `sms_notification_events/migrations/create_sms_notification_events_2026_05_18.sql` |
 | `stage_metrics` yıl filtresi | `stage_metrics/migrations/fix_stage_metrics_trigger_year_filter_2026_05_18.sql` |
+| SMS FK CASCADE (hissedar silme) | `sms_send_recipients`, `sms_notification_events`, `sms_blocklist` → `*_shareholder_on_delete_cascade_2026_05_19.sql` |
 
 ## Kütüphaneler (`lib/`)
 
@@ -56,7 +57,9 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 | `lib/sms-phone-normalizer.ts` | Ham telefon → 12 hane Bizim SMS formatı (`normalizePhone`, `isValidPhone`) |
 | `lib/sms-dedup.ts` | Mükerrer alıcı anahtarı: normalize cep + kurban bağlamı; **isim yok** |
 | `lib/sms-send-title-display.ts` | Hissedar zaman çizelgesinde otomatik başlıktaki tekrar tarih kalıplarını kısaltır |
+| `lib/sms-event-keys.ts` | Otomatik SMS `event_key` listesi ve Türkçe etiketler |
 | `lib/sms-auto-sender.ts` | Kurban günü otomatik SMS — `handleAutoSms`, şablon + idempotency + Bizim SMS gönderimi |
+| `lib/sms-payment-notification.ts` | Ödeme tutarı güncellenince `payment_amount_updated` şablonu ile SMS |
 | `lib/sms-template-variables.ts` | Şablon değişkenleri (`buildSmsVariablesFromShareholderRow`) |
 
 ## API Routes — Faz 1
@@ -80,6 +83,26 @@ Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 | `/api/admin/sms/sends/[id]/cancel` | POST | Taslak gönderim iptali (admin/super_admin) |
 | `/api/admin/sms/sends/[id]/retry` | POST | Başarısız alıcıları yeni kayıtla yeniden dene |
 | `/api/admin/sms/shareholder-history` | GET | Hissedar bazlı son 50 gönderim alıcı satırı; yanıtta `personalized_message` |
+| `/api/admin/sms/shareholder-search` | GET | SMS Gönder «Hissedarlardan seç» araması; `year`, `q`, `offset`, `limit`; sıra kurban no → isim; yanıt `{ results, hasMore, nextOffset }` |
+
+## Hissedar araması (picker)
+
+**Route:** `GET /api/admin/sms/shareholder-search`
+
+SMS Gönder sayfasında gönderim tipi `shareholder_pick` iken `SmsShareholderPicker` bileşeni bu endpoint’i kullanır.
+
+| Param | Açıklama |
+|-------|----------|
+| `year` | Zorunlu (`sacrifice_year`) |
+| `q` | Boş / 1 harf: tüm liste; ≥ 2 harf: `shareholder_name` veya `phone_number` ilike |
+| `offset` | Sayfa başlangıcı (varsayılan 0) |
+| `limit` | Sayfa boyutu (varsayılan 50, max 100) |
+
+**Sıralama (DB):** `sacrifice_animals!inner(sacrifice_no)` ASC, ardından `shareholder_name` ASC.
+
+**UI:** Dropdown’da `IntersectionObserver` ile sona yaklaşınca bir sonraki sayfa yüklenir; seçimler API limitinden bağımsız kalır. Bileşen: `sms-islemleri/components/sms-shareholder-picker.tsx`.
+
+Detay: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](./changelogs/changelog-2026-05-admin-table-ux-sms-picker.md).
 
 ## `POST /api/admin/sms/send` İş Akışı
 
@@ -185,18 +208,22 @@ Tüm manuel ve otomatik SMS şablonlarında kullanılabilecek değişkenler:
 |---|---|
 | `{{kesilen_kurban_no}}` | Şu an tamamlanan/kesilen kurbanlığın no'su (tetikleyici) |
 | `{{kesim_ortalama_suresi}}` | Kesim aşaması ham ortalama süresi (dakika, stage_metrics'ten) |
-| `{{kesim_tahmini_sure}}` | Kesim bekleme tahmini: `ortalama × sms_slaughter_approach_offset` |
+| `{{kesim_tahmini_sure}}` | Kesim bekleme tahmini: `ortalama × event target_offset` |
 | `{{parcalama_ortalama_suresi}}` | Parçalama ham ortalama süresi (dakika) |
 | `{{parcalama_tahmini_sure}}` | Parçalama bekleme tahmini (dakika) |
 | `{{teslimat_ortalama_suresi}}` | Teslimat ham ortalama süresi (dakika) |
-| `{{teslimat_tahmini_sure}}` | Teslimat bekleme tahmini: `ortalama × sms_delivery_pickup_offset` |
+| `{{teslimat_tahmini_sure}}` | Teslimat bekleme tahmini: `ortalama × event target_offset` |
 
-### Backward-compat alias'lar (silinmeyecek)
+### `payment_amount_updated` (ödeme otomatik SMS)
 
-| Alias | Eşdeğer |
-|---|---|
-| `{{hayvan_no}}` | `{{kurban_no}}` ile aynı değer |
-| `{{tahmini_dakika}}` | İlk doldurulan tahmini süre değişkeniyle aynı değer |
+| Alan | Değer |
+|------|--------|
+| Tetikleyici | `POST /api/update-shareholder` — `paid_amount` güncellenince |
+| Bayrak | `sms_enabled` ( `sms_auto_enabled` **gerekmez** ) |
+| Kod | `lib/sms-payment-notification.ts` |
+| Şablon | Aktif `payment_amount_updated` kaydı; admin **SMS Şablonları**ndan düzenlenir |
+
+Genel değişkenler (`{{ad_soyad}}`, `{{odenen_tutar}}`, `{{kalan_tutar}}` vb.) kullanılır; kurban gününe özel süre değişkenleri gerekmez.
 
 Boş kalan değişkenler gönderimi bloklamaz; mesajda `{{variable_name}}` olarak kalır ve `warnings` döner.
 
@@ -257,27 +284,37 @@ Yalnızca (1) yapılıp (2) yapılmazsa menü açılabilir ancak gönderim **SMS
 
 | `event_key` | Ne zaman | Hedef hissedar |
 |-------------|----------|----------------|
-| `slaughter_approaching` | Kesim aşaması tamamlandı | `sacrifice_no + sms_slaughter_approach_offset`, yalnız **Kesimhane** |
+| `slaughter_approaching` | Kesim aşaması tamamlandı | `sacrifice_no + target_offset` (varsayılan 20), yalnız **Kesimhane** |
+| `slaughter_imminent` | Kesim aşaması tamamlandı | `sacrifice_no + target_offset` (varsayılan 3), yalnız **Kesimhane** |
 | `slaughter_completed` | Kesim aşaması tamamlandı | Aynı kurban, tümü |
 | `butcher_started` | Parçalama tamamlandı | Aynı kurban, **Kesimhane** |
-| `delivery_pickup_approaching` | Teslimat tamamlandı | `sacrifice_no + sms_delivery_pickup_offset`, **Kesimhane** |
+| `delivery_completed` | Teslimat tamamlandı | Aynı kurban, tümü |
+| `delivery_pickup_approaching` | Teslimat tamamlandı | `sacrifice_no + target_offset` (varsayılan 2), **Kesimhane** |
 | `external_delivery_notice` | Teslimat tamamlandı | Aynı kurban, Kesimhane **dışı** |
+| `payment_amount_updated` | Ödenen tutar güncellendi (admin) | İlgili hissedar; `sms_enabled` |
 
 `event_key` NULL → yalnızca manuel gönderimde kullanılan şablon. Tenant başına aktif şablonda aynı `event_key` en fazla bir kez (`uq_sms_templates_tenant_event_key`).
 
-### Idempotency ve kayıt
+### Idempotency ve kayıt (kurban günü otomatik)
 
 1. Gönderim öncesi `sms_notification_events` ile hissedar + `event_key` kontrolü.
 2. `sms_sends` + `idempotency_key`: `auto:{event_key}:{tenant_id}:{sacrifice_id}:{year}`.
 3. Sonrasında `sms_notification_events` upsert (tekrar gönderim engeli).
+
+Ödeme SMS (`payment_amount_updated`) her güncellemede yeni `idempotency_key` (UUID) ile gönderilir; `sms_notification_events` kullanılmaz.
 
 DDL: [db/tables/sms_notification_events/table.sql](./db/tables/sms_notification_events/table.sql).
 
 ### Admin — şablon yönetimi
 
 - Sayfa: `/kurban-admin/sms-islemleri/sablonlari`
-- Düzenleme diyalogu: `event_key` Select — manuel = `none` (boş string Radix’te yasak); otomatik seçenekler gruplu.
-- Liste filtresi: toolbar **Otomatik SMS** popover — çoklu `event_key` seçimi ile aktif şablonları süzme.
+- Düzenleme diyalogu: `event_key` Select — manuel = `none` (boş string Radix’te yasak); otomatik gruplar: **Kurban günü**, **Ödeme**
+- Liste filtresi: **Şablonları filtrele** — Sizin yazdıklarınız / Otomatik SMS'ler / Pasif SMS'ler (varsayılan: üçünü de seçili)
+- Editör: otomatik değişken butonları yalnızca kurban günü `event_key` seçiliyken
+
+### Hissedar silme
+
+`POST /api/delete-shareholder` → `rpc_delete_shareholder`. SMS tablolarındaki `shareholder_id` FK’ları **ON DELETE CASCADE**; silme öncesi manuel temizlik gerekmez.
 
 ### Gelecek (henüz yok)
 

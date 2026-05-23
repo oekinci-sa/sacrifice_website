@@ -32,6 +32,7 @@ import { useDeleteShareholder } from "@/hooks/useShareholders";
 import { useShareholderStore } from "@/stores/only-admin-pages/useShareholderStore";
 import { hissedarlarColumnHeaderLabels as H } from "@/lib/admin-table-column-labels/hissedarlar";
 import { AdminSacrificeHisseBedeliTableCell } from "@/lib/admin-sacrifice-hisse-bedeli";
+import { isLiveScaleSacrifice } from "@/lib/live-scale-share";
 import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { shareholderSchema } from "@/types";
@@ -790,10 +791,30 @@ const BASE_COLUMNS: ColumnDef<shareholderSchema>[] = [
   },
   {
     id: "sacrifice_info",
-    accessorFn: (row) => row.sacrifice?.share_weight ?? "-",
+    accessorFn: (row) => {
+      const s = row.sacrifice;
+      if (!s) return null;
+      if (isLiveScaleSacrifice(s)) {
+        const total = s.live_scale_total_price;
+        return total != null && Number.isFinite(Number(total)) ? Number(total) : null;
+      }
+      const price = s.share_price;
+      return price != null && Number.isFinite(Number(price)) ? Number(price) : null;
+    },
     header: H.sacrifice_info,
     minSize: 110,
-    enableSorting: false,
+    enableSorting: true,
+    sortingFn: sortingFunctions.number,
+    filterFn: (row, _id, filterValues: (string | number)[]) => {
+      if (!filterValues || filterValues.length === 0) return true;
+      const price = row.original.sacrifice?.share_price;
+      if (price == null) return false;
+      return filterValues.some((filterValue: string | number) => {
+        const numericFilterValue =
+          typeof filterValue === "string" ? parseFloat(filterValue) : filterValue;
+        return Number(price) === numericFilterValue;
+      });
+    },
     cell: ({ row }) => (
       <AdminSacrificeHisseBedeliTableCell sacrifice={row.original.sacrifice} />
     ),

@@ -4,6 +4,12 @@
 -- Açıklama   : Her aşama için ortalama ilerleme süresini (saniye) ve güncel
 --              kurban numarasını hesaplar. Frontend'de kuyruk ilerlemesini
 --              takip etmek için kullanılır.
+--
+-- Arıza düzeltmesi: stage_downtime_events tablosundaki kayıtlar ortalama
+-- hesabında toplam süreden çıkarılır. Çakışan aralıklar birleştirilir.
+-- Kural: slaughter arızası → slaughter; butcher arızası → slaughter+butcher;
+--        delivery arızası → tüm aşamaları etkiler (en geniş etki).
+--
 -- Trigger'lar: trg_update_slaughter_metrics, trg_update_butcher_metrics,
 --              trg_update_delivery_metrics
 -- ===============================================
@@ -14,24 +20,57 @@ RETURNS TRIGGER AS $$
 DECLARE
   earliest TIMESTAMP;
   latest TIMESTAMP;
-  count INTEGER;
+  v_count INTEGER;
+  raw_duration_seconds INTEGER;
+  total_downtime_seconds INTEGER;
   duration_seconds INTEGER;
   latest_sacrifice_no INT2;
 BEGIN
   IF NEW.slaughter_time IS DISTINCT FROM OLD.slaughter_time THEN
     SELECT COUNT(slaughter_time), MIN(slaughter_time), MAX(slaughter_time)
-    INTO count, earliest, latest
+    INTO v_count, earliest, latest
     FROM sacrifice_animals
     WHERE slaughter_time IS NOT NULL
       AND tenant_id = NEW.tenant_id
       AND sacrifice_year = NEW.sacrifice_year;
 
-    IF count > 1 THEN
+    IF v_count > 1 THEN
+      raw_duration_seconds := EXTRACT(EPOCH FROM (latest - earliest))::INTEGER;
+
+      -- Kesim arızası sadece slaughter_stage'i doğrudan etkiler
+      WITH applicable AS (
+        SELECT started_time, ended_time
+        FROM stage_downtime_events
+        WHERE tenant_id = NEW.tenant_id
+          AND sacrifice_year = NEW.sacrifice_year
+          AND affected_stage = 'slaughter'
+      ),
+      ordered AS (
+        SELECT started_time, ended_time,
+          MAX(ended_time) OVER (
+            ORDER BY started_time ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+          ) AS prev_max_end
+        FROM applicable
+      ),
+      island_start AS (
+        SELECT started_time, ended_time,
+          SUM(CASE
+            WHEN prev_max_end IS NOT NULL AND started_time <= prev_max_end THEN 0 ELSE 1
+          END) OVER (ORDER BY started_time) AS grp
+        FROM ordered
+      ),
+      merged AS (
+        SELECT MAX(ended_time) - MIN(started_time) AS span
+        FROM island_start GROUP BY grp
+      )
+      SELECT COALESCE(SUM(EXTRACT(EPOCH FROM span))::INTEGER, 0)
+      INTO total_downtime_seconds
+      FROM merged;
+
       duration_seconds := LEAST(
-        EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
+        GREATEST(raw_duration_seconds - total_downtime_seconds, 0) / (v_count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;
@@ -61,24 +100,57 @@ RETURNS TRIGGER AS $$
 DECLARE
   earliest TIMESTAMP;
   latest TIMESTAMP;
-  count INTEGER;
+  v_count INTEGER;
+  raw_duration_seconds INTEGER;
+  total_downtime_seconds INTEGER;
   duration_seconds INTEGER;
   latest_sacrifice_no INT2;
 BEGIN
   IF NEW.butcher_time IS DISTINCT FROM OLD.butcher_time THEN
     SELECT COUNT(butcher_time), MIN(butcher_time), MAX(butcher_time)
-    INTO count, earliest, latest
+    INTO v_count, earliest, latest
     FROM sacrifice_animals
     WHERE butcher_time IS NOT NULL
       AND tenant_id = NEW.tenant_id
       AND sacrifice_year = NEW.sacrifice_year;
 
-    IF count > 1 THEN
+    IF v_count > 1 THEN
+      raw_duration_seconds := EXTRACT(EPOCH FROM (latest - earliest))::INTEGER;
+
+      -- Parçalama ortalamasından: slaughter + butcher arızaları düşülür
+      WITH applicable AS (
+        SELECT started_time, ended_time
+        FROM stage_downtime_events
+        WHERE tenant_id = NEW.tenant_id
+          AND sacrifice_year = NEW.sacrifice_year
+          AND affected_stage IN ('slaughter', 'butcher')
+      ),
+      ordered AS (
+        SELECT started_time, ended_time,
+          MAX(ended_time) OVER (
+            ORDER BY started_time ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+          ) AS prev_max_end
+        FROM applicable
+      ),
+      island_start AS (
+        SELECT started_time, ended_time,
+          SUM(CASE
+            WHEN prev_max_end IS NOT NULL AND started_time <= prev_max_end THEN 0 ELSE 1
+          END) OVER (ORDER BY started_time) AS grp
+        FROM ordered
+      ),
+      merged AS (
+        SELECT MAX(ended_time) - MIN(started_time) AS span
+        FROM island_start GROUP BY grp
+      )
+      SELECT COALESCE(SUM(EXTRACT(EPOCH FROM span))::INTEGER, 0)
+      INTO total_downtime_seconds
+      FROM merged;
+
       duration_seconds := LEAST(
-        EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
+        GREATEST(raw_duration_seconds - total_downtime_seconds, 0) / (v_count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;
@@ -108,24 +180,57 @@ RETURNS TRIGGER AS $$
 DECLARE
   earliest TIMESTAMP;
   latest TIMESTAMP;
-  count INTEGER;
+  v_count INTEGER;
+  raw_duration_seconds INTEGER;
+  total_downtime_seconds INTEGER;
   duration_seconds INTEGER;
   latest_sacrifice_no INT2;
 BEGIN
   IF NEW.delivery_time IS DISTINCT FROM OLD.delivery_time THEN
     SELECT COUNT(delivery_time), MIN(delivery_time), MAX(delivery_time)
-    INTO count, earliest, latest
+    INTO v_count, earliest, latest
     FROM sacrifice_animals
     WHERE delivery_time IS NOT NULL
       AND tenant_id = NEW.tenant_id
       AND sacrifice_year = NEW.sacrifice_year;
 
-    IF count > 1 THEN
+    IF v_count > 1 THEN
+      raw_duration_seconds := EXTRACT(EPOCH FROM (latest - earliest))::INTEGER;
+
+      -- Teslimat ortalamasından: slaughter + butcher + delivery arızaları düşülür
+      WITH applicable AS (
+        SELECT started_time, ended_time
+        FROM stage_downtime_events
+        WHERE tenant_id = NEW.tenant_id
+          AND sacrifice_year = NEW.sacrifice_year
+          AND affected_stage IN ('slaughter', 'butcher', 'delivery')
+      ),
+      ordered AS (
+        SELECT started_time, ended_time,
+          MAX(ended_time) OVER (
+            ORDER BY started_time ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+          ) AS prev_max_end
+        FROM applicable
+      ),
+      island_start AS (
+        SELECT started_time, ended_time,
+          SUM(CASE
+            WHEN prev_max_end IS NOT NULL AND started_time <= prev_max_end THEN 0 ELSE 1
+          END) OVER (ORDER BY started_time) AS grp
+        FROM ordered
+      ),
+      merged AS (
+        SELECT MAX(ended_time) - MIN(started_time) AS span
+        FROM island_start GROUP BY grp
+      )
+      SELECT COALESCE(SUM(EXTRACT(EPOCH FROM span))::INTEGER, 0)
+      INTO total_downtime_seconds
+      FROM merged;
+
       duration_seconds := LEAST(
-        EXTRACT(EPOCH FROM (latest - earliest))::INTEGER / (count - 1),
+        GREATEST(raw_duration_seconds - total_downtime_seconds, 0) / (v_count - 1),
         32767
       );
-      -- duration_seconds := GREATEST(duration_seconds - 900, 0);
     ELSE
       duration_seconds := 0;
     END IF;

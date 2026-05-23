@@ -1,0 +1,3 @@
+-- Arıza birleştirme CTE'sinde iç içe window function hatası (42P20) düzeltmesi.
+-- Önce prev_max_end ayrı CTE'de hesaplanır; sonra island grp atanır.
+-- Tam gövde: functions_and_triggers/update_stage_metrics.sql

@@ -36,8 +36,10 @@ Tüm admin API'leri `getTenantId()` ile mevcut tenant'a göre filtreler. Veri he
 | Değişiklik Kayıtları | `/kurban-admin/degisiklik-kayitlari` | Log tablosu, arama, filtreler |
 | Kullanıcı Yönetimi | `/kurban-admin/kullanici-yonetimi` | Kullanıcı listesi, rol/durum |
 | Rezervasyonlar | `/kurban-admin/rezervasyonlar` | reservation_transactions tablosu |
-| Aşama Metrikleri | `/kurban-admin/asama-metrikleri` | stage_metrics tablosu |
+| Kurban Günü İstatistikleri | `/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri` | Aşama kartları, arıza CRUD, duyuru switch |
 | Bana Haber Ver | `/takip` | reminder_requests kayıt, tekrar kayıt uyarısı |
+| Sıra ekranları | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` | Min 1, max kurban no; henüz başlamadıysa 1 göster |
+| Public arıza banner | Public + takip layout | Dialog + sticky şerit; admin’den açılır |
 
 ## Sidebar Menü
 

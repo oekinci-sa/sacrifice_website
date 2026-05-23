@@ -16,13 +16,20 @@ export const formatPhoneForDB = (phone: string): string => {
 export const formatPhoneForDisplayWithSpacing = (phone: string): string => {
   if (!phone) return "-";
 
-  // Convert from +905555555555 to 05555555555 format first
-  const phoneFormatted = phone.startsWith("+9")
-    ? `0${phone.substring(3)}`
-    : phone;
+  const digits = phone.replace(/\D/g, "");
+  let local = "";
 
-  // Apply spacing: 0555 555 55 55
-  return phoneFormatted.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
+  if (digits.startsWith("90") && digits.length === 12) {
+    local = `0${digits.slice(2)}`;
+  } else if (digits.startsWith("0") && digits.length === 11) {
+    local = digits;
+  } else if (digits.length === 10 && digits.startsWith("5")) {
+    local = `0${digits}`;
+  }
+
+  if (local.length !== 11) return phone.trim() || "-";
+
+  return local.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4");
 };
 
 /** Telefon input'ta yazarken otomatik boşluk (0555 555 55 55) - hisse al, hissedarlar edit */

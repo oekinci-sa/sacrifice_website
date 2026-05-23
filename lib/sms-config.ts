@@ -1,4 +1,4 @@
-import { KAHRAMANKAZAN_TENANT_ID } from "@/lib/tenant-resolver";
+import { KAHRAMANKAZAN_TENANT_ID, TEST_TENANT_ID } from "@/lib/tenant-resolver";
 
 export interface SmsCredentials {
   username: string;
@@ -9,11 +9,11 @@ export interface SmsCredentials {
 
 /**
  * Tenant'a göre Bizim SMS API kimlik bilgilerini döner.
- * Şu an yalnızca Ankara Kurban (KAHRAMANKAZAN) destekleniyor.
+ * Şu an Ankara Kurban ve test tenant aynı Bizim SMS kimlik bilgilerini kullanır.
  * İleride GOLBASI_TENANT_ID için de eklenebilir.
  */
 export function getSmsCredentials(tenantId: string): SmsCredentials | null {
-  if (tenantId === KAHRAMANKAZAN_TENANT_ID) {
+  if (tenantId === KAHRAMANKAZAN_TENANT_ID || tenantId === TEST_TENANT_ID) {
     const username = process.env.BIZIM_SMS_USERNAME?.trim();
     const password = process.env.ANKARA_KURBAN_BIZIM_SMS_API_SECRET?.trim();
     const originator = process.env.BIZIM_SMS_ORIGINATOR?.trim();
@@ -28,4 +28,4 @@ export function getSmsCredentials(tenantId: string): SmsCredentials | null {
 }
 
 /** SMS modülünün açık olduğu tenant ID'leri. */
-export const SMS_ENABLED_TENANT_IDS: string[] = [KAHRAMANKAZAN_TENANT_ID];
+export const SMS_ENABLED_TENANT_IDS: string[] = [KAHRAMANKAZAN_TENANT_ID, TEST_TENANT_ID];

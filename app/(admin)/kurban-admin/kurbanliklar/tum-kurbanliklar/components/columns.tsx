@@ -13,8 +13,8 @@ import { normalizeTurkishSearchText } from "@/lib/turkish-search-normalize";
 import { cn } from "@/lib/utils";
 import { sacrificeSchema } from "@/types";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { memo } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { memo } from "react";
 import { ActionCellContent } from "./columns/ActionCell";
 import {
   EditableAnimalTypeCell,

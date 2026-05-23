@@ -1,6 +1,7 @@
 import { authOptions } from '@/lib/auth';
 import { getSessionActorEmail, sessionHasAdminEditorOrSuperRole } from '@/lib/admin-editor-session';
 import { getDeliveryFeeForLocation, getDeliveryFeeForType } from '@/lib/delivery-options';
+import { sendPaymentAmountUpdatedSms } from '@/lib/sms-payment-notification';
 import { getTenantId } from '@/lib/tenant';
 import { buildEmailToEditorDisplayMap, editorDisplayFromRaw } from '@/lib/resolve-editor-display';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
@@ -219,6 +220,16 @@ export async function POST(request: NextRequest) {
         displayMap
       ),
     };
+
+    if (updateData.paid_amount !== undefined) {
+      sendPaymentAmountUpdatedSms({
+        tenantId,
+        shareholderId: updateData.shareholder_id,
+        actorEmail: actor,
+      }).catch((err) => {
+        console.warn("[payment-sms] gönderilemedi:", err);
+      });
+    }
 
     return NextResponse.json({
       success: true,

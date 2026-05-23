@@ -47,6 +47,8 @@ interface Props {
   disabled?: boolean;
   /** Varsayılan `sms-editor-textarea`; iki editör yan yana ise benzersiz verin. */
   textareaId?: string;
+  /** true ise kurban günü otomatik SMS değişken butonları gösterilir. */
+  showAutoVariables?: boolean;
 }
 
 export function SmsEditor({
@@ -56,6 +58,7 @@ export function SmsEditor({
   placeholder = "SMS mesajını buraya yazın...",
   disabled,
   textareaId = "sms-editor-textarea",
+  showAutoVariables = false,
 }: Props) {
   const insertVariable = (variable: string) => {
     const textarea = document.getElementById(textareaId) as HTMLTextAreaElement | null;
@@ -97,6 +100,7 @@ export function SmsEditor({
             </Button>
           ))}
         </div>
+        {showAutoVariables && (
         <div className="flex flex-wrap gap-1 pt-1 border-t border-dashed border-muted-foreground/30">
           <span className="text-[10px] text-muted-foreground self-center mr-1 shrink-0">Otomatik SMS:</span>
           {autoVars.map((v) => (
@@ -113,6 +117,7 @@ export function SmsEditor({
             </Button>
           ))}
         </div>
+        )}
       </div>
       <Textarea
         id={textareaId}

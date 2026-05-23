@@ -1,6 +1,8 @@
+import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
+
 /**
  * SMS şablon değişkenlerini hissedar + kurban + tenant ayarlarından doldurur.
- * Birincil anahtar: kurban_no (hayvan_no backward-compat alias olarak korunur).
+ * Birincil kurban numarası değişkeni: kurban_no.
  */
 
 export interface TenantSmsBranding {
@@ -119,10 +121,10 @@ export function buildSmsVariablesFromShareholderRow(
   return {
     // Hissedar
     ad_soyad: (row.shareholder_name ?? "").trim(),
-    telefon: (row.phone_number ?? "").trim(),
-    // Kurban (birincil: kurban_no; hayvan_no backward-compat alias)
+    telefon: row.phone_number?.trim()
+      ? formatPhoneForDisplayWithSpacing(row.phone_number)
+      : "",
     kurban_no: kurbanNo,
-    hayvan_no: kurbanNo,
     kupe_no: kupeNo,
     // Ödeme
     kalan_tutar: fmtTl(row.remaining_payment),
@@ -151,7 +153,5 @@ export function buildSmsVariablesFromShareholderRow(
     kesim_tahmini_sure: kesimTahmini,
     parcalama_tahmini_sure: parcalamaTahmini,
     teslimat_tahmini_sure: teslimatTahmini,
-    // Backward-compat alias (mevcut DB şablonları için)
-    tahmini_dakika: kesimTahmini || parcalamaTahmini || teslimatTahmini,
   };
 }

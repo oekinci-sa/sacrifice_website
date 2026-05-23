@@ -15,6 +15,9 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `tools-versions.md` | Kullanılan paketler ve versiyonları |
 | `sms-operations.md` | Bizim SMS backend akışı, API listesi, dedup mantığı özeti |
 | `sms-admin-and-tenant-flag.md` | Tenant `sms_enabled`; sidebar/Hissedar sütunu; PDF sırası; süper admin toggle; hissedar SMS sheet davranışı |
+| `changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md` | Kurban günü istatistikleri, arıza kayıtları, ortalama süre düzeltmesi, public banner |
+| `changelogs/changelog-2026-05-admin-table-ux-sms-picker.md` | SMS hissedar seçici sayfalama; kurbanlık tablo kayıt sayısı; hissedar hisse sıralama/filtre |
+| `changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md` | SMS değişken standardizasyonu, ödeme otomatik SMS, şablon filtresi, FK CASCADE |
 
 ## db/ Alt Yapısı
 

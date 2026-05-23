@@ -6,12 +6,16 @@ CREATE TABLE IF NOT EXISTS public.sms_templates (
   -- genel, odeme, kesim, teslimat, bilgilendirme
   category TEXT NOT NULL DEFAULT 'genel',
   content TEXT NOT NULL,
+  -- delivery_completed: kesimhane dışı teslim alacak hissedarlara giden metin
+  content_external TEXT,
   -- Kullanılan değişken adları: ["ad_soyad","kalan_tutar",...]
   variables JSONB,
   -- Silme yerine soft delete: is_active = false
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  -- Otomatik SMS event anahtarı: slaughter_approaching | slaughter_completed |
-  -- butcher_started | delivery_pickup_approaching | external_delivery_notice
+  -- Otomatik SMS event anahtarı:
+  -- slaughter_approaching | slaughter_imminent | slaughter_completed |
+  -- butcher_started | delivery_completed | delivery_pickup_approaching |
+  -- payment_amount_updated
   -- NULL = sadece manuel gönderimde kullanılan şablon
   event_key TEXT,
   created_by TEXT NOT NULL,

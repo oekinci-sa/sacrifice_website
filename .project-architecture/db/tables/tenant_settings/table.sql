@@ -34,6 +34,9 @@ CREATE TABLE tenant_settings (
   sms_slaughter_approach_offset SMALLINT NOT NULL DEFAULT 20,
   -- Teslim almaya çağrı SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 2.
   sms_delivery_pickup_offset SMALLINT NOT NULL DEFAULT 2,
+  -- Kurban günü teknik arıza duyurusu (public/takip banner). Varsayılan: kapalı.
+  incident_banner_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  incident_banner_message TEXT,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

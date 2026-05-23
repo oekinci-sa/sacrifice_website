@@ -77,6 +77,8 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | Uyumsuz hisseler (mismatched-shares) | ✓ | ✓ | ✓ |
 | Toplu e-posta (POST /api/admin/send-email), alıcı listesi (GET /api/admin/email-recipients) | ✓ | ✓ | ✓ |
 | Aşama metrikleri güncelleme (POST /api/update-stage-metrics) | ✓ | ✓ | ✓ |
+| Arıza kayıtları (GET/POST/PUT/DELETE /api/admin/stage-downtime) | ✓ | ✓ | ✓ |
+| Arıza duyurusu (GET/PUT /api/admin/incident-banner) | ✓ | ✓ | ✓ |
 
 ---
 
@@ -108,6 +110,9 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | `app/api/users/[id]/route.ts` | Rol güncelleme, super_admin atama |
 | `app/api/users/route.ts` | Yeni kullanıcı, super_admin atama |
 | `app/api/update-stage-metrics/route.ts` | `rpc_update_stage_metrics`; editor+ ve oturum e-postası |
+| `app/api/admin/stage-downtime/route.ts`, `[id]/route.ts` | Arıza CRUD; editor+ |
+| `app/api/admin/incident-banner/route.ts` | Banner ayarı; editor+ |
+| `app/api/public/incident-banner/route.ts` | Public okuma; auth yok |
 | `app/api/create-sacrifice/route.ts` | editor+; `last_edited_by` oturum e-postası |
 | `app/api/create-shareholders/route.ts` | Açık (hisseal); audit için `last_edited_by` sunucuda (oturum veya `hisseal-akisi`) |
 | `app/api/sacrifices/[id]/route.ts` | `rpc_delete_sacrifice`; admin/super_admin; oturum e-postası zorunlu |

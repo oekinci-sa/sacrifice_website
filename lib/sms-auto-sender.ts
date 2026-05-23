@@ -10,15 +10,16 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSmsCredentials } from "@/lib/sms-config";
 import { sendSms } from "@/lib/sms-client";
 import { normalizePhone } from "@/lib/sms-phone-normalizer";
-import { buildSmsVariablesFromShareholderRow } from "@/lib/sms-template-variables";
+import { SMS_STAGE_AUTO_EVENT_KEYS } from "@/lib/sms-event-keys";
+import {
+  buildSmsVariablesFromShareholderRow,
+  type AutoSmsContext,
+} from "@/lib/sms-template-variables";
+
 export type StageType = "slaughter_stage" | "butcher_stage" | "delivery_stage";
 
-export type EventKey =
-  | "slaughter_approaching"
-  | "slaughter_completed"
-  | "butcher_started"
-  | "delivery_pickup_approaching"
-  | "external_delivery_notice";
+/** Kurban günü otomatik SMS event anahtarları (ödeme hariç). */
+export type EventKey = (typeof SMS_STAGE_AUTO_EVENT_KEYS)[number];
 
 interface AutoSmsParams {
   tenantId: string;
@@ -161,7 +162,7 @@ async function sendEventSms(opts: {
   templateId: string;
   websiteUrl: string | null;
   tenantBranding: { iban: string; deposit_amount: number; website_url: string | null };
-  context: { triggered_sacrifice_no?: number; estimated_minutes?: number };
+  context: AutoSmsContext;
 }): Promise<SendEventResult> {
   const { tenantId, sacrificeYear, eventKey, sacrificeId, recipients, templateContent, templateId, tenantBranding, context } = opts;
 
@@ -302,7 +303,7 @@ async function fireEvent(opts: {
   templateId: string;
   tenantBranding: { iban: string; deposit_amount: number; website_url: string | null };
   sacrificeId: string;
-  context: { triggered_sacrifice_no?: number; estimated_minutes?: number };
+  context: AutoSmsContext;
 }): Promise<void> {
   const {
     eventKey, tenantId, sacrificeYear, targetSacrificeNo,
@@ -365,6 +366,28 @@ async function fireEvent(opts: {
   }
 }
 
+/** DB recipient_scope → fireEvent deliveryFilter dönüşümü. */
+function toDeliveryFilter(
+  scope: string
+): "kesimhane_only" | "external_only" | "all" {
+  if (scope === "slaughterhouse_only") return "kesimhane_only";
+  if (scope === "external_only") return "external_only";
+  return "all";
+}
+
+/** Per-event ayarları için güvenli default değerler. */
+const EVENT_DEFAULTS: Record<
+  EventKey,
+  { target_offset: number | null; recipient_scope: string; skip_if_target_missing: boolean; skip_if_target_completed: boolean }
+> = {
+  slaughter_approaching:      { target_offset: 20,   recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+  slaughter_imminent:         { target_offset: 3,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+  slaughter_completed:         { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
+  butcher_started:             { target_offset: null, recipient_scope: "slaughterhouse_only", skip_if_target_missing: false, skip_if_target_completed: false },
+  delivery_completed:          { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
+  delivery_pickup_approaching: { target_offset: 2,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+};
+
 /**
  * Bir sacrifice aşaması switch'i açıldığında otomatik SMS tetikler.
  * Hata fırlatmaz — caller .catch() ile loglar.
@@ -374,17 +397,14 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
 
   if (!isCompleted) return;
 
-  // 1. Tenant ayarları: sms_auto_enabled + offset'ler
+  // 1. Tenant master switch + branding bilgileri
   const { data: settings } = await supabaseAdmin
     .from("tenant_settings")
-    .select("sms_auto_enabled, sms_slaughter_approach_offset, sms_delivery_pickup_offset, sms_enabled, iban, deposit_amount, website_url")
+    .select("sms_auto_enabled, sms_enabled, iban, deposit_amount, website_url")
     .eq("tenant_id", tenantId)
     .single();
 
   if (!settings?.sms_auto_enabled || !settings?.sms_enabled) return;
-
-  const slaughterOffset: number = settings.sms_slaughter_approach_offset ?? 20;
-  const deliveryOffset: number = settings.sms_delivery_pickup_offset ?? 2;
 
   const tenantBranding = {
     iban: settings.iban ?? "",
@@ -392,7 +412,31 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
     website_url: settings.website_url ?? null,
   };
 
-  // 2. Tetiklenen kurbanlığın UUID'si
+  // 2. Per-event gönderim kurallarını çek
+  const { data: eventSettingsRows } = await supabaseAdmin
+    .from("sms_auto_event_settings")
+    .select(
+      "event_key, target_offset, recipient_scope, skip_if_target_missing, skip_if_target_completed"
+    )
+    .eq("tenant_id", tenantId);
+
+  const eventSettingsMap = new Map(
+    (eventSettingsRows ?? []).map((r) => [r.event_key as EventKey, r])
+  );
+
+  /** Event ayarını döner; kayıt yoksa safe default kullanır. */
+  function getEventSettings(key: EventKey) {
+    const db = eventSettingsMap.get(key);
+    const def = EVENT_DEFAULTS[key];
+    return {
+      target_offset:            db?.target_offset            ?? def.target_offset,
+      recipient_scope:          db?.recipient_scope          ?? def.recipient_scope,
+      skip_if_target_missing:   db?.skip_if_target_missing   ?? def.skip_if_target_missing,
+      skip_if_target_completed: db?.skip_if_target_completed ?? def.skip_if_target_completed,
+    };
+  }
+
+  // 3. Tetiklenen kurbanlığın UUID'si
   const { data: animalRow } = await supabaseAdmin
     .from("sacrifice_animals")
     .select("sacrifice_id")
@@ -404,16 +448,23 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
   if (!animalRow) return;
   const currentSacrificeId: string = animalRow.sacrifice_id;
 
-  // 3. Aktif şablonları bir kerede çek (bu tenant için)
+  // 4. Aktif şablonları bir kerede çek (bu tenant için)
   const { data: templates } = await supabaseAdmin
     .from("sms_templates")
-    .select("id, event_key, content")
+    .select("id, event_key, content, content_external")
     .eq("tenant_id", tenantId)
     .eq("is_active", true)
     .not("event_key", "is", null);
 
   const templateMap = new Map(
-    (templates ?? []).map((t) => [t.event_key as EventKey, { id: t.id, content: t.content }])
+    (templates ?? []).map((t) => [
+      t.event_key as EventKey,
+      {
+        id: t.id,
+        content: t.content,
+        content_external: (t as { content_external?: string | null }).content_external ?? null,
+      },
+    ])
   );
 
   // ── Kesim aşaması ───────────────────────────────────────────────────────────
@@ -421,62 +472,106 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "slaughter_stage");
     const avgSlaughterMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
-    // SMS-1: slaughter_approaching → sacrifice_no + offset, sadece Kesimhane
+    // SMS-1: slaughter_approaching
     const approachTpl = templateMap.get("slaughter_approaching");
     if (approachTpl) {
-      const targetNo = sacrificeNo + slaughterOffset;
-      const alreadyDone = await isSacrificeStageAlreadyDone(
-        tenantId, sacrificeYear, targetNo, "slaughter_time"
-      );
-      if (!alreadyDone) {
-        // Hedef kurban var mı?
-        const { data: targetAnimal } = await supabaseAdmin
-          .from("sacrifice_animals")
-          .select("sacrifice_id")
-          .eq("tenant_id", tenantId)
-          .eq("sacrifice_no", targetNo)
-          .eq("sacrifice_year", sacrificeYear)
-          .single();
+      const s = getEventSettings("slaughter_approaching");
+      const offset = s.target_offset ?? EVENT_DEFAULTS.slaughter_approaching.target_offset ?? 20;
+      const targetNo = sacrificeNo + offset;
 
+      let shouldSend = true;
+
+      {
+        const { data: targetAnimalCheck } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (!targetAnimalCheck) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const alreadyDone = await isSacrificeStageAlreadyDone(tenantId, sacrificeYear, targetNo, "slaughter_time");
+        if (alreadyDone) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const { data: targetAnimal } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
         if (targetAnimal) {
           await fireEvent({
             eventKey: "slaughter_approaching",
-            tenantId,
-            sacrificeYear,
+            tenantId, sacrificeYear,
             targetSacrificeNo: targetNo,
-            deliveryFilter: "kesimhane_only",
+            deliveryFilter: toDeliveryFilter(s.recipient_scope),
             templateContent: approachTpl.content,
             templateId: approachTpl.id,
             tenantBranding,
             sacrificeId: targetAnimal.sacrifice_id,
-            context: {
-              triggered_sacrifice_no: sacrificeNo,
-              avg_slaughter_minutes: avgSlaughterMinutes,
-              slaughter_offset: slaughterOffset,
-            },
+            context: { triggered_sacrifice_no: sacrificeNo, avg_slaughter_minutes: avgSlaughterMinutes, slaughter_offset: offset },
           });
         }
       }
     }
 
-    // SMS-2: slaughter_completed → aynı kurban, tüm hissedarlar
+    // SMS-1b: slaughter_imminent (daha yakın sıradaki kurbanlık)
+    const imminentTpl = templateMap.get("slaughter_imminent");
+    if (imminentTpl) {
+      const s = getEventSettings("slaughter_imminent");
+      const offset = s.target_offset ?? EVENT_DEFAULTS.slaughter_imminent.target_offset ?? 3;
+      const targetNo = sacrificeNo + offset;
+
+      let shouldSend = true;
+
+      {
+        const { data: targetAnimalCheck } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (!targetAnimalCheck) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const alreadyDone = await isSacrificeStageAlreadyDone(tenantId, sacrificeYear, targetNo, "slaughter_time");
+        if (alreadyDone) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const { data: targetAnimal } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (targetAnimal) {
+          await fireEvent({
+            eventKey: "slaughter_imminent",
+            tenantId, sacrificeYear,
+            targetSacrificeNo: targetNo,
+            deliveryFilter: toDeliveryFilter(s.recipient_scope),
+            templateContent: imminentTpl.content,
+            templateId: imminentTpl.id,
+            tenantBranding,
+            sacrificeId: targetAnimal.sacrifice_id,
+            context: { triggered_sacrifice_no: sacrificeNo, avg_slaughter_minutes: avgSlaughterMinutes, slaughter_offset: offset },
+          });
+        }
+      }
+    }
+
+    // SMS-2: slaughter_completed
     const completedTpl = templateMap.get("slaughter_completed");
     if (completedTpl) {
+      const s = getEventSettings("slaughter_completed");
       await fireEvent({
         eventKey: "slaughter_completed",
-        tenantId,
-        sacrificeYear,
+        tenantId, sacrificeYear,
         targetSacrificeNo: sacrificeNo,
-        deliveryFilter: "all",
+        deliveryFilter: toDeliveryFilter(s.recipient_scope),
         templateContent: completedTpl.content,
         templateId: completedTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: {
-          triggered_sacrifice_no: sacrificeNo,
-          avg_slaughter_minutes: avgSlaughterMinutes,
-          slaughter_offset: slaughterOffset,
-        },
+        context: { triggered_sacrifice_no: sacrificeNo, avg_slaughter_minutes: avgSlaughterMinutes, slaughter_offset: 0 },
       });
     }
   }
@@ -486,23 +581,20 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "butcher_stage");
     const avgButcherMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
-    // SMS-3: butcher_started → aynı kurban, sadece Kesimhane
+    // SMS-3: butcher_started
     const butcherTpl = templateMap.get("butcher_started");
     if (butcherTpl) {
+      const s = getEventSettings("butcher_started");
       await fireEvent({
         eventKey: "butcher_started",
-        tenantId,
-        sacrificeYear,
+        tenantId, sacrificeYear,
         targetSacrificeNo: sacrificeNo,
-        deliveryFilter: "kesimhane_only",
+        deliveryFilter: toDeliveryFilter(s.recipient_scope),
         templateContent: butcherTpl.content,
         templateId: butcherTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: {
-          triggered_sacrifice_no: sacrificeNo,
-          avg_butcher_minutes: avgButcherMinutes,
-        },
+        context: { triggered_sacrifice_no: sacrificeNo, avg_butcher_minutes: avgButcherMinutes },
       });
     }
   }
@@ -512,62 +604,84 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
     const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "delivery_stage");
     const avgDeliveryMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
 
-    // SMS-4: delivery_pickup_approaching → sacrifice_no + offset, sadece Kesimhane
+    // SMS-4a: delivery_completed — kesimhane ve dış teslimat için ayrı metinler
+    const deliveryCompletedTpl = templateMap.get("delivery_completed");
+    if (deliveryCompletedTpl) {
+      const deliveryCtx = {
+        triggered_sacrifice_no: sacrificeNo,
+        avg_delivery_minutes: avgDeliveryMinutes,
+        delivery_offset: 0,
+      };
+      await fireEvent({
+        eventKey: "delivery_completed",
+        tenantId,
+        sacrificeYear,
+        targetSacrificeNo: sacrificeNo,
+        deliveryFilter: "kesimhane_only",
+        templateContent: deliveryCompletedTpl.content,
+        templateId: deliveryCompletedTpl.id,
+        tenantBranding,
+        sacrificeId: currentSacrificeId,
+        context: deliveryCtx,
+      });
+      const externalContent = deliveryCompletedTpl.content_external?.trim();
+      if (externalContent) {
+        await fireEvent({
+          eventKey: "delivery_completed",
+          tenantId,
+          sacrificeYear,
+          targetSacrificeNo: sacrificeNo,
+          deliveryFilter: "external_only",
+          templateContent: externalContent,
+          templateId: deliveryCompletedTpl.id,
+          tenantBranding,
+          sacrificeId: currentSacrificeId,
+          context: deliveryCtx,
+        });
+      }
+    }
+
+    // SMS-4: delivery_pickup_approaching
     const pickupTpl = templateMap.get("delivery_pickup_approaching");
     if (pickupTpl) {
-      const targetNo = sacrificeNo + deliveryOffset;
-      const alreadyDone = await isSacrificeStageAlreadyDone(
-        tenantId, sacrificeYear, targetNo, "delivery_time"
-      );
-      if (!alreadyDone) {
-        const { data: targetAnimal } = await supabaseAdmin
-          .from("sacrifice_animals")
-          .select("sacrifice_id")
-          .eq("tenant_id", tenantId)
-          .eq("sacrifice_no", targetNo)
-          .eq("sacrifice_year", sacrificeYear)
-          .single();
+      const s = getEventSettings("delivery_pickup_approaching");
+      const offset = s.target_offset ?? EVENT_DEFAULTS.delivery_pickup_approaching.target_offset ?? 2;
+      const targetNo = sacrificeNo + offset;
 
+      let shouldSend = true;
+
+      {
+        const { data: targetAnimalCheck } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (!targetAnimalCheck) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const alreadyDone = await isSacrificeStageAlreadyDone(tenantId, sacrificeYear, targetNo, "delivery_time");
+        if (alreadyDone) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const { data: targetAnimal } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
         if (targetAnimal) {
           await fireEvent({
             eventKey: "delivery_pickup_approaching",
-            tenantId,
-            sacrificeYear,
+            tenantId, sacrificeYear,
             targetSacrificeNo: targetNo,
-            deliveryFilter: "kesimhane_only",
+            deliveryFilter: toDeliveryFilter(s.recipient_scope),
             templateContent: pickupTpl.content,
             templateId: pickupTpl.id,
             tenantBranding,
             sacrificeId: targetAnimal.sacrifice_id,
-            context: {
-              triggered_sacrifice_no: sacrificeNo,
-              avg_delivery_minutes: avgDeliveryMinutes,
-              delivery_offset: deliveryOffset,
-            },
+            context: { triggered_sacrifice_no: sacrificeNo, avg_delivery_minutes: avgDeliveryMinutes, delivery_offset: offset },
           });
         }
       }
-    }
-
-    // SMS-5: external_delivery_notice → aynı kurban, sadece Kesimhane dışı
-    const extTpl = templateMap.get("external_delivery_notice");
-    if (extTpl) {
-      await fireEvent({
-        eventKey: "external_delivery_notice",
-        tenantId,
-        sacrificeYear,
-        targetSacrificeNo: sacrificeNo,
-        deliveryFilter: "external_only",
-        templateContent: extTpl.content,
-        templateId: extTpl.id,
-        tenantBranding,
-        sacrificeId: currentSacrificeId,
-        context: {
-          triggered_sacrifice_no: sacrificeNo,
-          avg_delivery_minutes: avgDeliveryMinutes,
-          delivery_offset: deliveryOffset,
-        },
-      });
     }
   }
 }

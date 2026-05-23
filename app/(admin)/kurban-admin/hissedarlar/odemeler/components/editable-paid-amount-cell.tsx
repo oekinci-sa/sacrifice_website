@@ -18,21 +18,15 @@ import { formatCurrencyForInput, parseCurrencyFromInput } from "@/utils/formatte
 import { Row } from "@tanstack/react-table";
 import { Check, Pencil, X } from "lucide-react";
 import { useCallback, useState, type MouseEvent } from "react";
-import { v4 as uuidv4 } from "uuid";
-
-const PAYMENT_SMS_TEMPLATE =
-  "Sayın {{ad_soyad}}, ödeme kaydınız güncellendi.\n\nToplam Ödenen Tutar: {{odenen_tutar}}\n\nKalan Tutar: {{kalan_tutar}}.";
 
 interface EditablePaidAmountCellProps {
   row: Row<shareholderSchema>;
   onUpdate: (shareholder: shareholderSchema) => void;
-  smsEnabled?: boolean;
 }
 
 export function EditablePaidAmountCell({
   row,
   onUpdate,
-  smsEnabled = false,
 }: EditablePaidAmountCellProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -85,37 +79,6 @@ export function EditablePaidAmountCell({
         setIsEditing(false);
         setOverpayConfirmOpen(false);
         setPendingPaidValue(null);
-
-        if (smsEnabled && row.original.phone_number) {
-          try {
-            await fetch("/api/admin/sms/send", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: `Ödeme bildirimi — ${row.original.shareholder_name ?? row.original.phone_number}`,
-                message_content: PAYMENT_SMS_TEMPLATE,
-                recipients: [
-                  {
-                    shareholder_id: row.original.shareholder_id,
-                    sacrifice_id: row.original.sacrifice_id,
-                    phone_number: row.original.phone_number,
-                    recipient_name: row.original.shareholder_name ?? undefined,
-                  },
-                ],
-                target_type: "single",
-                deduplicate_phone_numbers: false,
-                deduplicate_across_sacrifices: false,
-                idempotency_key: uuidv4(),
-              }),
-            });
-          } catch {
-            toast({
-              title: "SMS gönderilemedi",
-              description: "Ödeme kaydedildi ancak bildirim SMS'i başarısız oldu.",
-              variant: "destructive",
-            });
-          }
-        }
       } catch (e) {
         toast({
           title: "Hata",

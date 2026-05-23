@@ -50,7 +50,17 @@ type NavItem = {
 
 const mainNavItems: NavItem[] = [
   { id: "general", title: "Genel Bakış", url: "/kurban-admin/genel-bakis", icon: Home, roles: ["admin", "editor", "super_admin"] },
-  { id: "all-sacrifices", title: "Kurbanlıklar", url: "/kurban-admin/kurbanliklar/tum-kurbanliklar", icon: FileSpreadsheet, roles: ["admin", "editor", "super_admin"] },
+  {
+    id: "kurbanliklar-menu",
+    title: "Kurbanlıklar",
+    url: "/kurban-admin/kurbanliklar/tum-kurbanliklar",
+    icon: FileSpreadsheet,
+    roles: ["admin", "editor", "super_admin"],
+    items: [
+      { id: "all-sacrifices", title: "Tüm Kurbanlıklar", url: "/kurban-admin/kurbanliklar/tum-kurbanliklar", icon: FileSpreadsheet, roles: ["admin", "editor", "super_admin"] },
+      { id: "kurban-gunu", title: "Kurban Günü İstatistikleri", url: "/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri", icon: History, roles: ["admin", "editor", "super_admin"] },
+    ],
+  },
   { id: "all-shareholders", title: "Hissedarlar", url: "/kurban-admin/hissedarlar/tum-hissedarlar", icon: FileSpreadsheet, roles: ["admin", "editor", "super_admin"] },
   { id: "payments", title: "Ödemeler", url: "/kurban-admin/hissedarlar/odemeler", icon: Receipt, roles: ["admin", "editor", "super_admin"] },
   { id: "teslimatlar", title: "Teslimatlar", url: "/kurban-admin/teslimatlar", icon: Truck, roles: ["admin", "editor", "super_admin"] },
@@ -80,7 +90,7 @@ const bottomNavItems: NavItem[] = [
   { id: "user-management", title: "Kullanıcı Yönetimi", url: "/kurban-admin/kullanici-yonetimi", icon: UserCog, roles: ["admin", "super_admin"] },
 ];
 
-const separatorAfterIds = ["all-shareholders", "teslimatlar", "reservations"];
+const separatorAfterIds = ["kurbanliklar-menu", "all-shareholders", "teslimatlar", "reservations"];
 
 export function AppSidebar() {
   const { data: session } = useSession()

@@ -1,7 +1,8 @@
 /**
- * GET /api/admin/sms/shareholder-search?year=2026&q=ahmet
+ * GET /api/admin/sms/shareholder-search?year=2026&q=ahmet&offset=0&limit=50
  * SMS gönderiminde hissedar araması (isim veya telefon).
- * q boş veya 1 harf: ilk kayıtlar; q 2+ harf: ilike filtre.
+ * q boş veya 1 harf: tüm liste; q 2+ harf: ilike filtre.
+ * Sıra: kurban no → isim (alfabetik).
  */
 import { authOptions } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
@@ -12,6 +13,8 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 const ADMIN_ROLES = new Set(["admin", "editor", "super_admin"]);
+const PAGE_SIZE_DEFAULT = 50;
+const PAGE_SIZE_MAX = 100;
 
 /** ilike içinde % ve _ güvenliği */
 function safeIlikeFragment(raw: string): string {
@@ -39,9 +42,17 @@ export async function GET(request: NextRequest) {
     const safeQ = safeIlikeFragment(qRaw);
     const tenantId = getTenantId();
 
+    const offsetParam = parseInt(sp.get("offset") ?? "0", 10);
+    const limitParam = parseInt(sp.get("limit") ?? String(PAGE_SIZE_DEFAULT), 10);
+    const offset = Number.isFinite(offsetParam) && offsetParam >= 0 ? offsetParam : 0;
+    const limit = Math.min(
+      PAGE_SIZE_MAX,
+      Math.max(1, Number.isFinite(limitParam) ? limitParam : PAGE_SIZE_DEFAULT)
+    );
+
     const selectCols =
-      `shareholder_id, shareholder_name, phone_number, sacrifice_id, purchase_time,
-       sacrifice:sacrifice_animals(sacrifice_no)`;
+      `shareholder_id, shareholder_name, phone_number, sacrifice_id,
+       sacrifice:sacrifice_animals!inner(sacrifice_no)`;
 
     const base = () =>
       supabaseAdmin
@@ -55,65 +66,50 @@ export async function GET(request: NextRequest) {
       shareholder_name: string | null;
       phone_number: string | null;
       sacrifice_id: string;
-      purchase_time: string | null;
       sacrifice:
         | { sacrifice_no?: number }
         | { sacrifice_no?: number }[]
         | null;
     };
 
-    let rows: RawRow[] = [];
-
+    let query = base();
     if (safeQ.length >= 2) {
       const pat = `%${safeQ}%`;
-      const [nameRes, phoneRes] = await Promise.all([
-        base().ilike("shareholder_name", pat).order("purchase_time", { ascending: true }).limit(80),
-        base().ilike("phone_number", pat).order("purchase_time", { ascending: true }).limit(80),
-      ]);
-      if (nameRes.error || phoneRes.error) {
-        console.error("[sms/shareholder-search]", nameRes.error ?? phoneRes.error);
-        return NextResponse.json({ error: "Hissedarlar alınamadı" }, { status: 500 });
-      }
-      const merged = new Map<string, RawRow>();
-      for (const r of [...(nameRes.data ?? []), ...(phoneRes.data ?? [])] as RawRow[]) {
-        const k = `${r.shareholder_id}:${r.sacrifice_id}`;
-        if (!merged.has(k)) merged.set(k, r);
-      }
-      rows = Array.from(merged.values()).sort((a, b) => {
-        const ta = a.purchase_time ? new Date(a.purchase_time).getTime() : 0;
-        const tb = b.purchase_time ? new Date(b.purchase_time).getTime() : 0;
-        return ta - tb;
-      });
-      rows = rows.slice(0, 80);
-    } else {
-      const { data, error } = await base()
-        .order("purchase_time", { ascending: true })
-        .limit(50);
-      if (error) {
-        console.error("[sms/shareholder-search]", error);
-        return NextResponse.json({ error: "Hissedarlar alınamadı" }, { status: 500 });
-      }
-      rows = (data ?? []) as RawRow[];
+      query = query.or(`shareholder_name.ilike.${pat},phone_number.ilike.${pat}`);
     }
 
+    const { data, error } = await query
+      .order("sacrifice_animals(sacrifice_no)", { ascending: true })
+      .order("shareholder_name", { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("[sms/shareholder-search]", error);
+      return NextResponse.json({ error: "Hissedarlar alınamadı" }, { status: 500 });
+    }
+
+    const rows = (data ?? []) as RawRow[];
+
     const results = rows.map((row: RawRow) => {
-        const sacRel = row.sacrifice;
-        const sac = Array.isArray(sacRel) ? sacRel[0] : sacRel;
-        const sacrifice_no =
-          sac?.sacrifice_no != null && Number.isFinite(sac.sacrifice_no)
-            ? sac.sacrifice_no
-            : null;
-        return {
-          shareholder_id: row.shareholder_id,
-          shareholder_name: (row.shareholder_name as string) ?? "",
-          phone_number: row.phone_number as string | null,
-          sacrifice_id: row.sacrifice_id as string,
-          sacrifice_no,
-        };
-      });
+      const sacRel = row.sacrifice;
+      const sac = Array.isArray(sacRel) ? sacRel[0] : sacRel;
+      const sacrifice_no =
+        sac?.sacrifice_no != null && Number.isFinite(sac.sacrifice_no)
+          ? sac.sacrifice_no
+          : null;
+      return {
+        shareholder_id: row.shareholder_id,
+        shareholder_name: (row.shareholder_name as string) ?? "",
+        phone_number: row.phone_number as string | null,
+        sacrifice_id: row.sacrifice_id as string,
+        sacrifice_no,
+      };
+    });
+
+    const hasMore = rows.length === limit;
 
     return NextResponse.json(
-      { results },
+      { results, hasMore, nextOffset: offset + rows.length },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (e) {

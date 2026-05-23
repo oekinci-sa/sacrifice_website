@@ -17,8 +17,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { ChevronsUpDown, User } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronsUpDown, Loader2, User } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface ShareholderPickValue {
   shareholder_id: string;
@@ -28,8 +28,38 @@ export interface ShareholderPickValue {
   sacrifice_no: number | null;
 }
 
+const PAGE_SIZE = 50;
+
 function pickKey(p: ShareholderPickValue): string {
   return `${p.shareholder_id}:${p.sacrifice_id}`;
+}
+
+function mergeResults(
+  prev: ShareholderPickValue[],
+  incoming: ShareholderPickValue[]
+): ShareholderPickValue[] {
+  const merged = new Map<string, ShareholderPickValue>();
+  for (const r of [...prev, ...incoming]) {
+    merged.set(pickKey(r), r);
+  }
+  return Array.from(merged.values());
+}
+
+function sortBySacrificeThenName(items: ShareholderPickValue[]): ShareholderPickValue[] {
+  return [...items].sort((a, b) => {
+    const na =
+      a.sacrifice_no != null && Number.isFinite(a.sacrifice_no)
+        ? a.sacrifice_no
+        : Number.POSITIVE_INFINITY;
+    const nb =
+      b.sacrifice_no != null && Number.isFinite(b.sacrifice_no)
+        ? b.sacrifice_no
+        : Number.POSITIVE_INFINITY;
+    if (na !== nb) return na - nb;
+    return (a.shareholder_name ?? "").localeCompare(b.shareholder_name ?? "", "tr", {
+      sensitivity: "base",
+    });
+  });
 }
 
 interface Props {
@@ -43,46 +73,67 @@ export function SmsShareholderPicker({ year, value, onChange, disabled }: Props)
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [results, setResults] = useState<ShareholderPickValue[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef("");
+  const fetchingMoreRef = useRef(false);
 
   const selectedSet = useMemo(
     () => new Set(value.map((p) => pickKey(p))),
     [value]
   );
 
-  const sortedResults = useMemo(() => {
-    return [...results].sort((a, b) => {
-      const na =
-        a.sacrifice_no != null && Number.isFinite(a.sacrifice_no)
-          ? a.sacrifice_no
-          : Number.POSITIVE_INFINITY;
-      const nb =
-        b.sacrifice_no != null && Number.isFinite(b.sacrifice_no)
-          ? b.sacrifice_no
-          : Number.POSITIVE_INFINITY;
-      if (na !== nb) return na - nb;
-      return (a.shareholder_name ?? "").localeCompare(b.shareholder_name ?? "", "tr", {
-        sensitivity: "base",
-      });
-    });
-  }, [results]);
+  const sortedResults = useMemo(() => sortBySacrificeThenName(results), [results]);
 
-  const fetchResults = useCallback(
-    async (search: string) => {
-      setLoading(true);
+  const fetchPage = useCallback(
+    async (search: string, offset: number, append: boolean) => {
+      if (append) {
+        if (fetchingMoreRef.current) return;
+        fetchingMoreRef.current = true;
+        setLoadingMore(true);
+      } else {
+        fetchingMoreRef.current = false;
+        setLoading(true);
+      }
       try {
-        const params = new URLSearchParams({ year: String(year), q: search });
+        const params = new URLSearchParams({
+          year: String(year),
+          q: search,
+          offset: String(offset),
+          limit: String(PAGE_SIZE),
+        });
         const res = await fetch(`/api/admin/sms/shareholder-search?${params}`);
         const data = await res.json();
         if (res.ok) {
-          setResults(data.results ?? []);
-        } else {
+          const incoming = (data.results ?? []) as ShareholderPickValue[];
+          setResults((prev) =>
+            sortBySacrificeThenName(append ? mergeResults(prev, incoming) : incoming)
+          );
+          setHasMore(!!data.hasMore);
+          setNextOffset(
+            typeof data.nextOffset === "number" ? data.nextOffset : offset + incoming.length
+          );
+        } else if (!append) {
           setResults([]);
+          setHasMore(false);
+          setNextOffset(0);
         }
       } catch {
-        setResults([]);
+        if (!append) {
+          setResults([]);
+          setHasMore(false);
+          setNextOffset(0);
+        }
       } finally {
-        setLoading(false);
+        if (append) {
+          fetchingMoreRef.current = false;
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
       }
     },
     [year]
@@ -90,10 +141,28 @@ export function SmsShareholderPicker({ year, value, onChange, disabled }: Props)
 
   useEffect(() => {
     const t = window.setTimeout(() => {
-      void fetchResults(q);
+      searchRef.current = q;
+      void fetchPage(q, 0, false);
     }, 300);
     return () => window.clearTimeout(t);
-  }, [q, fetchResults]);
+  }, [q, fetchPage]);
+
+  useEffect(() => {
+    if (!open || !hasMore || loading || loadingMore) return;
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (!first?.isIntersecting || loading || loadingMore || !hasMore) return;
+        void fetchPage(searchRef.current, nextOffset, true);
+      },
+      { root: null, rootMargin: "120px 0px", threshold: 0 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [open, hasMore, loading, loadingMore, nextOffset, fetchPage]);
 
   const toggle = (r: ShareholderPickValue) => {
     const k = pickKey(r);
@@ -178,6 +247,21 @@ export function SmsShareholderPicker({ year, value, onChange, disabled }: Props)
                     </CommandItem>
                   );
                 })}
+                {hasMore ? (
+                  <div
+                    ref={loadMoreRef}
+                    className="flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Daha fazla yükleniyor…
+                      </>
+                    ) : (
+                      "Kaydırarak daha fazla yükle…"
+                    )}
+                  </div>
+                ) : null}
               </CommandGroup>
             </CommandList>
           </Command>

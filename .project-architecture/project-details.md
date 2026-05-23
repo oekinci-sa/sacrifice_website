@@ -15,6 +15,7 @@ Proje hakkında bilgi almak için bu klasörün ilgili dosyalarına bakın. Tüm
 | **Veritabanı** | [db/](./db/) |
 | **RLS ve Realtime** | [db/rls-and-realtime.md](./db/rls-and-realtime.md) |
 | **Homepage mode ve sacrifice year** | [homepage-and-sacrifice-year.md](./homepage-and-sacrifice-year.md) |
+| **Kurban günü istatistikleri / arıza** | [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](./changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md) |
 | **Araçlar ve versiyonlar** | [tools-versions.md](./tools-versions.md) |
 
 ## Kısa Özet

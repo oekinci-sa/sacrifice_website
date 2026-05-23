@@ -1,5 +1,5 @@
-import { getTenantId } from "@/lib/tenant";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getTenantId } from "@/lib/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 

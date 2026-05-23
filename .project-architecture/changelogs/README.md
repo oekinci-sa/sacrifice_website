@@ -14,5 +14,9 @@ Tarihli mimari / özellik değişiklik özetleri. Ana indeks: üst dizindeki [RE
 | [changelog-2026-03-homepage-phase-management.md](changelog-2026-03-homepage-phase-management.md) | Anasayfa evre yönetimi: homepage_mode genişletme, homepage_layout kaldırma, yeni bileşenler |
 | [changelog-2026-03-live-scale-pricing.md](changelog-2026-03-live-scale-pricing.md) | Canlı baskül fiyatlama (DB, RPC, tetikleyici düzeltmesi, admin / Hisse Al UI notları) |
 | [changelog-2026-04-admin-table-column-labels.md](changelog-2026-04-admin-table-column-labels.md) | Admin tablolar: sütun/filtre/Excel etiketleri tek kaynak (`lib/admin-table-column-labels/`) |
+| [changelog-2026-05-kurban-gunu-istatistikleri.md](changelog-2026-05-kurban-gunu-istatistikleri.md) | Kurban Günü İstatistikleri, arıza kayıtları, public duyuru banner, asama-metrikleri kaldırma |
+| [changelog-2026-05-admin-table-ux-sms-picker.md](changelog-2026-05-admin-table-ux-sms-picker.md) | SMS hissedar seçici infinite scroll; kurbanlık tablo sayacı; hissedar hisse sıralama/filtre |
+| [changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelog-2026-05-admin-sms-auto-and-shareholder-columns.md) | Oto. SMS bayrağı, hissedar kesim/teslim sütunları, şablon event_key Select |
+| [changelog-2026-05-sms-templates-variables-payment-filter.md](changelog-2026-05-sms-templates-variables-payment-filter.md) | SMS değişken standardizasyonu, ödeme otomatik SMS, üçlü şablon filtresi, FK CASCADE |
 
 Yeni kayıt eklerken bu klasöre `changelog-YYYY-MM-kisa-baslik.md` adıyla koyun; `../README.md` ve gerekiyorsa `../features.md` içindeki tablolara satır ekleyin.

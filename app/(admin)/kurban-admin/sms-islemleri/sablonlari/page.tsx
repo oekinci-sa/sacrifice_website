@@ -39,10 +39,18 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
+import {
+  compareSmsAutoTemplatesByEventOrder,
+  isSmsAutoEventKey,
+  SMS_AUTO_EVENT_OPTIONS,
+  SMS_STAGE_AUTO_EVENT_KEYS,
+} from "@/lib/sms-event-keys";
 import { cn } from "@/lib/utils";
-import { Check, PlusCircle, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, PlusCircle, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SmsEditor } from "../components/sms-editor";
+import { SmsAutoEventHelpTooltip } from "../components/sms-auto-event-help-tooltip";
+import { SmsAutoEventSettingsDialog } from "../components/sms-auto-event-settings-dialog";
 
 const CATEGORIES = [
   { value: "genel", label: "Genel" },
@@ -54,13 +62,16 @@ const CATEGORIES = [
 
 const NONE_EVENT_KEY = "none" as const;
 
-const AUTO_EVENT_KEY_OPTIONS = [
-  { value: "slaughter_approaching", label: "Kesim Yaklaşıyor" },
-  { value: "slaughter_completed", label: "Kesim Tamamlandı" },
-  { value: "butcher_started", label: "Parçalama Başladı" },
-  { value: "delivery_pickup_approaching", label: "Teslim Almaya Çağrı" },
-  { value: "external_delivery_notice", label: "Dış Teslimat Bilgilendirmesi" },
-] as const;
+/** Şablon listesi filtre seçenekleri */
+type TemplateFilterKey = "manual" | "auto" | "passive";
+
+const TEMPLATE_FILTER_OPTIONS: { key: TemplateFilterKey; label: string }[] = [
+  { key: "manual", label: "Sizin yazdıklarınız" },
+  { key: "auto", label: "Otomatik SMS'ler" },
+  { key: "passive", label: "Pasif SMS'ler" },
+];
+
+const DEFAULT_TEMPLATE_FILTERS = new Set<TemplateFilterKey>(["manual", "auto", "passive"]);
 
 interface SmsTemplate {
   id: string;
@@ -68,6 +79,7 @@ interface SmsTemplate {
   description: string | null;
   category: string;
   content: string;
+  content_external: string | null;
   is_active: boolean;
   event_key: string | null;
   created_by: string;
@@ -79,6 +91,7 @@ interface FormState {
   description: string;
   category: string;
   content: string;
+  content_external: string;
   is_active: boolean;
   event_key: string;
 }
@@ -88,6 +101,7 @@ const EMPTY_FORM: FormState = {
   description: "",
   category: "genel",
   content: "",
+  content_external: "",
   is_active: true,
   event_key: NONE_EVENT_KEY,
 };
@@ -96,17 +110,18 @@ export default function SmsTemplatesPage() {
   const [activeTemplates, setActiveTemplates] = useState<SmsTemplate[]>([]);
   const [inactiveTemplates, setInactiveTemplates] = useState<SmsTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showInactive, setShowInactive] = useState(false);
   const [loadingInactive, setLoadingInactive] = useState(false);
+  const [templateFilters, setTemplateFilters] = useState<Set<TemplateFilterKey>>(
+    () => new Set(DEFAULT_TEMPLATE_FILTERS)
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  /** Pasife alma onayı (native confirm yerine) */
+  /** Pasife alma onayı — sadece manuel şablonlar için */
   const [deactivateTemplateId, setDeactivateTemplateId] = useState<string | null>(null);
-
-  /** Otomatik SMS filtresi: seçilen event_key değerleri. Boşsa filtre yok. */
-  const [eventKeyFilter, setEventKeyFilter] = useState<Set<string>>(new Set());
+  /** Otomatik SMS ayarlar dialog'u */
+  const [autoSettingsTemplate, setAutoSettingsTemplate] = useState<SmsTemplate | null>(null);
 
   const loadActiveTemplates = useCallback(async () => {
     try {
@@ -134,17 +149,17 @@ export default function SmsTemplatesPage() {
 
   const reloadVisibleLists = useCallback(async () => {
     await loadActiveTemplates();
-    if (showInactive) await loadInactiveTemplates();
-  }, [loadActiveTemplates, loadInactiveTemplates, showInactive]);
+    await loadInactiveTemplates();
+  }, [loadActiveTemplates, loadInactiveTemplates]);
 
   const loadTemplatesInitial = useCallback(async () => {
     setLoading(true);
     try {
-      await loadActiveTemplates();
+      await Promise.all([loadActiveTemplates(), loadInactiveTemplates()]);
     } finally {
       setLoading(false);
     }
-  }, [loadActiveTemplates]);
+  }, [loadActiveTemplates, loadInactiveTemplates]);
 
   useEffect(() => {
     loadTemplatesInitial();
@@ -163,15 +178,25 @@ export default function SmsTemplatesPage() {
       description: t.description ?? "",
       category: t.category,
       content: t.content,
+      content_external: t.content_external ?? "",
       is_active: t.is_active,
       event_key: t.event_key ?? NONE_EVENT_KEY,
     });
     setDialogOpen(true);
   };
 
+  const isDeliveryCompletedForm = form.event_key === "delivery_completed";
+
   const handleSave = async () => {
     if (!form.title.trim() || !form.content.trim()) {
       toast({ title: "Başlık ve içerik zorunlu", variant: "destructive" });
+      return;
+    }
+    if (isDeliveryCompletedForm && !form.content_external.trim()) {
+      toast({
+        title: "Kesimhane dışı mesaj metni zorunlu",
+        variant: "destructive",
+      });
       return;
     }
     setSaving(true);
@@ -187,6 +212,9 @@ export default function SmsTemplatesPage() {
         body: JSON.stringify({
           ...form,
           description: form.description || null,
+          content_external: isDeliveryCompletedForm
+            ? form.content_external.trim()
+            : null,
           event_key: form.event_key === NONE_EVENT_KEY ? null : form.event_key || null,
         }),
       });
@@ -228,22 +256,140 @@ export default function SmsTemplatesPage() {
   const categoryLabel = (cat: string) =>
     CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
 
-  const eventKeyLabel = (key: string | null) =>
-    key ? (AUTO_EVENT_KEY_OPTIONS.find((o) => o.value === key)?.label ?? key) : null;
-
-  const toggleEventKeyFilter = (value: string) => {
-    setEventKeyFilter((prev) => {
+  const toggleTemplateFilter = (key: TemplateFilterKey) => {
+    setTemplateFilters((prev) => {
       const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
+      if (next.has(key)) next.delete(key);
+      else {
+        next.add(key);
+        if (key === "passive" && inactiveTemplates.length === 0) {
+          void loadInactiveTemplates();
+        }
+      }
       return next;
     });
   };
 
-  const filteredActiveTemplates = useMemo(() => {
-    if (eventKeyFilter.size === 0) return activeTemplates;
-    return activeTemplates.filter((t) => t.event_key && eventKeyFilter.has(t.event_key));
-  }, [activeTemplates, eventKeyFilter]);
+  const isDefaultFilters =
+    templateFilters.size === DEFAULT_TEMPLATE_FILTERS.size &&
+    Array.from(DEFAULT_TEMPLATE_FILTERS).every((k) => templateFilters.has(k));
+
+  const visibleActiveManual = useMemo(
+    () =>
+      templateFilters.has("manual")
+        ? activeTemplates.filter((t) => !t.event_key)
+        : [],
+    [activeTemplates, templateFilters]
+  );
+
+  const visibleActiveAuto = useMemo(() => {
+    if (!templateFilters.has("auto")) return [];
+    return activeTemplates
+      .filter((t) => Boolean(t.event_key))
+      .slice()
+      .sort(compareSmsAutoTemplatesByEventOrder);
+  }, [activeTemplates, templateFilters]);
+
+  const visiblePassive = useMemo(
+    () => (templateFilters.has("passive") ? inactiveTemplates : []),
+    [inactiveTemplates, templateFilters]
+  );
+
+  const hasVisibleTemplates =
+    visibleActiveManual.length > 0 ||
+    visibleActiveAuto.length > 0 ||
+    visiblePassive.length > 0;
+
+  /** Tüm otomatik event şablonları (ödeme dahil): ayarlar ikonu, silme yok. */
+  const isAutoEventTemplate = (t: SmsTemplate) =>
+    Boolean(t.event_key) && isSmsAutoEventKey(t.event_key);
+
+  const renderTemplateCard = (t: SmsTemplate, opts?: { passive?: boolean }) => {
+    const isAutoEvent = isAutoEventTemplate(t);
+    return (
+      <Card
+        key={t.id}
+        className={cn("shadow-none rounded-md", opts?.passive && "opacity-70")}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-sm font-semibold leading-tight">{t.title}</CardTitle>
+            <div className="flex gap-1 shrink-0">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              {isAutoEvent ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => setAutoSettingsTemplate(t)}
+                    title="Gönderim kuralları"
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <SmsAutoEventHelpTooltip eventKey={t.event_key!} />
+                </>
+              ) : (
+                /* Manuel SMS: pasife al ikonu */
+                !opts?.passive && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    onClick={() => setDeactivateTemplateId(t.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )
+              )}
+            </div>
+          </div>
+          <div className="flex gap-1.5 flex-wrap mt-1">
+            <Badge variant="secondary" className="text-xs">
+              {categoryLabel(t.category)}
+            </Badge>
+            {opts?.passive && (
+              <Badge variant="outline" className="text-xs">
+                Pasif
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {t.event_key === "delivery_completed" ? (
+            <>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  Kesimhaneden teslim alacaklar
+                </p>
+                <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+                  {t.content}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  Kesimhane dışında teslim alacaklar
+                </p>
+                <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+                  {t.content_external?.trim() || "—"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
+              {t.content}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const isStageAutoEvent =
+    form.event_key !== NONE_EVENT_KEY &&
+    (SMS_STAGE_AUTO_EVENT_KEYS as readonly string[]).includes(form.event_key);
 
   return (
     <div className="space-y-6">
@@ -255,40 +401,43 @@ export default function SmsTemplatesPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {/* Otomatik SMS filtresi */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 type="button"
-                variant={eventKeyFilter.size > 0 ? "secondary" : "outline"}
+                variant={!isDefaultFilters ? "secondary" : "outline"}
                 size="sm"
-                className={cn("h-8 border-dashed text-xs", eventKeyFilter.size > 0 && "border-solid")}
+                className={cn("h-8 text-xs", isDefaultFilters ? "border-dashed" : "border-solid")}
               >
                 <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
-                Otomatik SMS
-                {eventKeyFilter.size > 0 && (
-                  <span className="ml-1.5 rounded bg-background px-1 py-0.5 text-xs font-medium border">
-                    {eventKeyFilter.size}
-                  </span>
-                )}
+                Şablonları filtrele
+                <span className="ml-1.5 rounded bg-background px-1 py-0.5 text-xs font-medium border">
+                  {templateFilters.size}
+                </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-60 p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">Otomatik SMS Şablonları</p>
+            <PopoverContent align="end" className="w-64 p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Şablonları filtrele
+              </p>
               <div className="mt-1 space-y-0.5">
-                {AUTO_EVENT_KEY_OPTIONS.map((o) => {
-                  const checked = eventKeyFilter.has(o.value);
+                {TEMPLATE_FILTER_OPTIONS.map((o) => {
+                  const checked = templateFilters.has(o.key);
                   return (
                     <button
-                      key={o.value}
+                      key={o.key}
                       type="button"
-                      onClick={() => toggleEventKeyFilter(o.value)}
+                      onClick={() => toggleTemplateFilter(o.key)}
                       className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
                     >
-                      <div className={cn(
-                        "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                        checked ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"
-                      )}>
+                      <div
+                        className={cn(
+                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+                          checked
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "border-muted-foreground/40"
+                        )}
+                      >
                         {checked && <Check className="h-3 w-3" />}
                       </div>
                       {o.label}
@@ -296,40 +445,18 @@ export default function SmsTemplatesPage() {
                   );
                 })}
               </div>
-              {eventKeyFilter.size > 0 && (
+              {!isDefaultFilters && (
                 <button
                   type="button"
-                  onClick={() => setEventKeyFilter(new Set())}
+                  onClick={() => setTemplateFilters(new Set(DEFAULT_TEMPLATE_FILTERS))}
                   className="mt-2 flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent border-t pt-2"
                 >
                   <X className="h-3 w-3" />
-                  Filtreyi temizle
+                  Varsayılana dön
                 </button>
               )}
             </PopoverContent>
           </Popover>
-
-          <Button
-            type="button"
-            variant={showInactive ? "secondary" : "outline"}
-            size="sm"
-            disabled={loadingInactive}
-            className={showInactive ? "" : "border-dashed"}
-            onClick={() => {
-              void (async () => {
-                if (!showInactive) {
-                  await loadInactiveTemplates();
-                  setShowInactive(true);
-                } else setShowInactive(false);
-              })();
-            }}
-          >
-            {loadingInactive
-              ? "Yükleniyor…"
-              : showInactive
-                ? "Pasif şablonları gizle"
-                : "Pasif şablonları da göster"}
-          </Button>
           <Button onClick={openCreate} className="admin-tenant-accent" size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Yeni Şablon
@@ -337,97 +464,41 @@ export default function SmsTemplatesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {loading || (templateFilters.has("passive") && loadingInactive) ? (
         <div className="text-center py-12 text-muted-foreground">Yükleniyor...</div>
-      ) : filteredActiveTemplates.length === 0 && !showInactive ? (
+      ) : !hasVisibleTemplates ? (
         <div className="text-center py-12 text-muted-foreground">
-          {eventKeyFilter.size > 0
-            ? "Seçilen filtrelerle eşleşen aktif şablon yok."
-            : "Henüz aktif şablon yok."}
+          {templateFilters.size === 0
+            ? "Gösterilecek şablon seçin."
+            : "Seçili filtrelere uygun şablon yok."}
         </div>
       ) : (
-        <>
-          {filteredActiveTemplates.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredActiveTemplates.map((t) => (
-                <Card key={t.id} className="shadow-none rounded-md">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-sm font-semibold leading-tight">{t.title}</CardTitle>
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => setDeactivateTemplateId(t.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex gap-1.5 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {categoryLabel(t.category)}
-                      </Badge>
-                      {t.event_key && (
-                        <Badge variant="outline" className="text-xs font-normal">
-                          Otomatik: {eventKeyLabel(t.event_key)}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
-                      {t.content}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        <div className="space-y-8">
+          {visibleActiveManual.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-muted-foreground">Sizin yazdıklarınız</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {visibleActiveManual.map((t) => renderTemplateCard(t))}
+              </div>
+            </section>
           )}
-
-          {showInactive && (
-            <div className="space-y-3 pt-2">
-              <h2 className="text-sm font-medium text-muted-foreground">Pasif şablonlar</h2>
-              {inactiveTemplates.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Pasif şablon kaydı yok.</p>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {inactiveTemplates.map((t) => (
-                    <Card key={t.id} className={cn("shadow-none rounded-md opacity-70")}>
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="text-sm font-semibold leading-tight">{t.title}</CardTitle>
-                          <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}>
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex gap-1.5 flex-wrap mt-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {categoryLabel(t.category)}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            Pasif
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm font-normal leading-relaxed text-muted-foreground whitespace-pre-wrap break-words">
-                          {t.content}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+          {visibleActiveAuto.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-muted-foreground">Otomatik SMS&apos;ler</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {visibleActiveAuto.map((t) => renderTemplateCard(t))}
+              </div>
+            </section>
           )}
-        </>
+          {visiblePassive.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-muted-foreground">Pasif SMS&apos;ler</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {visiblePassive.map((t) => renderTemplateCard(t, { passive: true }))}
+              </div>
+            </section>
+          )}
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={(v) => !v && setDialogOpen(false)}>
@@ -475,15 +546,21 @@ export default function SmsTemplatesPage() {
                   <SelectItem value={NONE_EVENT_KEY}>Yalnızca manuel</SelectItem>
                   <SelectSeparator />
                   <SelectGroup>
-                    <SelectLabel>Otomatik SMS Şablonları</SelectLabel>
-                    {AUTO_EVENT_KEY_OPTIONS.map((o) => (
+                    <SelectLabel>Kurban günü (sıra sayfaları)</SelectLabel>
+                    {SMS_AUTO_EVENT_OPTIONS.filter((o) => o.value !== "payment_amount_updated").map((o) => (
                       <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                     ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Ödeme</SelectLabel>
+                    <SelectItem value="payment_amount_updated">
+                      {SMS_AUTO_EVENT_OPTIONS.find((o) => o.value === "payment_amount_updated")?.label}
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Seçilirse, ilgili takip aşaması tamamlandığında bu şablon otomatik gönderilir.
+                Kurban günü: sıra sayfasında aşama tamamlanınca. Ödeme: ödenen tutar güncellenince (SMS açık tenant).
               </p>
             </div>
             <div className="space-y-2">
@@ -494,10 +571,32 @@ export default function SmsTemplatesPage() {
                 placeholder="Bu şablonun kullanım amacı..."
               />
             </div>
-            <SmsEditor
-              value={form.content}
-              onChange={(v) => setForm((f) => ({ ...f, content: v }))}
-            />
+            {isDeliveryCompletedForm ? (
+              <>
+                <div className="space-y-2">
+                  <Label>Kesimhaneden teslim alacaklar *</Label>
+                  <SmsEditor
+                    value={form.content}
+                    onChange={(v) => setForm((f) => ({ ...f, content: v }))}
+                    showAutoVariables={isStageAutoEvent}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Kesimhane dışında teslim alacaklar *</Label>
+                  <SmsEditor
+                    value={form.content_external}
+                    onChange={(v) => setForm((f) => ({ ...f, content_external: v }))}
+                    showAutoVariables={isStageAutoEvent}
+                  />
+                </div>
+              </>
+            ) : (
+              <SmsEditor
+                value={form.content}
+                onChange={(v) => setForm((f) => ({ ...f, content: v }))}
+                showAutoVariables={isStageAutoEvent}
+              />
+            )}
             <div className="flex items-center justify-between">
               <Label htmlFor="template-active">Aktif</Label>
               <Switch
@@ -537,6 +636,23 @@ export default function SmsTemplatesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {autoSettingsTemplate && (
+        <SmsAutoEventSettingsDialog
+          open={autoSettingsTemplate !== null}
+          onOpenChange={(v) => { if (!v) setAutoSettingsTemplate(null); }}
+          templateId={autoSettingsTemplate.id}
+          eventKey={autoSettingsTemplate.event_key!}
+          templateTitle={autoSettingsTemplate.title}
+          isTemplateActive={autoSettingsTemplate.is_active}
+          onSuccess={() => {
+            setAutoSettingsTemplate(null);
+            void reloadVisibleLists();
+          }}
+        />
+      )}
     </div>
   );
 }
+
+

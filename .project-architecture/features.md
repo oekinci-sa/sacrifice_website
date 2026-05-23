@@ -73,8 +73,10 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Sütun sırası:** SMS kolonunun **varsayılan** konumu PDF kolonunun **solunda** (`getColumns` + `columns.tsx`).
 - **Sayfalar:** `/kurban-admin/sms-islemleri`, `/sablonlari`, `/gecmis`, `/ayarlar` (sidebar: admin, editor, süper admin). `/kayitli-toplu-gonderimleri` doğrudan URL (sidebar’da kalemi yok).
 - **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu, dedup, kredi blok, `idempotency_key` zorunlu; Bizim SMS 1-N/N-N XML; başarılı cevaplarda `excluded_invalid_phone` / `excluded_duplicate_phone`.
+- **Hissedar seçici (picker):** `GET /api/admin/sms/shareholder-search` — SMS Gönder «Hissedarlardan seç»; sayfalı liste (`offset`/`limit`), kurban no → isim sırası; UI infinite scroll (`SmsShareholderPicker`).
 - **Şablon listesi / silme:** Pasifler `GET …/templates?inactive=true`; `DELETE …/templates/[id]` satır silmez, `is_active=false` (soft delete).
-- **Şablon değişkenleri:** 16 kalıp; bkz. `sms-operations.md`.
+- **Şablon değişkenleri:** `{{kurban_no}}` birincil; aşama bazlı ortalama/tahmini süre değişkenleri; bkz. `sms-operations.md`.
+- **Ödeme otomatik SMS:** `payment_amount_updated` — ödenen tutar güncellenince (`POST /api/update-shareholder`); `sms_enabled` yeterli.
 - **Durum ifadesi:** Operatöre iletim (DLR takibi uygulanmıyor).
 - **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
 
@@ -83,8 +85,8 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Bayrak:** `tenant_settings.sms_auto_enabled` — `sms_enabled`’dan **ayrı**; Organizasyon Ayarları tablosunda **Oto. SMS** sütunu (`SmsAutoEnabledToggleCell`). Tam form: aynı sayfa düzenleme diyalogu (offset alanları).
 - **Motor:** `lib/sms-auto-sender.ts` — takip ekranında kesim/parçalama/teslimat tamamlanınca (`POST /api/update-sacrifice-timing`, `is_completed`).
 - **Şablonlar:** `sms_templates.event_key` + aktif şablon; idempotency: `sms_notification_events`.
-- **Admin şablon listesi:** `/kurban-admin/sms-islemleri/sablonlari` — **Otomatik SMS** popover ile `event_key`’e göre filtre.
-- **Changelog:** [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
+- **Admin şablon listesi:** `/kurban-admin/sms-islemleri/sablonlari` — **Şablonları filtrele** (Sizin yazdıklarınız / Otomatik SMS'ler / Pasif SMS'ler; varsayılan: üçünü de açık).
+- **Changelog:** [changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md](changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md), [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
 
 ## SMS İşlemleri (Bizim SMS) — Faz 2
 
@@ -121,9 +123,11 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Sütun başlıkları (tek kaynak):** Kurbanlıklar, Tüm Hissedarlar, Ödemeler ve Uyumsuz hisseler için tablo `header`, filtre butonları, **Sütunlar** popover ve Excel çıktısı aynı `Record` haritalarından beslenir: `lib/admin-table-column-labels/kurbanliklar.ts`, `hissedarlar.ts`, `odemeler.ts`, `uyumsuz-hisseler.ts`. Örnek birleşik terimler: **Kurban No**, **Hisse Bilgisi** (fiyat+kg), **Ödeme**, **Notlar**. Detay: [changelogs/changelog-2026-04-admin-table-column-labels.md](changelogs/changelog-2026-04-admin-table-column-labels.md).
 - **Hissedar kurban sırası (taşıma):** Tüm Hissedarlar tablosunda «Kurban No» sütunu ve hissedar detayındaki «Kurban Sırası» alanından hissedar başka bir kurbanlığa taşınabilir (hedef sıra seçimi + onay). API: `POST /api/admin/shareholders/[id]/move-sacrifice` (`target_sacrifice_no`); DB: `rpc_move_shareholder_to_sacrifice` (boş hisse dengesi, `total_amount` / `remaining_payment` güncellemesi, `change_logs`).
 - **Kesim / teslim saati (gizli sütunlar):** `sacrifice_time`, `planned_delivery_time` — `sacrifice_animals` join; varsayılan gizli; Sütunlar popover’dan açılır. Etiketler: `lib/admin-table-column-labels/hissedarlar.ts` («Kesim Saati», «Teslim Saati»).
+- **Hisse Bilgisi (Hissedarlar):** `sacrifice_info` sütunu sıralanabilir; toolbar’da `share_price` kademelerine göre faceted filtre (canlı baskül satırları filtre listesinde yok). Kurbanlıklar tablosundaki **Hisse Bilgisi** filtresi ile aynı UX.
+- **Kurbanlıklar infinite scroll sayacı:** Tüm Kurbanlıklar tablosu altında filtrelenmiş toplam kayıt; kısmi yüklemede görünen satır sayısı notu.
 - **Sütun sırası:** Tüm admin `CustomDataTable` sayfalarında `storageKey` ile kullanıcı bazlı kalıcılık; başlık satırından sürükle-bırak (hedef hücrenin sol/sağ yarısı = önce/sonra; bırakma yeri dikey çizgi ile gösterilir). Toolbar’lı sayfalarda `ColumnSelectorPopover` içinde **varsayılan sütun düzenine dön** (`[]` sıra). Ayrıntı: [changelogs/changelog-2026-03-admin-column-reorder.md](changelogs/changelog-2026-03-admin-column-reorder.md).
 - **Rezervasyonlar** (`/kurban-admin/rezervasyonlar`): reservation_transactions tablosu (tenant kapsamlı); tabloda **İşlem Bitişi** (`completed_at`) — aktif → tamamlandı / iptal / zaman aşımı / süre doldu geçişinde trigger ile set edilir. Tablo üstünde **Kurban No**, **Hisse Sayısı**, **Durum** çoklu seçim filtreleri + tümünü temizle. **Realtime**: Supabase `postgres_changes` ile badge ve tablo anında güncellenir; polling yok.
-- **Aşama Metrikleri** (`/kurban-admin/asama-metrikleri`): stage_metrics tablosu (tenant kapsamlı)
+- **Kurban Günü İstatistikleri** (`/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri`): Kurbanlıklar alt menüsü; aşama özeti kartları, kurbanlık tamamlanma tablosu, arıza (`stage_downtime_events`) CRUD, public arıza duyurusu (`incident_banner_*`). Eski `/kurban-admin/asama-metrikleri` kaldırıldı. Detay: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md).
 - **Uyumsuz Hisseler** (`/kurban-admin/uyumsuz-hisseler`): mismatched_shares view + mismatched_share_acknowledgments; hisse sayısı ≠ 7 olan kurbanlıklar, "Tamam biliyorum" ile farkındalık kaydı; yeni hissedar eklenince trigger ile sıfırlanır. **Aktif rezervasyon**: `status=active` olan reservation_transactions'a sahip hayvanlar listeden çıkarılır (henüz hissedar eklenmemiş geçici uyumsuzluk önlenir).
 
 ## last_edited_by / change_owner (Admin)
@@ -166,6 +170,8 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 - Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 
 ## Changelog
+- **2026-05 Admin tablo UX + SMS picker**: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](changelogs/changelog-2026-05-admin-table-ux-sms-picker.md)
+- **2026-05 Kurban Günü İstatistikleri**: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md)
 - **2026-05 Otomatik SMS + hissedar saat sütunları**: [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
 - **2026-03 Homepage evre yönetimi**: [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 - **2026-03 Admin audit RPC (Faz 6–7)**: [changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md](changelogs/changelog-2026-03-admin-audit-rpc-faz6-7.md)

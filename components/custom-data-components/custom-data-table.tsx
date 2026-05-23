@@ -448,12 +448,21 @@ export function CustomDataTable<TData, TValue>({
         ) : null}
         <StickyHorizontalScrollbar scrollRef={tableScrollRef} />
 
-        {!infiniteEnabled ? (
+        {infiniteEnabled ? (
+          <div className="text-center text-sm text-muted-foreground py-1">
+            Toplam {totalRows} adet sonuç bulundu.
+            {infiniteCount < totalRows ? (
+              <span className="block text-xs mt-0.5">
+                ({infiniteCount} satır görüntüleniyor)
+              </span>
+            ) : null}
+          </div>
+        ) : (
           <CustomDataTableFooter
             table={table}
             pageSizeOptions={pageSizeOptions}
           />
-        ) : null}
+        )}
       </div>
     </div>
   )

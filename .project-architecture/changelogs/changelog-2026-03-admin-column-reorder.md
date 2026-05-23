@@ -24,7 +24,7 @@ Admin panelindeki tüm `CustomDataTable` kullanımlarında sütun sırasının b
 | Teslimatlar | `teslimatlar` |
 | Rezervasyonlar | `rezervasyonlar` |
 | Değişiklik kayıtları | `degisiklik-kayitlari` |
-| Aşama metrikleri | `asama-metrikleri` |
+| Aşama metrikleri | `kurban-gunu-istatistikleri` (2026-05’te taşındı; eski: `asama-metrikleri`) |
 | Uyumsuz hisseler — Bilinmeyenler | `uyumsuz-hisseler-bilinmeyenler` |
 | Uyumsuz hisseler — Bilinenler | `uyumsuz-hisseler-bilinenler` |
 | İletişim mesajları | `iletisim-mesajlari` |

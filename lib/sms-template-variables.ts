@@ -47,7 +47,13 @@ function fmtDateTr(iso: string | null | undefined): string {
 
 function fmtTimeTr(iso: string | null | undefined): string {
   if (!iso) return "";
-  const d = new Date(iso);
+  const trimmed = iso.trim();
+  // PostgreSQL TIME: "HH:MM:SS" veya "HH:MM"
+  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(trimmed)) {
+    const [h, m] = trimmed.split(":");
+    return `${h}:${m}`;
+  }
+  const d = new Date(trimmed);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 }
@@ -137,6 +143,9 @@ export function buildSmsVariablesFromShareholderRow(
     // Teslimat
     teslimat_tercihi: (row.delivery_type ?? "").trim(),
     teslimat_adresi: (row.delivery_location ?? "").trim(),
+    teslimat_saati: sac?.planned_delivery_time
+      ? fmtTimeTr(sac.planned_delivery_time)
+      : "",
     // Linkler
     sorgulama_linki: lookupUrl,
     takip_linki: takipUrl,

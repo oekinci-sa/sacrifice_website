@@ -21,12 +21,10 @@ const VARIABLES: { label: string; value: string; group?: string }[] = [
   { label: "Ödenen Tutar", value: "{{odenen_tutar}}" },
   { label: "Toplam Tutar", value: "{{toplam_tutar}}" },
   { label: "Kapora", value: "{{kapora_tutari}}" },
-  { label: "IBAN", value: "{{iban}}" },
   // Teslimat
   { label: "Teslimat Tercihi", value: "{{teslimat_tercihi}}" },
   { label: "Teslimat Adresi", value: "{{teslimat_adresi}}" },
-  // Linkler
-  { label: "Sorgulama Linki", value: "{{sorgulama_linki}}" },
+  { label: "Teslimat Saati", value: "{{teslimat_saati}}" },
   // Otomatik SMS — tetikleyici kurban
   { label: "Şu An Kesilen No", value: "{{kesilen_kurban_no}}", group: "oto" },
   // Otomatik SMS — ham ortalama süreler (dakika / kurban başına)

@@ -289,7 +289,7 @@ export function SmsRecipientTable({
             ) : null}
             <Button
               type="button"
-              variant="secondary"
+              variant={excludedStaged > 0 ? "destructive" : "secondary"}
               size="sm"
               disabled={excludedStaged === 0}
               onClick={onCommitListSave}

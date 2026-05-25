@@ -1,5 +1,6 @@
 'use client';
 
+import { SacrificeShareholdersCard } from "@/app/(takip)/components/sacrifice-shareholders-card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,12 +11,19 @@ import {
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
 import { supabase } from "@/utils/supabaseClient";
+import { ArrowRight } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface QueueCardWithButtonsProps {
     title: string;
     stage: StageType;
     enableAnimation?: boolean;
+    /** Dışarıdan kurbanlık no değiştirme callback'i (arama çubuğundan) */
+    onJumpTo?: (no: number) => void;
+    /** Dışarıdan kontrol edilecek localNumber (lift state up için) */
+    externalNumber?: number;
+    /** localNumber değiştiğinde dışarıya bildir */
+    onLocalNumberChange?: (no: number) => void;
 }
 
 interface SacrificeTimingData {
@@ -30,14 +38,35 @@ interface SacrificeTimingData {
 const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     title,
     stage,
-    enableAnimation = false
+    enableAnimation = false,
+    externalNumber,
+    onLocalNumberChange,
 }) => {
     const [isCompleted, setIsCompleted] = useState(false);
-    const [localNumber, setLocalNumber] = useState<number>(QUEUE_NUMBER_MIN);
+    const [localNumber, setLocalNumberInternal] = useState<number>(
+        externalNumber ?? QUEUE_NUMBER_MIN
+    );
     const [isSwitchDisabled, setIsSwitchDisabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [jumpInput, setJumpInput] = useState("");
     const { toast } = useToast();
     const syncedDbNumberRef = useRef<number>(QUEUE_NUMBER_MIN);
+
+    const localNumberRef = useRef<number>(externalNumber ?? QUEUE_NUMBER_MIN);
+
+    const setLocalNumber = (n: number) => {
+        localNumberRef.current = n;
+        setLocalNumberInternal(n);
+        onLocalNumberChange?.(n);
+    };
+
+    // Dışarıdan gelen externalNumber değiştiğinde sync et
+    useEffect(() => {
+        if (externalNumber !== undefined && externalNumber !== localNumberRef.current) {
+            setLocalNumber(externalNumber);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [externalNumber]);
 
     const currentStageMetric = useStageMetricsStore(state => state.stageMetrics[stage]);
     const maxSacrificeNumber = useStageMetricsStore(state => state.maxSacrificeNumber);
@@ -96,15 +125,15 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         if (currentStageMetric?.current_sacrifice_number === undefined) return;
 
         const newDbNumber = normalizedDbNumber;
-        setLocalNumber((prev) => {
-            if (prev === syncedDbNumberRef.current || prev < QUEUE_NUMBER_MIN) {
-                syncedDbNumberRef.current = newDbNumber;
-                void checkSwitchState(newDbNumber);
-                return newDbNumber;
-            }
+        const prev = localNumberRef.current;
+        if (prev === syncedDbNumberRef.current || prev < QUEUE_NUMBER_MIN) {
             syncedDbNumberRef.current = newDbNumber;
-            return prev;
-        });
+            void checkSwitchState(newDbNumber);
+            setLocalNumber(newDbNumber);
+        } else {
+            syncedDbNumberRef.current = newDbNumber;
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStageMetric?.current_sacrifice_number, normalizedDbNumber, checkSwitchState]);
 
     useEffect(() => {
@@ -285,8 +314,25 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
     const displayText = getDisplayText();
 
+    const handleJump = async () => {
+        const n = parseInt(jumpInput, 10);
+        if (isNaN(n) || n < QUEUE_NUMBER_MIN) {
+            toast({ title: "Geçersiz numara", description: "Lütfen geçerli bir kurbanlık numarası girin." });
+            return;
+        }
+        setIsLoading(true);
+        const success = await checkSwitchState(n);
+        if (success) {
+            setLocalNumber(n);
+            setJumpInput("");
+        } else {
+            toast({ variant: "destructive", title: "Numara bulunamadı", description: "Bu numaraya ait kurbanlık bulunamadı." });
+        }
+        setIsLoading(false);
+    };
+
     return (
-        <div className="flex flex-col items-center justify-center gap-8 md:gap-12">
+        <div className="flex flex-col items-center justify-center gap-8 md:gap-12 w-full">
             <div className="flex flex-row items-center justify-center gap-6 md:gap-8">
                 <i
                     className={`bi bi-dash flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -309,6 +355,29 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     className={`bi bi-plus flex items-center justify-center text-3xl md:text-2xl text-black/75 bg-black/5 hover:bg-primary hover:text-white rounded-lg w-10 h-10 md:w-12 md:h-12 rounded rounded-md transition-all duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     onClick={handleIncrement}
                 ></i>
+            </div>
+
+            {/* Doğrudan kurbanlık no girişi */}
+            <div className="flex items-center gap-2 [color-scheme:light]">
+                <input
+                    type="number"
+                    min={1}
+                    value={jumpInput}
+                    onChange={(e) => setJumpInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && void handleJump()}
+                    placeholder="Kurbanlık no…"
+                    className="h-9 w-32 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-400"
+                    disabled={isLoading}
+                />
+                <button
+                    type="button"
+                    onClick={() => void handleJump()}
+                    disabled={isLoading || !jumpInput}
+                    className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <ArrowRight className="h-4 w-4" />
+                    Git
+                </button>
             </div>
 
             <div className="flex items-start space-x-4 md:space-x-6">
@@ -336,6 +405,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     )}
                 </div>
             </div>
+
+            <SacrificeShareholdersCard sacrificeNo={localNumber} />
         </div>
     );
 };

@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data, error } = await query
-      .order("sacrifice_animals(sacrifice_no)", { ascending: true })
+      .order("sacrifice_no", { referencedTable: "sacrifice_animals", ascending: true })
       .order("shareholder_name", { ascending: true })
       .range(offset, offset + limit - 1);
 

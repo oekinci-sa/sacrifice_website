@@ -280,7 +280,11 @@ export function ColumnSelectorPopover<TData = unknown>({
           Sütunlar
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-2" onCloseAutoFocus={(e) => e.preventDefault()}>
+      <PopoverContent
+        align="end"
+        className="w-64 p-2 max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <LayoutGroup id="admin-column-selector">
         <div className="space-y-4">
           <DroppableSection

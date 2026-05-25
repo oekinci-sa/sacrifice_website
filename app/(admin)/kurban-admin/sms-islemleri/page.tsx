@@ -50,6 +50,7 @@ interface SmsTemplate {
   id: string;
   title: string;
   content: string;
+  event_key?: string | null;
 }
 
 const BULK_LOADING_TARGETS: TargetType[] = [
@@ -154,7 +155,10 @@ export default function SmsGonderPage() {
   useEffect(() => {
     fetch("/api/admin/sms/templates?active=true")
       .then((r) => r.json())
-      .then((d) => setTemplates(d.templates ?? []))
+      .then((d) => {
+        const all = (d.templates ?? []) as SmsTemplate[];
+        setTemplates(all.filter((t) => !t.event_key));
+      })
       .catch(() => { });
   }, []);
 

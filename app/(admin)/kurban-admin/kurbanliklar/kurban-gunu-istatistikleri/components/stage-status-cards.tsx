@@ -18,10 +18,10 @@ function formatDuration(seconds: number): string {
   return m === 0 ? `${h} sa` : `${h} sa ${m} dk`;
 }
 
-const STAGES: { key: StageKey; label: string }[] = [
-  { key: "slaughter_stage", label: "Kesim" },
-  { key: "butcher_stage", label: "Parçalama" },
-  { key: "delivery_stage", label: "Teslimat" },
+const STAGES: { key: StageKey; label: string; color: string }[] = [
+  { key: "slaughter_stage", label: "Kesim", color: "text-red-600" },
+  { key: "butcher_stage", label: "Parçalama", color: "text-orange-600" },
+  { key: "delivery_stage", label: "Teslimat", color: "text-green-600" },
 ];
 
 type Props = {
@@ -32,25 +32,25 @@ type Props = {
 export function StageStatusCards({ stageMetrics, loading }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {STAGES.map(({ key, label }) => {
+      {STAGES.map(({ key, label, color }) => {
         const m = stageMetrics[key];
         return (
           <div key={key} className="space-y-3 p-4 border rounded-md font-sans">
-            <h3 className="text-sm font-medium">{label}</h3>
-            <div className="text-left space-y-1">
-              <div className="text-xl font-bold tabular-nums">
-                {loading ? "…" : (m?.current_sacrifice_number ?? 1)}
-                <span className="text-sm font-normal text-muted-foreground ml-2">
-                  güncel sıra
+            <h3 className={`text-sm font-medium ${color}`}>{label}</h3>
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Güncel Sıra</span>
+                <span className="font-bold text-lg tabular-nums">
+                  {loading ? "…" : (m?.current_sacrifice_number ?? 1)}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  Ort. süre:{" "}
-                  <span className="font-medium text-foreground tabular-nums">
-                    {loading ? "…" : formatDuration(m?.avg_progress_duration ?? 0)}
-                  </span>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  Ort. Süre
+                </span>
+                <span className="font-medium tabular-nums">
+                  {loading ? "…" : formatDuration(m?.avg_progress_duration ?? 0)}
                 </span>
               </div>
             </div>

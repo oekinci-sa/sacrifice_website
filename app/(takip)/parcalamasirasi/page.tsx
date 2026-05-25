@@ -6,6 +6,7 @@ const page = () => {
       <StageQueuePage
         title="Parçalama Sırası"
         stage="butcher_stage"
+        pageKey="butcher"
       />
     </div>
   );

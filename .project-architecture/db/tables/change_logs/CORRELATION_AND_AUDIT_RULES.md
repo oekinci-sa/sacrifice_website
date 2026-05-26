@@ -58,7 +58,7 @@ Sadece `remaining_payment` elle değişip `paid_amount` / `total_amount` aynı k
 
 | Kolon | `detail` ne zaman? |
 |-------|---------------------|
-| `planned_delivery_time` | Aynı UPDATE’te `sacrifice_time` da değiştiyse (`rpc_update_sacrifice_core` patch’inde kesim saati değişince planlı teslim genelde +90 dk ile güncellenir; ikisi birden değişince planlı teslim **detail**). |
+| `planned_delivery_time` | Aynı UPDATE’te `sacrifice_time` da değiştiyse (`rpc_update_sacrifice_core` patch’inde kesim saati değişince planlı teslim tenant offset’i (`planned_delivery_offset_minutes`) ile güncellenir; ikisi birden değişince planlı teslim **detail**). |
 
 ## 6. `rpc_update_shareholder`
 

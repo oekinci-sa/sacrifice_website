@@ -1,11 +1,11 @@
 "use client";
 
 import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
-import { AdminTenantSettingsSkeleton } from "../components/admin-page-skeletons";
 import { useEffect, useState } from "react";
+import { AdminTenantSettingsSkeleton } from "../components/admin-page-skeletons";
+import { AgreementEditDialog } from "./components/agreement-edit-dialog";
 import { createColumns, type TenantSettingRow } from "./components/columns";
 import { TenantSettingsEditDialog } from "./components/tenant-settings-edit-dialog";
-import { AgreementEditDialog } from "./components/agreement-edit-dialog";
 import { TenantSettingsToolbar } from "./components/tenant-settings-toolbar";
 
 export default function TenantAyarlariPage() {
@@ -51,9 +51,9 @@ export default function TenantAyarlariPage() {
       <div className="w-full">
         <h1 className="text-2xl font-semibold tracking-tight">Organizasyon Ayarları</h1>
         <p className="text-muted-foreground mt-2 max-w-[75%]">
-          Tüm  ayarlarını görüntüleyebilir ve düzenleyebilirsiniz. Yıl, kapora
-          ve telefon tabloda doğrudan düzenlenebilir. Sözleşme için Sözleşme sütunundaki
-          butona tıklayın.
+          Tüm organizasyon ayarlarını görüntüleyebilir ve düzenleyebilirsiniz. Yıl, kapora,
+          teslim offset (dk) ve telefon tabloda doğrudan düzenlenebilir. Diğer alanlar için satır
+          sonundaki kalem ikonuna tıklayın. Sözleşme için Sözleşme sütunundaki butona tıklayın.
         </p>
       </div>
       {loading ? (

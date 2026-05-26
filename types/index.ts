@@ -132,6 +132,10 @@ export interface sacrificeSchema {
   last_edited_time: string | null;
   last_edited_by: string | null;
   notes: string | null;
+  /** Teslimat sırasında hissedarlara verilen toplam kg */
+  delivered_share_kg?: number | null;
+  /** Teslimat / hisse teslimi ile ilgili operasyon notu (genel notes'tan ayrı) */
+  delivery_notes?: string | null;
 
   slaughter_time: string | null;
   butcher_time: string | null;

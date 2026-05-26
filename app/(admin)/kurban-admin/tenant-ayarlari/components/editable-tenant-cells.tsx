@@ -525,7 +525,12 @@ export function EditableTextCell({
   const strVal = typeof raw === "number" ? String(raw) : String(raw);
   const [value, setValue] = useState(strVal);
 
-  const numericFields = ["deposit_deadline_days", "full_payment_deadline_month", "full_payment_deadline_day"];
+  const numericFields = [
+    "deposit_deadline_days",
+    "full_payment_deadline_month",
+    "full_payment_deadline_day",
+    "planned_delivery_offset_minutes",
+  ];
   const isNumeric = numericFields.includes(field as string);
 
   const save = useCallback(async () => {

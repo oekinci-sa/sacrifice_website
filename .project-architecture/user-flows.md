@@ -114,6 +114,24 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 
 ---
 
+## 4b. Operatör Sıra Sayfaları — PIN ve Navigasyon
+
+| Adım | Aksiyon |
+|------|---------|
+| 1 | `/kesimsirasi`, `/parcalamasirasi` veya `/teslimatsirasi` açılır |
+| 2 | `GET /api/queue-access/check?pageKey=` — geçerli cookie yoksa tam ekran PIN modal |
+| 3 | Admin PIN set etmemişse gate geçilir; set edilmişse `POST /api/queue-access/verify` (6 hane); 5 hatalı deneme → 10 dk kilitleme |
+| 4 | Başarılı doğrulama → `qa_token_{pageKey}` cookie (8 saat) |
+| 5 | Kurban no ile git veya `GET /api/queue-access/shareholder-search` ile hissedar ara → kurban no seç |
+| 6 | Switch altında `GET /api/get-shareholders-by-sacrifice-no` ile hissedar tablosu |
+| 7 | Aşama tamamlama → `POST /api/update-sacrifice-timing` (mevcut takip akışı) |
+
+Admin PIN yönetimi: `/kurban-admin/guvenlik-ayarlari` → `GET/PUT /api/admin/security/queue-codes` (admin, super_admin).
+
+Detay: [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md)
+
+---
+
 ## 5. Admin – Kurbanlık Yönetimi
 
 | Akış | API / Aksiyon |
@@ -123,7 +141,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | Kurbanlık güncelleme | PUT /api/update-sacrifice; POST /api/update-sacrifice-share, /api/update-sacrifice-timing |
 | Kurban günü arıza kaydı | `/kurban-admin/kurbanliklar/kurban-gunu-istatistikleri` → CRUD `/api/admin/stage-downtime` (`stage_downtime_events`; yıl + tenant) |
 | Kurban günü arıza duyurusu | Aynı sayfa → `PUT /api/admin/incident-banner` (`incident_banner_enabled`, `incident_banner_message`) |
-| Takip — aşama tamamlama + otomatik SMS | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` → `POST /api/update-sacrifice-timing` (`is_completed: true`) → `handleAutoSms` (`sms_enabled` + `sms_auto_enabled` + aktif `event_key` şablonu). Kesimde: yaklaşan (+20) ve kesilmek üzere (+3) ayrı uyarılar. Teslimatta: aynı kurbana teslim edildi, sonraki sıraya teslim almaya çağrı. Organizasyon: **Oto. SMS** sütunu |
+| Takip — aşama tamamlama + otomatik SMS | `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` → önce **PIN gate** (PIN set ise) → `POST /api/update-sacrifice-timing` (`is_completed: true`) → `handleAutoSms`. Kurban no / hissedar arama; switch altında hissedar tablosu. Organizasyon: **Oto. SMS** + **planlı teslim offset** |
 | Kurbanlık silme | DELETE /api/sacrifices/[id] (`rpc_delete_sacrifice`, oturum e-postası = `app.actor`) |
 | Hissedar ekleme | POST /api/create-shareholders (`last_edited_by` sunucuda: oturum e-postası veya `hisseal-akisi`; `purchased_by` müşteri) |
 | Hissedar güncelleme | POST /api/update-shareholder (`rpc_update_shareholder`); **Tüm Hissedarlar** tablosu (satır içi hücreler); teslimat tercihi hisse alımındaki seçimle uyumlu. `paid_amount` güncellenince → `payment_amount_updated` SMS (`sms_enabled`, aktif şablon) |
@@ -159,6 +177,7 @@ Bu dosya projedeki tüm kullanıcı ve sistem akışlarını dokümante eder. **
 | 1 | Sayfa yüklenir → globals.css :root (nötr varsayılan) |
 | 2 | ThemeStyles (Server Component) → tenant_settings.theme_json → :root inline style |
 | 3 | Admin paneli: .admin-neutral-theme nötr override; .admin-tenant-accent badge/CTA için tenant rengi |
+| 4 | **Planlı teslim offset:** `tenant_settings.planned_delivery_offset_minutes` — Organizasyon Ayarları (super_admin); değişince aktif yıl kurbanlıkları `bulk_update_planned_delivery_time` |
 
 ---
 

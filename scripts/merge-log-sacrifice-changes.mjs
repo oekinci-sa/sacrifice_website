@@ -22,6 +22,7 @@ const ORDER = [
   "02_update_no_weight_price_empty.sql",
   "02b_update_live_scale_pricing.sql",
   "03_update_notes_animal_foundation.sql",
+  "03b_update_delivery_share.sql",
   "04_update_times.sql",
   "05_delete_and_function_close.sql",
   "06_trigger.sql",

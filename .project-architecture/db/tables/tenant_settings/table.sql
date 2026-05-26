@@ -37,6 +37,9 @@ CREATE TABLE tenant_settings (
   -- Kurban günü teknik arıza duyurusu (public/takip banner). Varsayılan: kapalı.
   incident_banner_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   incident_banner_message TEXT,
+  -- Planlı teslim saati: kesim saatinden kaç dakika sonra? Varsayılan: 90.
+  -- Organizasyon Ayarları'ndan değiştirilince aktif yılın tüm kurbanlıkları yeniden hesaplanır.
+  planned_delivery_offset_minutes SMALLINT NOT NULL DEFAULT 90,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

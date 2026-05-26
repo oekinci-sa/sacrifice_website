@@ -18,5 +18,6 @@ Tarihli mimari / özellik değişiklik özetleri. Ana indeks: üst dizindeki [RE
 | [changelog-2026-05-admin-table-ux-sms-picker.md](changelog-2026-05-admin-table-ux-sms-picker.md) | SMS hissedar seçici infinite scroll; kurbanlık tablo sayacı; hissedar hisse sıralama/filtre |
 | [changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelog-2026-05-admin-sms-auto-and-shareholder-columns.md) | Oto. SMS bayrağı, hissedar kesim/teslim sütunları, şablon event_key Select |
 | [changelog-2026-05-sms-templates-variables-payment-filter.md](changelog-2026-05-sms-templates-variables-payment-filter.md) | SMS değişken standardizasyonu, ödeme otomatik SMS, üçlü şablon filtresi, FK CASCADE |
+| [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md) | Operatör sıra PIN, hissedar arama/tablası, güvenlik ayarları, planlı teslim offset, SMS UX |
 
 Yeni kayıt eklerken bu klasöre `changelog-YYYY-MM-kisa-baslik.md` adıyla koyun; `../README.md` ve gerekiyorsa `../features.md` içindeki tablolara satır ekleyin.

@@ -93,6 +93,10 @@ Görünür yalnızca `tenant_settings.sms_enabled === true` ise (sidebar). Tekil
 
 **Gönderim tipi «Hissedarlardan seç» (`shareholder_pick`):** `SmsShareholderPicker` — `GET /api/admin/sms/shareholder-search` ile sayfalı arama (kurban no → isim sırası); dropdown’da infinite scroll. Seçilen hissedarlar doğrudan alıcı listesine dönüştürülür (`/api/admin/sms/recipients` çağrılmaz).
 
+**Şablondan seç (SMS Gönder):** Yalnızca manuel şablonlar (`event_key` NULL); otomatik kurban günü şablonları listelenmez.
+
+**Mesaj editörü etiketleri:** `{{teslimat_saati}}` dahil; `{{iban}}` ve `{{sorgulama_linki}}` butonları kaldırıldı. Alıcı listesinde kaydedilmemiş değişiklik varsa «Listeyi kaydet» kırmızı vurgu.
+
 ### /kurban-admin/sms-islemleri/sablonlari
 
 SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle, **otomatik gönderim** (`event_key` — manuel, kurban günü event’leri veya `payment_amount_updated`). Soft delete.
@@ -131,6 +135,12 @@ Panel ve hissedar e-posta listeleri; konu/HTML ile toplu gönderim (`GET /api/ad
 
 Kullanıcı yönetimi (admin, editor vb.).
 
+### /kurban-admin/guvenlik-ayarlari
+
+**admin** ve **super_admin.** Operatör sıra sayfaları (`/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi`) için tenant başına 6 haneli PIN. API: `GET/PUT /api/admin/security/queue-codes`. PIN hash: `queue_page_access_codes`; rate limit: `queue_page_access_attempts`. Env: `QUEUE_ACCESS_SECRET`.
+
+Detay: [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](../changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md).
+
 ### /kurban-admin/degisiklik-kayitlari
 
 Değişiklik kayıtlarının görüntülendiği sayfa.
@@ -143,4 +153,6 @@ Değişiklik kayıtlarının görüntülendiği sayfa.
 
 **Otomatik SMS (`sms_auto_enabled`):** Tabloda **Oto. SMS** sütunu — `SmsAutoEnabledToggleCell`. Kesim/parçalama/teslimat takip ekranlarında aşama tamamlanınca `lib/sms-auto-sender` (ayrıca `sms_enabled` açık ve eşleşen aktif şablon gerekir). Offset’ler: düzenleme diyalogu (`sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
 
-Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md), [sms-operations.md](../sms-operations.md).
+**Planlı teslim offset (`planned_delivery_offset_minutes`):** Düzenleme diyalogu — kesim saatinden kaç dakika sonra planlı teslim (`planned_delivery_time`). Varsayılan 90; değişince yalnızca aktif yılın tüm kurbanlıkları güncellenir. INSERT trigger ve `rpc_update_sacrifice_core` tenant offset’ini okur.
+
+Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md), [sms-operations.md](../sms-operations.md), [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](../changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md).

@@ -75,7 +75,7 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Gönderim:** `POST /api/admin/sms/send` — tekil/toplu, dedup, kredi blok, `idempotency_key` zorunlu; Bizim SMS 1-N/N-N XML; başarılı cevaplarda `excluded_invalid_phone` / `excluded_duplicate_phone`.
 - **Hissedar seçici (picker):** `GET /api/admin/sms/shareholder-search` — SMS Gönder «Hissedarlardan seç»; sayfalı liste (`offset`/`limit`), kurban no → isim sırası; UI infinite scroll (`SmsShareholderPicker`).
 - **Şablon listesi / silme:** Pasifler `GET …/templates?inactive=true`; `DELETE …/templates/[id]` satır silmez, `is_active=false` (soft delete).
-- **Şablon değişkenleri:** `{{kurban_no}}` birincil; aşama bazlı ortalama/tahmini süre değişkenleri; bkz. `sms-operations.md`.
+- **Şablon değişkenleri:** `{{kurban_no}}` birincil; aşama bazlı ortalama/tahmini süre değişkenleri; **`{{teslimat_saati}}`** (planlı teslim); SMS Gönder editöründe IBAN/sorgulama linki etiketi yok; bkz. `sms-operations.md`.
 - **Ödeme otomatik SMS:** `payment_amount_updated` — ödenen tutar güncellenince (`POST /api/update-shareholder`); `sms_enabled` yeterli.
 - **Durum ifadesi:** Operatöre iletim (DLR takibi uygulanmıyor).
 - **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
@@ -96,6 +96,24 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **İstatistikler:** `GET /api/admin/sms/stats`; `excludeTest=true` seçeneği. DLR saklanmaz.
 - **Hissedar iletişim geçmişi:** `GET /api/admin/sms/shareholder-history?shareholderId=` — her satırda `personalized_message`. Zaman çizelgesinde `skipped` gizlenir; tam metin + başlık; panelde durum rozeti ve SMS boy satırı yok (`shareholder-sms-timeline-sheet.tsx`).
 - **Detay:** `.project-architecture/sms-operations.md`, `.project-architecture/sms-admin-and-tenant-flag.md`
+
+## Operatör Sıra Sayfaları — PIN, Arama, Hissedar Tablosu
+
+- **Sayfalar:** `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` — her biri ayrı 6 haneli admin PIN’i (`page_key`: slaughter / butcher / delivery).
+- **PIN:** Admin **Güvenlik Ayarları** (`/kurban-admin/guvenlik-ayarlari`); hash DB’de (`queue_page_access_codes`); cookie JWT 8 saat. PIN set edilmemişse sayfa açık.
+- **Rate limit:** 5 hatalı deneme → 10 dk kilitleme (`queue_page_access_attempts`; tenant + sayfa + IP hash).
+- **Navigasyon:** Kurban no ile git; hissedar araması (ad/telefon) → kurban no’ya atlama.
+- **Hissedar tablosu:** Switch altında seçili kurbanlık hissedarları (light tema).
+- **Env:** `QUEUE_ACCESS_SECRET`.
+- **Detay:** [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md)
+
+## Planlı Teslim Saati Offset (Organizasyon Ayarları)
+
+- **Alan:** `tenant_settings.planned_delivery_offset_minutes` (varsayılan 90; üst/alt CHECK yok).
+- **Kullanım:** Yeni kurban INSERT trigger’ı; `rpc_update_sacrifice_core` kesim saati güncellemesi; SMS `{{teslimat_saati}}`.
+- **Toplu güncelleme:** Organizasyon Ayarları’nda offset değişince `bulk_update_planned_delivery_time` — yalnızca tenant + **aktif kurban yılı**.
+- **UI:** Organizasyon Ayarları düzenleme diyalogu (super_admin).
+- **Detay:** aynı changelog.
 
 ## Mail İşlemleri (Resend)
 - Sayfa: `/kurban-admin/mail-islemleri` — konu + **TipTap** WYSIWYG mesaj (ham etiket görünmez); gövde HTML olarak `POST /api/admin/send-email` (`body`); sunucuda `isomorphic-dompurify` ile sanitize. Alıcılar: `GET /api/admin/email-recipients?year=`. Ortam: `RESEND_API_KEY` (tek anahtar). Gönderen varsayılan: `iletisim@ankarakurban.com.tr` / `iletisim@elyahayvancilik.com.tr` (tenant’a göre; env ile override).
@@ -170,6 +188,7 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 - Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 
 ## Changelog
+- **2026-05 Operatör sıra PIN, teslim offset, SMS UX**: [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md)
 - **2026-05 Admin tablo UX + SMS picker**: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](changelogs/changelog-2026-05-admin-table-ux-sms-picker.md)
 - **2026-05 Kurban Günü İstatistikleri**: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md)
 - **2026-05 Otomatik SMS + hissedar saat sütunları**: [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)

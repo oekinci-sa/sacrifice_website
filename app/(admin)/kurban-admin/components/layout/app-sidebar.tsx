@@ -88,8 +88,8 @@ const mainNavItems: NavItem[] = [
 
 const bottomNavItems: NavItem[] = [
   { id: "tenant-settings", title: "Organizasyon Ayarları", url: "/kurban-admin/tenant-ayarlari", icon: Settings, roles: ["super_admin"] },
-  { id: "user-management", title: "Kullanıcı Yönetimi", url: "/kurban-admin/kullanici-yonetimi", icon: UserCog, roles: ["admin", "super_admin"] },
   { id: "security-settings", title: "Güvenlik Ayarları", url: "/kurban-admin/guvenlik-ayarlari", icon: ShieldCheck, roles: ["admin", "super_admin"] },
+  { id: "user-management", title: "Kullanıcı Yönetimi", url: "/kurban-admin/kullanici-yonetimi", icon: UserCog, roles: ["admin", "super_admin"] },
 ];
 
 const separatorAfterIds = ["kurbanliklar-menu", "all-shareholders", "teslimatlar", "reservations"];

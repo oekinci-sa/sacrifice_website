@@ -47,6 +47,7 @@ export type TenantSettingRow = {
   sms_auto_enabled: boolean | null;
   sms_slaughter_approach_offset: number | null;
   sms_delivery_pickup_offset: number | null;
+  planned_delivery_offset_minutes: number | null;
   tenants?: { name?: string; slug?: string } | null;
 };
 
@@ -88,6 +89,19 @@ export function createColumns(
       id: "active_sacrifice_year",
       header: "Yıl",
       cell: ({ row }) => <EditableYearCell row={row} onSuccess={onRefresh} />,
+    },
+    {
+      accessorKey: "planned_delivery_offset_minutes",
+      id: "planned_delivery_offset_minutes",
+      header: "Teslim offset (dk)",
+      cell: ({ row }) => (
+        <EditableTextCell
+          row={row}
+          field="planned_delivery_offset_minutes"
+          onSuccess={onRefresh}
+          display={(v) => (v != null && v !== "" ? `${v} dk` : "90 dk")}
+        />
+      ),
     },
     {
       accessorKey: "deposit_amount",

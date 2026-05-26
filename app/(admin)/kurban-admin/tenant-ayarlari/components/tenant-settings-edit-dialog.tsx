@@ -85,6 +85,7 @@ export function TenantSettingsEditDialog({
         sms_auto_enabled: row.sms_auto_enabled ? "true" : "false",
         sms_slaughter_approach_offset: row.sms_slaughter_approach_offset ?? 20,
         sms_delivery_pickup_offset: row.sms_delivery_pickup_offset ?? 2,
+        planned_delivery_offset_minutes: row.planned_delivery_offset_minutes ?? 90,
         agreement_dialog_title:
           row.agreement_dialog_title ?? DEFAULT_AGREEMENT_COPY.agreement_dialog_title,
         agreement_main_heading:
@@ -183,6 +184,7 @@ export function TenantSettingsEditDialog({
         sms_auto_enabled: form.sms_auto_enabled === "true",
         sms_slaughter_approach_offset: Number(form.sms_slaughter_approach_offset) || 20,
         sms_delivery_pickup_offset: Number(form.sms_delivery_pickup_offset) || 2,
+        planned_delivery_offset_minutes: Number(form.planned_delivery_offset_minutes) || 90,
       };
 
       const res = await fetch(`/api/admin/tenant-settings/${row.tenant_id}`, {
@@ -469,6 +471,31 @@ export function TenantSettingsEditDialog({
                     }
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2 rounded-md border p-4 bg-muted/30">
+                <Label htmlFor="planned_delivery_offset_minutes">
+                  Planlı teslim saati — kesim saatinden kaç dakika sonra?
+                </Label>
+                <Input
+                  id="planned_delivery_offset_minutes"
+                  type="number"
+                  min={1}
+                  className="max-w-xs"
+                  value={String(form.planned_delivery_offset_minutes ?? 90)}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      planned_delivery_offset_minutes: e.target.value
+                        ? Number(e.target.value)
+                        : "",
+                    }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Örn. 90 veya 120. Kaydet&apos;e basıldığında aktif yılın tüm kurbanlıklarına uygulanır;
+                  SMS&apos;teki {"{{teslimat_saati}}"} bu değere göre hesaplanır.
+                </p>
               </div>
 
               <div className="space-y-2">

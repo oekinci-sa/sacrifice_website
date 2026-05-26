@@ -54,6 +54,8 @@ const COLUMN_LABEL_TR: Record<string, Record<string, string>> = {
     slaughter_time: "Kesim saati",
     butcher_time: "Parçalama saati",
     delivery_time: "Teslimat saati",
+    delivered_share_kg: "Teslim edilen hisse kg",
+    delivery_notes: "Teslimat notu",
   },
   shareholders: {
     shareholder_name: "Hissedar adı",

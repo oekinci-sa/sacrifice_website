@@ -27,6 +27,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | Bana Haber Ver Talepleri | ✓ | ✓ | ✓ |
 | Mail İşlemleri | ✓ | ✓ | ✓ |
 | **Kullanıcı Yönetimi** | ✗ | ✓ | ✓ |
+| **Güvenlik Ayarları** | ✗ | ✓ | ✓ |
 
 ---
 
@@ -36,6 +37,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 |-------|:------:|:-----:|:-----------:|
 | `/kurban-admin/*` (genel) | ✓ | ✓ | ✓ |
 | `/kurban-admin/kullanici-yonetimi` | ✗ | ✓ | ✓ |
+| `/kurban-admin/guvenlik-ayarlari` | ✗ | ✓ | ✓ |
 | `/kurban-admin/rezervasyonlar` | ✗ | ✗ | ✓ |
 
 - **editor** kullanıcı yönetimine girmeye çalışırsa → `/kurban-admin/genel-bakis`'e yönlendirilir
@@ -79,6 +81,7 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | Aşama metrikleri güncelleme (POST /api/update-stage-metrics) | ✓ | ✓ | ✓ |
 | Arıza kayıtları (GET/POST/PUT/DELETE /api/admin/stage-downtime) | ✓ | ✓ | ✓ |
 | Arıza duyurusu (GET/PUT /api/admin/incident-banner) | ✓ | ✓ | ✓ |
+| Sıra sayfası PIN (GET/PUT /api/admin/security/queue-codes) | ✗ | ✓ | ✓ |
 
 ---
 
@@ -113,6 +116,8 @@ Bu dokümanda admin panelindeki roller ve her rolün neleri yapabileceği tanım
 | `app/api/admin/stage-downtime/route.ts`, `[id]/route.ts` | Arıza CRUD; editor+ |
 | `app/api/admin/incident-banner/route.ts` | Banner ayarı; editor+ |
 | `app/api/public/incident-banner/route.ts` | Public okuma; auth yok |
+| `app/api/admin/security/queue-codes/route.ts` | Sıra sayfası PIN; admin/super_admin |
+| `app/(admin)/kurban-admin/guvenlik-ayarlari/page.tsx` | Güvenlik Ayarları UI |
 | `app/api/create-sacrifice/route.ts` | editor+; `last_edited_by` oturum e-postası |
 | `app/api/create-shareholders/route.ts` | Açık (hisseal); audit için `last_edited_by` sunucuda (oturum veya `hisseal-akisi`) |
 | `app/api/sacrifices/[id]/route.ts` | `rpc_delete_sacrifice`; admin/super_admin; oturum e-postası zorunlu |

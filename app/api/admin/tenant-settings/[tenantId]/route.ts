@@ -35,6 +35,7 @@ const UPDATABLE_FIELDS = [
   "sms_auto_enabled",
   "sms_slaughter_approach_offset",
   "sms_delivery_pickup_offset",
+  "planned_delivery_offset_minutes",
 ] as const;
 
 /**
@@ -68,6 +69,13 @@ export async function PATCH(
       );
     }
 
+    // Fetch current settings to detect offset change and get active year
+    const { data: currentSettings } = await supabaseAdmin
+      .from("tenant_settings")
+      .select("planned_delivery_offset_minutes, active_sacrifice_year")
+      .eq("tenant_id", tenantId)
+      .single();
+
     const { data, error } = await supabaseAdmin
       .from("tenant_settings")
       .update(updates)
@@ -80,6 +88,25 @@ export async function PATCH(
         { error: "Tenant ayarları güncellenemedi" },
         { status: 500 }
       );
+    }
+
+    // If the delivery offset changed, bulk-update all sacrifice_animals for the active year
+    const newOffset = updates.planned_delivery_offset_minutes as number | undefined;
+    if (
+      newOffset !== undefined &&
+      currentSettings &&
+      newOffset !== currentSettings.planned_delivery_offset_minutes
+    ) {
+      const activeYear =
+        (updates.active_sacrifice_year as number | undefined) ??
+        currentSettings.active_sacrifice_year;
+      if (activeYear) {
+        await supabaseAdmin.rpc("bulk_update_planned_delivery_time", {
+          p_tenant_id: tenantId,
+          p_sacrifice_year: activeYear,
+          p_offset_minutes: newOffset,
+        });
+      }
     }
 
     return NextResponse.json(data, {

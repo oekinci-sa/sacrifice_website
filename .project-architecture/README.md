@@ -18,6 +18,7 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md` | Kurban günü istatistikleri, arıza kayıtları, ortalama süre düzeltmesi, public banner |
 | `changelogs/changelog-2026-05-admin-table-ux-sms-picker.md` | SMS hissedar seçici sayfalama; kurbanlık tablo kayıt sayısı; hissedar hisse sıralama/filtre |
 | `changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md` | SMS değişken standardizasyonu, ödeme otomatik SMS, şablon filtresi, FK CASCADE |
+| `changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md` | Operatör sıra PIN, planlı teslim offset, güvenlik ayarları, SMS UX |
 
 ## db/ Alt Yapısı
 

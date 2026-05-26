@@ -18,6 +18,8 @@ CREATE TABLE "public"."sacrifice_animals" (
   "last_edited_by" TEXT DEFAULT 'Anonim Kullanıcı',
   "last_edited_time" TIMESTAMPTZ DEFAULT now(),
   "notes" TEXT,
+  "delivered_share_kg" NUMERIC,
+  "delivery_notes" TEXT,
   -- Aşağıdakiler migration ile eklendi (bkz. sacrifice_foundation_planned_delivery_ear_tag_2026_03_24.sql)
   "foundation" TEXT,
   "planned_delivery_time" TIME NOT NULL,

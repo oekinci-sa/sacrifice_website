@@ -71,9 +71,10 @@ function SkeletonRow({ index }: { index: number }) {
 
 interface Props {
   sacrificeNo: number;
+  showPayment?: boolean;
 }
 
-export function SacrificeShareholdersCard({ sacrificeNo }: Props) {
+export function SacrificeShareholdersCard({ sacrificeNo, showPayment = true }: Props) {
   const [shareholders, setShareholders] = useState<ShareholderRow[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -162,7 +163,9 @@ export function SacrificeShareholdersCard({ sacrificeNo }: Props) {
 
                   <div className="flex flex-wrap gap-1.5">
                     <DeliveryBadge type={sh.delivery_type} location={sh.delivery_location} />
-                    <PaymentBadge paid={sh.paid_amount} total={sh.total_amount} />
+                    {showPayment && (
+                      <PaymentBadge paid={sh.paid_amount} total={sh.total_amount} />
+                    )}
                   </div>
                 </div>
               </div>

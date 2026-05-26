@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
         const { data, error } = await supabaseAdmin
             .from("sacrifice_animals")
-            .select("slaughter_time, butcher_time, delivery_time")
+            .select("slaughter_time, butcher_time, delivery_time, delivered_share_kg, delivery_notes")
             .eq("tenant_id", tenantId)
             .eq("sacrifice_no", sacrificeNo)
             .eq("sacrifice_year", sacrificeYear)
@@ -74,7 +74,9 @@ export async function GET(request: NextRequest) {
             delivery_completed: data && data.delivery_time !== null,
             slaughter_time: data ? data.slaughter_time : null,
             butcher_time: data ? data.butcher_time : null,
-            delivery_time: data ? data.delivery_time : null
+            delivery_time: data ? data.delivery_time : null,
+            delivered_share_kg: data ? data.delivered_share_kg : null,
+            delivery_notes: data ? data.delivery_notes : null,
         };
 
         return NextResponse.json(result, {

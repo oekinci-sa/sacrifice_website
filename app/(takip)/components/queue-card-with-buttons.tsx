@@ -1,5 +1,6 @@
 'use client';
 
+import { DeliveryShareInfoForm } from "@/app/(takip)/components/delivery-share-info-form";
 import { SacrificeShareholdersCard } from "@/app/(takip)/components/sacrifice-shareholders-card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -406,7 +407,14 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 </div>
             </div>
 
-            <SacrificeShareholdersCard sacrificeNo={localNumber} />
+            {stage === 'delivery_stage' && (
+                <DeliveryShareInfoForm sacrificeNo={localNumber} />
+            )}
+
+            <SacrificeShareholdersCard
+                sacrificeNo={localNumber}
+                showPayment={stage === 'delivery_stage'}
+            />
         </div>
     );
 };

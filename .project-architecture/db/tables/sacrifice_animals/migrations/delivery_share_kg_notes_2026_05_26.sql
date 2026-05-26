@@ -1,3 +1,11 @@
+-- Teslimat sırası ekranı: hissedarlara teslim edilen toplam kg + teslimat notu
+
+ALTER TABLE public.sacrifice_animals
+  ADD COLUMN IF NOT EXISTS delivered_share_kg NUMERIC,
+  ADD COLUMN IF NOT EXISTS delivery_notes TEXT;
+
+-- rpc_update_sacrifice_core: delivered_share_kg + delivery_notes patch desteği
+-- Kaynak: functions_and_triggers/rpc_update_sacrifice_core.sql
 CREATE OR REPLACE FUNCTION public.rpc_update_sacrifice_core(
   p_actor text,
   p_tenant_id uuid,

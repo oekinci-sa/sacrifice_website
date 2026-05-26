@@ -192,14 +192,15 @@ Tüm manuel ve otomatik SMS şablonlarında kullanılabilecek değişkenler:
 | `{{kupe_no}}` | Küpe numarası |
 | `{{kesim_saati}}` | Kurbanlığın kesim saati (HH:MM) |
 | `{{kesim_tarihi}}` | Kurbanlığın kesim tarihi (gün.ay.yıl) |
+| `{{teslimat_saati}}` | Planlı teslim saati (HH:MM); `planned_delivery_time` — kesim saati değil |
 | `{{kalan_tutar}}` | Kalan ödeme tutarı (TL) |
 | `{{odenen_tutar}}` | Ödenen tutar (TL) |
 | `{{toplam_tutar}}` | Toplam hisse tutarı (TL) |
 | `{{kapora_tutari}}` | Kapora miktarı (TL) |
-| `{{iban}}` | Ödeme IBAN'ı |
+| `{{iban}}` | Ödeme IBAN'ı (şablon gövdesinde kullanılabilir; SMS Gönder editöründe etiket butonu yok) |
 | `{{teslimat_tercihi}}` | Teslimat tipi |
 | `{{teslimat_adresi}}` | Teslimat adresi |
-| `{{sorgulama_linki}}` | Hisse sorgulama sayfası linki |
+| `{{sorgulama_linki}}` | Hisse sorgulama sayfası linki (editör etiket butonu yok) |
 | `{{takip_linki}}` | Takip sayfası linki |
 
 ### Sadece Otomatik SMS (`event_key` olan şablonlar)

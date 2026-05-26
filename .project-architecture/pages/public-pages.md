@@ -50,7 +50,9 @@ Kurumla iletişim bilgileri.
 
 | Route | Açıklama |
 |-------|----------|
-| `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` | Operatör sıra ekranları; Realtime `stage_metrics` |
+| `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` | Operatör sıra ekranları; Realtime `stage_metrics`; admin PIN gate (set edilmişse); kurban no / hissedar arama; switch altında hissedar tablosu (light tema) |
 | `/takip`, `homepage_mode: follow_up` | Halka açık takip kartları |
+
+Detay: [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](../changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md).
 
 **Arıza duyurusu:** Admin **Kurban Günü İstatistikleri** sayfasından açıldığında tüm public ve takip sayfalarında önce modal, sonra üst sticky banner (`components/layout/incident-banner.tsx`; 60 sn polling). Detay: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](../changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md).

@@ -6,6 +6,8 @@
  * Hata hiçbir zaman çağıran route'u bloklamaz — caller .catch(err => ...) kullanır.
  */
 
+import { randomUUID } from "crypto";
+
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSmsCredentials } from "@/lib/sms-config";
 import { sendSms } from "@/lib/sms-client";
@@ -27,16 +29,6 @@ interface AutoSmsParams {
   sacrificeNo: number;
   stage: StageType;
   isCompleted: boolean;
-}
-
-/** Deterministik idempotency anahtarı: auto:{event}:{tenant}:{sacrifice_id}:{year} */
-function buildIdempotencyKey(
-  eventKey: EventKey,
-  tenantId: string,
-  sacrificeId: string,
-  sacrificeYear: number
-): string {
-  return `auto:${eventKey}:${tenantId}:${sacrificeId}:${sacrificeYear}`;
 }
 
 /** Hissedar satırı için SMS metnini değişken doldurarak üretir. */
@@ -153,26 +145,6 @@ async function fetchShareholders(
   }));
 }
 
-/** Daha önce bu event gönderilmiş hissedar ID'lerini döner. */
-async function fetchAlreadySentIds(
-  tenantId: string,
-  sacrificeYear: number,
-  shareholderIds: string[],
-  eventKey: EventKey
-): Promise<Set<string>> {
-  if (shareholderIds.length === 0) return new Set();
-
-  const { data } = await supabaseAdmin
-    .from("sms_notification_events")
-    .select("shareholder_id")
-    .eq("tenant_id", tenantId)
-    .eq("sacrifice_year", sacrificeYear)
-    .eq("event_key", eventKey)
-    .in("shareholder_id", shareholderIds);
-
-  return new Set((data ?? []).map((r) => r.shareholder_id));
-}
-
 /** Hedef kurbanlığın ilgili aşaması tamamlanmış mı? Tamamlanmışsa SMS atma. */
 async function isSacrificeStageAlreadyDone(
   tenantId: string,
@@ -197,7 +169,7 @@ interface SendEventResult {
 }
 
 /**
- * Bir event için SMS gönderir; idempotency kaydı oluşturur.
+ * Bir event için SMS gönderir.
  * Alıcı yoksa veya şablon yoksa sessizce atlar.
  */
 async function sendEventSms(opts: {
@@ -273,7 +245,7 @@ async function sendEventSms(opts: {
       status: "sending",
       total_recipients: messages.length,
       sacrifice_year: sacrificeYear,
-      idempotency_key: buildIdempotencyKey(eventKey, tenantId, sacrificeId, sacrificeYear),
+      idempotency_key: randomUUID(),
       provider: "bizimsms",
       created_by: "Sistem (Otomatik)",
     })
@@ -281,8 +253,7 @@ async function sendEventSms(opts: {
     .single();
 
   if (sendErr || !sendRow) {
-    // Unique ihlali = daha önce gönderilmiş; sessizce atla
-    console.warn("[auto-sms] sms_sends insert skipped:", sendErr?.code, sendErr?.message);
+    console.error("[auto-sms] sms_sends insert failed:", sendErr?.code, sendErr?.message);
     return { sendId: null };
   }
 
@@ -349,9 +320,7 @@ async function sendEventSms(opts: {
   return { sendId };
 }
 
-/**
- * Bir event için hedef hissedarları filtreler, idempotency kontrol eder ve SMS gönderir.
- */
+/** Bir event için hedef hissedarları filtreler ve SMS gönderir. */
 async function fireEvent(opts: {
   eventKey: EventKey;
   tenantId: string;
@@ -380,22 +349,12 @@ async function fireEvent(opts: {
   });
   if (filtered.length === 0) return;
 
-  // idempotency: zaten gönderilenleri çıkar
-  const alreadySent = await fetchAlreadySentIds(
-    tenantId,
-    sacrificeYear,
-    filtered.map((r) => r.shareholder_id),
-    eventKey
-  );
-  const pending = filtered.filter((r) => !alreadySent.has(r.shareholder_id));
-  if (pending.length === 0) return;
-
   const { sendId } = await sendEventSms({
     tenantId,
     sacrificeYear,
     eventKey,
     sacrificeId,
-    recipients: pending,
+    recipients: filtered,
     templateContent,
     templateId,
     websiteUrl: tenantBranding.website_url,
@@ -403,8 +362,8 @@ async function fireEvent(opts: {
     context,
   });
 
-  // sms_notification_events kaydı — hata fırlatsa bile idempotency için yaz
-  const notifRows = pending.map((r) => ({
+  // Son gönderim referansı (tekrar engeli yok; yalnızca audit)
+  const notifRows = filtered.map((r) => ({
     tenant_id: tenantId,
     sacrifice_year: sacrificeYear,
     sacrifice_id: sacrificeId,
@@ -417,7 +376,6 @@ async function fireEvent(opts: {
     .from("sms_notification_events")
     .upsert(notifRows, {
       onConflict: "tenant_id,sacrifice_year,shareholder_id,event_key",
-      ignoreDuplicates: true,
     });
 
   if (notifErr) {
@@ -442,8 +400,7 @@ const EVENT_DEFAULTS: Record<
   slaughter_approaching: { target_offset: 20,   recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   slaughter_imminent:   { target_offset: 3,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   slaughter_completed:  { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
-  /** target_offset burada bekleme süresi katsayısıdır (avg_parcalama_bekleme × offset). Default 1. */
-  butcher_started:      { target_offset: 1,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: false, skip_if_target_completed: false },
+  butcher_started:      { target_offset: null, recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   delivery_completed:   { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
 };
 
@@ -459,7 +416,9 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
   // 1. Tenant master switch + branding bilgileri
   const { data: settings } = await supabaseAdmin
     .from("tenant_settings")
-    .select("sms_auto_enabled, sms_enabled, iban, deposit_amount, website_url")
+    .select(
+      "sms_auto_enabled, sms_enabled, iban, deposit_amount, website_url, sms_delivery_pickup_offset"
+    )
     .eq("tenant_id", tenantId)
     .single();
 
@@ -644,27 +603,57 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
       sacrificeNo
     );
 
-    // SMS-3: butcher_started → Teslim Almaya Çağrı
+    // SMS-3: butcher_started → Teslim Almaya Çağrı (hedef: işaretlenen no + offset)
     const butcherTpl = templateMap.get("butcher_started");
     if (butcherTpl) {
       const s = getEventSettings("butcher_started");
-      // target_offset = bekleme süresi katsayısı (varsayılan 1)
-      const butcherMultiplier = s.target_offset ?? EVENT_DEFAULTS.butcher_started.target_offset ?? 1;
-      await fireEvent({
-        eventKey: "butcher_started",
-        tenantId, sacrificeYear,
-        targetSacrificeNo: sacrificeNo,
-        deliveryFilter: toDeliveryFilter(s.recipient_scope),
-        templateContent: butcherTpl.content,
-        templateId: butcherTpl.id,
-        tenantBranding,
-        sacrificeId: currentSacrificeId,
-        context: {
-          parcalanan_sacrifice_no: sacrificeNo,
-          avg_parcalama_bekleme_minutes: avgParcalamaBeklemeMinutes,
-          butcher_offset: butcherMultiplier,
-        },
-      });
+      const tenantPickupOffset = Number(settings?.sms_delivery_pickup_offset ?? 2) || 2;
+      const offset = s.target_offset ?? tenantPickupOffset;
+      const targetNo = sacrificeNo + offset;
+
+      let shouldSend = true;
+
+      {
+        const { data: targetAnimalCheck } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (!targetAnimalCheck) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const alreadyDelivered = await isSacrificeStageAlreadyDone(
+          tenantId,
+          sacrificeYear,
+          targetNo,
+          "delivery_time"
+        );
+        if (alreadyDelivered) shouldSend = false;
+      }
+
+      if (shouldSend) {
+        const { data: targetAnimal } = await supabaseAdmin
+          .from("sacrifice_animals").select("sacrifice_id")
+          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
+          .single();
+        if (targetAnimal) {
+          await fireEvent({
+            eventKey: "butcher_started",
+            tenantId, sacrificeYear,
+            targetSacrificeNo: targetNo,
+            deliveryFilter: toDeliveryFilter(s.recipient_scope),
+            templateContent: butcherTpl.content,
+            templateId: butcherTpl.id,
+            tenantBranding,
+            sacrificeId: targetAnimal.sacrifice_id,
+            context: {
+              parcalanan_sacrifice_no: sacrificeNo,
+              avg_parcalama_bekleme_minutes: avgParcalamaBeklemeMinutes,
+              delivery_offset: offset,
+            },
+          });
+        }
+      }
     }
   }
 

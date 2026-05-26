@@ -37,6 +37,7 @@ export const SMS_STAGE_AUTO_EVENT_KEYS = [
 export const SMS_OFFSET_AUTO_EVENT_KEYS = [
   "slaughter_approaching",
   "slaughter_imminent",
+  "butcher_started",
 ] as const satisfies readonly SmsAutoEventKey[];
 
 export function isSmsOffsetAutoEventKey(key: string): boolean {
@@ -105,9 +106,9 @@ export const SMS_AUTO_EVENT_WHEN_INFO: Record<SmsAutoEventKey, SmsAutoEventWhenI
   },
   butcher_started: {
     when: "Parçalama sırası ekranında o kurban parçalandı olarak işaretlendiğinde.",
-    who: "Aynı kurban numarasının hissedarları; çoğunlukla kesimhaneden alacak olanlar. {{parcalama_tahmini_bekleme_suresi}} değişkeni geçmiş verilere dayalı ortalama bekleme süresidir.",
-    example: () =>
-      "Örnek: 12 numara parçalandı olarak işaretlenirse, 12 numaralı kurbanın hissedarlarına 'teslim almaya gelin' mesajı gider.",
+    who: "Kesimhaneden teslim alacak hissedarlar; mesaj, işaretlenen kurban numarasının ilerisindeki (ayarladığınız kadar sonraki) kurbanlığa gider. {{parcalama_tahmini_bekleme_suresi}} geçmiş verilere dayalı ortalama bekleme süresidir.",
+    example: (n) =>
+      `Örnek: 12 numara parçalandı, aralık ${n} → 12 + ${n} = ${12 + n} numaralı kurbanın hissedarlarına 'teslim almaya gelin' mesajı gider.`,
   },
   delivery_completed: {
     when: "Teslimat sırası ekranında o kurban teslim edildi olarak işaretlendiğinde.",

@@ -85,8 +85,9 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Bayrak:** `tenant_settings.sms_auto_enabled` — `sms_enabled`’dan **ayrı**; Organizasyon Ayarları tablosunda **Oto. SMS** sütunu (`SmsAutoEnabledToggleCell`). Tam form: aynı sayfa düzenleme diyalogu (offset alanları).
 - **Motor:** `lib/sms-auto-sender.ts` — takip ekranında kesim/parçalama/teslimat tamamlanınca (`POST /api/update-sacrifice-timing`, `is_completed`).
 - **Şablonlar:** `sms_templates.event_key` + aktif şablon; idempotency: `sms_notification_events`.
+- **Offset event’ler:** `slaughter_approaching`, `slaughter_imminent`, `butcher_started` (Teslim Almaya Çağrı) — tetiklenen kurban no + offset ile hedef kurban hissedarlarına gider; `butcher_started` offset varsayılanı `sms_delivery_pickup_offset` (Organizasyon Ayarları).
 - **Admin şablon listesi:** `/kurban-admin/sms-islemleri/sablonlari` — **Şablonları filtrele** (Sizin yazdıklarınız / Otomatik SMS'ler / Pasif SMS'ler; varsayılan: üçünü de açık).
-- **Changelog:** [changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md](changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md), [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md)
+- **Changelog:** [changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md](changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md), [changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md](changelogs/changelog-2026-05-admin-sms-auto-and-shareholder-columns.md), [changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md](changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md)
 
 ## SMS İşlemleri (Bizim SMS) — Faz 2
 
@@ -189,6 +190,7 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 - Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 
 ## Changelog
+- **2026-05 Teslim Almaya Çağrı offset (`butcher_started`)**: [changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md](changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md)
 - **2026-05 Operatör sıra PIN, teslim offset, SMS UX**: [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md)
 - **2026-05 Admin tablo UX + SMS picker**: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](changelogs/changelog-2026-05-admin-table-ux-sms-picker.md)
 - **2026-05 Kurban Günü İstatistikleri**: [changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md](changelogs/changelog-2026-05-kurban-gunu-istatistikleri.md)

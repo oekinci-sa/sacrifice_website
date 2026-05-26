@@ -45,13 +45,20 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const { data, error } = await supabaseAdmin
-            .from("sacrifice_animals")
-            .select("slaughter_time, butcher_time, delivery_time, delivered_share_kg, delivery_notes")
-            .eq("tenant_id", tenantId)
-            .eq("sacrifice_no", sacrificeNo)
-            .eq("sacrifice_year", sacrificeYear)
-            .single();
+        const [{ data, error }, { data: tsData }] = await Promise.all([
+            supabaseAdmin
+                .from("sacrifice_animals")
+                .select("slaughter_time, butcher_time, delivery_time, delivered_share_kg, delivery_notes")
+                .eq("tenant_id", tenantId)
+                .eq("sacrifice_no", sacrificeNo)
+                .eq("sacrifice_year", sacrificeYear)
+                .single(),
+            supabaseAdmin
+                .from("tenant_settings")
+                .select("butcher_stage_required")
+                .eq("tenant_id", tenantId)
+                .maybeSingle(),
+        ]);
 
         if (error) {
             return NextResponse.json(
@@ -77,6 +84,7 @@ export async function GET(request: NextRequest) {
             delivery_time: data ? data.delivery_time : null,
             delivered_share_kg: data ? data.delivered_share_kg : null,
             delivery_notes: data ? data.delivery_notes : null,
+            butcher_stage_required: tsData?.butcher_stage_required !== false,
         };
 
         return NextResponse.json(result, {

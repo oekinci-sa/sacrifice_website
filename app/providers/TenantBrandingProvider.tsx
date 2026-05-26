@@ -106,6 +106,7 @@ export function TenantBrandingProvider({
               typeof data.branding.incident_banner_message === "string"
                 ? data.branding.incident_banner_message
                 : "",
+            butcher_stage_required: data.branding.butcher_stage_required !== false,
           });
         }
       })

@@ -34,7 +34,7 @@ CREATE TABLE tenant_settings (
   sms_payment_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   -- Kesim yaklaşıyor SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 20.
   sms_slaughter_approach_offset SMALLINT NOT NULL DEFAULT 20,
-  -- Teslim almaya çağrı SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 2.
+  -- Teslim Almaya Çağrı (butcher_started): parçalanan no + bu offset = SMS hedef kurban no. Varsayılan: 2.
   sms_delivery_pickup_offset SMALLINT NOT NULL DEFAULT 2,
   -- Kurban günü teknik arıza duyurusu (public/takip banner). Varsayılan: kapalı.
   incident_banner_enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -42,6 +42,9 @@ CREATE TABLE tenant_settings (
   -- Planlı teslim saati: kesim saatinden kaç dakika sonra? Varsayılan: 90.
   -- Organizasyon Ayarları'ndan değiştirilince aktif yılın tüm kurbanlıkları yeniden hesaplanır.
   planned_delivery_offset_minutes SMALLINT NOT NULL DEFAULT 90,
+  -- Parçalama (butcher) aşaması bu tenant için zorunlu mu? Varsayılan: TRUE.
+  -- FALSE ise teslimat, parçalama tamamlanmadan açılır; page-takip.tsx'te Parçalama kartı gizlenir.
+  butcher_stage_required BOOLEAN NOT NULL DEFAULT TRUE,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
 );

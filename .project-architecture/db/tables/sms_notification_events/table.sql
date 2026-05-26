@@ -1,5 +1,5 @@
--- Otomatik SMS gönderimlerinin idempotency kaydı.
--- Aynı event'in aynı hissedar için iki kez gönderilmesini engeller.
+-- Otomatik SMS son gönderim referansı (audit).
+-- Aynı event'in tekrar gönderilmesini engellemez; yalnızca son send_id tutulur.
 CREATE TABLE IF NOT EXISTS public.sms_notification_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),

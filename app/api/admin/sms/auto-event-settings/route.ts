@@ -22,8 +22,7 @@ const DEFAULT_SETTINGS: Record<
   slaughter_approaching: { target_offset: 20,   recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   slaughter_imminent:   { target_offset: 3,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   slaughter_completed:  { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
-  /** target_offset = bekleme süresi katsayısı (avg_parcalama_bekleme × offset). Default 1. */
-  butcher_started:      { target_offset: 1,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: false, skip_if_target_completed: false },
+  butcher_started:      { target_offset: null, recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
   delivery_completed:   { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
 };
 

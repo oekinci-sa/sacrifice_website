@@ -35,7 +35,7 @@ ALTER TABLE public.sms_auto_event_settings ENABLE ROW LEVEL SECURITY;
 --   ('slaughter_approaching',      20, 'slaughterhouse_only'),
 --   ('slaughter_imminent',         3, 'slaughterhouse_only'),
 --   ('slaughter_completed',        NULL, 'all'),
---   ('butcher_started',            NULL, 'slaughterhouse_only'),
+--   ('butcher_started',             2, 'slaughterhouse_only'),  -- hedef: parçalanan_no + offset; yoksa tenant_settings.sms_delivery_pickup_offset
 --   ('delivery_completed',         NULL, 'all'),
 --   ('delivery_pickup_approaching', 2, 'slaughterhouse_only'),
 --   ('external_delivery_notice',   NULL, 'external_only')

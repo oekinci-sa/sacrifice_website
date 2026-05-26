@@ -45,6 +45,7 @@ interface SacrificeTimingData {
     slaughter_time: string | null;
     butcher_time: string | null;
     delivery_time: string | null;
+    butcher_stage_required: boolean;
 }
 
 function getStageCompletedTime(data: SacrificeTimingData, stage: StageType): string | null {
@@ -130,7 +131,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     break;
                 case 'delivery_stage':
                     currentStageCompleted = data.delivery_completed;
-                    canBeEnabled = data.slaughter_completed && data.butcher_completed;
+                    canBeEnabled = data.slaughter_completed &&
+                        (data.butcher_stage_required ? data.butcher_completed : true);
                     break;
             }
 

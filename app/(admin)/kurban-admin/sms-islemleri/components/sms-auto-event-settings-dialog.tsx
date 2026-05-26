@@ -89,12 +89,10 @@ export function SmsAutoEventSettingsDialog({
   const isDeliveryCompleted = eventKey === "delivery_completed";
   const isStageEvent = (SMS_STAGE_AUTO_EVENT_KEYS as readonly string[]).includes(eventKey);
   const isOffsetEvent = isSmsOffsetAutoEventKey(eventKey);
-  // butcher_started'da target_offset bekleme süresi katsayısıdır (multiplier), offset event değil
-  const isButcherMultiplierEvent = eventKey === "butcher_started";
   const hasConfigurableRules =
     isStageEvent &&
     !isDeliveryCompleted &&
-    (isOffsetEvent || isButcherMultiplierEvent || Boolean(ALLOWED_SCOPES[eventKey]));
+    (isOffsetEvent || Boolean(ALLOWED_SCOPES[eventKey]));
 
   const offsetLiveExample = useMemo(() => {
     const n = form.target_offset ?? 2;
@@ -103,6 +101,9 @@ export function SmsAutoEventSettingsDialog({
     }
     if (eventKey === "slaughter_imminent") {
       return `2 no kesildi + offset ${n} → ${2 + n} no hissedarlarına "kesilmek üzere" mesajı gider.`;
+    }
+    if (eventKey === "butcher_started") {
+      return `12 no parçalandı + offset ${n} → ${12 + n} no hissedarlarına "teslim almaya gelin" mesajı gider.`;
     }
     return null;
   }, [eventKey, form.target_offset]);
@@ -209,7 +210,9 @@ export function SmsAutoEventSettingsDialog({
             {isOffsetEvent && (
               <div className="space-y-2">
                 <Label htmlFor="target_offset">
-                  Kesilen kurbanın kaç numara sonrasına SMS gitsin?
+                  {eventKey === "butcher_started"
+                    ? "Parçalanan kurbanın kaç numara sonrasına SMS gitsin?"
+                    : "Kesilen kurbanın kaç numara sonrasına SMS gitsin?"}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -237,41 +240,6 @@ export function SmsAutoEventSettingsDialog({
                     {offsetLiveExample}
                   </p>
                 )}
-              </div>
-            )}
-
-            {/* Parçalama / Teslim Almaya Çağrı: bekleme süresi katsayısı */}
-            {isButcherMultiplierEvent && (
-              <div className="space-y-2">
-                <Label htmlFor="butcher_multiplier">
-                  Bekleme süresi katsayısı
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="butcher_multiplier"
-                    type="number"
-                    min={1}
-                    max={10}
-                    step={0.5}
-                    className="w-24"
-                    value={form.target_offset ?? 1}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        target_offset: e.target.value
-                          ? Math.min(10, Math.max(0.1, parseFloat(e.target.value)))
-                          : 1,
-                      }))
-                    }
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    (ortalama bekleme × katsayı = şablondaki tahmini süre)
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground rounded-md bg-muted/40 px-2 py-1.5">
-                  Varsayılan 1 = geçmiş verilere dayalı ortalama süreyi kullan.
-                  Biraz daha uzun tahmin için 1.2–1.5 gibi bir değer verin.
-                </p>
               </div>
             )}
 
@@ -321,7 +289,11 @@ export function SmsAutoEventSettingsDialog({
                 <p className="text-xs font-medium text-foreground">Sabit kurallar</p>
                 <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
                   <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.missing}</li>
-                  <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedSlaughter}</li>
+                  {eventKey === "butcher_started" ? (
+                    <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedDelivery}</li>
+                  ) : (
+                    <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedSlaughter}</li>
+                  )}
                 </ul>
               </div>
             )}

@@ -39,6 +39,23 @@ function DeliveryBadge({ type, location }: { type: string | null; location: stri
 }
 
 function PaymentBadge({ paid, total }: { paid: number; total: number }) {
+  const fmt = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+
+  if (total <= 0) {
+    if (paid > 0) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+          Tutarlar henüz girilmemiş · Ödenen: {fmt.format(paid)} TL
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+        Tutarlar henüz girilmemiş
+      </span>
+    );
+  }
+
   const remaining = total - paid;
   if (remaining <= 0) {
     return (
@@ -47,7 +64,6 @@ function PaymentBadge({ paid, total }: { paid: number; total: number }) {
       </span>
     );
   }
-  const fmt = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
   return (
     <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800">
       Kalan: {fmt.format(remaining)} TL

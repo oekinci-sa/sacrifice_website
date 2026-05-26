@@ -29,10 +29,11 @@ BIZIM_SMS_API_BASE=https://api.sms.bizimsms.mobi  # opsiyonel, varsayılan bu
 | `sms_templates` | Yeniden kullanılabilir SMS şablonları (kategori, değişken listesi); `DELETE` route soft delete |
 | `sms_sends` | Her gönderim grubu (tekil/toplu, durum, sayılar, idempotency) |
 | `sms_send_recipients` | Her gönderimin bireysel alıcıları; `shareholder_id` → `shareholders` **ON DELETE CASCADE** |
-| `sms_notification_events` | Otomatik SMS idempotency (tenant + yıl + hissedar + `event_key`) |
+| `sms_notification_events` | Otomatik SMS son gönderim referansı (tenant + yıl + hissedar + `event_key`) |
 | `tenant_settings.sms_auto_enabled` | Kurban günü otomatik gönderim bayrağı (`sms_enabled`’dan ayrı) |
-| `tenant_settings.sms_slaughter_approach_offset` | «Kesim yaklaşıyor» kaç kurban öncesi (default 20) |
-| `tenant_settings.sms_delivery_pickup_offset` | «Teslim çağrısı» kaç kurban öncesi (default 2) |
+| `tenant_settings.sms_slaughter_approach_offset` | Legacy tenant alanı (default 20); kesim offset’leri öncelikle `sms_auto_event_settings` |
+| `tenant_settings.sms_delivery_pickup_offset` | «Teslim çağrısı» offset varsayılanı (default 2); `butcher_started` event ayarı yoksa kullanılır |
+| `sms_auto_event_settings` | Event başına `target_offset`, `recipient_scope`, atlama bayrakları |
 
 Tüm tablolar: `supabaseAdmin` (service role) üzerinden erişilir, RLS aktif.
 
@@ -104,17 +105,56 @@ SMS Gönder sayfasında gönderim tipi `shareholder_pick` iken `SmsShareholderPi
 
 Detay: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](./changelogs/changelog-2026-05-admin-table-ux-sms-picker.md).
 
+## Çalışma zamanı: Vercel ve Supabase
+
+| Bileşen | Rol |
+|---------|-----|
+| **Vercel** (`app/api/admin/sms/send`) | Şablon çözümleme (`resolveVariables`), telefon normalize, dedup, Bizim SMS XML oluşturma ve API çağrısı |
+| **Supabase** | Hissedar/kurban verisi okuma; `sms_sends` / `sms_send_recipients` kayıtları |
+| **Bizim SMS** | Operatöre iletim; şablon veya değişken çözümleme yapmaz |
+
+Admin panel yalnızca ham şablonu (`message_content` + `recipients`) Vercel route'una POST eder. `{{ad_soyad}}` gibi ifadeler **sunucuda** (Vercel) doldurulur; Supabase mesaj metnini üretmez.
+
 ## `POST /api/admin/sms/send` İş Akışı
 
 1. Auth + rol (toplu: admin/super_admin; tekil: tüm roller)
 2. Zod validasyon
 3. `idempotency_key` **zorunlu** — çift gönderim 409 döner
-4. Kredi kontrolü: hard block — `allowCreditCheckFailure: true` ile bypass
+4. Hissedar verisi Supabase'den okunur → `varMap` (toplu: **100 ID/chunk**, bkz. aşağı)
 5. Telefon normalize → geçersizler `skipped`
-6. Dedup (**her zaman**, kurban bazlı) → mükerrer alıcılar `skipped`; Bizim SMS API’ye gönderilmez
-7. Değişken çözümleme → boş değişken `warnings` listesinde döner (gönderimi bloklamaz)
-8. Bizim SMS API çağrısı (1-N veya N-N XML) — yalnızca `toSend` listesi
-9. Sonuçlar DB'ye yazılır
+6. Dedup (**her zaman**, kurban bazlı) → mükerrer alıcılar `skipped`; Bizim SMS API'ye gönderilmez
+7. Değişken çözümleme (Vercel) → boş değişken `warnings` listesinde döner (gönderimi bloklamaz)
+8. Kredi kontrolü: hard block — `allowCreditCheckFailure: true` ile bypass
+9. `sms_sends` + `sms_send_recipients` DB'ye yazılır (`personalized_message` = çözülmüş metin)
+10. Bizim SMS API çağrısı (1-N veya N-N XML) — yalnızca `toSend` listesi
+11. Gönderim sonuçları DB'de güncellenir
+
+### Toplu gönderim — hissedar sorgusu ve PostgREST URL limiti (2026-05-26)
+
+**Belirti:** ~900–1000 alıcıda SMS gitti ama alıcılar `Sayın ad_soyad, … Kurban Sıra Numaranız: kurban_no` gibi **çözülmemiş** metin gördü. ~20–35 alıcıda sorun yoktu. Bizim SMS operatör tarafında `{` / `}` karakterlerini paranteze çevirdiği için `{{ad_soyad}}` → `ad_soyad` olarak görünür.
+
+**Kök neden:** `POST /api/admin/sms/send` hissedar verisini tek sorguda alıyordu:
+
+```ts
+.in("shareholder_id", shareholderIds)  // tüm UUID'ler tek istekte
+```
+
+PostgREST (Supabase REST) `.in()` filtresini **HTTP GET query string**'ine yazar. ~1000 UUID ≈ 35–40 KB URL; nginx/proxy URL limiti (tipik 8–16 KB) aşılınca sorgu başarısız olur veya hiç ulaşmaz. Kod `error` kontrol etmediği için `shRows ?? []` → boş `varMap` → `resolveVariables` tüm `{{…}}` ifadelerini olduğu gibi bırakır.
+
+**DB kanıtı:** Başarısız gönderimlerde `sms_send_recipients.personalized_message` satırlarında hâlâ `{{ad_soyad}}` vardı (`shareholder_id` dolu olsa bile). Küçük gönderimlerde aynı şablon doğru çözülmüştü.
+
+**Düzeltme:** `app/api/admin/sms/send/route.ts` — hissedar ID'leri **100'lük chunk**'lara bölünür; chunk'lar `Promise.all` ile paralel sorgulanır, sonuçlar birleştirilir. Chunk hatası `console.error` ile loglanır.
+
+```ts
+const SHAREHOLDER_CHUNK_SIZE = 100;
+// .in("shareholder_id", shareholderIds.slice(i * 100, (i + 1) * 100))
+```
+
+**İlgili kod:** `lib/sms-template-variables.ts` (`buildSmsVariablesFromShareholderRow`), `lib/sms-client.ts` (`buildSmsXml` — tüm mesajlar aynı kalırsa 1-N modu tek `<msg>` ile gider; değişken çözülmezse bu mod hatayı tüm numaralara yayar).
+
+**Doğrulama:** Toplu gönderim sonrası admin geçmişinde bir alıcının `personalized_message` alanında gerçek ad/kurban no görünmeli; `warnings` içinde `{{ad_soyad}} değişkeni N alıcıda boş` yüksek sayıda olmamalı.
+
+**Not:** Bu limit Supabase/Vercel planından bağımsızdır; PostgREST GET URL boyutu sınırıdır. Chunk boyutu (100) güvenli marj için seçildi; gerekirse 50'ye düşürülebilir.
 
 **Test SMS:** `target_params.is_test: true` işaretlenerek gönderilir. İstatistiklerde `excludeTest=true` ile hariç tutulabilir.
 
@@ -219,11 +259,13 @@ Tüm manuel ve otomatik SMS şablonlarında kullanılabilecek değişkenler:
 
 | Değişken | Açıklama |
 |---|---|
-| `{{kesilen_kurban_no}}` | Şu an tamamlanan/kesilen kurbanlığın no'su (tetikleyici) |
+| `{{kesilen_kurban_no}}` | Kesim tetikleyicisi: tamamlanan/kesilen kurban no |
+| `{{parcalanan_kurban_no}}` | Parçalama tetikleyicisi: parçalandı işaretlenen kurban no |
+| `{{teslim_edilen_kurban_no}}` | Teslimat tetikleyicisi: teslim edildi işaretlenen kurban no |
 | `{{kesim_ortalama_suresi}}` | Kesim aşaması ham ortalama süresi (dakika, stage_metrics'ten) |
 | `{{kesim_tahmini_sure}}` | Kesim bekleme tahmini: `ortalama × event target_offset` |
 | `{{parcalama_ortalama_suresi}}` | Parçalama ham ortalama süresi (dakika) |
-| `{{parcalama_tahmini_sure}}` | Parçalama bekleme tahmini (dakika) |
+| `{{parcalama_tahmini_sure}}` | Parçalama→teslim bekleme tahmini (dakika); geçmiş `delivery_time(N) − butcher_time(N−1)` ortalaması |
 | `{{teslimat_ortalama_suresi}}` | Teslimat ham ortalama süresi (dakika) |
 | `{{teslimat_tahmini_sure}}` | Teslimat bekleme tahmini: `ortalama × event target_offset` |
 
@@ -300,21 +342,26 @@ Yalnızca (1) yapılıp (2) yapılmazsa menü açılabilir ancak gönderim **SMS
 | `slaughter_approaching` | Kesim aşaması tamamlandı | `sacrifice_no + target_offset` (varsayılan 20), yalnız **Kesimhane** |
 | `slaughter_imminent` | Kesim aşaması tamamlandı | `sacrifice_no + target_offset` (varsayılan 3), yalnız **Kesimhane** |
 | `slaughter_completed` | Kesim aşaması tamamlandı | Aynı kurban, tümü |
-| `butcher_started` | Parçalama tamamlandı | Aynı kurban, **Kesimhane** |
-| `delivery_completed` | Teslimat tamamlandı | Aynı kurban, tümü |
-| `delivery_pickup_approaching` | Teslimat tamamlandı | `sacrifice_no + target_offset` (varsayılan 2), **Kesimhane** |
-| `external_delivery_notice` | Teslimat tamamlandı | Aynı kurban, Kesimhane **dışı** |
+| `butcher_started` | Parçalama tamamlandı | `sacrifice_no + target_offset` (event ayarı veya `sms_delivery_pickup_offset`, varsayılan 2), **Kesimhane** (kapsam ayarlanabilir) |
+| `delivery_completed` | Teslimat tamamlandı | Aynı kurban; kesimhane / dış teslim ayrı metin |
 | `payment_amount_updated` | Ödenen tutar güncellendi (admin) | İlgili hissedar; `sms_enabled` |
+
+**Offset event’ler** (`SMS_OFFSET_AUTO_EVENT_KEYS`): `slaughter_approaching`, `slaughter_imminent`, `butcher_started`. Hedef kurban yoksa veya ilgili aşama zaten tamamlandıysa SMS atlanır (kesim event’lerinde `slaughter_time`, `butcher_started`’da `delivery_time`).
+
+**Legacy / kodda tetiklenmeyen anahtarlar:** `delivery_pickup_approaching`, `external_delivery_notice` — teslim çağrısı offset’i `butcher_started` üzerinden uygulanır.
+
+Per-event ayarlar: şablon listesinde **Gönderim Kuralı** diyalogu; API `GET/PUT /api/admin/sms/auto-event-settings`.
 
 `event_key` NULL → yalnızca manuel gönderimde kullanılan şablon. Tenant başına aktif şablonda aynı `event_key` en fazla bir kez (`uq_sms_templates_tenant_event_key`).
 
-### Idempotency ve kayıt (kurban günü otomatik)
+### Kayıt (kurban günü otomatik)
 
-1. Gönderim öncesi `sms_notification_events` ile hissedar + `event_key` kontrolü.
-2. `sms_sends` + `idempotency_key`: `auto:{event_key}:{tenant_id}:{sacrifice_id}:{year}`.
-3. Sonrasında `sms_notification_events` upsert (tekrar gönderim engeli).
+Kesim / parçalama / teslimat switch'i **her açıldığında** ilgili SMS gönderilir; geçmiş gönderim kaydına bakılarak engellenmez.
 
-Ödeme SMS (`payment_amount_updated`) her güncellemede yeni `idempotency_key` (UUID) ile gönderilir; `sms_notification_events` kullanılmaz.
+1. `sms_sends` — her tetiklemede yeni `idempotency_key` (UUID).
+2. `sms_notification_events` upsert — yalnızca son `send_id` referansı (audit); tekrar gönderimi engellemez.
+
+Ödeme SMS (`payment_amount_updated`) de her güncellemede yeni UUID ile gönderilir; `sms_notification_events` kullanılmaz.
 
 DDL: [db/tables/sms_notification_events/table.sql](./db/tables/sms_notification_events/table.sql).
 

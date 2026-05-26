@@ -51,6 +51,8 @@ export interface TenantBranding {
   incident_banner_enabled: boolean;
   /** Banner metni. tenant_settings.incident_banner_message */
   incident_banner_message: string;
+  /** Parçalama aşaması bu tenant için zorunlu mu? tenant_settings.butcher_stage_required */
+  butcher_stage_required: boolean;
 }
 
 /** Kod yedeği — DB’de ilgili sütunlar NULL ise kullanılır. */
@@ -130,4 +132,5 @@ export const DEFAULT_BRANDING: TenantBranding = {
   agreement_notice_after_term_body: null,
   incident_banner_enabled: false,
   incident_banner_message: "",
+  butcher_stage_required: true,
 };

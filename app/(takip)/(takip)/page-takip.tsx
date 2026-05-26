@@ -3,9 +3,12 @@
 import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
 import QueueCard from "@/app/(takip)/components/queue-card";
 import { ShareholderLookup } from "@/components/common/shareholder-lookup";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
 import { motion } from "framer-motion";
 
-const page = () => {
+const PageTakip = () => {
+  const branding = useTenantBranding();
+  const showButcherCard = branding.butcher_stage_required !== false;
   // Container animation variants
   const container = {
     hidden: { opacity: 0 },
@@ -79,19 +82,25 @@ const page = () => {
 
       {/* Queue Cards */}
       <motion.div
-        className="grid grid-cols-2 gap-8 md:flex md:flex-row md:gap-16"
+        className={
+          showButcherCard
+            ? "grid grid-cols-2 gap-8 md:flex md:flex-row md:gap-16"
+            : "flex flex-row flex-wrap justify-center gap-8 md:gap-16"
+        }
         variants={container}
       >
         <motion.div variants={cardItem}>
           <QueueCard title="Kesim Sırası" stage="slaughter_stage" showAverageDuration={false} />
         </motion.div>
 
-        <motion.div variants={cardItem}>
-          <QueueCard title="Parçalama Sırası" stage="butcher_stage" showAverageDuration={false} />
-        </motion.div>
+        {showButcherCard && (
+          <motion.div variants={cardItem}>
+            <QueueCard title="Parçalama Sırası" stage="butcher_stage" showAverageDuration={false} />
+          </motion.div>
+        )}
 
         <motion.div
-          className="col-span-2 flex justify-center"
+          className={showButcherCard ? "col-span-2 flex justify-center" : undefined}
           variants={cardItem}
         >
           <QueueCard title="Teslimat Sırası" stage="delivery_stage" showAverageDuration={false} />
@@ -117,4 +126,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default PageTakip;

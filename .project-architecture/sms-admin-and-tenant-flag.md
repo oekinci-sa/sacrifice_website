@@ -61,6 +61,13 @@ API: **`PATCH /api/admin/tenant-settings/[tenantId]`** — [route.ts](../app/api
 
 Tam form (offset’ler dahil): [tenant-settings-edit-dialog.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/tenant-settings-edit-dialog.tsx) — «Otomatik SMS Gönderimi» bölümü (`sms_auto_enabled`, `sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
 
+| Tenant alanı | Kullanım (2026-05) |
+|--------------|-------------------|
+| `sms_slaughter_approach_offset` | Legacy tenant alanı; kesim offset’leri öncelikle `sms_auto_event_settings` (şablon Gönderim Kuralı) |
+| `sms_delivery_pickup_offset` | **Teslim Almaya Çağrı** (`butcher_started`): parçalanan kurban no + offset → hedef kurban; event ayarı yoksa bu değer kullanılır |
+
+Per-event kurallar: `/kurban-admin/sms-islemleri/sablonlari` → şablon satırında **Gönderim Kuralı** → `GET/PUT /api/admin/sms/auto-event-settings`. Bkz. [changelog-2026-05-butcher-started-delivery-pickup-offset.md](changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md).
+
 Ortak toggle mantığı: [editable-tenant-cells.tsx](../app/(admin)/kurban-admin/tenant-ayarlari/components/editable-tenant-cells.tsx) — `SmsToggleCell` + `SmsEnabledToggleCell` / `SmsAutoEnabledToggleCell`.
 
 ---

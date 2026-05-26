@@ -153,8 +153,8 @@ Değişiklik kayıtlarının görüntülendiği sayfa.
 
 **SMS modülü (`sms_enabled`):** Tabloda **SMS** sütunu — `SmsEnabledToggleCell`. Sidebar **SMS İşlemleri** + Tüm Hissedarlar `sms_history` (PDF’in solunda varsayılan).
 
-**Otomatik SMS (`sms_auto_enabled`):** Tabloda **Oto. SMS** sütunu — `SmsAutoEnabledToggleCell`. Kesim/parçalama/teslimat takip ekranlarında aşama tamamlanınca `lib/sms-auto-sender` (ayrıca `sms_enabled` açık ve eşleşen aktif şablon gerekir). Offset’ler: düzenleme diyalogu (`sms_slaughter_approach_offset`, `sms_delivery_pickup_offset`).
+**Otomatik SMS (`sms_auto_enabled`):** Tabloda **Oto. SMS** sütunu — `SmsAutoEnabledToggleCell`. Kesim/parçalama/teslimat takip ekranlarında aşama tamamlanınca `lib/sms-auto-sender` (ayrıca `sms_enabled` açık ve eşleşen aktif şablon gerekir). Tenant offset’leri: düzenleme diyalogu (`sms_slaughter_approach_offset`, `sms_delivery_pickup_offset` — sonuncusu **Teslim Almaya Çağrı** `butcher_started` için varsayılan kurban no offset’i). Event bazlı override: SMS Şablonları → **Gönderim Kuralı** (`sms_auto_event_settings`).
 
 **Planlı teslim offset (`planned_delivery_offset_minutes`):** Düzenleme diyalogu — kesim saatinden kaç dakika sonra planlı teslim (`planned_delivery_time`). Varsayılan 90; değişince yalnızca aktif yılın tüm kurbanlıkları güncellenir. INSERT trigger ve `rpc_update_sacrifice_core` tenant offset’ini okur.
 
-Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md), [sms-operations.md](../sms-operations.md), [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](../changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md).
+Ayrıntı: [sms-admin-and-tenant-flag.md](../sms-admin-and-tenant-flag.md), [sms-operations.md](../sms-operations.md), [changelog-2026-05-butcher-started-delivery-pickup-offset.md](../changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md), [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](../changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md).

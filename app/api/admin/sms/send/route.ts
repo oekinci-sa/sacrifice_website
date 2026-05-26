@@ -179,23 +179,40 @@ export async function POST(request: NextRequest) {
       website_url: null,
     };
 
+    // PostgREST .in() filtresini GET URL'e gömer; 100'den fazla UUID URL limitini aşar.
+    const SHAREHOLDER_CHUNK_SIZE = 100;
+
     if (shareholderIds.length > 0) {
-      const [{ data: ts }, { data: shRows }] = await Promise.all([
+      const [{ data: ts }, chunkResults] = await Promise.all([
         supabaseAdmin
           .from("tenant_settings")
           .select("iban, deposit_amount, website_url")
           .eq("tenant_id", tenantId)
           .maybeSingle(),
-        supabaseAdmin
-          .from("shareholders")
-          .select(
-            `shareholder_id, shareholder_name, phone_number, paid_amount, total_amount, remaining_payment,
-             delivery_type, delivery_location, security_code,
-             sacrifice:sacrifice_animals(sacrifice_no, sacrifice_time, planned_delivery_time, ear_tag)`
+        Promise.all(
+          Array.from(
+            { length: Math.ceil(shareholderIds.length / SHAREHOLDER_CHUNK_SIZE) },
+            (_, i) =>
+              supabaseAdmin
+                .from("shareholders")
+                .select(
+                  `shareholder_id, shareholder_name, phone_number, paid_amount, total_amount, remaining_payment,
+                   delivery_type, delivery_location, security_code,
+                   sacrifice:sacrifice_animals(sacrifice_no, sacrifice_time, planned_delivery_time, ear_tag)`
+                )
+                .eq("tenant_id", tenantId)
+                .in(
+                  "shareholder_id",
+                  shareholderIds.slice(i * SHAREHOLDER_CHUNK_SIZE, (i + 1) * SHAREHOLDER_CHUNK_SIZE)
+                )
           )
-          .eq("tenant_id", tenantId)
-          .in("shareholder_id", shareholderIds),
+        ),
       ]);
+
+      const shRows = chunkResults.flatMap((r) => {
+        if (r.error) console.error("[sms/send] shareholder chunk error:", r.error);
+        return r.data ?? [];
+      });
 
       if (ts) {
         tenantBranding = {
@@ -209,7 +226,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      for (const row of shRows ?? []) {
+      for (const row of shRows) {
         const sacRel = row.sacrifice as
           | {
               sacrifice_no: number;

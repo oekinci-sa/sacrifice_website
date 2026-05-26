@@ -83,6 +83,7 @@ export function TenantSettingsEditDialog({
         full_payment_deadline_month: row.full_payment_deadline_month ?? 5,
         full_payment_deadline_day: row.full_payment_deadline_day ?? 20,
         sms_auto_enabled: row.sms_auto_enabled ? "true" : "false",
+        sms_payment_enabled: row.sms_payment_enabled !== false ? "true" : "false",
         sms_slaughter_approach_offset: row.sms_slaughter_approach_offset ?? 20,
         sms_delivery_pickup_offset: row.sms_delivery_pickup_offset ?? 2,
         planned_delivery_offset_minutes: row.planned_delivery_offset_minutes ?? 90,
@@ -182,6 +183,7 @@ export function TenantSettingsEditDialog({
         agreement_notice_after_term_title: strOrNull(form.agreement_notice_after_term_title),
         agreement_notice_after_term_body: strOrNull(form.agreement_notice_after_term_body),
         sms_auto_enabled: form.sms_auto_enabled === "true",
+        sms_payment_enabled: form.sms_payment_enabled === "true",
         sms_slaughter_approach_offset: Number(form.sms_slaughter_approach_offset) || 20,
         sms_delivery_pickup_offset: Number(form.sms_delivery_pickup_offset) || 2,
         planned_delivery_offset_minutes: Number(form.planned_delivery_offset_minutes) || 90,
@@ -596,7 +598,7 @@ export function TenantSettingsEditDialog({
               <div className="space-y-3 rounded-md border p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-sm font-medium">Otomatik SMS Gönderimi</Label>
+                    <Label className="text-sm font-medium">Takip Sırası SMS</Label>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Kesim/parçalama/teslimat switch&apos;leri kapatılınca SMS otomatik gönderilir.
                     </p>
@@ -604,6 +606,26 @@ export function TenantSettingsEditDialog({
                   <Select
                     value={String(form.sms_auto_enabled ?? "false")}
                     onValueChange={(v) => setForm((f) => ({ ...f, sms_auto_enabled: v }))}
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Açık</SelectItem>
+                      <SelectItem value="false">Kapalı</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Ödeme SMS&apos;i</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Ödenen tutar güncellendiğinde otomatik SMS gönderilir.
+                    </p>
+                  </div>
+                  <Select
+                    value={String(form.sms_payment_enabled ?? "true")}
+                    onValueChange={(v) => setForm((f) => ({ ...f, sms_payment_enabled: v }))}
                   >
                     <SelectTrigger className="w-28">
                       <SelectValue />

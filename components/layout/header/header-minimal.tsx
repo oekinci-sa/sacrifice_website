@@ -18,10 +18,12 @@ const HeaderMinimal = () => {
     <header className="container flex items-center justify-between h-20 md:my-6 sticky top-0 z-50 bg-background">
       <Logo className="w-[200px] md:w-[250px]" />
 
-      {/* Desktop Hemen Al Button */}
-      <Button className="bg-primary text-white hover:bg-primary/90 text-sm md:text-lg">
-        <Link href={mapsHref} target="_blank" className="flex items-center">
-          Kesim Yeri
+      <Button
+        asChild
+        className="h-10 md:h-12 px-3 md:px-4 text-base md:text-lg font-semibold bg-red-600 text-white hover:bg-red-700"
+      >
+        <Link href={mapsHref} target="_blank" rel="noopener noreferrer">
+          Kesim Yeri Konumu
         </Link>
       </Button>
 

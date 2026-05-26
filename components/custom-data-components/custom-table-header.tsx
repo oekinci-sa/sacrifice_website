@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { useCallback, useState } from "react"
 
 /** Sütun seçicide ve başlık sürüklemesinde — bu sütunlar yeniden sıralanmaz */
-const HEADER_REORDER_EXCLUDED_IDS = ["security_code", "actions"] as const
+const HEADER_REORDER_EXCLUDED_IDS = ["select", "security_code", "actions"] as const
 
 /** Hedef sütunun sol yarısı: öncesine; sağ yarısı: sonrasına yerleştir */
 function reorderWithInsertEdge(

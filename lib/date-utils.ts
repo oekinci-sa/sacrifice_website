@@ -38,6 +38,20 @@ export function formatDateWithSeconds(
 }
 
 /**
+ * Sadece saat (HH:mm), Türkiye saati
+ */
+export function formatTimeShort(date: Date | string | null | undefined): string {
+  if (date == null) return "-";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "-";
+  return d.toLocaleString("tr-TR", {
+    timeZone: APP_TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
  * Kısa tarih (gg.aa.yyyy)
  */
 export function formatDateShort(date: Date | string | null | undefined): string {

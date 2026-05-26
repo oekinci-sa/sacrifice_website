@@ -2,6 +2,16 @@
 
 import { DeliveryShareInfoForm } from "@/app/(takip)/components/delivery-share-info-form";
 import { SacrificeShareholdersCard } from "@/app/(takip)/components/sacrifice-shareholders-card";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,10 +19,11 @@ import {
   normalizeQueueDisplayNumber,
   QUEUE_NUMBER_MIN,
 } from "@/lib/queue-display-number";
+import { formatTimeShort } from "@/lib/date-utils";
 import { useStageMetricsStore } from "@/stores/global/useStageMetricsStore";
 import { StageType } from "@/types/stage-metrics";
 import { supabase } from "@/utils/supabaseClient";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, TriangleAlert } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface QueueCardWithButtonsProps {
@@ -36,6 +47,19 @@ interface SacrificeTimingData {
     delivery_time: string | null;
 }
 
+function getStageCompletedTime(data: SacrificeTimingData, stage: StageType): string | null {
+    switch (stage) {
+        case "slaughter_stage":
+            return data.slaughter_time;
+        case "butcher_stage":
+            return data.butcher_time;
+        case "delivery_stage":
+            return data.delivery_time;
+        default:
+            return null;
+    }
+}
+
 const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     title,
     stage,
@@ -44,12 +68,14 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     onLocalNumberChange,
 }) => {
     const [isCompleted, setIsCompleted] = useState(false);
+    const [stageCompletedTime, setStageCompletedTime] = useState<string | null>(null);
     const [localNumber, setLocalNumberInternal] = useState<number>(
         externalNumber ?? QUEUE_NUMBER_MIN
     );
     const [isSwitchDisabled, setIsSwitchDisabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [jumpInput, setJumpInput] = useState("");
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const { toast } = useToast();
     const syncedDbNumberRef = useRef<number>(QUEUE_NUMBER_MIN);
 
@@ -109,6 +135,9 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             }
 
             setIsCompleted(currentStageCompleted);
+            setStageCompletedTime(
+                currentStageCompleted ? getStageCompletedTime(data, stage) : null
+            );
             setIsSwitchDisabled(!canBeEnabled);
             return true;
         } catch (error) {
@@ -241,9 +270,20 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         }
     };
 
-    const handleSwitchChange = async (checked: boolean) => {
+    const handleSwitchChange = (checked: boolean) => {
         if (isSwitchDisabled || isLoading) return;
+        if (checked) {
+            void executeStageChange(true);
+            return;
+        }
+        setConfirmOpen(true);
+    };
 
+    const handleConfirmDialogOpenChange = (open: boolean) => {
+        setConfirmOpen(open);
+    };
+
+    const executeStageChange = async (checked: boolean) => {
         const previousState = isCompleted;
         setIsCompleted(checked);
         setIsLoading(true);
@@ -265,6 +305,8 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
+            await checkSwitchState(localNumber);
+
             const actionText = getActionText();
             toast({
                 title: "Başarılı",
@@ -282,6 +324,11 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleConfirmStageChange = () => {
+        setConfirmOpen(false);
+        void executeStageChange(false);
     };
 
     const getActionText = () => {
@@ -307,13 +354,27 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             };
         }
 
+        if (isCompleted) {
+            const timeLabel =
+                stageCompletedTime && formatTimeShort(stageCompletedTime) !== "-"
+                    ? `: ${formatTimeShort(stageCompletedTime)}`
+                    : "";
+            return {
+                main: `${action} yapıldı${timeLabel}`,
+                sub: null,
+            };
+        }
+
         return {
-            main: `${action} ${isCompleted ? 'yapıldı' : 'yapılmadı'}.`,
-            sub: null
+            main: `${action} yapılmadı.`,
+            sub: null,
         };
     };
 
     const displayText = getDisplayText();
+    const actionText = getActionText();
+    const confirmTitle = `${actionText} işareti kaldırılsın mı?`;
+    const confirmDescription = `${localNumber} numaralı kurbanlık için ${actionText.toLocaleLowerCase('tr-TR')} tamamlandı işareti geri alınacak. Yanlışlıkla basmadığınızdan emin olun.`;
 
     const handleJump = async () => {
         const n = parseInt(jumpInput, 10);
@@ -406,6 +467,37 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     )}
                 </div>
             </div>
+
+            <AlertDialog open={confirmOpen} onOpenChange={handleConfirmDialogOpenChange}>
+                <AlertDialogContent className="border-destructive/40 bg-red-50 sm:max-w-md [color-scheme:light]">
+                    <AlertDialogHeader>
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/15">
+                                <TriangleAlert className="h-5 w-5 text-destructive" />
+                            </div>
+                            <div className="space-y-2 text-left">
+                                <AlertDialogTitle className="text-destructive">
+                                    {confirmTitle}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm text-red-950/80">
+                                    {confirmDescription}
+                                </AlertDialogDescription>
+                            </div>
+                        </div>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="border-gray-300 bg-white text-gray-900 hover:bg-gray-50">
+                            İptal
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={handleConfirmStageChange}
+                        >
+                            Evet, onayla
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {stage === 'delivery_stage' && (
                 <DeliveryShareInfoForm sacrificeNo={localNumber} />

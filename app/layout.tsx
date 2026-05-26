@@ -53,26 +53,26 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       ...(metadataBase
         ? {
-            metadataBase,
-            openGraph: {
-              title: elyaTitle,
-              description: elyaDescription,
-              images: [
-                {
-                  url: ELYA_OG_IMAGE,
-                  width: 512,
-                  height: 512,
-                  alt: "Elya Hayvancılık",
-                },
-              ],
-            },
-            twitter: {
-              card: "summary",
-              title: elyaTitle,
-              description: elyaDescription,
-              images: [ELYA_OG_IMAGE],
-            },
-          }
+          metadataBase,
+          openGraph: {
+            title: elyaTitle,
+            description: elyaDescription,
+            images: [
+              {
+                url: ELYA_OG_IMAGE,
+                width: 512,
+                height: 512,
+                alt: "Elya Hayvancılık",
+              },
+            ],
+          },
+          twitter: {
+            card: "summary",
+            title: elyaTitle,
+            description: elyaDescription,
+            images: [ELYA_OG_IMAGE],
+          },
+        }
         : {}),
     };
   }

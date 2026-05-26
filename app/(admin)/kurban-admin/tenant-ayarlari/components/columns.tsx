@@ -12,6 +12,7 @@ import {
   EditableYearCell,
   SmsAutoEnabledToggleCell,
   SmsEnabledToggleCell,
+  SmsPaymentEnabledToggleCell,
 } from "./editable-tenant-cells";
 
 export type AgreementTerm = { title: string; description: string };
@@ -45,6 +46,7 @@ export type TenantSettingRow = {
   agreement_notice_after_term_body: string | null;
   sms_enabled: boolean | null;
   sms_auto_enabled: boolean | null;
+  sms_payment_enabled: boolean | null;
   sms_slaughter_approach_offset: number | null;
   sms_delivery_pickup_offset: number | null;
   planned_delivery_offset_minutes: number | null;
@@ -194,8 +196,14 @@ export function createColumns(
     {
       accessorKey: "sms_auto_enabled",
       id: "sms_auto_enabled",
-      header: "Oto. SMS",
+      header: "Takip Sırası SMS",
       cell: ({ row }) => <SmsAutoEnabledToggleCell row={row} onSuccess={onRefresh} />,
+    },
+    {
+      accessorKey: "sms_payment_enabled",
+      id: "sms_payment_enabled",
+      header: "Ödeme SMS'i",
+      cell: ({ row }) => <SmsPaymentEnabledToggleCell row={row} onSuccess={onRefresh} />,
     },
     {
       accessorKey: "agreement_terms",

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin
       .from("sms_sends")
       .select(
-        "id, title, message_content, target_type, status, total_recipients, sent_count, failed_count, excluded_count, estimated_total_sms_parts, deduplicate_phone_numbers, sacrifice_year, created_by, created_at, completed_at, template_id"
+        "id, title, message_content, target_type, status, target_params, total_recipients, sent_count, failed_count, excluded_count, estimated_total_sms_parts, deduplicate_phone_numbers, sacrifice_year, created_by, created_at, completed_at, template_id"
       )
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })

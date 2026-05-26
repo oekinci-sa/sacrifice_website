@@ -111,9 +111,9 @@ Detay: [changelogs/changelog-2026-05-admin-table-ux-sms-picker.md](./changelogs/
 3. `idempotency_key` **zorunlu** — çift gönderim 409 döner
 4. Kredi kontrolü: hard block — `allowCreditCheckFailure: true` ile bypass
 5. Telefon normalize → geçersizler `skipped`
-6. Dedup (varsayılan: açık) → `skipped`
+6. Dedup (**her zaman**, kurban bazlı) → mükerrer alıcılar `skipped`; Bizim SMS API’ye gönderilmez
 7. Değişken çözümleme → boş değişken `warnings` listesinde döner (gönderimi bloklamaz)
-8. Bizim SMS API çağrısı (1-N veya N-N XML)
+8. Bizim SMS API çağrısı (1-N veya N-N XML) — yalnızca `toSend` listesi
 9. Sonuçlar DB'ye yazılır
 
 **Test SMS:** `target_params.is_test: true` işaretlenerek gönderilir. İstatistiklerde `excludeTest=true` ile hariç tutulabilir.
@@ -127,6 +127,18 @@ Başarılı veya bazı hata cevaplarında (örn. bazı gönderilerde gönderilec
 - `excluded_duplicate_phone`: dedup nedeniyle (aynı kurbanlıkta aynı normalize cep ile ikinci kayıt; **isim dikkate alınmaz**)
 
 İstemci (SMS Gönder sayfası) toast’ta bu alanları Türkçe açıklar.
+
+## Telefon tekilleştirme (dedup)
+
+**Kural:** Aynı kurbanlıkta aynı normalize cep → tek SMS. Farklı kurbanlıklarda aynı cep → **ayrı** SMS (global birleştirme kaldırıldı).
+
+**Anahtar:** `lib/sms-dedup.ts` → `smsRecipientDedupKey(normalizedPhone, sacrificeId, shareholderId)`.
+
+**Sunucu:** `POST /api/admin/sms/send` dedup’u **her zaman** uygular (`deduplicate_phone_numbers` istemci değeri yok sayılır). Mükerrer alıcılar `skipped` olur; `sendSms()` yalnızca tekilleştirilmiş `toSend` listesiyle çağrılır — gereksiz Bizim SMS API isteği yapılmaz.
+
+**Operatör politikası:** Bizim SMS, yaklaşık 2 dakika içinde aynı numaraya aynı içerikli tekrar gönderimi reddeder. Uygulama dedup’u API çağrısından **önce** yaparak kredi ve istek sayısını korur.
+
+**UI (SMS Gönder):** «Aynı kurbanlıkta birleştir» yalnızca **super_admin**’de görünür; switch her zaman açık ve **kapatılamaz** (bilgilendirme). Admin/editor bu bloğu görmez; dedup arka planda çalışır.
 
 ## Tenant ayarları ve organizasyon yüzeyi
 

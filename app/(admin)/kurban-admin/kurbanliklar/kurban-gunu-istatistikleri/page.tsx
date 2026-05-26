@@ -45,7 +45,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminSearchToolbarTableSkeleton } from "../../components/admin-page-skeletons";
 import {
-  animalColumns,
+  createKurbanGunuAnimalColumns,
   kurbanGunuAnimalColumnHeaderLabels,
   type KurbanGunuAnimalRow,
 } from "./components/animal-columns";
@@ -148,6 +148,17 @@ export default function KurbanGunuIstatistikleriPage() {
     fetchDowntimes();
     fetchBanner();
   }, [fetchStageMetrics, fetchAnimals, fetchDowntimes, fetchBanner]);
+
+  const handleAnimalUpdate = useCallback((updated: KurbanGunuAnimalRow) => {
+    setAnimals((prev) =>
+      prev.map((a) => (a.sacrifice_id === updated.sacrifice_id ? { ...a, ...updated } : a))
+    );
+  }, []);
+
+  const animalTableColumns = useMemo(
+    () => createKurbanGunuAnimalColumns(handleAnimalUpdate),
+    [handleAnimalUpdate]
+  );
 
   const filteredAnimals = useMemo(() => {
     const q = normalizeTurkishSearchText(animalSearch.trim());
@@ -324,7 +335,7 @@ export default function KurbanGunuIstatistikleriPage() {
           <AdminSearchToolbarTableSkeleton rows={10} />
         ) : (
           <CustomDataTable
-            columns={animalColumns}
+            columns={animalTableColumns}
             data={filteredAnimals}
             getRowId={(row) => row.sacrifice_id}
             storageKey="kurban-gunu-animals"

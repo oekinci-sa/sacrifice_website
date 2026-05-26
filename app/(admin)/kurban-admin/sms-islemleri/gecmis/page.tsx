@@ -27,31 +27,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
+import { CustomDataTable } from "@/components/custom-data-components/custom-data-table";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
 import { formatPhoneForDisplayWithSpacing } from "@/utils/formatters";
-import { ExternalLink, RefreshCw, RotateCcw, Trash2, XCircle } from "lucide-react";
+import { RefreshCw, RotateCcw } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SmsSendStatusBadge } from "../components/sms-send-status-badge";
-import { SmsTruncatedHoverTip } from "@/components/sms-truncated-hover-tooltip";
-
-interface SmsSend {
-  id: string;
-  title: string;
-  message_content: string | null;
-  status: string;
-  total_recipients: number;
-  sent_count: number;
-  failed_count: number;
-  excluded_count: number;
-  sacrifice_year: number;
-  created_by: string;
-  /** users.name veya bilinen e-posta eşlemesi; yoksa e-posta ile aynı */
-  created_by_display?: string | null;
-  created_at: string;
-  completed_at: string | null;
-  target_params: Record<string, unknown> | null;
-}
+import {
+  createSmsGecmisColumns,
+  smsGecmisColumnHeaderLabels,
+  SmsSendRow,
+  SmsGecmisMeta,
+} from "./components/sms-gecmis-columns";
+import { SmsGecmisToolbar } from "./components/sms-gecmis-toolbar";
 
 interface SmsRecipient {
   id: string;
@@ -73,25 +62,27 @@ interface SmsStats {
 export default function SmsGecmisPage() {
   const { data: session } = useSession();
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
-  const [sends, setSends] = useState<SmsSend[]>([]);
+  const [sends, setSends] = useState<SmsSendRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<SmsStats | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<{
-    send: SmsSend;
+    send: SmsSendRow;
     recipients: SmsRecipient[];
   } | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<
     | null
     | { type: "cancel"; id: string; title: string }
     | { type: "delete"; id: string; title: string }
     | { type: "retry"; id: string }
+    | { type: "bulk-delete"; ids: string[] }
   >(null);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const loadSends = useCallback(async () => {
     setLoading(true);
     try {
@@ -142,6 +133,7 @@ export default function SmsGecmisPage() {
       const data = await res.json();
       if (res.ok) {
         toast({ title: "Gönderim iptal edildi" });
+        window.dispatchEvent(new Event("sms-sends-updated"));
         loadSends();
       } else {
         toast({ title: "İptal başarısız", description: data.error, variant: "destructive" });
@@ -160,22 +152,67 @@ export default function SmsGecmisPage() {
       const data = await res.json();
       if (res.ok) {
         toast({ title: "Gönderim kaydı silindi" });
+        window.dispatchEvent(new Event("sms-sends-updated"));
         loadSends();
         if (detailId === id) {
           setDetailId(null);
           setDetailData(null);
         }
       } else {
+        toast({ title: "Silinemedi", description: data.error, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Bağlantı hatası", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const executeBulkDelete = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const res = await fetch(`/api/admin/sms/sends/${id}`, { method: "DELETE" });
+          const data = await res.json().catch(() => ({}));
+          return { id, ok: res.ok, error: data.error as string | undefined };
+        })
+      );
+      const failed = results.filter((r) => !r.ok);
+      const succeeded = results.filter((r) => r.ok);
+
+      if (succeeded.length > 0) {
+        window.dispatchEvent(new Event("sms-sends-updated"));
+        loadSends();
+        if (detailId && succeeded.some((r) => r.id === detailId)) {
+          setDetailId(null);
+          setDetailData(null);
+        }
+      }
+
+      if (failed.length === 0) {
+        toast({
+          title: "Seçilen gönderimler silindi",
+          description: `${succeeded.length.toLocaleString("tr-TR")} kayıt kaldırıldı.`,
+        });
+      } else if (succeeded.length === 0) {
         toast({
           title: "Silinemedi",
-          description: data.error,
+          description: failed[0]?.error ?? "Seçilen kayıtlar silinemedi.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Kısmen silindi",
+          description: `${succeeded.length.toLocaleString("tr-TR")} kayıt silindi, ${failed.length.toLocaleString("tr-TR")} kayıt silinemedi.`,
           variant: "destructive",
         });
       }
     } catch {
       toast({ title: "Bağlantı hatası", variant: "destructive" });
     } finally {
-      setDeletingId(null);
+      setBulkDeleting(false);
     }
   };
 
@@ -187,8 +224,9 @@ export default function SmsGecmisPage() {
       if (res.ok) {
         toast({
           title: "Tekrar gönderim başlatıldı",
-          description: `Yeni gönderim ID: ${data.newSendId} — ${data.sent} gönderildi`,
+          description: `${data.sent} alıcıya tekrar gönderildi`,
         });
+        window.dispatchEvent(new Event("sms-sends-updated"));
         loadSends();
         if (detailId === id) {
           setDetailId(null);
@@ -212,6 +250,9 @@ export default function SmsGecmisPage() {
 
   const requestRetry = (id: string) => setConfirmDialog({ type: "retry", id });
 
+  const requestBulkDelete = (ids: string[]) =>
+    setConfirmDialog({ type: "bulk-delete", ids });
+
   const runPendingConfirm = () => {
     setConfirmDialog((d) => {
       if (!d) return null;
@@ -219,21 +260,58 @@ export default function SmsGecmisPage() {
       queueMicrotask(() => {
         if (payload.type === "cancel") void executeCancelSend(payload.id);
         else if (payload.type === "delete") void executeDeletePermanent(payload.id);
-        else void executeRetrySend(payload.id);
+        else if (payload.type === "retry") void executeRetrySend(payload.id);
+        else if (payload.type === "bulk-delete") void executeBulkDelete(payload.ids);
       });
       return null;
     });
   };
 
-  const formatDate = (d: string | null) =>
-    d ? new Date(d).toLocaleString("tr-TR") : "—";
+  const failedCount = (s: SmsSendRow) => s.failed_count ?? 0;
 
-  const failedCount = (s: SmsSend) => s.failed_count ?? 0;
-
-  const senderLabel = (s: SmsSend) =>
+  const senderLabel = (s: SmsSendRow) =>
     (s.created_by_display && s.created_by_display.trim()) || s.created_by || "—";
 
+  const filteredSends = useMemo(() => {
+    if (!searchTerm.trim()) return sends;
+    const q = searchTerm.trim().toLowerCase();
+    return sends.filter((s) => (s.message_content ?? "").toLowerCase().includes(q));
+  }, [sends, searchTerm]);
+
   const canDeleteHistoryRow = session?.user?.role === "super_admin";
+
+  const columns = useMemo(
+    () => createSmsGecmisColumns({ enableSelection: canDeleteHistoryRow }),
+    [canDeleteHistoryRow]
+  );
+
+  // Başarılı retry ile yeniden denenen orijinal send ID'leri
+  const retriedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of sends) {
+      const tp = s.target_params;
+      if (tp?.retry_of && typeof tp.retry_of === "string" && s.status === "completed") {
+        set.add(tp.retry_of);
+      }
+    }
+    return set;
+  }, [sends]);
+
+  const tableMeta: SmsGecmisMeta = useMemo(
+    () => ({
+      onDetail: openDetail,
+      onRetry: requestRetry,
+      onCancel: requestCancel,
+      onDelete: requestDelete,
+      retryingId,
+      cancellingId,
+      deletingId,
+      canDelete: canDeleteHistoryRow,
+      retriedIds,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [retryingId, cancellingId, deletingId, canDeleteHistoryRow, retriedIds]
+  );
 
   return (
     <div className="space-y-6">
@@ -252,8 +330,8 @@ export default function SmsGecmisPage() {
 
       {/* İstatistik özeti */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Card className="shadow-none rounded-md">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <Card className="shadow-none rounded-md sm:col-span-1">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground font-medium">
                 Operatöre iletilen (toplam gönderilen)
@@ -265,7 +343,7 @@ export default function SmsGecmisPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-none rounded-md">
+          <Card className="shadow-none rounded-md sm:col-span-1">
             <CardHeader className="pb-1 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground font-medium">
                 Gönderilemeyen alıcı
@@ -280,109 +358,39 @@ export default function SmsGecmisPage() {
         </div>
       )}
 
-      {/* Tablo */}
-      {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Yükleniyor...</div>
-      ) : sends.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Henüz gönderim yapılmadı.
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="whitespace-nowrap min-w-[140px]">Tarih</TableHead>
-                <TableHead className="min-w-[120px] max-w-[260px]">Mesaj</TableHead>
-                <TableHead className="min-w-[96px]">Gönderen</TableHead>
-                <TableHead className="text-right">Toplam</TableHead>
-                <TableHead className="text-right">Gönderilen</TableHead>
-                <TableHead className="text-right">Başarısız</TableHead>
-                <TableHead className="text-right">Dışlanan</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sends.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap align-top">
-                    {formatDate(s.created_at)}
-                  </TableCell>
-                  <TableCell className="max-w-[260px] align-top">
-                    <SmsTruncatedHoverTip fullText={(s.message_content ?? "").trim()}>
-                      <span className="line-clamp-2 text-xs text-muted-foreground whitespace-pre-wrap">
-                        {(s.message_content ?? "").trim() || "—"}
-                      </span>
-                    </SmsTruncatedHoverTip>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] text-sm truncate">
-                    <SmsTruncatedHoverTip fullText={senderLabel(s)}>
-                      <span className="truncate block">{senderLabel(s)}</span>
-                    </SmsTruncatedHoverTip>
-                  </TableCell>
-                  <TableCell className="text-right">{s.total_recipients}</TableCell>
-                  <TableCell className="text-right text-green-600">{s.sent_count}</TableCell>
-                  <TableCell className="text-right text-destructive">
-                    {s.failed_count}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {s.excluded_count}
-                  </TableCell>
-                  <TableCell className="align-top">
-                    <div className="flex items-center gap-1">
-                      {s.status === "draft" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          disabled={cancellingId === s.id}
-                          onClick={() => requestCancel(s.id, s.title)}
-                          title="Taslağı iptal et"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {canDeleteHistoryRow && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          disabled={deletingId === s.id}
-                          onClick={() => requestDelete(s.id, s.title)}
-                          title="Kaydı kalıcı sil (süper yönetici)"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {(s.status === "completed" || s.status === "partial_fail" || s.status === "failed") &&
-                        failedCount(s) > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-primary"
-                            disabled={retryingId === s.id}
-                            onClick={() => requestRetry(s.id)}
-                            title="Başarısızları Tekrar Dene"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => openDetail(s.id)}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <CustomDataTable
+        columns={columns}
+        data={filteredSends}
+        getRowId={(row) => row.id}
+        storageKey="sms-gecmis"
+        enableRowSelection={canDeleteHistoryRow}
+        tableSize="medium"
+        pageSizeOptions={[20, 50, 100]}
+        defaultPageSize={20}
+        columnHeaderLabels={smsGecmisColumnHeaderLabels}
+        meta={tableMeta}
+        filters={({ table, columnFilters, onColumnFiltersChange, onColumnOrderChange, columnOrder, resetColumnLayout }) => (
+          <SmsGecmisToolbar
+            table={table}
+            columnFilters={columnFilters}
+            columnVisibility={table.getState().columnVisibility}
+            onColumnFiltersChange={onColumnFiltersChange}
+            onColumnOrderChange={onColumnOrderChange}
+            onResetColumnLayout={resetColumnLayout}
+            columnOrder={columnOrder}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            canDelete={canDeleteHistoryRow}
+            onBulkDelete={requestBulkDelete}
+            bulkDeleting={bulkDeleting}
+            selectedRowCount={table.getFilteredSelectedRowModel().rows.length}
+          />
+        )}
+        initialState={{
+          columnVisibility: { excluded_count: false },
+          sorting: [{ id: "created_at", desc: true }],
+        }}
+      />
 
       {/* Detay Dialog */}
       <Dialog open={!!detailId} onOpenChange={(v) => !v && (setDetailId(null), setDetailData(null))}>
@@ -410,6 +418,14 @@ export default function SmsGecmisPage() {
                   {detailData.send.sent_count} / {detailData.send.failed_count} /{" "}
                   {detailData.send.excluded_count}
                 </div>
+                {detailData.send.target_params?.retry_of != null && (
+                  <div>
+                    <span className="text-muted-foreground">Tekrar deneme: </span>
+                    <span className="text-blue-600 text-xs font-medium">
+                      Orijinal kayda bağlı tekrar deneme
+                    </span>
+                  </div>
+                )}
               </div>
 
               {(detailData.send.message_content ?? "").trim().length > 0 && (
@@ -427,7 +443,8 @@ export default function SmsGecmisPage() {
               {(detailData.send.status === "completed" ||
                 detailData.send.status === "partial_fail" ||
                 detailData.send.status === "failed") &&
-                failedCount(detailData.send) > 0 && (
+                failedCount(detailData.send) > 0 &&
+                !retriedIds.has(detailData.send.id) && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -485,6 +502,7 @@ export default function SmsGecmisPage() {
               {confirmDialog?.type === "cancel" && "Taslağı iptal et"}
               {confirmDialog?.type === "delete" && "Gönderimi kalıcı olarak sil"}
               {confirmDialog?.type === "retry" && "Başarısız alıcıları tekrar dene"}
+              {confirmDialog?.type === "bulk-delete" && "Seçilen gönderimleri sil"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDialog?.type === "cancel" && (
@@ -505,6 +523,8 @@ export default function SmsGecmisPage() {
               )}
               {confirmDialog?.type === "retry" &&
                 "Başarısız alıcılar yeni bir gönderim kaydıyla tekrar denenecek."}
+              {confirmDialog?.type === "bulk-delete" &&
+                `${confirmDialog.ids.length.toLocaleString("tr-TR")} gönderim kaydı kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

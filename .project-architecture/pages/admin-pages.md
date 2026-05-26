@@ -97,6 +97,8 @@ Görünür yalnızca `tenant_settings.sms_enabled === true` ise (sidebar). Tekil
 
 **Mesaj editörü etiketleri:** `{{teslimat_saati}}` dahil; `{{iban}}` ve `{{sorgulama_linki}}` butonları kaldırıldı. Alıcı listesinde kaydedilmemiş değişiklik varsa «Listeyi kaydet» kırmızı vurgu.
 
+**Tekrarlayan numara (dedup):** Kurban bazlı birleştirme sunucuda her zaman açık. «Aynı kurbanlıkta birleştir» UI bloğu yalnızca super_admin’de (kapatılamaz). «Farklı kurbanlıklarda birleştir» kaldırıldı. Bkz. [sms-operations.md](../sms-operations.md).
+
 ### /kurban-admin/sms-islemleri/sablonlari
 
 SMS şablon CRUD: başlık, kategori (genel/odeme/kesim/teslimat/bilgilendirme), mesaj içeriği, değişken butonları, aktif/pasif toggle, **otomatik gönderim** (`event_key` — manuel, kurban günü event’leri veya `payment_amount_updated`). Soft delete.

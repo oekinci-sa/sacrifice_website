@@ -113,6 +113,15 @@ Kurbanlıklar tablosunda «Hisse Bilgisi» sütunu: `kg · TL` formatı; NaN dü
 
 `GET /api/admin/sms/shareholder-search` sıralama düzeltmesi: `order("sacrifice_no", { referencedTable: "sacrifice_animals", ascending: true })`.
 
+### SMS Gönder — tekrarlayan numara (dedup) UI
+
+| Değişiklik | Açıklama |
+|------------|----------|
+| «Farklı kurbanlıklarda da birleştir» | Kaldırıldı (`deduplicate_across_sacrifices` API alanı yok) |
+| «Aynı kurbanlıkta birleştir» | Yalnızca super_admin görür; switch açık ve kapatılamaz |
+| Sunucu | Dedup her zaman kurban bazlı; mükerrerler API’ye gitmeden `skipped` |
+| Metin | Bizim SMS ~2 dk tekrar engeli + gereksiz API çağrısı önleme açıklaması |
+
 ---
 
 ## 4. Planlı teslim saati offset (tenant ayarı)
@@ -133,6 +142,25 @@ Kurbanlıklar tablosunda «Hisse Bilgisi» sütunu: `kg · TL` formatı; NaN dü
 | Admin UI | Organizasyon Ayarları düzenleme diyalogu — «Planlı teslim saati — kesim saatinden kaç dakika sonra?» |
 
 Yalnızca ilgili tenant + **aktif kurban yılı** güncellenir; geçmiş yıllar ve diğer tenant’lar etkilenmez.
+
+**Organizasyon Ayarları UI:** Tabloda **Teslim offset (dk)** sütunu; tam diyalogda Kapora bölümünün altında vurgulu alan.
+
+### Tek kurbanlık istisna — manuel planlı teslim saati
+
+`planned_delivery_time` **düzenlenebilir** bir kolondur (GENERATED değil).
+
+| Yüzey | Davranış |
+|-------|----------|
+| **Tüm Kurbanlıklar** | «Teslim Saati» sütunu — `EditablePlannedDeliveryTimeCell`; `PUT /api/update-sacrifice` |
+| **Hissedarlar** | «Teslim Saati» salt okunur (join) |
+| **SMS `{{teslimat_saati}}`** | DB’deki `planned_delivery_time` |
+
+**Manuel değer ne zaman kaybolur?**
+
+- `sacrifice_time` güncellenir ve patch’te ayrı `planned_delivery_time` yoksa → tenant offset ile yeniden hesaplanır (`rpc_update_sacrifice_core`).
+- Organizasyon Ayarları’nda **teslim offset** değişirse → aktif yılın tüm kurbanlıkları `bulk_update_planned_delivery_time` ile güncellenir.
+
+Tek kurban istisnası için genelde sorun yok; kalıcı istisna isteniyorsa kesim saati / toplu offset değişikliğinden kaçınılmalı.
 
 ### DB dosyaları (repo)
 

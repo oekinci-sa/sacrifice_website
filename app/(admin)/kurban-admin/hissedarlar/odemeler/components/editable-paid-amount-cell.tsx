@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import { shareholderSchema } from "@/types";
 import { formatCurrencyForInput, parseCurrencyFromInput } from "@/utils/formatters";
@@ -72,10 +73,43 @@ export function EditablePaidAmountCell({
           throw new Error(err.error || "Güncelleme başarısız");
         }
 
-        const { data } = await res.json();
-        onUpdate({ ...row.original, ...data, sacrifice: row.original.sacrifice });
+        const responseJson = await res.json();
+        onUpdate({ ...row.original, ...responseJson.data, sacrifice: row.original.sacrifice });
         window.dispatchEvent(new Event("shareholders-updated"));
-        toast({ title: "Ödeme güncellendi" });
+
+        const smsResult = responseJson.sms as { sent: boolean; sendId: string | null } | null;
+        if (smsResult && !smsResult.sent && smsResult.sendId) {
+          const sendId = smsResult.sendId;
+          toast({
+            title: "Ödeme güncellendi",
+            description: "SMS gönderilemedi.",
+            action: (
+              <ToastAction
+                altText="Tekrar dene"
+                onClick={async () => {
+                  try {
+                    const retryRes = await fetch(`/api/admin/sms/sends/${sendId}/retry`, {
+                      method: "POST",
+                    });
+                    if (retryRes.ok) {
+                      toast({ title: "SMS başarıyla gönderildi" });
+                      window.dispatchEvent(new Event("sms-sends-updated"));
+                    } else {
+                      toast({ title: "SMS tekrar gönderilemedi", variant: "destructive" });
+                    }
+                  } catch {
+                    toast({ title: "SMS tekrar gönderilemedi", variant: "destructive" });
+                  }
+                }}
+              >
+                Tekrar Dene
+              </ToastAction>
+            ),
+          });
+        } else {
+          toast({ title: "Ödeme güncellendi" });
+        }
+
         setIsEditing(false);
         setOverpayConfirmOpen(false);
         setPendingPaidValue(null);

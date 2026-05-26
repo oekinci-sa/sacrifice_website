@@ -60,9 +60,7 @@ export function SmsAutoEventHelpTooltip({ eventKey }: SmsAutoEventHelpTooltipPro
                   ? 20
                   : eventKey === "slaughter_imminent"
                     ? 3
-                    : eventKey === "delivery_pickup_approaching"
-                      ? 2
-                      : 0
+                    : 0
               )
             ) : (
               "Bu mesaj, yukarıdaki işlem yapıldığında ilgili hissedarlara otomatik olarak gider."

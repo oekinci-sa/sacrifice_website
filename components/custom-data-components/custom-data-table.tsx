@@ -8,6 +8,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  RowSelectionState,
   SortingState,
   Table as TableInstance,
   useReactTable,
@@ -31,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   defaultPageSize?: number
   initialState?: {
     columnVisibility?: VisibilityState
+    sorting?: SortingState
   }
   /** Sütun id → görünen başlık (özelleştirilmiş header bileşenlerinde sürükleme önizlemesi için) */
   columnHeaderLabels?: Record<string, string>
@@ -55,6 +57,8 @@ interface DataTableProps<TData, TValue> {
     initialCount?: number
     step?: number
   }
+  /** Satır seçimi (checkbox) — tanstack rowSelection */
+  enableRowSelection?: boolean
 }
 
 const STORAGE_PREFIX = "table-column-visibility-";
@@ -112,6 +116,7 @@ export function CustomDataTable<TData, TValue>({
   tableSize = "medium",
   renderExpandedRow,
   infiniteScroll,
+  enableRowSelection = false,
 }: DataTableProps<TData, TValue>) {
   const { data: session } = useSession();
   const userId = session?.user?.id as string | undefined;
@@ -138,7 +143,15 @@ export function CustomDataTable<TData, TValue>({
     setDataVersion(prev => prev + 1);
   }, [data]);
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  React.useEffect(() => {
+    if (enableRowSelection) {
+      setRowSelection({});
+    }
+  }, [dataVersion, enableRowSelection]);
+
+  const [sorting, setSorting] = React.useState<SortingState>(
+    () => initialState?.sorting ?? []
+  )
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
     const stored = fullStorageKey ? getStoredVisibility(fullStorageKey) : null;
@@ -149,6 +162,7 @@ export function CustomDataTable<TData, TValue>({
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() => {
     return (fullStorageKey && getStoredColumnOrder(fullStorageKey)) || [];
   });
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   // Re-read from localStorage when userId becomes available (session load)
   React.useEffect(() => {
@@ -248,22 +262,23 @@ export function CustomDataTable<TData, TValue>({
    * Eski `[...missing, ...stored]` birleşimi tüm eksik kolonları listenin başına taşıdığı için SMS gibi sonra eklenen sütunlar yanlışlıkla en başa gidiyordu.
    */
   const effectiveColumnOrder = React.useMemo(() => {
+    const pinnedStart = defaultColumnIds.includes("select") ? ["select"] : [];
     const actions = defaultColumnIds.includes("actions") ? ["actions"] : [];
-    const rest = defaultColumnIds.filter((id) => id !== "actions");
-    const defaultOrder = [...rest, ...actions];
+    const rest = defaultColumnIds.filter((id) => id !== "actions" && id !== "select");
+    const defaultOrder = [...pinnedStart, ...rest, ...actions];
 
     if (columnOrder.length === 0) {
       return defaultOrder;
     }
 
     const storedMiddle = columnOrder.filter(
-      (id) => defaultColumnIds.includes(id) && id !== "actions"
+      (id) => defaultColumnIds.includes(id) && id !== "actions" && id !== "select"
     );
     const defaultIdx = Object.fromEntries(rest.map((id, i) => [id, i]));
 
     const missing = rest.filter((id) => !storedMiddle.includes(id));
     if (missing.length === 0) {
-      return [...storedMiddle, ...actions];
+      return [...pinnedStart, ...storedMiddle, ...actions];
     }
 
     const merged = [...storedMiddle];
@@ -273,7 +288,7 @@ export function CustomDataTable<TData, TValue>({
       const pos = insertAt === -1 ? merged.length : insertAt;
       merged.splice(pos, 0, m);
     }
-    return [...merged, ...actions];
+    return [...pinnedStart, ...merged, ...actions];
   }, [columnOrder, defaultColumnIds]);
 
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
@@ -290,6 +305,12 @@ export function CustomDataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     onColumnVisibilityChange: handleColumnVisibilityChange,
+    ...(enableRowSelection
+      ? {
+          enableRowSelection: true,
+          onRowSelectionChange: setRowSelection,
+        }
+      : {}),
     ...(!infiniteEnabled ? {
       getPaginationRowModel: getPaginationRowModel(),
       onPaginationChange: setPagination,
@@ -299,6 +320,7 @@ export function CustomDataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
       columnOrder: effectiveColumnOrder,
+      ...(enableRowSelection ? { rowSelection } : {}),
       ...(!infiniteEnabled ? {
         pagination: {
           pageIndex,

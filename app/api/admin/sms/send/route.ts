@@ -7,7 +7,7 @@
  * 3. idempotency_key kontrolü (zorunlu — çift gönderim engeli)
  * 4. Hissedarlar için şablon değişkenleri sunucuda doldurulur
  * 5. Telefon normalize → geçersizler skipped
- * 6. Dedup (açıksa): aynı kurbanlıkta aynı numara → tek SMS; farklı kurbanlıkta aynı numara → ayrı SMS
+ * 6. Dedup (her zaman): aynı kurbanlıkta aynı numara → tek SMS; farklı kurbanlıkta aynı numara → ayrı SMS
  * 7. Değişken çözümleme → hâlâ boş kalanlar için uyarı (gönderimi bloklamaz)
  * 8. Kredi kontrolü (tahmini SMS boyu ile)
  * 9. DB'ye sms_sends + sms_send_recipients yaz
@@ -68,9 +68,8 @@ const sendSchema = z.object({
     ])
     .default("custom"),
   target_params: z.record(z.string(), z.unknown()).optional().nullable(),
+  /** Geriye dönük uyumluluk; sunucu her zaman kurban bazlı dedup uygular. */
   deduplicate_phone_numbers: z.boolean().default(true),
-  /** Tüm kurbanlıklar genelinde aynı numaraya tek SMS. Yalnızca deduplicate_phone_numbers=true iken etkili. */
-  deduplicate_across_sacrifices: z.boolean().default(false),
   idempotency_key: z.string().uuid("idempotency_key geçerli bir UUID olmalı"),
   allowCreditCheckFailure: z.boolean().default(false),
 });
@@ -127,11 +126,11 @@ export async function POST(request: NextRequest) {
       template_id,
       target_type,
       target_params,
-      deduplicate_phone_numbers,
-      deduplicate_across_sacrifices,
       idempotency_key,
       allowCreditCheckFailure,
     } = parsed.data;
+
+    const deduplicate_phone_numbers = true;
 
     if (recipients.length > 1 && !BULK_ROLES.has(role)) {
       return NextResponse.json(
@@ -275,13 +274,10 @@ export async function POST(request: NextRequest) {
       const sacrificeIdForDedup = r.sacrifice_id ?? null;
 
       if (deduplicate_phone_numbers) {
-        const dedupMode =
-          deduplicate_across_sacrifices ? "global" : "per_sacrifice";
         const dk = smsRecipientDedupKey(
           normalized,
           sacrificeIdForDedup,
-          r.shareholder_id ?? null,
-          dedupMode
+          r.shareholder_id ?? null
         );
         if (seenDedup.has(dk)) {
           excludedCount++;

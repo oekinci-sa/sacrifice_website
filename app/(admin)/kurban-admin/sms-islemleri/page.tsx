@@ -15,6 +15,7 @@ import { toast } from "@/components/ui/use-toast";
 import { smsRecipientDedupKey } from "@/lib/sms-dedup";
 import { isValidPhone, normalizePhone } from "@/lib/sms-phone-normalizer";
 import { useAdminYearStore } from "@/stores/only-admin-pages/useAdminYearStore";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { SmsAdminSection } from "./components/sms-admin-section";
@@ -128,6 +129,8 @@ function recipientFromPick(p: ShareholderPickValue): Recipient {
 }
 
 export default function SmsGonderPage() {
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === "super_admin";
   const selectedYear = useAdminYearStore((s) => s.selectedYear);
   const [targetType, setTargetType] = useState<TargetType>("sacrifice_all");
   const [kurbanScope, setKurbanScope] = useState<KurbanScope>("picked");
@@ -139,8 +142,6 @@ export default function SmsGonderPage() {
   const [singleName, setSingleName] = useState("");
   const [pickedShareholders, setPickedShareholders] = useState<ShareholderPickValue[]>([]);
   const [messageContent, setMessageContent] = useState("");
-  const [deduplicatePhones, setDeduplicatePhones] = useState(true);
-  const [deduplicateAcrossSacrifices, setDeduplicateAcrossSacrifices] = useState(false);
   /** Toplu hedeflerde teslimat tercihine göre alıcı süzme */
   const [deliveryRecipientScope, setDeliveryRecipientScope] =
     useState<DeliveryRecipientScope>("all");
@@ -342,17 +343,13 @@ export default function SmsGonderPage() {
 
     const seen = new Set<string>();
     let duplicates = 0;
-    const dedupMode =
-      deduplicatePhones && deduplicateAcrossSacrifices ? "global" : "per_sacrifice";
     const deduped = validPhones.filter((r) => {
       const norm = normalizePhone(r.phone_number);
       if (!norm) return true;
-      if (!deduplicatePhones) return true;
       const dk = smsRecipientDedupKey(
         norm,
         r.sacrifice_id,
-        r.shareholder_id ?? null,
-        dedupMode
+        r.shareholder_id ?? null
       );
       if (seen.has(dk)) {
         duplicates++;
@@ -362,7 +359,7 @@ export default function SmsGonderPage() {
       return true;
     });
 
-    const willSend = deduplicatePhones ? deduped.length : validPhones.length;
+    const willSend = deduped.length;
 
     return {
       totalRecipients: allRecipients.length,
@@ -372,7 +369,7 @@ export default function SmsGonderPage() {
       willSend,
       emptyVariableWarnings: [],
       messageContent,
-      deduplicateEnabled: deduplicatePhones,
+      deduplicateEnabled: true,
     };
   };
 
@@ -483,8 +480,7 @@ export default function SmsGonderPage() {
           sacrifice_year: selectedYear,
           target_type: mapTargetTypeForApi(targetType),
           target_params: Object.keys(target_params).length ? target_params : null,
-          deduplicate_phone_numbers: deduplicatePhones,
-          deduplicate_across_sacrifices: deduplicateAcrossSacrifices,
+          deduplicate_phone_numbers: true,
           idempotency_key: uuidv4(),
         }),
       });
@@ -734,43 +730,27 @@ export default function SmsGonderPage() {
                   </Select>
                 </div>
               )}
-              <div className="rounded-md border bg-muted/30 p-3 space-y-3">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tekrarlayan numara</p>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dedup-toggle" className="text-sm">
-                      Aynı kurbanlıkta birleştir
-                    </Label>
-                    <p className="text-xs text-muted-foreground leading-snug">
-                      Bir kurbanlıkta aynı cep numarasına tek SMS gider.
-                    </p>
+              {isSuperAdmin && (
+                <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Tekrarlayan numara
+                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="dedup-toggle" className="text-sm">
+                        Aynı kurbanlıkta birleştir
+                      </Label>
+                      <p className="text-xs text-muted-foreground leading-snug">
+                        Bir kurbanlıkta aynı cep numarasına tek SMS gider. Bizim SMS operatörü
+                        yaklaşık 2 dakika içinde aynı numaraya aynı içerikli tekrar gönderimi
+                        reddeder; bu birleştirme ise gönderimden önce mükerrer alıcıları eler ve
+                        gereksiz API çağrısı yapılmasını önler.
+                      </p>
+                    </div>
+                    <Switch id="dedup-toggle" checked disabled />
                   </div>
-                  <Switch
-                    id="dedup-toggle"
-                    checked={deduplicatePhones}
-                    onCheckedChange={(v) => {
-                      setDeduplicatePhones(v);
-                      if (!v) setDeduplicateAcrossSacrifices(false);
-                    }}
-                  />
                 </div>
-                <div className={`flex items-center justify-between gap-2 ${!deduplicatePhones ? "opacity-40 pointer-events-none" : ""}`}>
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dedup-global-toggle" className="text-sm">
-                      Farklı kurbanlıklarda da birleştir
-                    </Label>
-                    <p className="text-xs text-muted-foreground leading-snug">
-                      Tüm kurbanlıklar genelinde aynı cep numarasına tek SMS gider.
-                    </p>
-                  </div>
-                  <Switch
-                    id="dedup-global-toggle"
-                    checked={deduplicateAcrossSacrifices}
-                    onCheckedChange={setDeduplicateAcrossSacrifices}
-                    disabled={!deduplicatePhones}
-                  />
-                </div>
-              </div>
+              )}
             </>
           )}
         </SmsAdminSection>

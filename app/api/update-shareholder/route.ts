@@ -221,20 +221,25 @@ export async function POST(request: NextRequest) {
       ),
     };
 
+    let smsResult: { sent: boolean; sendId: string | null } | null = null;
     if (updateData.paid_amount !== undefined) {
-      sendPaymentAmountUpdatedSms({
-        tenantId,
-        shareholderId: updateData.shareholder_id,
-        actorEmail: actor,
-      }).catch((err) => {
+      try {
+        smsResult = await sendPaymentAmountUpdatedSms({
+          tenantId,
+          shareholderId: updateData.shareholder_id,
+          actorEmail: actor,
+        });
+      } catch (err) {
         console.warn("[payment-sms] gönderilemedi:", err);
-      });
+        smsResult = { sent: false, sendId: null };
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: "Hissedar güncellendi",
       data: dataWithDisplay,
+      sms: smsResult,
     });
 
   } catch {

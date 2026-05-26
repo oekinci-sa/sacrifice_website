@@ -70,16 +70,37 @@ function fmtMinutes(minutes: number | undefined): string {
  * tahmini süreler (ortalama × offset) buildSmsVariablesFromShareholderRow içinde hesaplanır.
  */
 export interface AutoSmsContext {
-  /** Şu an kesilen/işlenen kurbanlığın sacrifice_no'su (hedef değil, tetikleyici). */
+  /**
+   * Az önce kesilmiş kurbanlığın sacrifice_no'su (kesim aşaması tetikleyicisi).
+   * Yalnızca kesim SMS'lerinde doldurulur — {{kesilen_kurban_no}}
+   */
   triggered_sacrifice_no?: number;
+  /**
+   * Az önce parçalanmış kurbanlığın sacrifice_no'su (parçalama aşaması tetikleyicisi).
+   * {{parcalanan_kurban_no}}
+   */
+  parcalanan_sacrifice_no?: number;
+  /**
+   * Az önce teslim edilmiş kurbanlığın sacrifice_no'su (teslimat aşaması tetikleyicisi).
+   * {{teslim_edilen_kurban_no}}
+   */
+  teslim_edilen_sacrifice_no?: number;
   /** Kesim aşaması ham ortalama süresi (dakika, stage_metrics'ten). */
   avg_slaughter_minutes?: number;
-  /** Parçalama aşaması ham ortalama süresi (dakika). */
+  /** Parçalama aşaması ham ortalama süresi (dakika, stage_metrics'ten). */
   avg_butcher_minutes?: number;
   /** Teslimat aşaması ham ortalama süresi (dakika). */
   avg_delivery_minutes?: number;
+  /**
+   * Gerçekleşmiş parçalama→teslimat ortalama bekleme süresi (dakika).
+   * delivery_time(N) − butcher_time(N−1) ortalaması; varsa parcalama_tahmini_bekleme_suresi
+   * için bu değer öncelikli kullanılır.
+   */
+  avg_parcalama_bekleme_minutes?: number;
   /** Kesim: kaç kurban öncesinde SMS gönderilsin (tenant.sms_slaughter_approach_offset). */
   slaughter_offset?: number;
+  /** Parçalama: kaç kurban öncesinde SMS gönderilsin. */
+  butcher_offset?: number;
   /** Teslimat: kaç kurban öncesinde SMS gönderilsin (tenant.sms_delivery_pickup_offset). */
   delivery_offset?: number;
 }
@@ -100,24 +121,40 @@ export function buildSmsVariablesFromShareholderRow(
   const lookupUrl = lookupBaseUrl.replace(/\/$/, "") + "/hissesorgula";
   const takipUrl = (tenant.website_url ?? lookupBaseUrl).replace(/\/$/, "") + "/takip";
 
+  // Aşama tetikleyici kurban numaraları
   const kesilenNo =
     context?.triggered_sacrifice_no != null
       ? String(context.triggered_sacrifice_no)
       : "";
+  const parcalananNo =
+    context?.parcalanan_sacrifice_no != null
+      ? String(context.parcalanan_sacrifice_no)
+      : "";
+  const teslimEdilenNo =
+    context?.teslim_edilen_sacrifice_no != null
+      ? String(context.teslim_edilen_sacrifice_no)
+      : "";
 
-  // Aşama bazlı tahmini süreler: ham ortalama × tenant offset
+  // Ham ortalama süreler
   const kesimOrt = fmtMinutes(context?.avg_slaughter_minutes);
+  const parcalamaOrt = fmtMinutes(context?.avg_butcher_minutes);
+  const teslimatOrt = fmtMinutes(context?.avg_delivery_minutes);
+
+  // Tahmini bekleme süreleri: ham ortalama × offset
   const kesimTahmini = fmtMinutes(
     context?.avg_slaughter_minutes != null && context.slaughter_offset != null
       ? context.avg_slaughter_minutes * context.slaughter_offset
       : undefined
   );
-
-  const parcalamaOrt = fmtMinutes(context?.avg_butcher_minutes);
-  // Parçalama için tenant offset şu an yok; ham ortalama = tahmini süre
-  const parcalamaTahmini = parcalamaOrt;
-
-  const teslimatOrt = fmtMinutes(context?.avg_delivery_minutes);
+  // Öncelik: gerçekleşmiş delivery_time(N) − butcher_time(N−1) ortalaması;
+  // yoksa stage_metrics ortalaması × offset fallback
+  const parcalamaTahminiRaw =
+    context?.avg_parcalama_bekleme_minutes != null
+      ? context.avg_parcalama_bekleme_minutes
+      : context?.avg_butcher_minutes != null && context.butcher_offset != null
+        ? context.avg_butcher_minutes * context.butcher_offset
+        : undefined;
+  const parcalamaTahmini = fmtMinutes(parcalamaTahminiRaw);
   const teslimatTahmini = fmtMinutes(
     context?.avg_delivery_minutes != null && context.delivery_offset != null
       ? context.avg_delivery_minutes * context.delivery_offset
@@ -152,13 +189,19 @@ export function buildSmsVariablesFromShareholderRow(
     // Diğer
     guvenlik_kodu: (row.security_code ?? "").trim(),
     iban: (tenant.iban ?? "").trim(),
-    // Otomatik SMS — tetikleyici kurban
+    // Otomatik SMS — aşama tetikleyici kurban numaraları
     kesilen_kurban_no: kesilenNo,
-    // Otomatik SMS — aşama süreleri (ham ortalama, dakika)
+    parcalanan_kurban_no: parcalananNo,
+    teslim_edilen_kurban_no: teslimEdilenNo,
+    // Otomatik SMS — aşama süreleri (ham ortalama, dakika / kurban başına)
     kesim_ortalama_suresi: kesimOrt,
     parcalama_ortalama_suresi: parcalamaOrt,
     teslimat_ortalama_suresi: teslimatOrt,
-    // Otomatik SMS — tahmini bekleme (ortalama × tenant offset, dakika)
+    // Otomatik SMS — tahmini bekleme (ortalama × offset, dakika)
+    kesim_tahmini_bekleme_suresi: kesimTahmini,
+    parcalama_tahmini_bekleme_suresi: parcalamaTahmini,
+    teslimat_tahmini_bekleme_suresi: teslimatTahmini,
+    // Geriye dönük uyum alias'ları (eski şablon değişken adları)
     kesim_tahmini_sure: kesimTahmini,
     parcalama_tahmini_sure: parcalamaTahmini,
     teslimat_tahmini_sure: teslimatTahmini,

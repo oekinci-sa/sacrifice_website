@@ -5,7 +5,6 @@ export const SMS_AUTO_EVENT_KEYS = [
   "slaughter_completed",
   "butcher_started",
   "delivery_completed",
-  "delivery_pickup_approaching",
   "payment_amount_updated",
 ] as const;
 
@@ -15,9 +14,8 @@ export const SMS_AUTO_EVENT_LABELS: Record<SmsAutoEventKey, string> = {
   slaughter_approaching: "Kesim Yaklaşıyor",
   slaughter_imminent: "Kesilmek Üzere",
   slaughter_completed: "Kesim Tamamlandı",
-  butcher_started: "Parçalama Başladı",
+  butcher_started: "Teslim Almaya Çağrı",
   delivery_completed: "Teslim Edildi",
-  delivery_pickup_approaching: "Teslim Almaya Çağrı",
   payment_amount_updated: "Ödeme Tutarı Güncellendi",
 };
 
@@ -33,14 +31,12 @@ export const SMS_STAGE_AUTO_EVENT_KEYS = [
   "slaughter_completed",
   "butcher_started",
   "delivery_completed",
-  "delivery_pickup_approaching",
 ] as const satisfies readonly SmsAutoEventKey[];
 
 /** Hedef kurban + aralık ile giden SMS'ler; atlama kuralları her zaman uygulanır. */
 export const SMS_OFFSET_AUTO_EVENT_KEYS = [
   "slaughter_approaching",
   "slaughter_imminent",
-  "delivery_pickup_approaching",
 ] as const satisfies readonly SmsAutoEventKey[];
 
 export function isSmsOffsetAutoEventKey(key: string): boolean {
@@ -64,7 +60,6 @@ export const SMS_AUTO_EVENT_UI_ORDER = [
   "slaughter_completed",
   "butcher_started",
   "delivery_completed",
-  "delivery_pickup_approaching",
 ] as const satisfies readonly SmsAutoEventKey[];
 
 function autoEventSortIndex(eventKey: string | null | undefined): number {
@@ -93,26 +88,26 @@ export const SMS_AUTO_EVENT_WHEN_INFO: Record<SmsAutoEventKey, SmsAutoEventWhenI
       "Kesim sırası ekranında bir kurbanın kesimi tamamlandı olarak işaretlendiğinde otomatik gider.",
     who: "Kesimhaneden teslim alacak hissedarlar; mesaj, işaretlenen kurban numarasının ilerisindeki (ayarladığınız kadar sonraki) kurbanlığa gider.",
     example: (n) =>
-      `Örnek: 2 numara kesildi, aralık ${n} → 2 + ${n} = ${2 + n} numaralı kurbanın hissedarlarına “sıranız yaklaşıyor” benzeri mesaj gider.`,
+      `Örnek: 2 numara kesildi, aralık ${n} → 2 + ${n} = ${2 + n} numaralı kurbanın hissedarlarına "sıranız yaklaşıyor" benzeri mesaj gider.`,
   },
   slaughter_imminent: {
     when:
       "Kesim sırası ekranında bir kurbanın kesimi tamamlandı olarak işaretlendiğinde otomatik gider.",
     who: "Kesimhaneden teslim alacak hissedarlar; mesaj, sıraya çok yaklaşan kurbanlığa gider. Bu mesaj genelde daha kısa bir aralıkla kullanılır.",
     example: (n) =>
-      `Örnek: 2 numara kesildi, aralık ${n} → ${2 + n} numaralı kurbanın hissedarlarına “kurbanlığınız kesilmek üzere” mesajı gider.`,
+      `Örnek: 2 numara kesildi, aralık ${n} → ${2 + n} numaralı kurbanın hissedarlarına "kurbanlığınız kesilmek üzere" mesajı gider.`,
   },
   slaughter_completed: {
     when: "Kesim sırası ekranında o kurban kesildi olarak işaretlendiğinde.",
-    who: "Aynı kurban numarasının hissedarları (kimlere gideceğini ayarlardan seçebilirsiniz).",
+    who: "Kesimi tamamlanan kurban numarasının hissedarları (teslimat tipine göre ayarlardan daraltılabilir).",
     example: () =>
       "Örnek: 12 numara kesildi olarak işaretlenirse, 12 numaralı kurbanın hissedarlarına kesim tamamlandı mesajı gider.",
   },
   butcher_started: {
     when: "Parçalama sırası ekranında o kurban parçalandı olarak işaretlendiğinde.",
-    who: "Aynı kurban numarasının hissedarları; çoğunlukla kesimhaneden alacak olanlar.",
+    who: "Aynı kurban numarasının hissedarları; çoğunlukla kesimhaneden alacak olanlar. {{parcalama_tahmini_bekleme_suresi}} değişkeni geçmiş verilere dayalı ortalama bekleme süresidir.",
     example: () =>
-      "Örnek: 12 numara parçalama aşamasına alındıysa, 12 numaralı kurbanın hissedarlarına parçalama başladı mesajı gider.",
+      "Örnek: 12 numara parçalandı olarak işaretlenirse, 12 numaralı kurbanın hissedarlarına 'teslim almaya gelin' mesajı gider.",
   },
   delivery_completed: {
     when: "Teslimat sırası ekranında o kurban teslim edildi olarak işaretlendiğinde.",
@@ -120,18 +115,11 @@ export const SMS_AUTO_EVENT_WHEN_INFO: Record<SmsAutoEventKey, SmsAutoEventWhenI
     example: () =>
       "Örnek: 18 numara teslim edildi olarak işaretlenirse, 18 numaralı kurbanın kesimhaneden alacaklarına ve dış teslimat alacaklarına ayrı SMS gider.",
   },
-  delivery_pickup_approaching: {
-    when:
-      "Teslimat sırası ekranında bir kurban teslim edildi olarak işaretlendiğinde (kesim değil, teslimat sırası).",
-    who: "Kesimhaneden teslim alacak hissedarlar; mesaj, teslim edilen numaranın ilerisindeki kurbanlığa gider.",
-    example: (n) =>
-      `Örnek: 18 numara teslim edildi, aralık ${n} → ${18 + n} numaralı kurbanın hissedarlarına “teslim için gelin” mesajı gider.`,
-  },
   payment_amount_updated: {
     when: "Ödemeler veya hissedar kaydında ödenen tutar değiştirildiğinde.",
     who: "Sadece o satırdaki hissedarın kayıtlı cep telefonuna.",
     example: () =>
-      "Örnek: Ayşe Yılmaz’ın ödenen tutarı değiştirildiğinde, mesaj yalnızca Ayşe Yılmaz’ın kayıtlı cep telefonuna gider.",
+      "Örnek: Ayşe Yılmaz'ın ödenen tutarı değiştirildiğinde, mesaj yalnızca Ayşe Yılmaz'ın kayıtlı cep telefonuna gider.",
   },
 };
 

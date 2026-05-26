@@ -30,6 +30,8 @@ CREATE TABLE tenant_settings (
   sms_enabled     BOOLEAN NOT NULL DEFAULT FALSE,
   -- Otomatik SMS gönderimi aktif mi? Varsayılan: FALSE.
   sms_auto_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Ödeme tutarı güncellendiğinde SMS gönderimi aktif mi? Varsayılan: TRUE.
+  sms_payment_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   -- Kesim yaklaşıyor SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 20.
   sms_slaughter_approach_offset SMALLINT NOT NULL DEFAULT 20,
   -- Teslim almaya çağrı SMS'i kaç kurban öncesinde gönderilsin? Varsayılan: 2.

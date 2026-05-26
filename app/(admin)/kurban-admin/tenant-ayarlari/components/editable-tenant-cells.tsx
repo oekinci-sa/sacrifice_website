@@ -483,7 +483,7 @@ export function SmsEnabledToggleCell({
   );
 }
 
-/** Otomatik SMS toggle hücresi — kurban günü otomatik gönderim. */
+/** Takip sırası otomatik SMS toggle hücresi — kurban günü aşama SMS'leri. */
 export function SmsAutoEnabledToggleCell({
   row,
   onSuccess,
@@ -496,9 +496,30 @@ export function SmsAutoEnabledToggleCell({
       tenantId={row.original.tenant_id}
       field="sms_auto_enabled"
       current={Boolean(row.original.sms_auto_enabled)}
-      labelOn="Otomatik SMS aktif edildi"
-      labelOff="Otomatik SMS devre dışı bırakıldı"
-      ariaLabel="Otomatik SMS"
+      labelOn="Takip sırası SMS aktif edildi"
+      labelOff="Takip sırası SMS devre dışı bırakıldı"
+      ariaLabel="Takip sırası SMS"
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+/** Ödeme tutarı SMS toggle hücresi — ödenen tutar güncellenince. */
+export function SmsPaymentEnabledToggleCell({
+  row,
+  onSuccess,
+}: {
+  row: Row<TenantSettingRow>;
+  onSuccess: () => void;
+}) {
+  return (
+    <SmsToggleCell
+      tenantId={row.original.tenant_id}
+      field="sms_payment_enabled"
+      current={Boolean(row.original.sms_payment_enabled ?? true)}
+      labelOn="Ödeme SMS'i aktif edildi"
+      labelOff="Ödeme SMS'i devre dışı bırakıldı"
+      ariaLabel="Ödeme SMS'i"
       onSuccess={onSuccess}
     />
   );

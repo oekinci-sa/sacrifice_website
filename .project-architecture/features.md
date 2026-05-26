@@ -111,7 +111,8 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 
 - **Alan:** `tenant_settings.planned_delivery_offset_minutes` (varsayılan 90; üst/alt CHECK yok).
 - **Kullanım:** Yeni kurban INSERT trigger’ı; `rpc_update_sacrifice_core` kesim saati güncellemesi; SMS `{{teslimat_saati}}`.
-- **Toplu güncelleme:** Organizasyon Ayarları’nda offset değişince `bulk_update_planned_delivery_time` — yalnızca tenant + **aktif kurban yılı**.
+- **Toplu güncelleme:** Organizasyon Ayarları’nda offset değişince `bulk_update_planned_delivery_time` — yalnızca tenant + **aktif kurban yılı**. Tabloda **Teslim offset (dk)** sütunu.
+- **Tek kurban istisnası:** Tüm Kurbanlıklar «Teslim Saati» inline düzenlenebilir; kesim saati veya toplu offset güncellemesi manuel değeri ezebilir.
 - **UI:** Organizasyon Ayarları düzenleme diyalogu (super_admin).
 - **Detay:** aynı changelog.
 

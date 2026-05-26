@@ -31,24 +31,23 @@ import { useEffect, useMemo, useState } from "react";
 const LOCKED_SCOPE: Record<string, string> = {
   slaughter_approaching: "slaughterhouse_only",
   slaughter_imminent: "slaughterhouse_only",
-  delivery_pickup_approaching: "slaughterhouse_only",
 };
 
 /** event_key → izin verilen scope seçenekleri. */
 const ALLOWED_SCOPES: Record<string, { value: string; label: string }[]> = {
   slaughter_completed: [
-    { value: "all", label: "Tüm hissedarlar" },
-    { value: "slaughterhouse_only", label: "Sadece Kesimhane teslim" },
-    { value: "external_only", label: "Sadece Kesimhane dışı" },
+    { value: "all", label: "İlgili kurbanın tüm hissedarları" },
+    { value: "slaughterhouse_only", label: "İlgili kurban — sadece Kesimhane teslim" },
+    { value: "external_only", label: "İlgili kurban — sadece Kesimhane dışı" },
   ],
   butcher_started: [
-    { value: "slaughterhouse_only", label: "Sadece Kesimhane teslim" },
-    { value: "all", label: "Tüm hissedarlar" },
+    { value: "slaughterhouse_only", label: "İlgili kurban — sadece Kesimhane teslim" },
+    { value: "all", label: "İlgili kurbanın tüm hissedarları" },
   ],
 };
 
 const SCOPE_DISPLAY_LABELS: Record<string, string> = {
-  all: "Tüm hissedarlar",
+  all: "İlgili kurbanın tüm hissedarları",
   slaughterhouse_only: "Sadece Kesimhane teslim",
   external_only: "Sadece Kesimhane dışı",
 };
@@ -90,8 +89,12 @@ export function SmsAutoEventSettingsDialog({
   const isDeliveryCompleted = eventKey === "delivery_completed";
   const isStageEvent = (SMS_STAGE_AUTO_EVENT_KEYS as readonly string[]).includes(eventKey);
   const isOffsetEvent = isSmsOffsetAutoEventKey(eventKey);
+  // butcher_started'da target_offset bekleme süresi katsayısıdır (multiplier), offset event değil
+  const isButcherMultiplierEvent = eventKey === "butcher_started";
   const hasConfigurableRules =
-    isStageEvent && !isDeliveryCompleted && (isOffsetEvent || Boolean(ALLOWED_SCOPES[eventKey]));
+    isStageEvent &&
+    !isDeliveryCompleted &&
+    (isOffsetEvent || isButcherMultiplierEvent || Boolean(ALLOWED_SCOPES[eventKey]));
 
   const offsetLiveExample = useMemo(() => {
     const n = form.target_offset ?? 2;
@@ -99,10 +102,7 @@ export function SmsAutoEventSettingsDialog({
       return `2 no kesildi + offset ${n} → ${2 + n} no hissedarlarına gider.`;
     }
     if (eventKey === "slaughter_imminent") {
-      return `2 no kesildi + offset ${n} → ${2 + n} no hissedarlarına “kesilmek üzere” mesajı gider.`;
-    }
-    if (eventKey === "delivery_pickup_approaching") {
-      return `18 no teslim edildi + offset ${n} → ${18 + n} no hissedarlarına gider.`;
+      return `2 no kesildi + offset ${n} → ${2 + n} no hissedarlarına "kesilmek üzere" mesajı gider.`;
     }
     return null;
   }, [eventKey, form.target_offset]);
@@ -181,10 +181,6 @@ export function SmsAutoEventSettingsDialog({
   const lockedScope = LOCKED_SCOPE[eventKey];
   const allowedScopes = ALLOWED_SCOPES[eventKey];
   const eventLabel = smsAutoEventLabel(eventKey) ?? eventKey;
-  const completedNote =
-    eventKey === "delivery_pickup_approaching"
-      ? SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedDelivery
-      : SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedSlaughter;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -209,12 +205,11 @@ export function SmsAutoEventSettingsDialog({
               </p>
             )}
 
+            {/* Kesim aşaması offset: N numara ötesine gönder */}
             {isOffsetEvent && (
               <div className="space-y-2">
                 <Label htmlFor="target_offset">
-                  {eventKey === "delivery_pickup_approaching"
-                    ? "Teslim edilen kurbanın kaç numara sonrasına SMS gitsin?"
-                    : "Kesilen kurbanın kaç numara sonrasına SMS gitsin?"}
+                  Kesilen kurbanın kaç numara sonrasına SMS gitsin?
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -245,6 +240,41 @@ export function SmsAutoEventSettingsDialog({
               </div>
             )}
 
+            {/* Parçalama / Teslim Almaya Çağrı: bekleme süresi katsayısı */}
+            {isButcherMultiplierEvent && (
+              <div className="space-y-2">
+                <Label htmlFor="butcher_multiplier">
+                  Bekleme süresi katsayısı
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="butcher_multiplier"
+                    type="number"
+                    min={1}
+                    max={10}
+                    step={0.5}
+                    className="w-24"
+                    value={form.target_offset ?? 1}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        target_offset: e.target.value
+                          ? Math.min(10, Math.max(0.1, parseFloat(e.target.value)))
+                          : 1,
+                      }))
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    (ortalama bekleme × katsayı = şablondaki tahmini süre)
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground rounded-md bg-muted/40 px-2 py-1.5">
+                  Varsayılan 1 = geçmiş verilere dayalı ortalama süreyi kullan.
+                  Biraz daha uzun tahmin için 1.2–1.5 gibi bir değer verin.
+                </p>
+              </div>
+            )}
+
             {hasConfigurableRules && allowedScopes && (
               <div className="space-y-2">
                 <Label>Alıcı kapsamı</Label>
@@ -263,6 +293,12 @@ export function SmsAutoEventSettingsDialog({
                     ))}
                   </SelectContent>
                 </Select>
+                {eventKey === "slaughter_completed" && (
+                  <p className="text-xs text-muted-foreground">
+                    Kesimi tamamlanan kurban numarasının hissedarlarına gider; organizasyondaki
+                    diğer kurbanların hissedarlarına gitmez.
+                  </p>
+                )}
               </div>
             )}
 
@@ -285,7 +321,7 @@ export function SmsAutoEventSettingsDialog({
                 <p className="text-xs font-medium text-foreground">Sabit kurallar</p>
                 <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
                   <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.missing}</li>
-                  <li>{completedNote}</li>
+                  <li>{SMS_OFFSET_EVENT_FIXED_RULES_NOTES.completedSlaughter}</li>
                 </ul>
               </div>
             )}

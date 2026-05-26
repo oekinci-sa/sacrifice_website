@@ -33,6 +33,7 @@ const UPDATABLE_FIELDS = [
   "agreement_notice_after_term_body",
   "sms_enabled",
   "sms_auto_enabled",
+  "sms_payment_enabled",
   "sms_slaughter_approach_offset",
   "sms_delivery_pickup_offset",
   "planned_delivery_offset_minutes",

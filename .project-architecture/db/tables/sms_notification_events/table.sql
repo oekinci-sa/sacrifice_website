@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS public.sms_notification_events (
   -- slaughter_approaching | slaughter_completed | butcher_started |
   -- delivery_pickup_approaching | external_delivery_notice
   event_key TEXT NOT NULL,
-  -- İlgili sms_sends kaydına referans (NULL = gönderim atlandı)
-  send_id UUID REFERENCES public.sms_sends(id),
+  -- İlgili sms_sends kaydına referans (NULL = gönderim atlandı veya kayıt silindi)
+  send_id UUID REFERENCES public.sms_sends(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (tenant_id, sacrifice_year, shareholder_id, event_key)
 );

@@ -25,16 +25,18 @@ const VARIABLES: { label: string; value: string; group?: string }[] = [
   { label: "Teslimat Tercihi", value: "{{teslimat_tercihi}}" },
   { label: "Teslimat Adresi", value: "{{teslimat_adresi}}" },
   { label: "Teslimat Saati", value: "{{teslimat_saati}}" },
-  // Otomatik SMS — tetikleyici kurban
-  { label: "Şu An Kesilen No", value: "{{kesilen_kurban_no}}", group: "oto" },
-  // Otomatik SMS — ham ortalama süreler (dakika / kurban başına)
-  { label: "Kesim Ort. Süre (dk)", value: "{{kesim_ortalama_suresi}}", group: "oto" },
-  { label: "Parçalama Ort. Süre (dk)", value: "{{parcalama_ortalama_suresi}}", group: "oto" },
-  { label: "Teslimat Ort. Süre (dk)", value: "{{teslimat_ortalama_suresi}}", group: "oto" },
-  // Otomatik SMS — tahmini bekleme (ortalama × tenant offset)
-  { label: "Kesim Tahmini Süre (dk)", value: "{{kesim_tahmini_sure}}", group: "oto" },
-  { label: "Parçalama Tahmini Süre (dk)", value: "{{parcalama_tahmini_sure}}", group: "oto" },
-  { label: "Teslimat Tahmini Süre (dk)", value: "{{teslimat_tahmini_sure}}", group: "oto" },
+  // Otomatik SMS — Kesim aşaması
+  { label: "Az önce kesilen no", value: "{{kesilen_kurban_no}}", group: "oto" },
+  { label: "Kesim ort. süre (dk/kurban)", value: "{{kesim_ortalama_suresi}}", group: "oto" },
+  { label: "Kesim tahmini bekleme (dk)", value: "{{kesim_tahmini_bekleme_suresi}}", group: "oto" },
+  // Otomatik SMS — Parçalama aşaması
+  { label: "Az önce parçalanan no", value: "{{parcalanan_kurban_no}}", group: "oto" },
+  { label: "Parçalama ort. süre (dk/kurban)", value: "{{parcalama_ortalama_suresi}}", group: "oto" },
+  { label: "Parçalama tahmini bekleme (dk)", value: "{{parcalama_tahmini_bekleme_suresi}}", group: "oto" },
+  // Otomatik SMS — Teslimat aşaması
+  { label: "Az önce teslim edilen no", value: "{{teslim_edilen_kurban_no}}", group: "oto" },
+  { label: "Teslimat ort. süre (dk/kurban)", value: "{{teslimat_ortalama_suresi}}", group: "oto" },
+  { label: "Teslimat tahmini bekleme (dk)", value: "{{teslimat_tahmini_bekleme_suresi}}", group: "oto" },
 ];
 
 interface Props {

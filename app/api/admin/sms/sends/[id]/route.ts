@@ -45,6 +45,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Gönderim bulunamadı" }, { status: 404 });
     }
 
+    const { error: unlinkErr } = await supabaseAdmin
+      .from("sms_notification_events")
+      .update({ send_id: null })
+      .eq("send_id", params.id)
+      .eq("tenant_id", tenantId);
+
+    if (unlinkErr) {
+      console.error("[sms/sends/[id] DELETE] unlink notification events:", unlinkErr);
+      return NextResponse.json({ error: "Gönderim silinemedi" }, { status: 500 });
+    }
+
     const { error: delErr } = await supabaseAdmin
       .from("sms_sends")
       .delete()

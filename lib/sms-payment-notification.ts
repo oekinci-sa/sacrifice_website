@@ -14,20 +14,24 @@ function resolveTemplate(template: string, vars: Record<string, string>): string
   return template.replace(/\{\{([a-z_]+)\}\}/g, (_, key: string) => vars[key] ?? "");
 }
 
+export type SmsPaymentResult =
+  | { sent: true; sendId: string }
+  | { sent: false; sendId: string | null };
+
 export async function sendPaymentAmountUpdatedSms(opts: {
   tenantId: string;
   shareholderId: string;
   actorEmail: string;
-}): Promise<void> {
+}): Promise<SmsPaymentResult> {
   const { tenantId, shareholderId, actorEmail } = opts;
 
   const { data: settings } = await supabaseAdmin
     .from("tenant_settings")
-    .select("sms_enabled, iban, deposit_amount, website_url, active_sacrifice_year")
+    .select("sms_enabled, sms_payment_enabled, iban, deposit_amount, website_url, active_sacrifice_year")
     .eq("tenant_id", tenantId)
     .single();
 
-  if (!settings?.sms_enabled) return;
+  if (!settings?.sms_enabled || !settings?.sms_payment_enabled) return { sent: false, sendId: null };
 
   const { data: template } = await supabaseAdmin
     .from("sms_templates")
@@ -37,7 +41,7 @@ export async function sendPaymentAmountUpdatedSms(opts: {
     .eq("is_active", true)
     .maybeSingle();
 
-  if (!template?.content) return;
+  if (!template?.content) return { sent: false, sendId: null };
 
   const { data: row } = await supabaseAdmin
     .from("shareholders")
@@ -50,10 +54,10 @@ export async function sendPaymentAmountUpdatedSms(opts: {
     .eq("shareholder_id", shareholderId)
     .single();
 
-  if (!row?.phone_number) return;
+  if (!row?.phone_number) return { sent: false, sendId: null };
 
   const phone = normalizePhone(row.phone_number);
-  if (!phone) return;
+  if (!phone) return { sent: false, sendId: null };
 
   const sacRaw = row.sacrifice as
     | { sacrifice_no: number; sacrifice_time: string | null; ear_tag: string | null }
@@ -114,7 +118,7 @@ export async function sendPaymentAmountUpdatedSms(opts: {
 
   if (sendErr || !sendRow) {
     console.warn("[payment-sms] sms_sends insert failed:", sendErr?.message);
-    return;
+    return { sent: false, sendId: null };
   }
 
   const sendId = sendRow.id;
@@ -139,7 +143,7 @@ export async function sendPaymentAmountUpdatedSms(opts: {
         completed_at: new Date().toISOString(),
       })
       .eq("id", sendId);
-    return;
+    return { sent: false, sendId };
   }
 
   const result = await sendSms({
@@ -160,6 +164,7 @@ export async function sendPaymentAmountUpdatedSms(opts: {
       .from("sms_send_recipients")
       .update({ status: "sent", sent_at: new Date().toISOString() })
       .eq("send_id", sendId);
+    return { sent: true, sendId };
   } else {
     await supabaseAdmin
       .from("sms_sends")
@@ -174,5 +179,6 @@ export async function sendPaymentAmountUpdatedSms(opts: {
       .update({ status: "failed", error_code: result.code })
       .eq("send_id", sendId);
     console.warn("[payment-sms] send failed:", result.code, result.message);
+    return { sent: false, sendId };
   }
 }

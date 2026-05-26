@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { usePendingUserCount } from "@/hooks/usePendingUserCount"
+import { useSmsFailedCount } from "@/hooks/useSmsFailedCount"
 import { useTenantBranding } from "@/hooks/useTenantBranding"
 import { useUnacknowledgedMismatchesCount } from "@/hooks/useUnacknowledgedMismatchesCount"
 import { useUncontactedShareholdersCount } from "@/hooks/useUncontactedShareholdersCount"
@@ -68,8 +69,6 @@ const mainNavItems: NavItem[] = [
   { id: "change-logs", title: "Değişiklik Kayıtları", url: "/kurban-admin/degisiklik-kayitlari", icon: History, roles: ["admin", "editor", "super_admin"] },
   { id: "mismatched-shares", title: "Uyumsuzluklar", url: "/kurban-admin/uyumsuz-hisseler", icon: AlertTriangle, roles: ["admin", "editor", "super_admin"] },
   { id: "reservations", title: "Rezervasyonlar", url: "/kurban-admin/rezervasyonlar", icon: Receipt, roles: ["admin", "editor", "super_admin"] },
-  { id: "contact-messages", title: "İletişim Mesajları", url: "/kurban-admin/iletisim-mesajlari", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
-  { id: "reminder-requests", title: "Bana Haber Ver Talepleri", url: "/kurban-admin/reminder-talepleri", icon: Bell, roles: ["admin", "editor", "super_admin"] },
   {
     id: "sms-operations",
     title: "SMS İşlemleri",
@@ -84,6 +83,8 @@ const mainNavItems: NavItem[] = [
     ],
   },
   { id: "mail-operations", title: "Mail İşlemleri", url: "/kurban-admin/mail-islemleri", icon: Mail, roles: ["admin", "editor", "super_admin"] },
+  { id: "contact-messages", title: "İletişim Mesajları", url: "/kurban-admin/iletisim-mesajlari", icon: MessageSquare, roles: ["admin", "editor", "super_admin"] },
+  { id: "reminder-requests", title: "Bana Haber Ver Talepleri", url: "/kurban-admin/reminder-talepleri", icon: Bell, roles: ["admin", "editor", "super_admin"] },
 ];
 
 const bottomNavItems: NavItem[] = [
@@ -92,7 +93,7 @@ const bottomNavItems: NavItem[] = [
   { id: "user-management", title: "Kullanıcı Yönetimi", url: "/kurban-admin/kullanici-yonetimi", icon: UserCog, roles: ["admin", "super_admin"] },
 ];
 
-const separatorAfterIds = ["kurbanliklar-menu", "all-shareholders", "teslimatlar", "reservations"];
+const separatorAfterIds = ["general", "all-shareholders", "teslimatlar", "reservations"];
 
 export function AppSidebar() {
   const { data: session } = useSession()
@@ -103,6 +104,7 @@ export function AppSidebar() {
   const { count: uncontactedShareholdersCount, isLoading: uncontactedLoading } = useUncontactedShareholdersCount(selectedYear)
   const { count: pendingUserCount, isLoading: pendingUserLoading } = usePendingUserCount()
   const { count: unacknowledgedMismatchesCount, isLoading: mismatchesLoading } = useUnacknowledgedMismatchesCount(selectedYear)
+  const { count: smsFailedCount, isLoading: smsFailedLoading } = useSmsFailedCount(selectedYear)
   const activeReservationsCount = useActiveReservationsCountStore((s) => s.count)
   const activeReservationsLoading = useActiveReservationsCountStore((s) => s.isLoading)
   const fetchActiveReservationsCount = useActiveReservationsCountStore((s) => s.fetchCount)
@@ -189,21 +191,29 @@ export function AppSidebar() {
           <div className="ml-6 space-y-1">
             {item.items
               ?.filter(subItem => !subItem.roles || (session?.user?.role && subItem.roles.includes(session.user.role as Exclude<UserRole, null>)))
-              .map((subItem) => (
-                <Link
-                  key={subItem.id}
-                  href={subItem.url}
-                  className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === subItem.url || (subItem.id === "sms-send" && pathname === "/kurban-admin/sms-islemleri")
-                      ? "bg-muted text-foreground"
-                      : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
-                  )}
-                >
-                  <subItem.icon className="h-4 w-4" />
-                  <span>{subItem.title}</span>
-                </Link>
-              ))}
+              .map((subItem) => {
+                const showSmsFailedBadge = subItem.id === "sms-history" && !smsFailedLoading && smsFailedCount > 0
+                return (
+                  <Link
+                    key={subItem.id}
+                    href={subItem.url}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      pathname === subItem.url || (subItem.id === "sms-send" && pathname === "/kurban-admin/sms-islemleri")
+                        ? "bg-muted text-foreground"
+                        : "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
+                    )}
+                  >
+                    <subItem.icon className="h-4 w-4 shrink-0" />
+                    <span className="min-w-0 truncate">{subItem.title}</span>
+                    {showSmsFailedBadge && (
+                      <span className={cn("ml-auto shrink-0 min-w-0 h-5 flex items-center justify-center rounded-full text-xs font-semibold px-1.5 tabular-nums", badgeColorClass)}>
+                        {smsFailedCount.toLocaleString("tr-TR")}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
           </div>
         )}
       </div>

@@ -63,6 +63,65 @@ async function fetchAvgDuration(
   return data?.avg_progress_duration ?? 0;
 }
 
+/**
+ * Parçalama→Teslimat ortalama bekleme süresi (dakika).
+ *
+ * Her tamamlanmış hayvan için:
+ *   süre = delivery_time(N) − butcher_time(N−1)
+ *
+ * Yani N numaralı hayvanın parçalamaya giriş zamanı, N−1'in butcher_time'ıdır.
+ * Yalnızca hedef kurbandan önceki, hem önceki hayvanın butcher_time'ı
+ * hem de kendi delivery_time'ı dolu olan çiftler dahil edilir.
+ */
+async function fetchAvgParcalamaTeslimatMinutes(
+  tenantId: string,
+  sacrificeYear: number,
+  beforeSacrificeNo: number
+): Promise<number | undefined> {
+  const { data, error } = await supabaseAdmin
+    .from("sacrifice_animals")
+    .select("sacrifice_no, delivery_time")
+    .eq("tenant_id", tenantId)
+    .eq("sacrifice_year", sacrificeYear)
+    .lt("sacrifice_no", beforeSacrificeNo)
+    .not("delivery_time", "is", null)
+    .order("sacrifice_no", { ascending: true });
+
+  if (error || !data || data.length === 0) return undefined;
+
+  // Önceki hayvanın butcher_time'ına ihtiyaç var; toplu çek
+  const nos = data.map((r) => r.sacrifice_no - 1).filter((n) => n > 0);
+  if (nos.length === 0) return undefined;
+
+  const { data: prevData, error: prevErr } = await supabaseAdmin
+    .from("sacrifice_animals")
+    .select("sacrifice_no, butcher_time")
+    .eq("tenant_id", tenantId)
+    .eq("sacrifice_year", sacrificeYear)
+    .in("sacrifice_no", nos)
+    .not("butcher_time", "is", null);
+
+  if (prevErr || !prevData || prevData.length === 0) return undefined;
+
+  const prevMap = new Map(prevData.map((r) => [r.sacrifice_no, r.butcher_time as string]));
+
+  let totalMs = 0;
+  let count = 0;
+
+  for (const cur of data) {
+    const prevButcherTime = prevMap.get(cur.sacrifice_no - 1);
+    if (!prevButcherTime || !cur.delivery_time) continue;
+    const diff = new Date(cur.delivery_time as string).getTime() - new Date(prevButcherTime).getTime();
+    if (diff > 0) {
+      totalMs += diff;
+      count++;
+    }
+  }
+
+  if (count === 0) return undefined;
+  return totalMs / count / 60_000; // ms → dakika
+}
+
 /** Verilen kurbanlık numarası için hissedarları getirir. */
 async function fetchShareholders(
   tenantId: string,
@@ -380,12 +439,12 @@ const EVENT_DEFAULTS: Record<
   EventKey,
   { target_offset: number | null; recipient_scope: string; skip_if_target_missing: boolean; skip_if_target_completed: boolean }
 > = {
-  slaughter_approaching:      { target_offset: 20,   recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
-  slaughter_imminent:         { target_offset: 3,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
-  slaughter_completed:         { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
-  butcher_started:             { target_offset: null, recipient_scope: "slaughterhouse_only", skip_if_target_missing: false, skip_if_target_completed: false },
-  delivery_completed:          { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
-  delivery_pickup_approaching: { target_offset: 2,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+  slaughter_approaching: { target_offset: 20,   recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+  slaughter_imminent:   { target_offset: 3,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: true,  skip_if_target_completed: true },
+  slaughter_completed:  { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
+  /** target_offset burada bekleme süresi katsayısıdır (avg_parcalama_bekleme × offset). Default 1. */
+  butcher_started:      { target_offset: 1,    recipient_scope: "slaughterhouse_only", skip_if_target_missing: false, skip_if_target_completed: false },
+  delivery_completed:   { target_offset: null, recipient_scope: "all",                 skip_if_target_missing: false, skip_if_target_completed: false },
 };
 
 /**
@@ -578,13 +637,19 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
 
   // ── Parçalama aşaması ───────────────────────────────────────────────────────
   if (stage === "butcher_stage") {
-    const avgSeconds = await fetchAvgDuration(tenantId, sacrificeYear, "butcher_stage");
-    const avgButcherMinutes = avgSeconds > 0 ? avgSeconds / 60 : 0;
+    // parcalama_tahmini_bekleme_suresi: delivery_time(N) − butcher_time(N−1) ortalaması
+    const avgParcalamaBeklemeMinutes = await fetchAvgParcalamaTeslimatMinutes(
+      tenantId,
+      sacrificeYear,
+      sacrificeNo
+    );
 
-    // SMS-3: butcher_started
+    // SMS-3: butcher_started → Teslim Almaya Çağrı
     const butcherTpl = templateMap.get("butcher_started");
     if (butcherTpl) {
       const s = getEventSettings("butcher_started");
+      // target_offset = bekleme süresi katsayısı (varsayılan 1)
+      const butcherMultiplier = s.target_offset ?? EVENT_DEFAULTS.butcher_started.target_offset ?? 1;
       await fireEvent({
         eventKey: "butcher_started",
         tenantId, sacrificeYear,
@@ -594,7 +659,11 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
         templateId: butcherTpl.id,
         tenantBranding,
         sacrificeId: currentSacrificeId,
-        context: { triggered_sacrifice_no: sacrificeNo, avg_butcher_minutes: avgButcherMinutes },
+        context: {
+          parcalanan_sacrifice_no: sacrificeNo,
+          avg_parcalama_bekleme_minutes: avgParcalamaBeklemeMinutes,
+          butcher_offset: butcherMultiplier,
+        },
       });
     }
   }
@@ -608,7 +677,7 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
     const deliveryCompletedTpl = templateMap.get("delivery_completed");
     if (deliveryCompletedTpl) {
       const deliveryCtx = {
-        triggered_sacrifice_no: sacrificeNo,
+        teslim_edilen_sacrifice_no: sacrificeNo,
         avg_delivery_minutes: avgDeliveryMinutes,
         delivery_offset: 0,
       };
@@ -641,47 +710,5 @@ export async function handleAutoSms(params: AutoSmsParams): Promise<void> {
       }
     }
 
-    // SMS-4: delivery_pickup_approaching
-    const pickupTpl = templateMap.get("delivery_pickup_approaching");
-    if (pickupTpl) {
-      const s = getEventSettings("delivery_pickup_approaching");
-      const offset = s.target_offset ?? EVENT_DEFAULTS.delivery_pickup_approaching.target_offset ?? 2;
-      const targetNo = sacrificeNo + offset;
-
-      let shouldSend = true;
-
-      {
-        const { data: targetAnimalCheck } = await supabaseAdmin
-          .from("sacrifice_animals").select("sacrifice_id")
-          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
-          .single();
-        if (!targetAnimalCheck) shouldSend = false;
-      }
-
-      if (shouldSend) {
-        const alreadyDone = await isSacrificeStageAlreadyDone(tenantId, sacrificeYear, targetNo, "delivery_time");
-        if (alreadyDone) shouldSend = false;
-      }
-
-      if (shouldSend) {
-        const { data: targetAnimal } = await supabaseAdmin
-          .from("sacrifice_animals").select("sacrifice_id")
-          .eq("tenant_id", tenantId).eq("sacrifice_no", targetNo).eq("sacrifice_year", sacrificeYear)
-          .single();
-        if (targetAnimal) {
-          await fireEvent({
-            eventKey: "delivery_pickup_approaching",
-            tenantId, sacrificeYear,
-            targetSacrificeNo: targetNo,
-            deliveryFilter: toDeliveryFilter(s.recipient_scope),
-            templateContent: pickupTpl.content,
-            templateId: pickupTpl.id,
-            tenantBranding,
-            sacrificeId: targetAnimal.sacrifice_id,
-            context: { triggered_sacrifice_no: sacrificeNo, avg_delivery_minutes: avgDeliveryMinutes, delivery_offset: offset },
-          });
-        }
-      }
-    }
   }
 }

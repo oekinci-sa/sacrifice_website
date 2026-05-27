@@ -3,16 +3,31 @@ import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supab
 
 type CallbackFunction = (payload: RealtimePostgresChangesPayload<any>) => void;
 
+type SubscribeOptions = {
+    filter?: string;
+};
+
 const RealtimeManager = {
     activeChannels: [] as RealtimeChannel[],
 
-    subscribeToTable(table: string, callback: CallbackFunction) {
+    subscribeToTable(table: string, callback: CallbackFunction, options?: SubscribeOptions) {
         const channelName = `${table}-${Date.now()}`;
+
+        const changeConfig: {
+            event: '*';
+            schema: 'public';
+            table: string;
+            filter?: string;
+        } = { event: '*', schema: 'public', table };
+
+        if (options?.filter) {
+            changeConfig.filter = options.filter;
+        }
 
         const channel = supabase
             .channel(channelName)
             .on('postgres_changes',
-                { event: '*', schema: 'public', table },
+                changeConfig,
                 (payload: RealtimePostgresChangesPayload<any>) => {
                     callback(payload);
                 }

@@ -1,8 +1,31 @@
+import { resolveTenantIdFromHost } from '@/lib/tenant-resolver';
 import { StageMetrics, StageType } from '@/types/stage-metrics';
 import { normalizeQueueDisplayNumber, QUEUE_NUMBER_MIN } from '@/lib/queue-display-number';
 import RealtimeManager from '@/utils/RealtimeManager';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+
+/** Realtime (anon) tüm tenant’lardaki satır değişimlerini iletir; API ise tek tenant filtreler. */
+function matchesStageMetricsRealtimeScope(
+    row: { tenant_id?: string } | null | undefined,
+    state: { realtimeScopeTenantId: string | null }
+): boolean {
+    if (!row?.tenant_id) return false;
+    const expectedTenant =
+        state.realtimeScopeTenantId ??
+        (typeof window !== "undefined" ? resolveTenantIdFromHost(window.location.host) : null);
+    if (!expectedTenant || row.tenant_id !== expectedTenant) return false;
+    return true;
+}
+
+function resolveStageMetricsTenantScope(metrics: StageMetrics[]): string | null {
+    const fromRow = metrics.find((metric) => metric.tenant_id)?.tenant_id;
+    if (fromRow) return fromRow;
+    if (typeof window !== "undefined") {
+        return resolveTenantIdFromHost(window.location.host);
+    }
+    return null;
+}
 
 export interface StageMetricsState {
     // State - keyed by stage type
@@ -11,6 +34,8 @@ export interface StageMetricsState {
     isLoading: boolean;
     error: Error | null;
     isInitialized: boolean;
+    /** Son başarılı fetch / host ile uyumlu tenant (realtime filtre) */
+    realtimeScopeTenantId: string | null;
 
     // Methods
     fetchStageMetrics: () => Promise<void>;
@@ -31,6 +56,7 @@ export const useStageMetricsStore = create<StageMetricsState>()(
             isLoading: false,
             error: null,
             isInitialized: false,
+            realtimeScopeTenantId: null,
 
             // Methods
             fetchStageMetrics: async () => {
@@ -52,6 +78,7 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                     const maxSacrificeNumber = normalizeQueueDisplayNumber(
                         Array.isArray(json) ? undefined : json.max_sacrifice_number
                     );
+                    const tenantScope = resolveStageMetricsTenantScope(data);
 
                     // Convert array to keyed object
                     const stageMetrics: Record<StageType, StageMetrics> = {} as Record<StageType, StageMetrics>;
@@ -70,6 +97,7 @@ export const useStageMetricsStore = create<StageMetricsState>()(
                         maxSacrificeNumber,
                         isLoading: false,
                         isInitialized: true,
+                        realtimeScopeTenantId: tenantScope,
                     });
 
                 } catch (error) {
@@ -81,6 +109,10 @@ export const useStageMetricsStore = create<StageMetricsState>()(
             },
 
             updateStageMetric: (stageMetric: StageMetrics) => {
+                if (!matchesStageMetricsRealtimeScope(stageMetric, get())) {
+                    return;
+                }
+
                 set((state) => ({
                     stageMetrics: {
                         ...state.stageMetrics,
@@ -100,20 +132,28 @@ export const useStageMetricsStore = create<StageMetricsState>()(
 
             // Realtime methods
             subscribeToRealtime: () => {
-                // Clean up any existing subscriptions first
                 RealtimeManager.cleanup();
 
-                // Subscribe to stage_metrics table
+                const tenantId =
+                    get().realtimeScopeTenantId ??
+                    (typeof window !== "undefined"
+                        ? resolveTenantIdFromHost(window.location.host)
+                        : null);
+                const filter = tenantId ? `tenant_id=eq.${tenantId}` : undefined;
+
                 RealtimeManager.subscribeToTable(
                     "stage_metrics",
                     (payload) => {
-                        const { eventType, new: newData, old: oldData } = payload;
+                        const { eventType, new: newData } = payload;
 
                         if (eventType === "INSERT" || eventType === "UPDATE") {
-                            const updatedMetric = newData as StageMetrics;
-                            get().updateStageMetric(updatedMetric);
+                            if (!matchesStageMetricsRealtimeScope(newData as StageMetrics, get())) {
+                                return;
+                            }
+                            get().updateStageMetric(newData as StageMetrics);
                         }
-                    }
+                    },
+                    filter ? { filter } : undefined
                 );
             },
 
@@ -123,4 +163,4 @@ export const useStageMetricsStore = create<StageMetricsState>()(
         }),
         { name: "stage-metrics-store" }
     )
-); 
+);

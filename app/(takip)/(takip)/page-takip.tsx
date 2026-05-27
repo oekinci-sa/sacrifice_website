@@ -1,6 +1,7 @@
 "use client";
 
 import Ayah from "@/app/(public)/(anasayfa)/components/ayah";
+import { TakipIbanInfo } from "@/app/(takip)/components/takip-iban-info";
 import QueueCard from "@/app/(takip)/components/queue-card";
 import { ShareholderLookup } from "@/components/common/shareholder-lookup";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
@@ -79,6 +80,7 @@ const PageTakip = () => {
         Kurbanlık Takip<br className="md:hidden" /> Sayfası
       </motion.h1>
 
+      <TakipIbanInfo variants={item} />
 
       {/* Queue Cards */}
       <motion.div

@@ -44,6 +44,16 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration
       }}
       whileTap={{ scale: 0.98 }}
     >
+      {showAverageDuration && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <AverageDuration stage={stage} />
+        </motion.div>
+      )}
+
       <motion.div
         className='flex flex-col items-center justify-center w-40 md:w-60'
         initial={{ rotateY: -5 }}
@@ -74,16 +84,6 @@ const QueueCard: React.FC<QueueCardProps> = ({ title, stage, showAverageDuration
           </motion.span>
         </motion.div>
       </motion.div>
-
-      {showAverageDuration && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-        >
-          <AverageDuration stage={stage} />
-        </motion.div>
-      )}
     </motion.div>
   );
 };

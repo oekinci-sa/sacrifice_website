@@ -5,11 +5,13 @@ import { TakipIbanInfo } from "@/app/(takip)/components/takip-iban-info";
 import QueueCard from "@/app/(takip)/components/queue-card";
 import { ShareholderLookup } from "@/components/common/shareholder-lookup";
 import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { KAHRAMANKAZAN_TENANT_ID } from "@/lib/tenant-resolver";
 import { motion } from "framer-motion";
 
 const PageTakip = () => {
   const branding = useTenantBranding();
   const showButcherCard = branding.butcher_stage_required !== false;
+  const showAverageDuration = branding.tenant_id === KAHRAMANKAZAN_TENANT_ID;
   // Container animation variants
   const container = {
     hidden: { opacity: 0 },
@@ -92,12 +94,20 @@ const PageTakip = () => {
         variants={container}
       >
         <motion.div variants={cardItem}>
-          <QueueCard title="Kesim Sırası" stage="slaughter_stage" showAverageDuration={false} />
+          <QueueCard
+            title="Kesim Sırası"
+            stage="slaughter_stage"
+            showAverageDuration={showAverageDuration}
+          />
         </motion.div>
 
         {showButcherCard && (
           <motion.div variants={cardItem}>
-            <QueueCard title="Parçalama Sırası" stage="butcher_stage" showAverageDuration={false} />
+            <QueueCard
+              title="Parçalama Sırası"
+              stage="butcher_stage"
+              showAverageDuration={showAverageDuration}
+            />
           </motion.div>
         )}
 
@@ -105,7 +115,11 @@ const PageTakip = () => {
           className={showButcherCard ? "col-span-2 flex justify-center" : undefined}
           variants={cardItem}
         >
-          <QueueCard title="Teslimat Sırası" stage="delivery_stage" showAverageDuration={false} />
+          <QueueCard
+            title="Teslimat Sırası"
+            stage="delivery_stage"
+            showAverageDuration={showAverageDuration}
+          />
         </motion.div>
       </motion.div>
 

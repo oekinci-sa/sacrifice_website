@@ -92,6 +92,7 @@ interface Props {
 
 export function SacrificeShareholdersCard({ sacrificeNo, showPayment = true }: Props) {
   const [shareholders, setShareholders] = useState<ShareholderRow[]>([]);
+  const [sacrificeExists, setSacrificeExists] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -100,12 +101,14 @@ export function SacrificeShareholdersCard({ sacrificeNo, showPayment = true }: P
     let cancelled = false;
     setLoading(true);
     setShareholders([]);
+    setSacrificeExists(true);
 
     fetch(`/api/get-shareholders-by-sacrifice-no?sacrifice_no=${sacrificeNo}`)
       .then((r) => r.json())
       .then((d) => {
         if (!cancelled) {
           setShareholders(Array.isArray(d.shareholders) ? d.shareholders : []);
+          setSacrificeExists(d.exists !== false);
         }
       })
       .catch(() => {
@@ -145,6 +148,10 @@ export function SacrificeShareholdersCard({ sacrificeNo, showPayment = true }: P
             {[1, 2, 3].map((i) => (
               <SkeletonRow key={i} index={i} />
             ))}
+          </div>
+        ) : !sacrificeExists ? (
+          <div className="bg-white px-4 py-6 text-center text-sm text-gray-500">
+            Bu numarada kayıtlı kurbanlık yok.
           </div>
         ) : shareholders.length === 0 ? (
           <div className="bg-white px-4 py-6 text-center text-sm text-gray-500">

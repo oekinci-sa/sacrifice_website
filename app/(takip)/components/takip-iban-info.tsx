@@ -36,6 +36,10 @@ export function TakipIbanInfo({ variants }: TakipIbanInfoProps) {
           <span className="text-muted-foreground">IBAN: </span>
           <span className="font-semibold text-foreground tracking-[0.04em]">{ibanDisplay}</span>
         </p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground md:text-sm">
+          * Not: IBAN üzerinden ödeme yapan hissedarlarımızın tahsilat bölümüne gelmesine gerek
+          yoktur.
+        </p>
       </div>
     </motion.div>
   );

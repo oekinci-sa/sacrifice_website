@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!animal?.sacrifice_id) {
-      return NextResponse.json({ shareholders: [] }, { headers: NO_CACHE });
+      return NextResponse.json({ shareholders: [], exists: false }, { headers: NO_CACHE });
     }
 
     const { data, error } = await supabaseAdmin
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Hissedarlar alınamadı" }, { status: 500, headers: NO_CACHE });
     }
 
-    return NextResponse.json({ shareholders: data ?? [] }, { headers: NO_CACHE });
+    return NextResponse.json({ shareholders: data ?? [], exists: true }, { headers: NO_CACHE });
   } catch {
     return NextResponse.json({ error: "Beklenmeyen hata" }, { status: 500, headers: NO_CACHE });
   }

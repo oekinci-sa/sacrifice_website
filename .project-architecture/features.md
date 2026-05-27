@@ -103,7 +103,7 @@ Elya (Gölbaşı, tenant_id: 00000000-0000-0000-0000-000000000003) için hisse f
 - **Sayfalar:** `/kesimsirasi`, `/parcalamasirasi`, `/teslimatsirasi` — her biri ayrı 6 haneli admin PIN’i (`page_key`: slaughter / butcher / delivery).
 - **PIN:** Admin **Güvenlik Ayarları** (`/kurban-admin/guvenlik-ayarlari`); hash DB’de (`queue_page_access_codes`); cookie JWT 8 saat. PIN set edilmemişse sayfa açık.
 - **Rate limit:** 5 hatalı deneme → 10 dk kilitleme (`queue_page_access_attempts`; tenant + sayfa + IP hash).
-- **Navigasyon:** Kurban no ile git; hissedar araması (ad/telefon) → kurban no’ya atlama.
+- **Navigasyon:** Kurban no ile git; hissedar araması (ad/telefon) → kurban no’ya atlama. **Silinmiş / boş numaralar:** +/− ile aradaki boşluklar atlanabilir (ör. 12 → 13); kayıtsız numarada switch kapalı, aşama işaretlenemez — ayrıntı: [changelog-2026-05-queue-missing-sacrifice-navigation.md](changelogs/changelog-2026-05-queue-missing-sacrifice-navigation.md).
 - **Hissedar tablosu:** Switch altında seçili kurbanlık hissedarları (light tema).
 - **Env:** `QUEUE_ACCESS_SECRET`.
 - **Detay:** [changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md)

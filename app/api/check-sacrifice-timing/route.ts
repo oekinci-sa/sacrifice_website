@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
                 .eq("tenant_id", tenantId)
                 .eq("sacrifice_no", sacrificeNo)
                 .eq("sacrifice_year", sacrificeYear)
-                .single(),
+                .maybeSingle(),
             supabaseAdmin
                 .from("tenant_settings")
                 .select("butcher_stage_required")
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             return NextResponse.json(
-                { error: "Failed to check sacrifice timing" },
+                { error: "Kurban durumu kontrol edilemedi" },
                 {
                     status: 500,
                     headers: {
@@ -74,17 +74,44 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        const butcherStageRequired = tsData?.butcher_stage_required !== false;
+
+        if (!data) {
+            return NextResponse.json(
+                {
+                    exists: false,
+                    slaughter_completed: false,
+                    butcher_completed: false,
+                    delivery_completed: false,
+                    slaughter_time: null,
+                    butcher_time: null,
+                    delivery_time: null,
+                    delivered_share_kg: null,
+                    delivery_notes: null,
+                    butcher_stage_required: butcherStageRequired,
+                },
+                {
+                    headers: {
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                }
+            );
+        }
+
         // Return all stage completion status
         const result = {
-            slaughter_completed: data && data.slaughter_time !== null,
-            butcher_completed: data && data.butcher_time !== null,
-            delivery_completed: data && data.delivery_time !== null,
-            slaughter_time: data ? data.slaughter_time : null,
-            butcher_time: data ? data.butcher_time : null,
-            delivery_time: data ? data.delivery_time : null,
-            delivered_share_kg: data ? data.delivered_share_kg : null,
-            delivery_notes: data ? data.delivery_notes : null,
-            butcher_stage_required: tsData?.butcher_stage_required !== false,
+            exists: true,
+            slaughter_completed: data.slaughter_time !== null,
+            butcher_completed: data.butcher_time !== null,
+            delivery_completed: data.delivery_time !== null,
+            slaughter_time: data.slaughter_time,
+            butcher_time: data.butcher_time,
+            delivery_time: data.delivery_time,
+            delivered_share_kg: data.delivered_share_kg,
+            delivery_notes: data.delivery_notes,
+            butcher_stage_required: butcherStageRequired,
         };
 
         return NextResponse.json(result, {

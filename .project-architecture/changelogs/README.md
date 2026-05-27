@@ -20,5 +20,6 @@ Tarihli mimari / özellik değişiklik özetleri. Ana indeks: üst dizindeki [RE
 | [changelog-2026-05-sms-templates-variables-payment-filter.md](changelog-2026-05-sms-templates-variables-payment-filter.md) | SMS değişken standardizasyonu, ödeme otomatik SMS, üçlü şablon filtresi, FK CASCADE |
 | [changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md](changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md) | Operatör sıra PIN, hissedar arama/tablası, güvenlik ayarları, planlı teslim offset, SMS UX |
 | [changelog-2026-05-butcher-started-delivery-pickup-offset.md](changelog-2026-05-butcher-started-delivery-pickup-offset.md) | Teslim Almaya Çağrı (`butcher_started`): hedef kurban offset, tenant pickup offset, şablon değişkenleri |
+| [changelog-2026-05-queue-missing-sacrifice-navigation.md](changelog-2026-05-queue-missing-sacrifice-navigation.md) | Operatör sıra sayfaları: silinmiş kurban numarasına geçiş, switch uyarıları, `exists` API |
 
 Yeni kayıt eklerken bu klasöre `changelog-YYYY-MM-kisa-baslik.md` adıyla koyun; `../README.md` ve gerekiyorsa `../features.md` içindeki tablolara satır ekleyin.

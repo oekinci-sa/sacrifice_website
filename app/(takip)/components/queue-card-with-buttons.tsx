@@ -39,6 +39,7 @@ interface QueueCardWithButtonsProps {
 }
 
 interface SacrificeTimingData {
+    exists?: boolean;
     slaughter_completed: boolean;
     butcher_completed: boolean;
     delivery_completed: boolean;
@@ -69,6 +70,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     onLocalNumberChange,
 }) => {
     const [isCompleted, setIsCompleted] = useState(false);
+    const [sacrificeExists, setSacrificeExists] = useState(true);
     const [stageCompletedTime, setStageCompletedTime] = useState<string | null>(null);
     const [localNumber, setLocalNumberInternal] = useState<number>(
         externalNumber ?? QUEUE_NUMBER_MIN
@@ -104,6 +106,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
 
     const checkSwitchState = useCallback(async (number: number): Promise<boolean> => {
         if (!number || number < QUEUE_NUMBER_MIN) {
+            setSacrificeExists(false);
             setIsCompleted(false);
             setIsSwitchDisabled(true);
             return true;
@@ -116,6 +119,15 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             }
 
             const data: SacrificeTimingData = await response.json();
+            const exists = data.exists !== false;
+            setSacrificeExists(exists);
+
+            if (!exists) {
+                setIsCompleted(false);
+                setStageCompletedTime(null);
+                setIsSwitchDisabled(true);
+                return true;
+            }
 
             let currentStageCompleted = false;
             let canBeEnabled = true;
@@ -200,7 +212,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
         };
     }, [localNumber, stage, checkSwitchState]);
 
-    const handleDecrement = async () => {
+    const handleDecrement = () => {
         if (isLoading) return;
 
         if (localNumber <= QUEUE_NUMBER_MIN) {
@@ -211,32 +223,10 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             return;
         }
 
-        const newNumber = localNumber - 1;
-        setIsLoading(true);
-
-        try {
-            const success = await checkSwitchState(newNumber);
-            if (success) {
-                setLocalNumber(newNumber);
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "İşlem Başarısız",
-                    description: "İnternet bağlantısı olmadığı için sıra numarası değiştirilemedi.",
-                });
-            }
-        } catch {
-            toast({
-                variant: "destructive",
-                title: "İşlem Başarısız",
-                description: "Sayı güncellenirken bir hata oluştu.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        setLocalNumber(localNumber - 1);
     };
 
-    const handleIncrement = async () => {
+    const handleIncrement = () => {
         if (isLoading) return;
 
         if (localNumber >= maxSacrificeNumber) {
@@ -247,33 +237,19 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             return;
         }
 
-        const newNumber = localNumber + 1;
-        setIsLoading(true);
-
-        try {
-            const success = await checkSwitchState(newNumber);
-            if (success) {
-                setLocalNumber(newNumber);
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "İşlem Başarısız",
-                    description: "İnternet bağlantısı olmadığı için sıra numarası değiştirilemedi.",
-                });
-            }
-        } catch {
-            toast({
-                variant: "destructive",
-                title: "İşlem Başarısız",
-                description: "Sayı güncellenirken bir hata oluştu.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        setLocalNumber(localNumber + 1);
     };
 
     const handleSwitchChange = (checked: boolean) => {
         if (isSwitchDisabled || isLoading) return;
+        if (!sacrificeExists) {
+            toast({
+                variant: "destructive",
+                title: "Kurban bulunamadı",
+                description: `${localNumber} numaralı kurbanlık kayıtlı değil.`,
+            });
+            return;
+        }
         if (checked) {
             void executeStageChange(true);
             return;
@@ -304,7 +280,23 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                let description =
+                    "Güncelleme başarısız. İnternet bağlantınızı kontrol edip yeniden deneyiniz.";
+                try {
+                    const body = (await response.json()) as { error?: string };
+                    if (body.error?.trim()) {
+                        description = body.error.trim();
+                    }
+                } catch {
+                    // JSON yoksa varsayılan mesaj
+                }
+                setIsCompleted(previousState);
+                toast({
+                    variant: "destructive",
+                    title: "Güncelleme Başarısız",
+                    description,
+                });
+                return;
             }
 
             await checkSwitchState(localNumber);
@@ -349,6 +341,13 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     const getDisplayText = () => {
         const action = getActionText();
 
+        if (!sacrificeExists) {
+            return {
+                main: "Bu numarada kurban kaydı yok",
+                sub: "Numara değiştirilebilir; aşama işaretlenemez.",
+            };
+        }
+
         if (isSwitchDisabled) {
             return {
                 main: `${action} yapılamaz`,
@@ -378,21 +377,21 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
     const confirmTitle = `${actionText} işareti kaldırılsın mı?`;
     const confirmDescription = `${localNumber} numaralı kurbanlık için ${actionText.toLocaleLowerCase('tr-TR')} tamamlandı işareti geri alınacak. Yanlışlıkla basmadığınızdan emin olun.`;
 
-    const handleJump = async () => {
+    const handleJump = () => {
         const n = parseInt(jumpInput, 10);
         if (isNaN(n) || n < QUEUE_NUMBER_MIN) {
             toast({ title: "Geçersiz numara", description: "Lütfen geçerli bir kurbanlık numarası girin." });
             return;
         }
-        setIsLoading(true);
-        const success = await checkSwitchState(n);
-        if (success) {
-            setLocalNumber(n);
-            setJumpInput("");
-        } else {
-            toast({ variant: "destructive", title: "Numara bulunamadı", description: "Bu numaraya ait kurbanlık bulunamadı." });
+        if (n > maxSacrificeNumber) {
+            toast({
+                title: "Sınır",
+                description: `Bu tenant için en yüksek kurban numarası ${maxSacrificeNumber}.`,
+            });
+            return;
         }
-        setIsLoading(false);
+        setLocalNumber(n);
+        setJumpInput("");
     };
 
     return (
@@ -428,14 +427,14 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                     min={1}
                     value={jumpInput}
                     onChange={(e) => setJumpInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && void handleJump()}
+                    onKeyDown={(e) => e.key === "Enter" && handleJump()}
                     placeholder="Kurbanlık no…"
                     className="h-9 w-32 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-400"
                     disabled={isLoading}
                 />
                 <button
                     type="button"
-                    onClick={() => void handleJump()}
+                    onClick={handleJump}
                     disabled={isLoading || !jumpInput}
                     className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -501,7 +500,7 @@ const QueueCardWithButtons: React.FC<QueueCardWithButtonsProps> = ({
                 </AlertDialogContent>
             </AlertDialog>
 
-            {stage === 'delivery_stage' && (
+            {stage === 'delivery_stage' && sacrificeExists && (
                 <DeliveryShareInfoForm sacrificeNo={localNumber} />
             )}
 

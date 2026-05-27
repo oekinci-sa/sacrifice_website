@@ -20,6 +20,7 @@ Bu klasör projenin mimari dokümantasyonunu içerir. Proje hakkında bilgi alma
 | `changelogs/changelog-2026-05-sms-templates-variables-payment-filter.md` | SMS değişken standardizasyonu, ödeme otomatik SMS, şablon filtresi, FK CASCADE |
 | `changelogs/changelog-2026-05-operator-queue-access-delivery-offset-sms-ux.md` | Operatör sıra PIN, planlı teslim offset, güvenlik ayarları, SMS UX |
 | `changelogs/changelog-2026-05-butcher-started-delivery-pickup-offset.md` | Teslim Almaya Çağrı (`butcher_started`) offset hedef kurban davranışı |
+| `changelogs/changelog-2026-05-queue-missing-sacrifice-navigation.md` | Operatör sıra sayfaları: silinmiş kurban no navigasyonu, `exists` API, switch uyarıları |
 
 ## db/ Alt Yapısı
 

@@ -5,6 +5,7 @@ import TakipContent from "../(takip)/(takip)/page-takip";
 import TakipHomeLaunchCountdown from "../(takip)/components/takip-home-launch-countdown";
 import TakipHomeContent from "../(takip)/components/takip-home-content";
 import ThanksContent from "../(takip)/onizleme/tesekkur/page";
+import KurbanGunuSonrasiContent from "../(takip)/components/kurban-gunu-sonrasi-content";
 
 export default async function RootPage() {
   const tenantId = getTenantId();
@@ -18,6 +19,8 @@ export default async function RootPage() {
       return <TakipHomeLaunchCountdown />;
     case "tesekkur":
       return <ThanksContent />;
+    case "kurban_gunu_sonrasi":
+      return <KurbanGunuSonrasiContent />;
     case "follow_up":
     case "takip":
       return <TakipContent />;

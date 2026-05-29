@@ -329,6 +329,7 @@ const HOMEPAGE_MODE_OPTIONS = [
   { value: "geri_sayim", label: "Yakında Açılıyor (geri sayım)" },
   { value: "live", label: "Satış Aktif" },
   { value: "tesekkur", label: "Teşekkür" },
+  { value: "kurban_gunu_sonrasi", label: "Kurban Günü Sonrası" },
   { value: "follow_up", label: "Takip / Kesim" },
 ] as const;
 

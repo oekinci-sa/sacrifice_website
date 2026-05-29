@@ -7,7 +7,8 @@ export type HomepageMode =
   | "tesekkur"
   | "follow_up"
   | "anasayfa"
-  | "takip";
+  | "takip"
+  | "kurban_gunu_sonrasi";
 
 export interface HomepageSettings {
   mode: HomepageMode;

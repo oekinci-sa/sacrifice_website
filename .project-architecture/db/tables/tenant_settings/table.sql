@@ -1,7 +1,7 @@
 CREATE TABLE tenant_settings (
   tenant_id       UUID PRIMARY KEY REFERENCES tenants(id),
   theme_json      JSONB DEFAULT '{}'::jsonb,
-  homepage_mode   TEXT DEFAULT 'bana_haber_ver' CHECK (homepage_mode IN ('bana_haber_ver', 'geri_sayim', 'live', 'tesekkur', 'follow_up', 'anasayfa', 'takip')),
+  homepage_mode   TEXT DEFAULT 'bana_haber_ver' CHECK (homepage_mode IN ('bana_haber_ver', 'geri_sayim', 'live', 'tesekkur', 'follow_up', 'anasayfa', 'takip', 'kurban_gunu_sonrasi')),
   logo_slug       TEXT DEFAULT 'ankara-kurban',
   iban            TEXT,
   -- IBAN hesap sahibi; doluysa UI/PDF/e-postada gösterilir.

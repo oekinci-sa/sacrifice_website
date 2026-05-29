@@ -10,6 +10,7 @@ Root `/` sayfası `tenant_settings.homepage_mode` değerine göre farklı içeri
 | `geri_sayim` | Yakında Açılıyor | Minimal (TakipLayout) | "Yakında Açılıyor" + kısa duyuru + `Prices` (Hisse Bedellerimiz başlığı altta); md+ grid 4 sütun, son satır ortalı; hisseal devre dışı |
 | `live` | Satış Aktif | Tam (PublicLayout) | Tam anasayfa: Features, Prices, Process, FAQ (`AnasayfaContent`) |
 | `tesekkur` | Teşekkür | Minimal (TakipLayout) | Teşekkürler sayfası (`ThanksContent`) |
+| `kurban_gunu_sonrasi` | Kurban Günü Sonrası | Minimal (TakipLayout) | Teşekkür metni; hisse sorgulama ve Kesim Yeri Konumu yok (`KurbanGunuSonrasiContent`) |
 | `follow_up` | Takip / Kesim | Minimal (TakipLayout) | Kurbanlık takip sayfası — Queue kartları (`TakipContent`) |
 | `anasayfa` | *(geriye dönük)* | Tam (PublicLayout) | `live` ile aynı |
 | `takip` | *(geriye dönük)* | Minimal (TakipLayout) | `follow_up` ile aynı |
@@ -28,7 +29,8 @@ Varsayılan: `bana_haber_ver`
 | `TakipHomePreCampaignAnnouncement` | `app/(takip)/components/takip-home-pre-campaign-announcement.tsx` |
 | `TakipHomeLaunchCountdown` | `app/(takip)/components/takip-home-launch-countdown.tsx` |
 | `AnasayfaContent` | `app/(public)/onizleme/anasayfa/page.tsx` |
-| `ThanksContent` | `app/(public)/onizleme/thanks/page.tsx` |
+| `ThanksContent` | `app/(takip)/onizleme/tesekkur/page.tsx` |
+| `KurbanGunuSonrasiContent` | `app/(takip)/components/kurban-gunu-sonrasi-content.tsx` |
 | `TakipContent` | `app/(takip)/(takip)/page-takip.tsx` |
 
 ### Admin yönetimi
@@ -63,4 +65,5 @@ DB'ye dokunmadan içerik önizlemesi:
 - `/onizleme/bana-haber-ver` — bana_haber_ver
 - `/onizleme/geri-sayim` — geri_sayim
 - `/onizleme/tesekkur` — tesekkur
+- `/onizleme/kurban-gunu-sonrasi` — kurban_gunu_sonrasi
 - `/onizleme/takip` — follow_up

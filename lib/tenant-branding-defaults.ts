@@ -4,6 +4,7 @@
  */
 
 import type { ContactSocialLink } from "./contact-social-links";
+import type { HomepageMode } from "./homepage-settings";
 
 export interface AgreementTerm {
   title: string;
@@ -53,6 +54,8 @@ export interface TenantBranding {
   incident_banner_message: string;
   /** Parçalama aşaması bu tenant için zorunlu mu? tenant_settings.butcher_stage_required */
   butcher_stage_required: boolean;
+  /** Anasayfa evresi; minimal header davranışı için tenant_settings.homepage_mode */
+  homepage_mode: HomepageMode;
 }
 
 /** Kod yedeği — DB’de ilgili sütunlar NULL ise kullanılır. */
@@ -133,4 +136,5 @@ export const DEFAULT_BRANDING: TenantBranding = {
   incident_banner_enabled: false,
   incident_banner_message: "",
   butcher_stage_required: true,
+  homepage_mode: "bana_haber_ver",
 };

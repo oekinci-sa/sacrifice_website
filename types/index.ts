@@ -36,7 +36,8 @@ export type HomepageMode =
   | "tesekkur"
   | "follow_up"
   | "anasayfa"
-  | "takip";
+  | "takip"
+  | "kurban_gunu_sonrasi";
 
 export interface TenantSettings {
   tenant_id: string;

@@ -1,4 +1,5 @@
 import { parseContactSocialLinks } from "@/lib/contact-social-links";
+import type { HomepageMode } from "@/lib/homepage-settings";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getTenantIdOptional } from "@/lib/tenant";
 import {
@@ -23,7 +24,7 @@ export async function getTenantBranding(): Promise<TenantBranding> {
   const { data } = await supabaseAdmin
     .from("tenant_settings")
     .select(
-      "logo_slug, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, contact_address_label, contact_email_label, contact_phone_label, contact_social_links, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body, sms_enabled, incident_banner_enabled, incident_banner_message, butcher_stage_required"
+      "logo_slug, homepage_mode, iban, iban_account_holder, website_url, contact_phone, contact_email, contact_address, contact_address_label, contact_email_label, contact_phone_label, contact_social_links, deposit_amount, deposit_deadline_days, full_payment_deadline_month, full_payment_deadline_day, active_sacrifice_year, agreement_terms, agreement_dialog_title, agreement_main_heading, agreement_intro_text, agreement_footer_text, agreement_notice_after_term_title, agreement_notice_after_term_body, sms_enabled, incident_banner_enabled, incident_banner_message, butcher_stage_required"
     )
     .eq("tenant_id", tenantId)
     .single();
@@ -94,5 +95,6 @@ export async function getTenantBranding(): Promise<TenantBranding> {
         ? data.incident_banner_message
         : "",
     butcher_stage_required: data.butcher_stage_required !== false,
+    homepage_mode: (data.homepage_mode as HomepageMode | null) ?? "bana_haber_ver",
   };
 }

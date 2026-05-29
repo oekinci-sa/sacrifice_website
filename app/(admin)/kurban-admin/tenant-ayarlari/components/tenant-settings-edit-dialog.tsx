@@ -252,6 +252,7 @@ export function TenantSettingsEditDialog({
                       <SelectItem value="geri_sayim">Yakında Açılıyor (geri sayım)</SelectItem>
                       <SelectItem value="live">Satış Aktif</SelectItem>
                       <SelectItem value="tesekkur">Teşekkür</SelectItem>
+                      <SelectItem value="kurban_gunu_sonrasi">Kurban Günü Sonrası</SelectItem>
                       <SelectItem value="follow_up">Takip / Kesim</SelectItem>
                     </SelectContent>
                   </Select>

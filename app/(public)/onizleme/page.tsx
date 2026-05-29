@@ -26,6 +26,12 @@ const PREVIEW_PAGES = [
     description: "Hisse tükendi ekranı ve hisse sorgulama — Takip düzeni.",
   },
   {
+    href: "/onizleme/kurban-gunu-sonrasi",
+    title: "Kurban günü sonrası (kurban_gunu_sonrasi)",
+    description:
+      "Teşekkür metni; hisse sorgulama ve Kesim Yeri Konumu butonu yok — Takip düzeni.",
+  },
+  {
     href: "/onizleme/takip",
     title: "Kurban takip (follow_up)",
     description: "Kesim takip ekranı — canlıdaki takip sayfasıyla aynı içerik.",

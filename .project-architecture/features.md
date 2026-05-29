@@ -182,11 +182,13 @@ Admin panelinden (`/kurban-admin/tenant-ayarlari`) **Anasayfa Modu** alanı değ
 | `bana_haber_ver` | Ön Bilgilendirme / Bana Haber Ver | Minimal | Duyuru metni + Bana Haber Ver formu |
 | `geri_sayim` | Yakında Açılıyor | Minimal | Duyuru metni + Fiyat listesi (hisseal linki devre dışı); web’de 4 sütunlu grid |
 | `live` | Satış Aktif | Tam | Tam anasayfa (Features, Prices, Process, FAQ) |
-| `tesekkur` | Teşekkür | Minimal | Teşekkürler sayfası |
+| `tesekkur` | Teşekkür | Minimal | Teşekkürler sayfası + hisse sorgulama |
+| `kurban_gunu_sonrasi` | Kurban Günü Sonrası | Minimal | Teşekkür metni (hisse sorgulama / harita butonu yok) |
 | `follow_up` | Takip / Kesim | Minimal | Kurbanlık takip (Queue kartları) |
 
 - Layout seçimi `app/(root)/layout.tsx`'te yapılır: `live`/`anasayfa` → `PublicLayout` (tam header/footer), diğerleri → `TakipLayout` (minimal).
-- İçerik bileşenleri: `TakipHomeContent`, `TakipHomePreCampaignAnnouncement`, `TakipHomeLaunchCountdown`, `AnasayfaContent`, `ThanksContent`, `TakipContent`.
+- İçerik bileşenleri: `TakipHomeContent`, `TakipHomePreCampaignAnnouncement`, `TakipHomeLaunchCountdown`, `AnasayfaContent`, `ThanksContent`, `KurbanGunuSonrasiContent`, `TakipContent`.
+- Önizleme: `/onizleme/kurban-gunu-sonrasi`
 - Detay: [homepage-and-sacrifice-year.md](homepage-and-sacrifice-year.md), [changelogs/changelog-2026-03-homepage-phase-management.md](changelogs/changelog-2026-03-homepage-phase-management.md)
 
 ## Changelog

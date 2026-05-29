@@ -1,6 +1,7 @@
 "use client";
 
 import { parseContactSocialLinks } from "@/lib/contact-social-links";
+import type { HomepageMode } from "@/lib/homepage-settings";
 import {
   DEFAULT_AGREEMENT_COPY,
   DEFAULT_BRANDING,
@@ -107,6 +108,10 @@ export function TenantBrandingProvider({
                 ? data.branding.incident_banner_message
                 : "",
             butcher_stage_required: data.branding.butcher_stage_required !== false,
+            homepage_mode:
+              typeof data.homepage_mode === "string"
+                ? (data.homepage_mode as HomepageMode)
+                : DEFAULT_BRANDING.homepage_mode,
           });
         }
       })
